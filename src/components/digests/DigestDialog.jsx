@@ -195,7 +195,7 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
                     className={cn(
                       "cursor-pointer transition",
                       formData.categories.includes(cat) 
-                        ? "bg-violet-600 hover:bg-violet-700" 
+                        ? "bg-[#171a20] hover:bg-black" 
                         : "hover:bg-slate-100"
                     )}
                     onClick={() => toggleCategory(cat)}
@@ -359,7 +359,7 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading} className="bg-violet-600 hover:bg-violet-700">
+            <Button type="submit" disabled={loading} className="bg-[#171a20] hover:bg-black rounded-sm">
               {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               {editDigest ? 'Save Changes' : 'Create Digest'}
             </Button>

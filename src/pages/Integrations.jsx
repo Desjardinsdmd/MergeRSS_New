@@ -164,20 +164,20 @@ export default function Integrations() {
 
       {/* Premium Notice */}
       {!isPremium && (
-        <Card className="mb-6 bg-gradient-to-r from-violet-50 to-indigo-50 border-violet-200">
+        <Card className="mb-6 bg-[#171a20] border-[#171a20]">
           <CardContent className="p-4">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-violet-100 rounded-full flex items-center justify-center">
-                <Crown className="w-5 h-5 text-violet-600" />
+              <div className="w-10 h-10 bg-[#e82127] flex items-center justify-center">
+                <Crown className="w-5 h-5 text-white" />
               </div>
               <div className="flex-1">
-                <p className="font-medium text-slate-900">Upgrade to Premium</p>
-                <p className="text-sm text-slate-600">
+                <p className="font-medium text-white">Upgrade to Premium</p>
+                <p className="text-sm text-slate-400">
                   Unlock Slack and Discord integrations with Premium
                 </p>
               </div>
               <Link to={createPageUrl('Pricing')}>
-                <Button className="bg-violet-600 hover:bg-violet-700">
+                <Button className="bg-[#e82127] hover:bg-[#cc0000] rounded-sm">
                   Upgrade
                 </Button>
               </Link>

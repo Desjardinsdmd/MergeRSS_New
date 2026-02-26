@@ -41,12 +41,12 @@ export default function FeedCard({ feed, onEdit, onDelete, onToggleStatus }) {
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
           <div className={cn(
-            "w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0",
-            feed.status === 'error' ? "bg-red-100" : "bg-violet-100"
+            "w-10 h-10 flex items-center justify-center flex-shrink-0",
+            feed.status === 'error' ? "bg-red-100" : "bg-[#171a20]"
           )}>
             <Rss className={cn(
               "w-5 h-5",
-              feed.status === 'error' ? "text-red-600" : "text-violet-600"
+              feed.status === 'error' ? "text-red-600" : "text-white"
             )} />
           </div>
           

@@ -142,7 +142,7 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading} className="bg-violet-600 hover:bg-violet-700">
+            <Button type="submit" disabled={loading} className="bg-[#171a20] hover:bg-black rounded-sm">
               {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               {editFeed ? 'Save Changes' : 'Add Feed'}
             </Button>

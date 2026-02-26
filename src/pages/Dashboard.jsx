@@ -127,7 +127,7 @@ export default function Dashboard() {
               Start by adding RSS feeds to aggregate content from your favorite sources
             </p>
             <Link to={createPageUrl('Feeds')}>
-              <Button className="bg-violet-600 hover:bg-violet-700">
+              <Button className="bg-[#171a20] hover:bg-black rounded-sm">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Feed
               </Button>
