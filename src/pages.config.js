@@ -52,6 +52,10 @@ import Pricing from './pages/Pricing';
 import Dashboard from './pages/Dashboard';
 import Feeds from './pages/Feeds';
 import Digests from './pages/Digests';
+import Inbox from './pages/Inbox';
+import Integrations from './pages/Integrations';
+import Settings from './pages/Settings';
+import AdminHealth from './pages/AdminHealth';
 import __Layout from './Layout.jsx';
 
 
@@ -61,6 +65,10 @@ export const PAGES = {
     "Dashboard": Dashboard,
     "Feeds": Feeds,
     "Digests": Digests,
+    "Inbox": Inbox,
+    "Integrations": Integrations,
+    "Settings": Settings,
+    "AdminHealth": AdminHealth,
 }
 
 export const pagesConfig = {
