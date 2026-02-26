@@ -84,13 +84,13 @@ export default function Pricing() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white py-24">
+    <div className="min-h-screen bg-white py-32">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
-            Simple, transparent pricing
+        <div className="text-center mb-20">
+          <h1 className="text-5xl md:text-6xl font-bold text-[#171a20] mb-4 tracking-tight">
+            Choose Your Plan
           </h1>
-          <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+          <p className="text-xl text-slate-600 max-w-2xl mx-auto font-light">
             Start free, upgrade when you need more power
           </p>
         </div>
@@ -100,16 +100,16 @@ export default function Pricing() {
             <div
               key={plan.name}
               className={cn(
-                "relative rounded-2xl p-8 bg-white border-2 transition-all",
+                "relative p-10 bg-white border-2 transition-all",
                 plan.popular 
-                  ? "border-violet-500 shadow-xl shadow-violet-100" 
+                  ? "border-[#171a20] shadow-2xl" 
                   : "border-slate-200 hover:border-slate-300"
               )}
             >
               {plan.popular && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                  <span className="px-4 py-1.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-sm font-medium rounded-full">
-                    Most Popular
+                  <span className="px-4 py-1.5 bg-[#e82127] text-white text-sm font-medium tracking-wide">
+                    MOST POPULAR
                   </span>
                 </div>
               )}
@@ -146,10 +146,10 @@ export default function Pricing() {
                 onClick={() => handleGetStarted(plan)}
                 disabled={loading}
                 className={cn(
-                  "w-full h-12",
+                  "w-full h-12 font-medium rounded-sm",
                   plan.popular 
-                    ? "bg-violet-600 hover:bg-violet-700" 
-                    : "bg-slate-900 hover:bg-slate-800"
+                    ? "bg-[#171a20] hover:bg-black" 
+                    : "border-2 border-[#171a20] bg-white text-[#171a20] hover:bg-[#171a20] hover:text-white"
                 )}
               >
                 {loading ? (
@@ -160,7 +160,7 @@ export default function Pricing() {
               </Button>
 
               {user?.plan === plan.name.toLowerCase() && (
-                <p className="text-center text-sm text-violet-600 font-medium mt-4">
+                <p className="text-center text-sm text-[#e82127] font-medium mt-4">
                   Current Plan
                 </p>
               )}
@@ -168,10 +168,10 @@ export default function Pricing() {
           ))}
         </div>
 
-        <div className="mt-16 text-center">
-          <p className="text-slate-600">
+        <div className="mt-20 text-center">
+          <p className="text-slate-600 font-light">
             Need a custom plan for your enterprise?{' '}
-            <a href="mailto:support@mergerss.com" className="text-violet-600 hover:underline font-medium">
+            <a href="mailto:support@mergerss.com" className="text-[#171a20] hover:text-[#e82127] font-medium">
               Contact us
             </a>
           </p>

@@ -69,10 +69,10 @@ export default function Layout({ children, currentPageName }) {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               <Link to={createPageUrl('Landing')} className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-[#171a20] rounded-sm flex items-center justify-center">
                   <Rss className="w-4 h-4 text-white" />
                 </div>
-                <span className="font-semibold text-lg text-slate-900">MergeRSS</span>
+                <span className="font-semibold text-lg tracking-tight text-[#171a20]">MergeRSS</span>
               </Link>
               
               <nav className="hidden md:flex items-center gap-8">
@@ -88,7 +88,7 @@ export default function Layout({ children, currentPageName }) {
                 {user ? (
                   <Button 
                     onClick={() => navigate(createPageUrl('Dashboard'))}
-                    className="bg-violet-600 hover:bg-violet-700"
+                    className="bg-[#171a20] hover:bg-black rounded-sm"
                   >
                     Dashboard
                   </Button>
@@ -97,13 +97,13 @@ export default function Layout({ children, currentPageName }) {
                     <Button 
                       variant="ghost" 
                       onClick={() => base44.auth.redirectToLogin(createPageUrl('Dashboard'))}
-                      className="text-slate-600"
+                      className="text-slate-600 rounded-sm"
                     >
                       Sign in
                     </Button>
                     <Button 
                       onClick={() => base44.auth.redirectToLogin(createPageUrl('Dashboard'))}
-                      className="bg-violet-600 hover:bg-violet-700"
+                      className="bg-[#171a20] hover:bg-black rounded-sm"
                     >
                       Get Started
                     </Button>
@@ -146,17 +146,17 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Sidebar */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 transform transition-transform duration-200 ease-in-out lg:translate-x-0",
+        "fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-100 transform transition-transform duration-200 ease-in-out lg:translate-x-0",
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center justify-between h-16 px-4 border-b border-slate-100">
             <Link to={createPageUrl('Dashboard')} className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-[#171a20] rounded-sm flex items-center justify-center">
                 <Rss className="w-4 h-4 text-white" />
               </div>
-              <span className="font-semibold text-lg text-slate-900">MergeRSS</span>
+              <span className="font-semibold text-lg tracking-tight text-[#171a20]">MergeRSS</span>
             </Link>
             <button 
               onClick={() => setSidebarOpen(false)}
@@ -175,9 +175,9 @@ export default function Layout({ children, currentPageName }) {
                   key={item.name}
                   to={createPageUrl(item.href)}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-colors",
                     isActive 
-                      ? "bg-violet-50 text-violet-700" 
+                      ? "bg-[#171a20] text-white" 
                       : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                   )}
                 >
@@ -201,9 +201,9 @@ export default function Layout({ children, currentPageName }) {
                       key={item.name}
                       to={createPageUrl(item.href)}
                       className={cn(
-                        "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                        "flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-colors",
                         isActive 
-                          ? "bg-violet-50 text-violet-700" 
+                          ? "bg-[#171a20] text-white" 
                           : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                       )}
                     >
@@ -221,7 +221,7 @@ export default function Layout({ children, currentPageName }) {
             {user?.plan === 'free' && (
               <Link
                 to={createPageUrl('Pricing')}
-                className="flex items-center gap-2 px-3 py-2 mb-3 bg-gradient-to-r from-violet-50 to-indigo-50 rounded-lg text-sm text-violet-700 hover:from-violet-100 hover:to-indigo-100 transition"
+                className="flex items-center gap-2 px-3 py-2 mb-3 bg-[#171a20] text-white hover:bg-black transition text-sm"
               >
                 <Crown className="w-4 h-4" />
                 <span className="font-medium">Upgrade to Premium</span>
@@ -230,7 +230,7 @@ export default function Layout({ children, currentPageName }) {
             )}
             
             <div className="flex items-center gap-3 px-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-slate-200 to-slate-300 rounded-full flex items-center justify-center text-sm font-medium text-slate-600">
+              <div className="w-8 h-8 bg-[#171a20] rounded-full flex items-center justify-center text-sm font-medium text-white">
                 {user?.full_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
@@ -260,10 +260,10 @@ export default function Layout({ children, currentPageName }) {
               <Menu className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-lg flex items-center justify-center">
+              <div className="w-7 h-7 bg-[#171a20] rounded-sm flex items-center justify-center">
                 <Rss className="w-3.5 h-3.5 text-white" />
               </div>
-              <span className="font-semibold text-slate-900">MergeRSS</span>
+              <span className="font-semibold text-[#171a20] tracking-tight">MergeRSS</span>
             </div>
             <div className="w-8" />
           </div>

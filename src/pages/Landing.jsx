@@ -51,28 +51,18 @@ const features = [
 
 export default function Landing() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-violet-50 via-white to-indigo-50" />
-        <div className="absolute inset-0">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-violet-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse" />
-          <div className="absolute top-40 right-10 w-72 h-72 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse animation-delay-2000" />
-        </div>
-        
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-20">
+      <section className="relative overflow-hidden bg-white">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-24">
           <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-violet-100 rounded-full text-sm text-violet-700 font-medium mb-8">
-              <Zap className="w-4 h-4" />
-              Aggregate, curate, deliver — automatically
-            </div>
-            
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-slate-900 tracking-tight mb-6">
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-[#171a20] tracking-tight mb-6 leading-none">
               RSS feeds,
-              <span className="bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent"> beautifully merged</span>
+              <br />
+              <span className="text-[#e82127]">beautifully merged</span>
             </h1>
             
-            <p className="text-xl text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-xl text-slate-600 mb-12 max-w-2xl mx-auto leading-relaxed font-light">
               Turn overwhelming RSS feeds into curated digests. 
               Delivered to Slack, Discord, or your inbox — on your schedule.
             </p>
@@ -81,57 +71,50 @@ export default function Landing() {
               <Button 
                 size="lg"
                 onClick={() => base44.auth.redirectToLogin(createPageUrl('Dashboard'))}
-                className="bg-violet-600 hover:bg-violet-700 h-12 px-8 text-base"
+                className="bg-[#171a20] hover:bg-black h-14 px-12 text-base font-medium rounded-sm"
               >
-                Start for free
-                <ArrowRight className="w-4 h-4 ml-2" />
+                Order Now
               </Button>
-              <Link to={createPageUrl('Pricing')}>
-                <Button variant="outline" size="lg" className="h-12 px-8 text-base">
-                  View pricing
-                </Button>
-              </Link>
+              <Button 
+                variant="outline" 
+                size="lg" 
+                onClick={() => base44.auth.redirectToLogin(createPageUrl('Dashboard'))}
+                className="h-14 px-12 text-base font-medium border-2 border-[#171a20] hover:bg-[#171a20] hover:text-white rounded-sm"
+              >
+                Demo Drive
+              </Button>
             </div>
 
-            <div className="flex items-center justify-center gap-8 mt-12 text-sm text-slate-500">
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
-                No credit card required
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
-                5 feeds free forever
-              </div>
-            </div>
+            <p className="mt-8 text-sm text-slate-500 font-light">
+              Free plan includes 5 feeds • No credit card required
+            </p>
           </div>
         </div>
       </section>
 
       {/* Features Grid */}
-      <section className="py-24 bg-white">
+      <section className="py-24 bg-[#fafafa]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-              Everything you need for RSS management
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-5xl font-bold text-[#171a20] mb-4 tracking-tight">
+              Built for Efficiency
             </h2>
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+            <p className="text-lg text-slate-600 max-w-2xl mx-auto font-light">
               Powerful features to aggregate, filter, and deliver your content
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature, idx) => (
               <div 
                 key={idx}
-                className="p-6 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-lg hover:border-violet-100 transition-all duration-300"
+                className="p-8 bg-white border border-slate-100 hover:shadow-xl transition-all duration-300"
               >
-                <div className="w-12 h-12 bg-gradient-to-br from-violet-100 to-indigo-100 rounded-xl flex items-center justify-center mb-4">
-                  <feature.icon className="w-6 h-6 text-violet-600" />
-                </div>
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">
+                <feature.icon className="w-8 h-8 text-[#171a20] mb-6" />
+                <h3 className="text-lg font-semibold text-[#171a20] mb-3 tracking-tight">
                   {feature.title}
                 </h3>
-                <p className="text-slate-600">
+                <p className="text-slate-600 font-light">
                   {feature.description}
                 </p>
               </div>
@@ -141,76 +124,75 @@ export default function Landing() {
       </section>
 
       {/* Integrations Section */}
-      <section className="py-24 bg-gradient-to-br from-slate-900 to-slate-800">
+      <section className="py-24 bg-[#171a20]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Deliver where your team works
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">
+              Deliver Anywhere
             </h2>
-            <p className="text-lg text-slate-400 max-w-2xl mx-auto">
+            <p className="text-lg text-slate-400 max-w-2xl mx-auto font-light">
               Push digests directly to Slack, Discord, or your web inbox
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            <div className="bg-slate-800/50 backdrop-blur rounded-2xl p-8 text-center border border-slate-700">
-              <div className="w-16 h-16 bg-[#4A154B] rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            <div className="bg-[#1f2229] p-10 text-center border border-slate-800 hover:border-slate-700 transition">
+              <div className="w-16 h-16 bg-[#4A154B] flex items-center justify-center mx-auto mb-6">
                 <Slack className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Slack</h3>
-              <p className="text-slate-400">Post digests to any channel with rich formatting</p>
+              <h3 className="text-xl font-semibold text-white mb-3 tracking-tight">Slack</h3>
+              <p className="text-slate-400 font-light">Post digests to any channel with rich formatting</p>
             </div>
 
-            <div className="bg-slate-800/50 backdrop-blur rounded-2xl p-8 text-center border border-slate-700">
-              <div className="w-16 h-16 bg-[#5865F2] rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <div className="bg-[#1f2229] p-10 text-center border border-slate-800 hover:border-slate-700 transition">
+              <div className="w-16 h-16 bg-[#5865F2] flex items-center justify-center mx-auto mb-6">
                 <MessageCircle className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Discord</h3>
-              <p className="text-slate-400">Send to servers via webhook or bot integration</p>
+              <h3 className="text-xl font-semibold text-white mb-3 tracking-tight">Discord</h3>
+              <p className="text-slate-400 font-light">Send to servers via webhook or bot integration</p>
             </div>
 
-            <div className="bg-slate-800/50 backdrop-blur rounded-2xl p-8 text-center border border-slate-700">
-              <div className="w-16 h-16 bg-violet-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <div className="bg-[#1f2229] p-10 text-center border border-slate-800 hover:border-slate-700 transition">
+              <div className="w-16 h-16 bg-[#e82127] flex items-center justify-center mx-auto mb-6">
                 <Bell className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Web Inbox</h3>
-              <p className="text-slate-400">Access your digests anytime from the dashboard</p>
+              <h3 className="text-xl font-semibold text-white mb-3 tracking-tight">Web Inbox</h3>
+              <p className="text-slate-400 font-light">Access your digests anytime from the dashboard</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-white">
+      <section className="py-32 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-            Ready to streamline your RSS?
+          <h2 className="text-4xl md:text-5xl font-bold text-[#171a20] mb-6 tracking-tight">
+            Experience MergeRSS
           </h2>
-          <p className="text-lg text-slate-600 mb-8">
+          <p className="text-lg text-slate-600 mb-12 font-light">
             Start with 5 free feeds. No credit card required.
           </p>
           <Button 
             size="lg"
             onClick={() => base44.auth.redirectToLogin(createPageUrl('Dashboard'))}
-            className="bg-violet-600 hover:bg-violet-700 h-12 px-8 text-base"
+            className="bg-[#171a20] hover:bg-black h-14 px-12 text-base font-medium rounded-sm"
           >
-            Get started free
-            <ArrowRight className="w-4 h-4 ml-2" />
+            Order Now
           </Button>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-12 bg-slate-50 border-t border-slate-100">
+      <footer className="py-8 bg-[#171a20] border-t border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-lg flex items-center justify-center">
-                <Rss className="w-4 h-4 text-white" />
+              <div className="w-8 h-8 bg-white rounded-sm flex items-center justify-center">
+                <Rss className="w-4 h-4 text-[#171a20]" />
               </div>
-              <span className="font-semibold text-slate-900">MergeRSS</span>
+              <span className="font-semibold text-white tracking-tight">MergeRSS</span>
             </div>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-slate-400 font-light">
               © {new Date().getFullYear()} MergeRSS. All rights reserved.
             </p>
           </div>
