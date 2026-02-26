@@ -13,7 +13,8 @@ import {
   X,
   ChevronRight,
   Crown,
-  Activity
+  Activity,
+  Zap
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
