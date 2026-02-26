@@ -56,6 +56,7 @@ import Inbox from './pages/Inbox';
 import Integrations from './pages/Integrations';
 import Settings from './pages/Settings';
 import AdminHealth from './pages/AdminHealth';
+import FeedCurator from './pages/FeedCurator';
 import __Layout from './Layout.jsx';
 
 
@@ -69,6 +70,7 @@ export const PAGES = {
     "Integrations": Integrations,
     "Settings": Settings,
     "AdminHealth": AdminHealth,
+    "FeedCurator": FeedCurator,
 }
 
 export const pagesConfig = {
