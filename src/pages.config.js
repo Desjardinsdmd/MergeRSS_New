@@ -50,6 +50,8 @@
 import Landing from './pages/Landing';
 import Pricing from './pages/Pricing';
 import Dashboard from './pages/Dashboard';
+import Feeds from './pages/Feeds';
+import Digests from './pages/Digests';
 import __Layout from './Layout.jsx';
 
 
@@ -57,6 +59,8 @@ export const PAGES = {
     "Landing": Landing,
     "Pricing": Pricing,
     "Dashboard": Dashboard,
+    "Feeds": Feeds,
+    "Digests": Digests,
 }
 
 export const pagesConfig = {
