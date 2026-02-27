@@ -202,7 +202,8 @@ export default function AdminImport() {
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
-        const csv = event.target?.result;
+        const csv = event.target.result;
+        if (!csv) throw new Error('Failed to read file');
         const rows = parseCsv(csv);
         const digests = rows.map(r => ({
           name: r.name || r.digest_name || '',
@@ -216,12 +217,12 @@ export default function AdminImport() {
         }
         setManualDigests([...manualDigests, ...digests]);
         toast.success(`Added ${digests.length} digest(es) from CSV`);
+        e.target.value = '';
       } catch (err) {
         toast.error('Failed to parse CSV: ' + err.message);
       }
     };
     reader.readAsText(file);
-    e.target.value = '';
   };
 
   const runImport = async (specificUrl = null) => {
