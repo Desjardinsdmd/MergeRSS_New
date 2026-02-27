@@ -98,16 +98,14 @@ function LayoutContent({ children, currentPageName }) {
               </nav>
 
               <div className="flex items-center gap-3">
-                {mounted && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                    className="text-slate-600 dark:text-slate-400"
-                  >
-                    {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-                  </Button>
-                )}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                  className="text-slate-600 dark:text-slate-400"
+                >
+                  {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                </Button>
                 {user ? (
                   <Button
                     onClick={() => navigate(createPageUrl('Dashboard'))}
