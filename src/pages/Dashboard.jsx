@@ -21,11 +21,15 @@ import OnboardingTour from '@/components/OnboardingTour';
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
+  const [showTour, setShowTour] = useState(false);
 
   useEffect(() => {
     const loadUser = async () => {
       const userData = await base44.auth.me();
       setUser(userData);
+      if (!userData.onboarding_complete) {
+        setShowTour(true);
+      }
     };
     loadUser();
   }, []);
