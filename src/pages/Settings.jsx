@@ -11,7 +11,8 @@ import {
   Crown,
   Check,
   ExternalLink,
-  PlayCircle
+  PlayCircle,
+  Lock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
