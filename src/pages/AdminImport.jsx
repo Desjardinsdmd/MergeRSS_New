@@ -225,7 +225,6 @@ export default function AdminImport() {
         const csv = event.target.result;
         if (!csv) throw new Error('Failed to read file');
         const rows = parseCsv(csv);
-        console.log('Parsed rows:', rows);
         const digests = rows.map(r => ({
           name: r.name || r.digest_name || '',
           description: r.description || r.desc || '',
