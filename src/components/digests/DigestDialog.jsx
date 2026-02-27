@@ -412,7 +412,7 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
                 <Checkbox
                   checked={formData.delivery_discord}
                   onCheckedChange={(checked) => isPremium && setFormData({ ...formData, delivery_discord: checked })}
-                  disabled={!isPremium || !discordIntegration}
+                  disabled={!isPremium}
                 />
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
@@ -423,11 +423,19 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
                       </Badge>
                     )}
                   </div>
-                  <p className="text-xs text-slate-500">
-                    {discordIntegration ? 'Connected' : 'Not connected'}
-                  </p>
+                  <p className="text-xs text-slate-500">Post to Discord channel</p>
                 </div>
               </label>
+              {formData.delivery_discord && isPremium && (
+                <div className="ml-8 -mt-2 mb-3">
+                  <Input
+                    placeholder="Paste your Discord webhook URL"
+                    value={formData.discord_webhook_url}
+                    onChange={(e) => setFormData({ ...formData, discord_webhook_url: e.target.value })}
+                    className="text-sm"
+                  />
+                </div>
+              )}
             </div>
           </div>
 
