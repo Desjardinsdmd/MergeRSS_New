@@ -323,6 +323,57 @@ export default function Directory() {
   const filteredFeeds = filterAndSort(directoryFeeds);
   const filteredDigests = filterAndSort(directoryDigests);
 
+  const toggleSelectItem = (itemId, itemType) => {
+    const key = `${itemType}-${itemId}`;
+    setSelectedItems(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
+
+  const selectedFeeds = filteredFeeds.filter(f => selectedItems[`feed-${f.id}`]);
+  const selectedDigests = filteredDigests.filter(d => selectedItems[`digest-${d.id}`]);
+  const totalSelected = selectedFeeds.length + selectedDigests.length;
+
+  const handleBulkAdd = async () => {
+    if (selectedFeeds.length === 0) return;
+    setBulkAdding(true);
+    try {
+      for (const feed of selectedFeeds) {
+        if (!addedItems.includes(feed.id)) {
+          await handleAdd(feed, 'feed');
+        }
+      }
+      setSelectedItems({});
+    } finally {
+      setBulkAdding(false);
+    }
+  };
+
+  const handleCreateDigestFromFeeds = async () => {
+    if (selectedFeeds.length === 0) return;
+    setDigestCreating(true);
+    try {
+      const feedIds = selectedFeeds.map(f => f.id);
+      await base44.entities.Digest.create({
+        name: `${category === 'All' ? 'Feeds' : category} Digest`,
+        description: `Digest created from ${selectedFeeds.length} directory feed${selectedFeeds.length > 1 ? 's' : ''}`,
+        categories: selectedFeeds.map(f => f.category).filter(Boolean),
+        frequency: 'daily',
+        schedule_time: '09:00',
+        output_length: 'medium',
+        delivery_web: true,
+        status: 'active',
+        tags: Array.from(new Set(selectedFeeds.flatMap(f => f.tags || []))),
+      });
+      setSelectedItems({});
+      queryClient.invalidateQueries({ queryKey: ['user-digests'] });
+      toast.success(`Digest created from ${selectedFeeds.length} feed${selectedFeeds.length > 1 ? 's' : ''}!`);
+    } finally {
+      setDigestCreating(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Hero */}
