@@ -91,69 +91,110 @@ async function parseFeed(url) {
     throw new Error(`Unrecognized feed format — starts with: ${xml.substring(0, 120).replace(/\s+/g, ' ').trim()}`);
 }
 
+async function fetchFeedsWithThrottling(feeds, base44, batchSize = 5, delayBetweenBatches = 1000) {
+    const results = [];
+    
+    for (let i = 0; i < feeds.length; i += batchSize) {
+        const batch = feeds.slice(i, i + batchSize);
+        
+        // Fetch all feeds in batch in parallel
+        const batchResults = await Promise.allSettled(
+            batch.map(feed => 
+                parseFeed(feed.url)
+                    .then(items => ({ feed, items, error: null }))
+                    .catch(err => ({ feed, items: [], error: err.message }))
+            )
+        );
+
+        // Get existing items for all feeds in batch (one query)
+        const existingItems = await base44.asServiceRole.entities.FeedItem.filter({ 
+            feed_id: { $in: batch.map(f => f.id) } 
+        });
+        const itemsByFeed = {};
+        batch.forEach(f => itemsByFeed[f.id] = []);
+        existingItems.forEach(item => {
+            if (itemsByFeed[item.feed_id]) itemsByFeed[item.feed_id].push(item);
+        });
+
+        // Process results and prepare bulk creates
+        const itemsToCreate = [];
+        
+        for (let j = 0; j < batchResults.length; j++) {
+            const result = batchResults[j];
+            const feed = batch[j];
+            
+            if (result.status === 'rejected' || result.value.error) {
+                const error = result.status === 'rejected' ? result.reason.message : result.value.error;
+                const isRateLimit = error.includes('429') || error.toLowerCase().includes('rate limit');
+                
+                // Only update status on non-rate-limit errors
+                if (!isRateLimit) {
+                    await base44.asServiceRole.entities.Feed.update(feed.id, {
+                        status: 'error',
+                        fetch_error: error,
+                    });
+                }
+                results.push({ feed: feed.name, error, status: isRateLimit ? 'rate_limited' : 'error' });
+                continue;
+            }
+
+            const items = result.value.items;
+            const feedExisting = itemsByFeed[feed.id] || [];
+            const existingGuids = new Set(feedExisting.map(i => i.guid).filter(Boolean));
+            const existingUrls = new Set(feedExisting.map(i => i.url).filter(Boolean));
+
+            let newCount = 0;
+            for (const item of items.slice(0, 50)) {
+                if (!item.guid && !item.url) continue;
+                if (existingGuids.has(item.guid) || existingUrls.has(item.url)) continue;
+
+                itemsToCreate.push({
+                    feed_id: feed.id,
+                    title: item.title,
+                    url: item.url,
+                    description: item.description,
+                    content: item.content,
+                    author: item.author,
+                    published_date: item.published_date,
+                    guid: item.guid || item.url,
+                    category: feed.category,
+                    tags: feed.tags || [],
+                    is_read: false,
+                });
+                newCount++;
+            }
+
+            await base44.asServiceRole.entities.Feed.update(feed.id, {
+                last_fetched: new Date().toISOString(),
+                item_count: feedExisting.length + newCount,
+                status: 'active',
+                fetch_error: '',
+            });
+
+            results.push({ feed: feed.name, new_items: newCount, status: 'ok' });
+        }
+
+        // Bulk create all items from this batch
+        if (itemsToCreate.length > 0) {
+            await base44.asServiceRole.entities.FeedItem.bulkCreate(itemsToCreate);
+        }
+
+        // Delay between batches to avoid rate limiting
+        if (i + batchSize < feeds.length) {
+            await sleep(delayBetweenBatches);
+        }
+    }
+    
+    return results;
+}
+
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
         const startedAt = new Date().toISOString();
 
         const feeds = await base44.asServiceRole.entities.Feed.filter({ status: 'active' });
-        const results = [];
-
-        for (const feed of feeds) {
-            // Small delay between requests to avoid hammering servers
-            await sleep(300);
-            try {
-                const items = await parseFeed(feed.url);
-
-                // Get recent existing items for dedup (last 200)
-                const existingItems = await base44.asServiceRole.entities.FeedItem.list('-created_date', 200);
-                const feedExisting = existingItems.filter(i => i.feed_id === feed.id);
-                const existingGuids = new Set(feedExisting.map(i => i.guid).filter(Boolean));
-                const existingUrls = new Set(feedExisting.map(i => i.url).filter(Boolean));
-
-                let newCount = 0;
-                for (const item of items.slice(0, 50)) {
-                    if (!item.guid && !item.url) continue;
-                    if (existingGuids.has(item.guid) || existingUrls.has(item.url)) continue;
-
-                    await base44.asServiceRole.entities.FeedItem.create({
-                        feed_id: feed.id,
-                        title: item.title,
-                        url: item.url,
-                        description: item.description,
-                        content: item.content,
-                        author: item.author,
-                        published_date: item.published_date,
-                        guid: item.guid || item.url,
-                        category: feed.category,
-                        tags: feed.tags || [],
-                        is_read: false,
-                    });
-                    newCount++;
-                }
-
-                await base44.asServiceRole.entities.Feed.update(feed.id, {
-                    last_fetched: new Date().toISOString(),
-                    item_count: feedExisting.length + newCount,
-                    status: 'active',
-                    fetch_error: '',
-                });
-
-                results.push({ feed: feed.name, new_items: newCount, status: 'ok' });
-            } catch (err) {
-                await base44.asServiceRole.entities.Feed.update(feed.id, {
-                    status: 'error',
-                    fetch_error: err.message,
-                });
-                // If rate limited, don't mark as error — just skip this cycle
-                const isRateLimit = err.message.includes('429') || err.message.toLowerCase().includes('rate limit');
-                await base44.asServiceRole.entities.Feed.update(feed.id, {
-                    status: isRateLimit ? 'active' : 'error',
-                    fetch_error: err.message,
-                });
-                results.push({ feed: feed.name, error: err.message, status: isRateLimit ? 'rate_limited' : 'error' });
-            }
-        }
+        const results = await fetchFeedsWithThrottling(feeds, base44, 5, 1000);
 
         await base44.asServiceRole.entities.SystemHealth.create({
             job_type: 'feed_fetch',
