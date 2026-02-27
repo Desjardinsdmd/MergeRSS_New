@@ -22,7 +22,8 @@ import {
   Inbox,
   ChevronDown,
   Globe,
-  Mail
+  Mail,
+  Loader2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
