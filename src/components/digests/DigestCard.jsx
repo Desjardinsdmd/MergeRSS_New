@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import DigestComments from '@/components/digests/DigestComments';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,11 +20,13 @@ import {
   Clock,
   Slack,
   MessageCircle,
-  Inbox
+  Inbox,
+  ChevronDown
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function DigestCard({ digest, onEdit, onDelete, onToggleStatus, onSendTest }) {
+  const [showComments, setShowComments] = useState(false);
   const frequencyLabel = digest.frequency === 'daily' ? 'Daily' : 'Weekly';
   
   return (
@@ -135,8 +138,20 @@ export default function DigestCard({ digest, onEdit, onDelete, onToggleStatus, o
                 Last sent: {new Date(digest.last_sent).toLocaleString()}
               </p>
             )}
+
+            {/* Toggle comments */}
+            <button
+              onClick={() => setShowComments(!showComments)}
+              className="flex items-center gap-1 mt-3 text-xs text-slate-400 hover:text-indigo-600 transition"
+            >
+              <MessageCircle className="w-3 h-3" />
+              Discussion
+              <ChevronDown className={cn("w-3 h-3 transition-transform", showComments && "rotate-180")} />
+            </button>
           </div>
         </div>
+
+        {showComments && <DigestComments digestId={digest.id} />}
       </CardContent>
     </Card>
   );

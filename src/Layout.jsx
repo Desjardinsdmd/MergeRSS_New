@@ -15,7 +15,8 @@ import {
   Crown,
   Activity,
   Zap,
-  Inbox
+  Inbox,
+  Users
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -26,6 +27,7 @@ const navigation = [
   { name: 'Feeds', href: 'Feeds', icon: Rss },
   { name: 'Digests', href: 'Digests', icon: FileText },
   { name: 'Inbox', href: 'Inbox', icon: Inbox },
+  { name: 'Team', href: 'Team', icon: Users },
   { name: 'Integrations', href: 'Integrations', icon: Link2 },
   { name: 'Settings', href: 'Settings', icon: Settings },
 ];
