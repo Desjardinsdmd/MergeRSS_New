@@ -25,6 +25,7 @@ export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [showTour, setShowTour] = useState(false);
   const [showWalkthrough, setShowWalkthrough] = useState(false);
+  const [liveArticles, setLiveArticles] = useState([]);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -62,6 +63,22 @@ export default function Dashboard() {
     queryFn: () => base44.entities.FeedItem.list('-published_date', 10),
     enabled: !!user,
   });
+
+  // Real-time subscription to new feed items
+  useEffect(() => {
+    if (!user) return;
+    
+    const unsubscribe = base44.entities.FeedItem.subscribe((event) => {
+      if (event.type === 'create') {
+        setLiveArticles(prev => {
+          const updated = [event.data, ...prev];
+          return updated.slice(0, 10);
+        });
+      }
+    });
+
+    return () => unsubscribe();
+  }, [user]);
 
   const totalAdded = digests.reduce((sum, d) => sum + (d.added_count || 0), 0);
 
