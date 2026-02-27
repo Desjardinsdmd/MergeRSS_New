@@ -176,10 +176,13 @@ export default function AdminImport() {
     }
     const reader = new FileReader();
     reader.onload = (event) => {
+      console.log('FileReader onload triggered');
       try {
         const csv = event.target.result;
+        console.log('CSV content:', csv?.substring(0, 100));
         if (!csv) throw new Error('Failed to read file');
         const rows = parseCsv(csv);
+        console.log('Parsed rows:', rows);
         const feeds = rows.map(r => ({
           name: r.name || r.feed_name || '',
           url: r.url || r.feed_url || '',
