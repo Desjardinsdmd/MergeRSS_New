@@ -61,6 +61,11 @@ export default function Digests() {
   };
 
   const handleBulkDelete = async () => {
+    const publicDigests = digests.filter(d => selectedDigests.includes(d.id) && d.is_public);
+    if (publicDigests.length > 0) {
+      toast.error(`${publicDigests.length} digest(s) are in the directory — make them private first`);
+      return;
+    }
     setDeletingBulk(true);
     await Promise.all(selectedDigests.map(id => base44.entities.Digest.delete(id)));
     queryClient.invalidateQueries({ queryKey: ['digests'] });
