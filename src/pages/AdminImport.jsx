@@ -270,6 +270,48 @@ export default function AdminImport() {
       </div>
 
       <div className="space-y-6">
+        {/* Bulk Feed Upload */}
+        <Card className="border-slate-100">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Bulk Add Feeds to Directory</CardTitle>
+            <CardDescription className="text-xs">Upload a CSV file with columns: name, url, category (optional), tags (optional, semicolon-separated)</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <label className="flex flex-col items-center justify-center w-full px-4 py-6 border-2 border-dashed border-slate-200 rounded-lg hover:border-indigo-300 hover:bg-indigo-50 cursor-pointer transition">
+              <Upload className="w-5 h-5 text-slate-400 mb-2" />
+              <span className="text-sm text-slate-600">Click to upload CSV or drag and drop</span>
+              <input
+                type="file"
+                accept=".csv"
+                onChange={handleBulkFeedsUpload}
+                className="hidden"
+              />
+            </label>
+            <p className="text-[10px] text-slate-500 mt-2">Example: Feed1,https://example.com/feed.xml,Tech,ai;startup</p>
+          </CardContent>
+        </Card>
+
+        {/* Bulk Digest Upload */}
+        <Card className="border-slate-100">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Bulk Add Digests to Directory</CardTitle>
+            <CardDescription className="text-xs">Upload a CSV file with columns: name, description (optional), categories (optional, semicolon-separated), tags (optional, semicolon-separated)</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <label className="flex flex-col items-center justify-center w-full px-4 py-6 border-2 border-dashed border-slate-200 rounded-lg hover:border-indigo-300 hover:bg-indigo-50 cursor-pointer transition">
+              <Upload className="w-5 h-5 text-slate-400 mb-2" />
+              <span className="text-sm text-slate-600">Click to upload CSV or drag and drop</span>
+              <input
+                type="file"
+                accept=".csv"
+                onChange={handleBulkDigestsUpload}
+                className="hidden"
+              />
+            </label>
+            <p className="text-[10px] text-slate-500 mt-2">Example: DailyNews,News digest,Tech;AI,daily;news</p>
+          </CardContent>
+        </Card>
+
         {/* Manual Feed Entry */}
         <Card className="border-slate-100">
           <CardHeader className="pb-3">
