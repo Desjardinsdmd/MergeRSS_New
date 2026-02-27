@@ -72,7 +72,8 @@ export default function Digests() {
     }
   };
 
-  const maxDigests = user?.plan === 'premium' ? Infinity : 1;
+  const isPremium = user?.plan === 'premium';
+  const maxDigests = isPremium ? Infinity : 1;
   const canAddMore = digests.length < maxDigests;
 
   return (
@@ -83,9 +84,9 @@ export default function Digests() {
           <h1 className="text-2xl font-bold text-slate-900">Digests</h1>
           <p className="text-slate-600">
             Create and manage your curated content digests
-            {user?.plan !== 'premium' && (
+            {!isPremium && (
               <span className="text-sm text-slate-500 ml-2">
-                ({digests.length}/{maxDigests} digests)
+                ({digests.length}/{maxDigests} used)
               </span>
             )}
           </p>
@@ -93,12 +94,27 @@ export default function Digests() {
         <Button
           onClick={() => setShowDialog(true)}
           disabled={!canAddMore}
-          className="bg-indigo-600 hover:bg-indigo-700 rounded-lg"
+          title={!canAddMore ? 'Upgrade to Premium to create more digests' : ''}
+          className="bg-indigo-600 hover:bg-indigo-700 rounded-lg disabled:opacity-60"
         >
           <Plus className="w-4 h-4 mr-2" />
           Create Digest
         </Button>
       </div>
+
+      {/* Free plan limit banner */}
+      {!isPremium && digests.length >= maxDigests && (
+        <div className="mb-6 flex items-center justify-between gap-4 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+          <p className="text-sm text-amber-800 font-medium">
+            You've reached the 1-digest limit on the Free plan. Upgrade to Premium for unlimited digests.
+          </p>
+          <Link to={createPageUrl('Pricing')}>
+            <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 rounded-lg whitespace-nowrap">
+              Upgrade
+            </Button>
+          </Link>
+        </div>
+      )}
 
       {/* Digest List */}
       {isLoading ? (
