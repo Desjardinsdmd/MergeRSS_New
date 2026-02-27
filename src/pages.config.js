@@ -58,6 +58,7 @@ import Landing from './pages/Landing';
 import Pricing from './pages/Pricing';
 import Settings from './pages/Settings';
 import Team from './pages/Team';
+import Directory from './pages/Directory';
 import __Layout from './Layout.jsx';
 
 
@@ -73,6 +74,7 @@ export const PAGES = {
     "Pricing": Pricing,
     "Settings": Settings,
     "Team": Team,
+    "Directory": Directory,
 }
 
 export const pagesConfig = {
