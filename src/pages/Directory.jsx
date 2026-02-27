@@ -415,31 +415,32 @@ export default function Directory() {
                       votes={votes}
                       onVote={handleVote}
                       onAdd={handleAdd}
+                      addedItems={addedItems}
                     />
                   ))}
-              </div>
-            )}
-          </TabsContent>
+                  </div>
+                  )}
+                  </TabsContent>
 
-          <TabsContent value="feeds">
-            {filteredFeeds.length === 0 ? <EmptyState search={search} /> : (
-              <div className="space-y-3">
-                {filteredFeeds.map(item => (
-                  <DirectoryCard key={item.id} item={item} itemType="feed" user={user} votes={votes} onVote={handleVote} onAdd={handleAdd} />
-                ))}
-              </div>
-            )}
-          </TabsContent>
+                  <TabsContent value="feeds">
+                  {filteredFeeds.length === 0 ? <EmptyState search={search} /> : (
+                  <div className="space-y-3">
+                  {filteredFeeds.map(item => (
+                  <DirectoryCard key={item.id} item={item} itemType="feed" user={user} votes={votes} onVote={handleVote} onAdd={handleAdd} addedItems={addedItems} />
+                  ))}
+                  </div>
+                  )}
+                  </TabsContent>
 
-          <TabsContent value="digests">
-            {filteredDigests.length === 0 ? <EmptyState search={search} /> : (
-              <div className="space-y-3">
-                {filteredDigests.map(item => (
-                  <DirectoryCard key={item.id} item={item} itemType="digest" user={user} votes={votes} onVote={handleVote} onAdd={handleAdd} />
-                ))}
-              </div>
-            )}
-          </TabsContent>
+                  <TabsContent value="digests">
+                  {filteredDigests.length === 0 ? <EmptyState search={search} /> : (
+                  <div className="space-y-3">
+                  {filteredDigests.map(item => (
+                  <DirectoryCard key={item.id} item={item} itemType="digest" user={user} votes={votes} onVote={handleVote} onAdd={handleAdd} addedItems={addedItems} />
+                  ))}
+                  </div>
+                  )}
+                  </TabsContent>
         </Tabs>
       </div>
     </div>
