@@ -202,7 +202,11 @@ export default function AdminImport() {
 
   const handleBulkDigestsUpload = (e) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    console.log('Digests upload triggered, file:', file?.name);
+    if (!file) {
+      console.log('No file selected');
+      return;
+    }
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
