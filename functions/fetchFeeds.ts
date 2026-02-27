@@ -72,7 +72,23 @@ async function parseFeed(url) {
         });
     }
 
-    throw new Error('Unrecognized feed format');
+    // RDF/RSS 1.0
+    if (parsed['rdf:RDF'] || parsed.RDF) {
+        const rdf = parsed['rdf:RDF'] || parsed.RDF;
+        const items = Array.isArray(rdf.item) ? rdf.item : (rdf.item ? [rdf.item] : []);
+        return items.map(item => ({
+            title: typeof item.title === 'string' ? item.title : (item.title?.['#text'] || 'Untitled'),
+            url: typeof item.link === 'string' ? item.link : (item.link?.['#text'] || ''),
+            description: typeof item.description === 'string' ? item.description : (item.description?.['#text'] || ''),
+            content: typeof item['content:encoded'] === 'string' ? item['content:encoded'] : '',
+            author: item['dc:creator'] || '',
+            published_date: item['dc:date'] ? new Date(item['dc:date']).toISOString() : new Date().toISOString(),
+            guid: item['@_rdf:about'] || typeof item.link === 'string' ? item.link : '',
+        }));
+    }
+
+    // Dump first 200 chars of response for debugging
+    throw new Error(`Unrecognized feed format — starts with: ${xml.substring(0, 120).replace(/\s+/g, ' ').trim()}`);
 }
 
 Deno.serve(async (req) => {
