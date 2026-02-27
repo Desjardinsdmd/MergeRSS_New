@@ -184,8 +184,8 @@ export default function FeedCurator() {
           <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center mb-4">
             <Loader2 className="w-6 h-6 text-indigo-600 animate-spin" />
           </div>
-          <p className="text-slate-700 font-medium">Searching for relevant feeds...</p>
-          <p className="text-slate-400 text-sm mt-1">AI is scanning the web for the best sources</p>
+          <p className="text-slate-700 font-medium">Searching and testing relevant feeds...</p>
+          <p className="text-slate-400 text-sm mt-1">AI is scanning the web and validating RSS sources</p>
         </div>
       )}
 
