@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Loader2, Download, CheckCircle2, AlertCircle, ExternalLink, ChevronDown, ChevronRight, Plus, Trash2, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
