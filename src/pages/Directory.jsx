@@ -78,7 +78,7 @@ function DirectoryCard({ item, itemType, user, votes, onVote, onAdd, addedItems 
   const [adding, setAdding] = React.useState(false);
   const Icon = itemType === 'feed' ? Rss : FileText;
   const isAdded = addedItems?.includes(item.id);
-  const isOwner = isAdded && item.created_by === user?.email;
+  const isCreator = item.created_by === user?.email;
   
   const handleAddClick = async () => {
     setAdding(true);
@@ -105,7 +105,7 @@ function DirectoryCard({ item, itemType, user, votes, onVote, onAdd, addedItems 
               )}
             </div>
           </div>
-          {isOwner ? (
+          {isCreator && isAdded ? (
             <Badge variant="outline" className="text-xs h-7 px-2.5 flex-shrink-0">
               Your {itemType}
             </Badge>
