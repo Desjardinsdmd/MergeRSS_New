@@ -72,6 +72,12 @@ export default function AdminImport() {
   const [customTags, setCustomTags] = useState('');
   const [results, setResults] = useState(null);
   const [selectedSources, setSelectedSources] = useState(new Set(PRESET_SOURCES.map(s => s.url)));
+  
+  // Manual entry states
+  const [manualFeed, setManualFeed] = useState({ name: '', url: '', category: 'Other', tags: '' });
+  const [manualDigest, setManualDigest] = useState({ name: '', description: '', categories: '', tags: '' });
+  const [manualFeeds, setManualFeeds] = useState([]);
+  const [manualDigests, setManualDigests] = useState([]);
 
   const toggleSource = (url) => {
     const next = new Set(selectedSources);
