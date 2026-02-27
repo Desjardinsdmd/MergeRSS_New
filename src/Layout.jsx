@@ -231,7 +231,7 @@ export default function Layout({ children, currentPageName }) {
         </nav>
 
         {/* Bottom */}
-        <div className="p-3 border-t border-slate-100 flex-shrink-0">
+        <div className="p-3 border-t border-slate-100 dark:border-slate-800 flex-shrink-0">
           {user?.plan !== 'premium' && (
             <Link
               to={createPageUrl('Pricing')}
@@ -244,14 +244,14 @@ export default function Layout({ children, currentPageName }) {
           )}
 
           <div className="flex items-center gap-3 px-3 py-2">
-            <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-sm font-semibold text-indigo-700 flex-shrink-0">
+            <div className="w-8 h-8 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center text-sm font-semibold text-indigo-700 dark:text-indigo-300 flex-shrink-0">
               {user?.full_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-slate-900 truncate">{user?.full_name || 'User'}</p>
-              <p className="text-xs text-slate-400 truncate">{user?.email}</p>
+              <p className="text-sm font-medium text-slate-900 dark:text-white truncate">{user?.full_name || 'User'}</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500 truncate">{user?.email}</p>
             </div>
-            <button onClick={handleLogout} className="p-1 text-slate-400 hover:text-slate-600 transition flex-shrink-0">
+            <button onClick={handleLogout} className="p-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-400 transition flex-shrink-0">
               <LogOut className="w-4 h-4" />
             </button>
           </div>
