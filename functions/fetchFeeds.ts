@@ -100,6 +100,8 @@ Deno.serve(async (req) => {
         const results = [];
 
         for (const feed of feeds) {
+            // Small delay between requests to avoid hammering servers
+            await sleep(300);
             try {
                 const items = await parseFeed(feed.url);
 
