@@ -72,6 +72,12 @@ export default function Digests() {
     }
   };
 
+  const handleMakePublic = async (digest) => {
+    await base44.entities.Digest.update(digest.id, { is_public: !digest.is_public });
+    queryClient.invalidateQueries({ queryKey: ['digests'] });
+    toast.success(digest.is_public ? 'Digest made private' : 'Digest made public');
+  };
+
   const isPremium = user?.plan === 'premium';
   const maxDigests = isPremium ? Infinity : 1;
   const canAddMore = digests.length < maxDigests;
@@ -145,6 +151,7 @@ export default function Digests() {
               onDelete={(d) => setDeleteConfirm(d)}
               onToggleStatus={handleToggleStatus}
               onSendTest={handleSendTest}
+              onMakePublic={handleMakePublic}
               isSending={sendingTest === digest.id}
             />
           ))}
