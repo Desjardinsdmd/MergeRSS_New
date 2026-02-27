@@ -73,11 +73,13 @@ export default function BulkImportDialog({ open, onOpenChange, onSuccess }) {
     }
 
     setLoading(true);
+    const invokeMode = mode === 'directory' ? 'feeds' : mode;
     const response = await base44.functions.invoke('bulkImportFeeds', {
       content,
       format,
-      mode,
+      mode: invokeMode,
       digest_name: digestName,
+      add_to_directory: mode === 'directory',
     });
     setLoading(false);
 
