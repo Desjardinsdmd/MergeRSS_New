@@ -114,7 +114,7 @@ export default function Feeds() {
           <Button 
             onClick={() => setShowAddDialog(true)}
             disabled={!canAddMore}
-            className="bg-[#171a20] hover:bg-black rounded-sm"
+            className="bg-indigo-600 hover:bg-indigo-700 rounded-lg"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add Feed
@@ -166,7 +166,7 @@ export default function Feeds() {
             }
           </p>
           {feeds.length === 0 && (
-            <Button onClick={() => setShowAddDialog(true)} className="bg-[#171a20] hover:bg-black rounded-sm">
+            <Button onClick={() => setShowAddDialog(true)} className="bg-indigo-600 hover:bg-indigo-700 rounded-lg">
               <Plus className="w-4 h-4 mr-2" />
               Add Feed
             </Button>

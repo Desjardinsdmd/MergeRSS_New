@@ -79,7 +79,7 @@ export default function Inbox() {
             >
               <CardContent className="p-4">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-[#171a20] flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
                     <FileText className="w-5 h-5 text-white" />
                   </div>
                   
@@ -111,7 +111,7 @@ export default function Inbox() {
         <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-[#171a20]" />
+              <FileText className="w-5 h-5 text-indigo-600" />
               {selectedDelivery && getDigestName(selectedDelivery.digest_id)}
             </DialogTitle>
           </DialogHeader>

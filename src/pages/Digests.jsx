@@ -91,7 +91,7 @@ export default function Digests() {
         <Button
           onClick={() => setShowDialog(true)}
           disabled={!canAddMore}
-          className="bg-[#171a20] hover:bg-black rounded-sm"
+          className="bg-indigo-600 hover:bg-indigo-700 rounded-lg"
         >
           <Plus className="w-4 h-4 mr-2" />
           Create Digest
@@ -112,7 +112,7 @@ export default function Digests() {
           <p className="text-slate-500 mb-4">
             Create your first digest to start receiving curated content
           </p>
-          <Button onClick={() => setShowDialog(true)} className="bg-[#171a20] hover:bg-black rounded-sm">
+          <Button onClick={() => setShowDialog(true)} className="bg-indigo-600 hover:bg-indigo-700 rounded-lg">
             <Plus className="w-4 h-4 mr-2" />
             Create Digest
           </Button>
