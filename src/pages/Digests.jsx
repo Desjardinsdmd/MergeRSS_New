@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus, FileText, Loader2, Send } from 'lucide-react';
+import { Plus, FileText, Loader2, Send, Grid3x3, List, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -18,6 +18,8 @@ import {
 import { toast } from 'sonner';
 import DigestDialog from '@/components/digests/DigestDialog';
 import DigestCard from '@/components/digests/DigestCard';
+import DigestListView from '@/components/digests/DigestListView';
+import DigestCompactView from '@/components/digests/DigestCompactView';
 
 export default function Digests() {
   const [user, setUser] = useState(null);
@@ -25,6 +27,9 @@ export default function Digests() {
   const [editDigest, setEditDigest] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [sendingTest, setSendingTest] = useState(null);
+  const [viewMode, setViewMode] = useState('grid'); // grid, list, compact
+  const [selectedDigests, setSelectedDigests] = useState([]);
+  const [deletingBulk, setDeletingBulk] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -45,8 +50,18 @@ export default function Digests() {
       await base44.entities.Digest.delete(deleteConfirm.id);
       queryClient.invalidateQueries({ queryKey: ['digests'] });
       setDeleteConfirm(null);
+      setSelectedDigests([]);
       toast.success('Digest deleted');
     }
+  };
+
+  const handleBulkDelete = async () => {
+    setDeletingBulk(true);
+    await Promise.all(selectedDigests.map(id => base44.entities.Digest.delete(id)));
+    queryClient.invalidateQueries({ queryKey: ['digests'] });
+    setSelectedDigests([]);
+    setDeletingBulk(false);
+    toast.success(`${selectedDigests.length} digest(es) deleted`);
   };
 
   const handleToggleStatus = async (digest) => {
@@ -142,20 +157,93 @@ export default function Digests() {
           </Button>
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {digests.map((digest) => (
-            <DigestCard
-              key={digest.id}
-              digest={digest}
+        <>
+          <div className="flex justify-end gap-1 mb-6 border border-slate-200 rounded-lg p-1 bg-white w-fit">
+            <Button
+              variant={viewMode === 'grid' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('grid')}
+              className="rounded"
+            >
+              <Grid3x3 className="w-4 h-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'list' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('list')}
+              className="rounded"
+            >
+              <List className="w-4 h-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'compact' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('compact')}
+              className="rounded"
+            >
+              <span className="text-xs font-semibold">≡</span>
+            </Button>
+          </div>
+
+          {selectedDigests.length > 0 && (
+            <div className="mb-6 flex items-center justify-between gap-4 bg-indigo-50 border border-indigo-200 rounded-lg px-4 py-3">
+              <span className="text-sm font-medium text-indigo-900">{selectedDigests.length} digest(es) selected</span>
+              <Button
+                size="sm"
+                onClick={() => setDeleteConfirm({ id: 'bulk', name: '' })}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete Selected
+              </Button>
+            </div>
+          )}
+
+          {viewMode === 'grid' && (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {digests.map((digest) => (
+                <DigestCard
+                  key={digest.id}
+                  digest={digest}
+                  onEdit={(d) => { setEditDigest(d); setShowDialog(true); }}
+                  onDelete={(d) => setDeleteConfirm(d)}
+                  onToggleStatus={handleToggleStatus}
+                  onSendTest={handleSendTest}
+                  onMakePublic={handleMakePublic}
+                  isSending={sendingTest === digest.id}
+                />
+              ))}
+            </div>
+          )}
+
+          {viewMode === 'list' && (
+            <DigestListView
+              digests={digests}
+              selectedIds={selectedDigests}
+              onSelectionChange={setSelectedDigests}
               onEdit={(d) => { setEditDigest(d); setShowDialog(true); }}
               onDelete={(d) => setDeleteConfirm(d)}
               onToggleStatus={handleToggleStatus}
               onSendTest={handleSendTest}
               onMakePublic={handleMakePublic}
-              isSending={sendingTest === digest.id}
+              sendingTest={sendingTest}
             />
-          ))}
-        </div>
+          )}
+
+          {viewMode === 'compact' && (
+            <DigestCompactView
+              digests={digests}
+              selectedIds={selectedDigests}
+              onSelectionChange={setSelectedDigests}
+              onEdit={(d) => { setEditDigest(d); setShowDialog(true); }}
+              onDelete={(d) => setDeleteConfirm(d)}
+              onToggleStatus={handleToggleStatus}
+              onSendTest={handleSendTest}
+              onMakePublic={handleMakePublic}
+              sendingTest={sendingTest}
+            />
+          )}
+        </>
       )}
 
       {/* Create/Edit Dialog */}
@@ -173,15 +261,24 @@ export default function Digests() {
       <AlertDialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Digest</AlertDialogTitle>
+            <AlertDialogTitle>
+              {deleteConfirm?.id === 'bulk' ? 'Delete Digests' : 'Delete Digest'}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{deleteConfirm?.name}"? This action cannot be undone.
+              {deleteConfirm?.id === 'bulk'
+                ? `Are you sure you want to delete ${selectedDigests.length} digest(es)? This action cannot be undone.`
+                : `Are you sure you want to delete "${deleteConfirm?.name}"? This action cannot be undone.`
+              }
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
-              Delete
+            <AlertDialogAction
+              onClick={deleteConfirm?.id === 'bulk' ? handleBulkDelete : handleDelete}
+              disabled={deletingBulk}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {deletingBulk ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
