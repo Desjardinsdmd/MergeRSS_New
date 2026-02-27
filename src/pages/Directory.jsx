@@ -161,9 +161,9 @@ export default function Directory() {
     queryFn: () => base44.entities.Digest.filter({ is_public: true }),
   });
 
-  // Show all public items except ones the current user created
-  const directoryFeeds = publicFeeds.filter(f => f.created_by !== user?.email);
-  const directoryDigests = publicDigests.filter(d => d.created_by !== user?.email);
+  // Show public items to everyone (including creators)
+  const directoryFeeds = publicFeeds;
+  const directoryDigests = publicDigests;
 
   const { data: votes = [] } = useQuery({
     queryKey: ['directory-votes', user?.email],
