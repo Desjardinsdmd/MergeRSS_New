@@ -215,8 +215,7 @@ export default function AdminImport() {
           return;
         }
         setManualFeeds([...manualFeeds, ...validFeeds]);
-        setManualFeeds([...manualFeeds, ...feeds]);
-        toast.success(`Added ${feeds.length} feed(s) from CSV`);
+        toast.success(`Added ${validFeeds.length} feed(s) from CSV`);
         e.target.value = '';
       } catch (err) {
         toast.error('Failed to parse CSV: ' + err.message);
