@@ -201,12 +201,15 @@ export default function AdminImport() {
         if (!csv) throw new Error('Failed to read file');
         const rows = parseCsv(csv);
         console.log('Parsed rows:', rows);
-        const feeds = rows.map(r => ({
-          name: r.name || r.feed_name || '',
-          url: r.url || r.feed_url || '',
-          category: r.category || 'Other',
-          tags: (r.tags || '').split(';').map(t => t.trim()).filter(Boolean),
-        }));
+        const feeds = rows.map(r => {
+          console.log('Row object:', r);
+          return {
+            name: r.name || r.feed_name || '',
+            url: r.url || r.feed_url || '',
+            category: r.category || 'Other',
+            tags: (r.tags || '').split(';').map(t => t.trim()).filter(Boolean),
+          };
+        });
         console.log('Mapped feeds:', feeds);
         const validFeeds = feeds.filter(f => f.name && f.url);
         console.log('Valid feeds after filter:', validFeeds);
