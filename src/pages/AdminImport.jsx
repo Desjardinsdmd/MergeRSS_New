@@ -203,30 +203,40 @@ export default function AdminImport() {
 
   const handleBulkFeedsUpload = (e) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      toast.error('No file selected');
+      return;
+    }
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
         const csv = event.target.result;
         if (!csv) throw new Error('Failed to read file');
         const rows = parseCsv(csv);
+        console.log('Raw parsed rows:', rows);
         const feeds = rows.map(r => ({
           name: r.name || r.feed_name || '',
           url: r.url || r.feed_url || '',
           category: r.category || 'Other',
           tags: (r.tags || '').split(';').map(t => t.trim()).filter(Boolean),
         }));
+        console.log('Mapped feeds:', feeds);
         const validFeeds = feeds.filter(f => f.name && f.url);
+        console.log('Valid feeds:', validFeeds);
         if (validFeeds.length === 0) {
-          toast.error('No valid feeds found in CSV');
+          toast.error('No valid feeds found in CSV. Check that name and url columns are present and populated.');
           return;
         }
         setManualFeeds([...manualFeeds, ...validFeeds]);
         toast.success(`Added ${validFeeds.length} feed(s) from CSV`);
         e.target.value = '';
       } catch (err) {
+        console.error('CSV parsing error:', err);
         toast.error('Failed to parse CSV: ' + err.message);
       }
+    };
+    reader.onerror = () => {
+      toast.error('Failed to read file');
     };
     reader.readAsText(file);
   };
