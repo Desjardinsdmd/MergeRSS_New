@@ -12,7 +12,8 @@ import {
   ArrowRight,
   Clock,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Users
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -58,6 +59,8 @@ export default function Dashboard() {
     queryFn: () => base44.entities.FeedItem.list('-published_date', 10),
   });
 
+  const totalAdded = digests.reduce((sum, d) => sum + (d.added_count || 0), 0);
+
   const stats = [
     { 
       name: 'Active Feeds', 
@@ -79,9 +82,9 @@ export default function Dashboard() {
       color: 'emerald'
     },
     { 
-      name: 'Deliveries', 
-      value: deliveries.filter(d => d.status === 'sent').length,
-      icon: Bell,
+      name: 'Digest Adds', 
+      value: totalAdded,
+      icon: Users,
       color: 'amber'
     },
   ];
