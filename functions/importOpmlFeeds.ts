@@ -120,32 +120,29 @@ Deno.serve(async (req) => {
       const skipped = [];
 
       for (const feed of parsed) {
-        if (!dry_run) {
-          // Check for duplicates by URL
-          const existing = await base44.asServiceRole.entities.Feed.filter({ url: feed.url });
-          if (existing.length > 0) {
-            skipped.push(feed.name);
-            totalSkipped++;
-            continue;
-          }
+         if (!dry_run) {
+           // Check for duplicates by URL
+           const existing = await base44.asServiceRole.entities.DirectoryFeed.filter({ url: feed.url });
+           if (existing.length > 0) {
+             skipped.push(feed.name);
+             totalSkipped++;
+             continue;
+           }
 
-          await base44.asServiceRole.entities.Feed.create({
-            name: feed.name,
-            url: feed.url,
-            category: feed.category,
-            tags: [...(source.tags || []), feed.rawCategory.toLowerCase().replace(/[^a-z0-9]/g, '-')],
-            status: 'active',
-            is_public: true,
-            public_description: feed.description ? feed.description.substring(0, 200) : `${feed.name} RSS feed`,
-            item_count: 0,
-            added_count: 0,
-            upvotes: 0,
-            downvotes: 0,
-          });
-        }
-        imported.push(feed.name);
-        totalImported++;
-      }
+           await base44.asServiceRole.entities.DirectoryFeed.create({
+             name: feed.name,
+             url: feed.url,
+             category: feed.category,
+             tags: [...(source.tags || []), feed.rawCategory.toLowerCase().replace(/[^a-z0-9]/g, '-')],
+             description: feed.description ? feed.description.substring(0, 200) : `${feed.name} RSS feed`,
+             added_count: 0,
+             upvotes: 0,
+             downvotes: 0,
+           });
+         }
+         imported.push(feed.name);
+         totalImported++;
+       }
 
       results.push({
         source: source.url,

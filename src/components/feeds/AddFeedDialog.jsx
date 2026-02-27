@@ -63,17 +63,33 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    
+
     if (editFeed) {
-      await base44.entities.Feed.update(editFeed.id, formData);
+      // If sharing a personal feed to public, create a DirectoryFeed
+      if (formData.is_public && !editFeed.is_public) {
+        await base44.entities.DirectoryFeed.create({
+          name: formData.name,
+          url: formData.url,
+          category: formData.category,
+          tags: formData.tags || [],
+          description: formData.public_description,
+          added_count: 0,
+          upvotes: 0,
+          downvotes: 0,
+        });
+      }
+      await base44.entities.Feed.update(editFeed.id, { name: formData.name, url: formData.url, category: formData.category, tags: formData.tags });
     } else {
       await base44.entities.Feed.create({
-        ...formData,
+        name: formData.name,
+        url: formData.url,
+        category: formData.category,
+        tags: formData.tags || [],
         status: 'active',
         item_count: 0
       });
     }
-    
+
     setLoading(false);
     onSuccess();
     onOpenChange(false);
