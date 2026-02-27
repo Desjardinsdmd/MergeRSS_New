@@ -142,6 +142,11 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
       delivery_discord: isPremium && formData.delivery_discord,
     };
 
+    // Auto-populate Discord webhook from integration if enabling Discord delivery
+    if (formData.delivery_discord && discordIntegration && !data.discord_webhook_url) {
+      data.discord_webhook_url = discordIntegration.webhook_url;
+    }
+
     if (editDigest) {
       await base44.entities.Digest.update(editDigest.id, data);
     } else {
