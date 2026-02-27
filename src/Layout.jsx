@@ -57,13 +57,12 @@ function LayoutContent({ children, currentPageName }) {
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const isAuth = await base44.auth.isAuthenticated();
-        if (isAuth) {
-          const userData = await base44.auth.me();
-          setUser(userData);
-        }
+        // Only try to load user if they might be authenticated
+        // For public pages, skip authentication check to avoid login prompts
+        const userData = await base44.auth.me();
+        setUser(userData);
       } catch (e) {
-        // not authenticated
+        // not authenticated or error - that's ok for public pages
       } finally {
         setLoading(false);
       }
