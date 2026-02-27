@@ -180,7 +180,7 @@ Write a well-organized, professional digest. Group related stories where appropr
                 if (digest.delivery_discord) {
                     const discordIntegrations = await base44.asServiceRole.entities.Integration.filter({ type: 'discord', status: 'connected' });
                     const discordInt = discordIntegrations[0];
-                    if (discordInt?.webhook_url) {
+                    if (discordInt?.discord_webhook_url) {
                         const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                         const discordMsg = `**📰 ${digest.name}**\n*${dateStr} • ${items.length} articles*\n\n${content.slice(0, 1900)}${content.length > 1900 ? '\n\n*...read full digest in your MergeRSS inbox*' : ''}`;
 
