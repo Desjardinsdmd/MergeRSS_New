@@ -22,7 +22,9 @@ import {
   MessageCircle,
   Inbox,
   ChevronDown,
-  Globe
+  Globe,
+  Mail,
+  Hash
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
