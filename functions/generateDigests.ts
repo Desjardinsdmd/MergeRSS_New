@@ -177,29 +177,33 @@ Write a well-organized, professional digest. Group related stories where appropr
                 }
 
                 // Discord delivery
-                if (digest.delivery_discord && digest.discord_webhook_url) {
-                    const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                    const discordMsg = `**📰 ${digest.name}**\n*${dateStr} • ${items.length} articles*\n\n${content.slice(0, 1900)}${content.length > 1900 ? '\n\n*...read full digest in your MergeRSS inbox*' : ''}`;
+                if (digest.delivery_discord) {
+                    const discordIntegrations = await base44.asServiceRole.entities.Integration.filter({ type: 'discord', status: 'connected' });
+                    const discordInt = discordIntegrations[0];
+                    if (discordInt?.webhook_url) {
+                        const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                        const discordMsg = `**📰 ${digest.name}**\n*${dateStr} • ${items.length} articles*\n\n${content.slice(0, 1900)}${content.length > 1900 ? '\n\n*...read full digest in your MergeRSS inbox*' : ''}`;
 
-                    const discordRes = await fetch(digest.discord_webhook_url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ content: discordMsg }),
-                    });
+                        const discordRes = await fetch(discordInt.webhook_url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ content: discordMsg }),
+                        });
 
-                    await base44.asServiceRole.entities.DigestDelivery.create({
-                        digest_id: digest.id,
-                        delivery_type: 'discord',
-                        status: discordRes.ok ? 'sent' : 'failed',
-                        content: content,
-                        item_count: items.length,
-                        date_range_start: since.toISOString(),
-                        date_range_end: now.toISOString(),
-                        sent_at: now.toISOString(),
-                        error_message: discordRes.ok ? '' : `HTTP ${discordRes.status}`,
-                    });
+                        await base44.asServiceRole.entities.DigestDelivery.create({
+                            digest_id: digest.id,
+                            delivery_type: 'discord',
+                            status: discordRes.ok ? 'sent' : 'failed',
+                            content: content,
+                            item_count: items.length,
+                            date_range_start: since.toISOString(),
+                            date_range_end: now.toISOString(),
+                            sent_at: now.toISOString(),
+                            error_message: discordRes.ok ? '' : `HTTP ${discordRes.status}`,
+                        });
 
-                    if (discordRes.ok) deliveryTypes.push('discord');
+                        if (discordRes.ok) deliveryTypes.push('discord');
+                    }
                 }
 
                 await base44.asServiceRole.entities.Digest.update(digest.id, {
