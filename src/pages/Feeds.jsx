@@ -55,7 +55,18 @@ export default function Feeds() {
       setUser(userData);
     };
     loadUser();
+    
+    // Restore saved view mode preference
+    const savedViewMode = localStorage.getItem('feedsViewMode');
+    if (savedViewMode) {
+      setViewMode(savedViewMode);
+    }
   }, []);
+
+  // Save view mode preference whenever it changes
+  useEffect(() => {
+    localStorage.setItem('feedsViewMode', viewMode);
+  }, [viewMode]);
 
   const { data: feeds = [], isLoading } = useQuery({
     queryKey: ['feeds'],
