@@ -77,8 +77,8 @@ function VoteButtons({ item, itemType, user, votes, onVote }) {
 function DirectoryCard({ item, itemType, user, votes, onVote, onAdd, addedItems }) {
   const [adding, setAdding] = React.useState(false);
   const Icon = itemType === 'feed' ? Rss : FileText;
-  const isOwner = item.created_by === user?.email;
   const isAdded = addedItems?.includes(item.id);
+  const isOwner = isAdded && item.created_by === user?.email;
   
   const handleAddClick = async () => {
     setAdding(true);
