@@ -79,11 +79,6 @@ export default function Feeds() {
   };
 
   const handleBulkDelete = async () => {
-    const publicFeeds = feeds.filter(f => selectedFeeds.includes(f.id) && f.is_public);
-    if (publicFeeds.length > 0) {
-      toast.error(`${publicFeeds.length} feed(s) are in the directory — make them private first`);
-      return;
-    }
     setDeletingBulk(true);
     try {
       await Promise.all(selectedFeeds.map(id => base44.entities.Feed.delete(id)));
