@@ -236,6 +236,7 @@ export default function Directory() {
         tags: item.tags || [],
         status: 'active',
         item_count: 0,
+        sourced_from_directory: true,
       });
       await base44.entities.Feed.update(item.id, { added_count: (item.added_count || 0) + 1 });
       queryClient.invalidateQueries({ queryKey: ['feeds'] });
