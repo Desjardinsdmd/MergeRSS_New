@@ -53,7 +53,8 @@ export default function FeedCurator() {
 
   const loadExistingCategories = async () => {
     try {
-      const feeds = await base44.entities.Feed.list();
+      const user = await base44.auth.me();
+      const feeds = await base44.entities.Feed.filter({ created_by: user?.email });
       const cats = [...new Set(feeds.map(f => f.category).filter(Boolean))];
       setExistingCategories(cats);
     } catch (e) {}

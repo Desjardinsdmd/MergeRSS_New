@@ -26,17 +26,29 @@ import { cn } from '@/lib/utils';
 export default function Inbox() {
   const [selectedDelivery, setSelectedDelivery] = useState(null);
 
+  const [user, setUser] = React.useState(null);
+
+  React.useEffect(() => {
+    const loadUser = async () => {
+      const userData = await base44.auth.me();
+      setUser(userData);
+    };
+    loadUser();
+  }, []);
+
   const { data: deliveries = [], isLoading } = useQuery({
     queryKey: ['deliveries', 'web'],
     queryFn: async () => {
-      const all = await base44.entities.DigestDelivery.list('-created_date');
+      const all = await base44.entities.DigestDelivery.filter({ created_by: user?.email }, '-created_date');
       return all.filter(d => d.delivery_type === 'web' && d.status === 'sent');
     },
+    enabled: !!user,
   });
 
   const { data: digests = [] } = useQuery({
     queryKey: ['digests'],
-    queryFn: () => base44.entities.Digest.list(),
+    queryFn: () => base44.entities.Digest.filter({ created_by: user?.email }),
+    enabled: !!user,
   });
 
   const getDigestName = (digestId) => {

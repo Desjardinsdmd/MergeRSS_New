@@ -68,7 +68,8 @@ export default function Integrations() {
 
   const { data: integrations = [], isLoading } = useQuery({
     queryKey: ['integrations'],
-    queryFn: () => base44.entities.Integration.list(),
+    queryFn: () => base44.entities.Integration.filter({ created_by: user?.email }),
+    enabled: !!user,
   });
 
   const slackIntegration = integrations.find(i => i.type === 'slack');
