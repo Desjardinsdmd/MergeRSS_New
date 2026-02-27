@@ -361,6 +361,17 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
                 </div>
               </label>
 
+              <label className="flex items-center gap-3 p-3 border rounded-lg hover:bg-slate-50 cursor-pointer">
+                <Checkbox
+                  checked={formData.delivery_email}
+                  onCheckedChange={(checked) => setFormData({ ...formData, delivery_email: checked })}
+                />
+                <div>
+                  <p className="font-medium text-sm">Email</p>
+                  <p className="text-xs text-slate-500">Send to your account email address</p>
+                </div>
+              </label>
+
               <label className={cn(
                 "flex items-center gap-3 p-3 border rounded-lg",
                 isPremium ? "hover:bg-slate-50 cursor-pointer" : "opacity-60 cursor-not-allowed"
