@@ -48,8 +48,10 @@
  * The mainPage value must match a key in the PAGES object exactly.
  */
 import AdminHealth from './pages/AdminHealth';
+import AdminImport from './pages/AdminImport';
 import Dashboard from './pages/Dashboard';
 import Digests from './pages/Digests';
+import Directory from './pages/Directory';
 import FeedCurator from './pages/FeedCurator';
 import Feeds from './pages/Feeds';
 import Inbox from './pages/Inbox';
@@ -58,15 +60,15 @@ import Landing from './pages/Landing';
 import Pricing from './pages/Pricing';
 import Settings from './pages/Settings';
 import Team from './pages/Team';
-import Directory from './pages/Directory';
-import AdminImport from './pages/AdminImport';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AdminHealth": AdminHealth,
+    "AdminImport": AdminImport,
     "Dashboard": Dashboard,
     "Digests": Digests,
+    "Directory": Directory,
     "FeedCurator": FeedCurator,
     "Feeds": Feeds,
     "Inbox": Inbox,
@@ -75,8 +77,6 @@ export const PAGES = {
     "Pricing": Pricing,
     "Settings": Settings,
     "Team": Team,
-    "Directory": Directory,
-    "AdminImport": AdminImport,
 }
 
 export const pagesConfig = {

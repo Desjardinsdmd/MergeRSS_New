@@ -61,14 +61,23 @@ export default function Pricing() {
 
   const handleGetStarted = async (plan) => {
     if (!user) {
-      base44.auth.redirectToLogin(createPageUrl('Dashboard'));
+      base44.auth.redirectToLogin(createPageUrl('Pricing'));
       return;
     }
     if (plan.name === 'Free') {
       window.location.href = createPageUrl('Dashboard');
       return;
     }
-    window.location.href = `mailto:support@mergerss.com?subject=MergeRSS Premium Upgrade&body=Hi, I'd like to upgrade to Premium. My account email is ${user?.email || ''}.`;
+    // Premium - go to Stripe Checkout
+    setLoading(true);
+    const response = await base44.functions.invoke('createCheckoutSession', {
+      success_url: window.location.origin + createPageUrl('Dashboard') + '?upgraded=true',
+      cancel_url: window.location.href,
+    });
+    setLoading(false);
+    if (response.data?.url) {
+      window.location.href = response.data.url;
+    }
   };
 
   return (
