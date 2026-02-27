@@ -5,7 +5,7 @@ import { createPageUrl } from '@/utils';
 import { Link } from 'react-router-dom';
 import {
   Search, Rss, FileText, ArrowUp, ArrowDown,
-  Users, Filter, Globe, Plus, Loader2
+  Users, Filter, Globe, Plus, Loader2, CheckCircle2, Circle, Trash2
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
