@@ -44,7 +44,12 @@ const TIMEZONES = [
 export default function Settings() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [showPasswordVerification, setShowPasswordVerification] = useState(false);
+  const [password, setPassword] = useState('');
   const [formData, setFormData] = useState({
+    full_name: '',
+    email: '',
     timezone: 'America/New_York',
     emailNotifications: true,
     digestReminders: true,
