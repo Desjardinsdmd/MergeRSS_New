@@ -78,8 +78,8 @@ export default function Dashboard() {
   ];
 
   const colorClasses = {
-    violet: 'bg-violet-50 text-violet-600',
-    indigo: 'bg-indigo-50 text-indigo-600',
+    violet: 'bg-indigo-50 text-indigo-600',
+    indigo: 'bg-violet-50 text-violet-600',
     emerald: 'bg-emerald-50 text-emerald-600',
     amber: 'bg-amber-50 text-amber-600',
   };
@@ -117,8 +117,8 @@ export default function Dashboard() {
       {feeds.length === 0 && (
         <Card className="mb-8 border-dashed border-2 border-slate-200 bg-slate-50/50">
           <CardContent className="p-8 text-center">
-            <div className="w-12 h-12 bg-violet-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Rss className="w-6 h-6 text-violet-600" />
+            <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Rss className="w-6 h-6 text-indigo-600" />
             </div>
             <h3 className="text-lg font-semibold text-slate-900 mb-2">
               Add your first feed
@@ -127,7 +127,7 @@ export default function Dashboard() {
               Start by adding RSS feeds to aggregate content from your favorite sources
             </p>
             <Link to={createPageUrl('Feeds')}>
-              <Button className="bg-[#171a20] hover:bg-black rounded-sm">
+              <Button className="bg-indigo-600 hover:bg-indigo-700 rounded-lg">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Feed
               </Button>
