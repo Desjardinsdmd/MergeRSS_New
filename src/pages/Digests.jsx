@@ -47,6 +47,11 @@ export default function Digests() {
 
   const handleDelete = async () => {
     if (deleteConfirm) {
+      if (deleteConfirm.is_public) {
+        toast.error('Remove from directory first — make it private before deleting');
+        setDeleteConfirm(null);
+        return;
+      }
       await base44.entities.Digest.delete(deleteConfirm.id);
       queryClient.invalidateQueries({ queryKey: ['digests'] });
       setDeleteConfirm(null);
