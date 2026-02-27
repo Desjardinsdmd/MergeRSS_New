@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus, Search, Filter, Rss, Loader2, RefreshCw, Upload } from 'lucide-react';
+import { Plus, Search, Filter, Rss, Loader2, RefreshCw, Upload, Grid3x3, List, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -26,6 +26,8 @@ import {
 import { toast } from 'sonner';
 import AddFeedDialog from '@/components/feeds/AddFeedDialog';
 import FeedCard from '@/components/feeds/FeedCard';
+import FeedListView from '@/components/feeds/FeedListView';
+import FeedCompactView from '@/components/feeds/FeedCompactView';
 import BulkImportDialog from '@/components/feeds/BulkImportDialog';
 
 const CATEGORIES = ['All', 'CRE', 'Markets', 'Tech', 'News', 'Finance', 'Crypto', 'AI', 'Other'];
@@ -39,6 +41,9 @@ export default function Feeds() {
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [fetching, setFetching] = useState(false);
   const [showBulkImport, setShowBulkImport] = useState(false);
+  const [viewMode, setViewMode] = useState('grid'); // grid, list, compact
+  const [selectedFeeds, setSelectedFeeds] = useState([]);
+  const [deletingBulk, setDeletingBulk] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -66,8 +71,18 @@ export default function Feeds() {
       await base44.entities.Feed.delete(deleteConfirm.id);
       queryClient.invalidateQueries({ queryKey: ['feeds'] });
       setDeleteConfirm(null);
+      setSelectedFeeds([]);
       toast.success('Feed deleted');
     }
+  };
+
+  const handleBulkDelete = async () => {
+    setDeletingBulk(true);
+    await Promise.all(selectedFeeds.map(id => base44.entities.Feed.delete(id)));
+    queryClient.invalidateQueries({ queryKey: ['feeds'] });
+    setSelectedFeeds([]);
+    setDeletingBulk(false);
+    toast.success(`${selectedFeeds.length} feed(s) deleted`);
   };
 
   const handleToggleStatus = async (feed) => {
@@ -149,7 +164,7 @@ export default function Feeds() {
         </div>
       )}
 
-      {/* Filters */}
+      {/* Filters and View Options */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -171,6 +186,32 @@ export default function Feeds() {
             ))}
           </SelectContent>
         </Select>
+        <div className="flex gap-1 border border-slate-200 rounded-lg p-1 bg-white">
+          <Button
+            variant={viewMode === 'grid' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setViewMode('grid')}
+            className="rounded"
+          >
+            <Grid3x3 className="w-4 h-4" />
+          </Button>
+          <Button
+            variant={viewMode === 'list' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setViewMode('list')}
+            className="rounded"
+          >
+            <List className="w-4 h-4" />
+          </Button>
+          <Button
+            variant={viewMode === 'compact' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setViewMode('compact')}
+            className="rounded"
+          >
+            <span className="text-xs font-semibold">≡</span>
+          </Button>
+        </div>
       </div>
 
       {/* Feed List */}
@@ -200,17 +241,54 @@ export default function Feeds() {
           )}
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filteredFeeds.map((feed) => (
-            <FeedCard
-              key={feed.id}
-              feed={feed}
+        <>
+          {selectedFeeds.length > 0 && (
+            <div className="mb-6 flex items-center justify-between gap-4 bg-indigo-50 border border-indigo-200 rounded-lg px-4 py-3">
+              <span className="text-sm font-medium text-indigo-900">{selectedFeeds.length} feed(s) selected</span>
+              <Button
+                size="sm"
+                onClick={() => setDeleteConfirm({ id: 'bulk', name: '' })}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete Selected
+              </Button>
+            </div>
+          )}
+          {viewMode === 'grid' && (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {filteredFeeds.map((feed) => (
+                <FeedCard
+                  key={feed.id}
+                  feed={feed}
+                  onEdit={(f) => { setEditFeed(f); setShowAddDialog(true); }}
+                  onDelete={(f) => setDeleteConfirm(f)}
+                  onToggleStatus={handleToggleStatus}
+                />
+              ))}
+            </div>
+          )}
+          {viewMode === 'list' && (
+            <FeedListView
+              feeds={filteredFeeds}
+              selectedIds={selectedFeeds}
+              onSelectionChange={setSelectedFeeds}
               onEdit={(f) => { setEditFeed(f); setShowAddDialog(true); }}
               onDelete={(f) => setDeleteConfirm(f)}
               onToggleStatus={handleToggleStatus}
             />
-          ))}
-        </div>
+          )}
+          {viewMode === 'compact' && (
+            <FeedCompactView
+              feeds={filteredFeeds}
+              selectedIds={selectedFeeds}
+              onSelectionChange={setSelectedFeeds}
+              onEdit={(f) => { setEditFeed(f); setShowAddDialog(true); }}
+              onDelete={(f) => setDeleteConfirm(f)}
+              onToggleStatus={handleToggleStatus}
+            />
+          )}
+        </>
       )}
 
       {/* Bulk Import Dialog */}
@@ -238,15 +316,24 @@ export default function Feeds() {
       <AlertDialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Feed</AlertDialogTitle>
+            <AlertDialogTitle>
+              {deleteConfirm?.id === 'bulk' ? 'Delete Feeds' : 'Delete Feed'}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{deleteConfirm?.name}"? This will also remove all associated items.
+              {deleteConfirm?.id === 'bulk'
+                ? `Are you sure you want to delete ${selectedFeeds.length} feed(s)? This will also remove all associated items.`
+                : `Are you sure you want to delete "${deleteConfirm?.name}"? This will also remove all associated items.`
+              }
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
-              Delete
+            <AlertDialogAction
+              onClick={deleteConfirm?.id === 'bulk' ? handleBulkDelete : handleDelete}
+              disabled={deletingBulk}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {deletingBulk ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
