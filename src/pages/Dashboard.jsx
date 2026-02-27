@@ -159,7 +159,7 @@ export default function Dashboard() {
         {/* Recent Feed Items */}
         <Card className="border-slate-100">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-lg font-semibold">Recent Items</CardTitle>
+            <CardTitle className="text-lg font-semibold">Latest Articles</CardTitle>
             <Link to={createPageUrl('Feeds')} className="text-sm text-violet-600 hover:underline flex items-center gap-1">
               View all <ArrowRight className="w-3 h-3" />
             </Link>
@@ -201,7 +201,7 @@ export default function Dashboard() {
         {/* Recent Deliveries */}
         <Card className="border-slate-100">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-lg font-semibold">Recent Deliveries</CardTitle>
+            <CardTitle className="text-lg font-semibold">Digest History</CardTitle>
             <Link to={createPageUrl('Inbox')} className="text-sm text-violet-600 hover:underline flex items-center gap-1">
               View inbox <ArrowRight className="w-3 h-3" />
             </Link>
