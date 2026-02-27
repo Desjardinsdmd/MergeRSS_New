@@ -77,21 +77,21 @@ export default function Layout({ children, currentPageName }) {
   if (isPublicPage) {
     return (
       <div className="min-h-screen bg-white dark:bg-slate-950">
-        <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-lg border-b border-slate-100">
+        <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-slate-950/90 backdrop-blur-lg border-b border-slate-100 dark:border-slate-800">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               <Link to={createPageUrl('Landing')} className="flex items-center gap-2.5">
                 <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
                   <Rss className="w-4 h-4 text-white" />
                 </div>
-                <span className="font-bold text-lg text-slate-900 tracking-tight">MergeRSS</span>
+                <span className="font-bold text-lg text-slate-900 dark:text-white tracking-tight">MergeRSS</span>
               </Link>
 
               <nav className="hidden md:flex items-center gap-8">
-                <Link to={createPageUrl('Landing')} className="text-sm text-slate-500 hover:text-slate-900 transition font-medium">
+                <Link to={createPageUrl('Landing')} className="text-sm text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition font-medium">
                   Home
                 </Link>
-                <Link to={createPageUrl('Pricing')} className="text-sm text-slate-500 hover:text-slate-900 transition font-medium">
+                <Link to={createPageUrl('Pricing')} className="text-sm text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition font-medium">
                   Pricing
                 </Link>
               </nav>
