@@ -59,6 +59,7 @@ import Pricing from './pages/Pricing';
 import Settings from './pages/Settings';
 import Team from './pages/Team';
 import Directory from './pages/Directory';
+import AdminImport from './pages/AdminImport';
 import __Layout from './Layout.jsx';
 
 
@@ -75,6 +76,7 @@ export const PAGES = {
     "Settings": Settings,
     "Team": Team,
     "Directory": Directory,
+    "AdminImport": AdminImport,
 }
 
 export const pagesConfig = {
