@@ -261,6 +261,7 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
                 <SelectContent>
                   <SelectItem value="daily">Daily</SelectItem>
                   <SelectItem value="weekly">Weekly</SelectItem>
+                  <SelectItem value="monthly">Monthly</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -272,6 +273,45 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
                 onChange={(e) => setFormData({ ...formData, schedule_time: e.target.value })}
               />
             </div>
+
+            {formData.frequency === 'weekly' && (
+              <div className="col-span-2">
+                <Label>Day of Week</Label>
+                <Select
+                  value={String(formData.schedule_day_of_week)}
+                  onValueChange={(v) => setFormData({ ...formData, schedule_day_of_week: Number(v) })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].map((d, i) => (
+                      <SelectItem key={i} value={String(i)}>{d}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {formData.frequency === 'monthly' && (
+              <div className="col-span-2">
+                <Label>Day of Month</Label>
+                <Select
+                  value={String(formData.schedule_day_of_month)}
+                  onValueChange={(v) => setFormData({ ...formData, schedule_day_of_month: Number(v) })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+                      <SelectItem key={d} value={String(d)}>{d}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             <div>
               <Label>Timezone</Label>
               <Select
