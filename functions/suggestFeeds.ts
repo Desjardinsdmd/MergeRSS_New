@@ -3,12 +3,17 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 const testFeedUrl = async (url) => {
   try {
     const res = await fetch(url, { 
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; MergeRSS/1.0)' }
+      headers: { 
+        'User-Agent': 'Mozilla/5.0 (compatible; MergeRSS/1.0)',
+        'Accept': 'application/rss+xml, application/atom+xml, application/xml'
+      },
+      redirect: 'follow'
     });
     if (!res.ok) return false;
     const content = await res.text();
-    // Check if it's valid RSS/Atom XML
-    return content.includes('<?xml') && (content.includes('<rss') || content.includes('<feed'));
+    // Check if it's valid RSS/Atom/XML feed
+    return (content.includes('<rss') || content.includes('<feed') || content.includes('<?xml')) && 
+           (content.includes('<item') || content.includes('<entry'));
   } catch {
     return false;
   }
