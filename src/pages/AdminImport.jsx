@@ -320,7 +320,10 @@ export default function AdminImport() {
                 id="bulk-digests-upload"
                 type="file"
                 accept=".csv"
-                onChange={handleBulkDigestsUpload}
+                onChange={(e) => {
+                  console.log('onChange fired for digests');
+                  handleBulkDigestsUpload(e);
+                }}
                 className="hidden"
               />
             </label>
