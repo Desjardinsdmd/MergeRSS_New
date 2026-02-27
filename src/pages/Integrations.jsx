@@ -77,19 +77,17 @@ export default function Integrations() {
 
   const handleConnectSlack = async () => {
     if (!isPremium || !slackWebhook) return;
-    setLoading(true);
-
     if (!slackWebhook.includes('hooks.slack.com')) {
       toast.error('Invalid Slack webhook URL');
-      setLoading(false);
       return;
     }
+    setLoading(true);
 
     await base44.entities.Integration.create({
       type: 'slack',
       status: 'connected',
-      webhook_url: slackWebhook,
       workspace_name: 'Slack Workspace',
+      webhook_url: slackWebhook,
     });
 
     queryClient.invalidateQueries({ queryKey: ['integrations'] });
@@ -157,7 +155,7 @@ export default function Integrations() {
     } else if (type === 'Slack' && slackIntegration?.webhook_url) {
       const res = await base44.functions.invoke('sendSlackMessage', {
         webhook_url: slackIntegration.webhook_url,
-        text: '✅ *MergeRSS Test Message* — Your Slack integration is working!',
+        text: '✅ *MergeRSS test message* — your Slack integration is working!',
       });
       setLoading(false);
       if (res.data?.success) {
@@ -167,7 +165,6 @@ export default function Integrations() {
       }
     } else {
       setLoading(false);
-      toast.error('No webhook configured');
     }
   };
 
@@ -353,20 +350,22 @@ export default function Integrations() {
           
           <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="slack-webhook">Incoming Webhook URL</Label>
+              <Label htmlFor="slackWebhook">Incoming Webhook URL</Label>
               <Input
-                id="slack-webhook"
+                id="slackWebhook"
                 value={slackWebhook}
                 onChange={(e) => setSlackWebhook(e.target.value)}
                 placeholder="https://hooks.slack.com/services/..."
+                className="mt-1"
               />
             </div>
             <div className="bg-slate-50 rounded-lg p-4 text-sm text-slate-600">
               <p className="font-medium text-slate-900 mb-2">How to get a webhook:</p>
               <ol className="space-y-1 list-decimal list-inside">
-                <li>Go to <a href="https://api.slack.com/apps" target="_blank" className="text-indigo-600 underline">api.slack.com/apps</a> and create an app</li>
-                <li>Enable "Incoming Webhooks" in Features</li>
-                <li>Click "Add New Webhook to Workspace" and copy the URL</li>
+                <li>Go to <a href="https://api.slack.com/apps" target="_blank" rel="noreferrer" className="text-indigo-600 underline">api.slack.com/apps</a></li>
+                <li>Create an app → Incoming Webhooks</li>
+                <li>Enable and add a new webhook to your channel</li>
+                <li>Copy the webhook URL and paste it above</li>
               </ol>
             </div>
           </div>
