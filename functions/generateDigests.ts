@@ -25,14 +25,35 @@ Deno.serve(async (req) => {
                 // Check frequency unless forced
                 if (!force && digest.last_sent) {
                     const hoursSince = (now - new Date(digest.last_sent)) / (1000 * 60 * 60);
-                    const minHours = digest.frequency === 'weekly' ? 168 : 20;
+                    let minHours = 20; // daily
+                    if (digest.frequency === 'weekly') minHours = 168;
+                    if (digest.frequency === 'monthly') minHours = 24 * 28;
                     if (hoursSince < minHours) {
                         results.push({ digest: digest.name, skipped: true, reason: 'Not due yet' });
                         continue;
                     }
                 }
 
-                const lookbackDays = force ? 7 : (digest.frequency === 'weekly' ? 7 : 1);
+                // For weekly digests, check if today is the scheduled day
+                if (!force && digest.frequency === 'weekly' && digest.schedule_day_of_week !== undefined) {
+                    if (now.getDay() !== digest.schedule_day_of_week) {
+                        results.push({ digest: digest.name, skipped: true, reason: 'Not scheduled day of week' });
+                        continue;
+                    }
+                }
+
+                // For monthly digests, check if today is the scheduled day
+                if (!force && digest.frequency === 'monthly' && digest.schedule_day_of_month !== undefined) {
+                    if (now.getDate() !== digest.schedule_day_of_month) {
+                        results.push({ digest: digest.name, skipped: true, reason: 'Not scheduled day of month' });
+                        continue;
+                    }
+                }
+
+                let lookbackDays = 1;
+                if (digest.frequency === 'weekly') lookbackDays = 7;
+                if (digest.frequency === 'monthly') lookbackDays = 31;
+                if (force) lookbackDays = 7;
                 const since = digest.last_sent && !force
                     ? new Date(digest.last_sent)
                     : new Date(now - lookbackDays * 24 * 60 * 60 * 1000);
