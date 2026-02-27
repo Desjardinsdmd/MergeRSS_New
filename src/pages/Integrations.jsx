@@ -108,7 +108,7 @@ export default function Integrations() {
 
     try {
       // Validate webhook URL format
-      if (!discordWebhook.includes('discord.com/api/webhooks/')) {
+      if (!discordWebhook.includes('api/webhooks/')) {
         toast.error('Invalid Discord webhook URL');
         setLoading(false);
         return;
