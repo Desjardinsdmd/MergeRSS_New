@@ -237,6 +237,26 @@ export default function BulkImportDialog({ open, onOpenChange, onSuccess }) {
                     </button>
                   );
                 })}
+                <button
+                  onClick={() => setMode('directory')}
+                  className={cn(
+                    'flex items-start gap-3 p-3.5 rounded-xl border-2 text-left transition-all',
+                    mode === 'directory'
+                      ? 'border-indigo-500 bg-indigo-50/50'
+                      : 'border-slate-100 hover:border-slate-200 hover:bg-slate-50'
+                  )}
+                >
+                  <div className={cn(
+                    'w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5',
+                    mode === 'directory' ? 'bg-indigo-100' : 'bg-slate-100'
+                  )}>
+                    <Rss className={cn('w-4 h-4', mode === 'directory' ? 'text-indigo-600' : 'text-slate-500')} />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-900 text-sm">Add to Directory</p>
+                    <p className="text-xs text-slate-500 mt-0.5">Make feeds available in the public repository.</p>
+                  </div>
+                </button>
               </div>
             </div>
 
