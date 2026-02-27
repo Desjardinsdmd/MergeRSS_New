@@ -17,10 +17,13 @@ import {
   Zap,
   Inbox,
   Users,
-  Globe
+  Globe,
+  Moon,
+  Sun
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useTheme } from 'next-themes';
 
 const navigation = [
   { name: 'Dashboard', href: 'Dashboard', icon: LayoutDashboard },
