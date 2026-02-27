@@ -172,6 +172,9 @@ export default function Directory() {
   const [category, setCategory] = useState('All');
   const [sortBy, setSortBy] = useState('top');
   const [addedItems, setAddedItems] = useState([]);
+  const [selectedItems, setSelectedItems] = useState({});
+  const [bulkAdding, setBulkAdding] = useState(false);
+  const [digestCreating, setDigestCreating] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
