@@ -77,17 +77,19 @@ export default function Integrations() {
 
   const handleConnectSlack = async () => {
     if (!isPremium || !slackWebhook) return;
+    setLoading(true);
+
     if (!slackWebhook.includes('hooks.slack.com')) {
       toast.error('Invalid Slack webhook URL');
+      setLoading(false);
       return;
     }
-    setLoading(true);
 
     await base44.entities.Integration.create({
       type: 'slack',
       status: 'connected',
-      workspace_name: 'Slack Workspace',
       webhook_url: slackWebhook,
+      workspace_name: 'Slack Workspace',
     });
 
     queryClient.invalidateQueries({ queryKey: ['integrations'] });
@@ -155,7 +157,7 @@ export default function Integrations() {
     } else if (type === 'Slack' && slackIntegration?.webhook_url) {
       const res = await base44.functions.invoke('sendSlackMessage', {
         webhook_url: slackIntegration.webhook_url,
-        text: '✅ *MergeRSS test message* — your Slack integration is working!',
+        text: '✅ *MergeRSS Test Message* — Your Slack integration is working!',
       });
       setLoading(false);
       if (res.data?.success) {
@@ -165,6 +167,7 @@ export default function Integrations() {
       }
     } else {
       setLoading(false);
+      toast.error('No webhook configured');
     }
   };
 
@@ -225,28 +228,10 @@ export default function Integrations() {
                       <Badge className="bg-green-100 text-green-700">
                         <Check className="w-3 h-3 mr-1" /> Connected
                       </Badge>
-                      <span className="text-sm text-slate-500">
-                        {slackIntegration.workspace_name}
-                      </span>
+                      <span className="text-sm text-slate-500">Webhook configured</span>
                     </div>
                     
                     <div className="flex items-center gap-3">
-                      <Select
-                        value={slackIntegration.selected_channel_id}
-                        onValueChange={handleUpdateChannel}
-                      >
-                        <SelectTrigger className="w-48">
-                          <SelectValue placeholder="Select channel" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {slackIntegration.channels?.map((channel) => (
-                            <SelectItem key={channel.id} value={channel.id}>
-                              #{channel.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      
                       <Button
                         variant="outline"
                         size="sm"
