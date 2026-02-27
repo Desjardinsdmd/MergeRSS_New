@@ -17,6 +17,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import OnboardingTour from '@/components/OnboardingTour';
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
