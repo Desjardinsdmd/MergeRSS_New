@@ -272,7 +272,8 @@ export default function Directory() {
   };
 
   const handleAdd = async (item, itemType) => {
-    if (!user) return;
+    if (!user || addedItems.includes(item.id)) return;
+    
     if (itemType === 'feed') {
       await base44.entities.Feed.create({
         name: item.name,
@@ -282,9 +283,11 @@ export default function Directory() {
         status: 'active',
         item_count: 0,
         sourced_from_directory: true,
+        directory_feed_id: item.id,
       });
-      await base44.entities.Feed.update(item.id, { added_count: (item.added_count || 0) + 1 });
-      queryClient.invalidateQueries({ queryKey: ['feeds'] });
+      await base44.entities.DirectoryFeed.update(item.id, { added_count: (item.added_count || 0) + 1 });
+      setAddedItems([...addedItems, item.id]);
+      queryClient.invalidateQueries({ queryKey: ['user-feeds'] });
       queryClient.invalidateQueries({ queryKey: ['public-feeds'] });
       toast.success(`"${item.name}" added to your feeds!`);
     } else {
@@ -297,9 +300,11 @@ export default function Directory() {
         output_length: item.output_length,
         delivery_web: true,
         status: 'active',
+        directory_digest_id: item.id,
       });
-      await base44.entities.Digest.update(item.id, { added_count: (item.added_count || 0) + 1 });
-      queryClient.invalidateQueries({ queryKey: ['digests'] });
+      await base44.entities.DirectoryDigest.update(item.id, { added_count: (item.added_count || 0) + 1 });
+      setAddedItems([...addedItems, item.id]);
+      queryClient.invalidateQueries({ queryKey: ['user-digests'] });
       queryClient.invalidateQueries({ queryKey: ['public-digests'] });
       toast.success(`"${item.name}" added to your digests!`);
     }
