@@ -76,6 +76,8 @@ function VoteButtons({ item, itemType, user, votes, onVote }) {
 
 function DirectoryCard({ item, itemType, user, votes, onVote, onAdd }) {
   const Icon = itemType === 'feed' ? Rss : FileText;
+  const isOwner = item.created_by === user?.email;
+  
   return (
     <div className="bg-white border border-slate-100 rounded-xl p-4 flex gap-4 hover:shadow-sm transition">
       <VoteButtons item={item} itemType={itemType} user={user} votes={votes} onVote={onVote} />
@@ -95,16 +97,22 @@ function DirectoryCard({ item, itemType, user, votes, onVote, onAdd }) {
               )}
             </div>
           </div>
-          <Button
-            size="sm"
-            onClick={() => onAdd(item, itemType)}
-            disabled={!user}
-            className="bg-indigo-600 hover:bg-indigo-700 rounded-lg text-xs h-7 px-2.5 flex-shrink-0"
-            title={user ? undefined : 'Sign in to add'}
-          >
-            <Plus className="w-3 h-3 mr-1" />
-            Add
-          </Button>
+          {isOwner ? (
+            <Badge variant="outline" className="text-xs h-7 px-2.5 flex-shrink-0">
+              Your {itemType}
+            </Badge>
+          ) : (
+            <Button
+              size="sm"
+              onClick={() => onAdd(item, itemType)}
+              disabled={!user}
+              className="bg-indigo-600 hover:bg-indigo-700 rounded-lg text-xs h-7 px-2.5 flex-shrink-0"
+              title={user ? undefined : 'Sign in to add'}
+            >
+              <Plus className="w-3 h-3 mr-1" />
+              Add
+            </Button>
+          )}
         </div>
 
         {(item.public_description || item.description) && (
