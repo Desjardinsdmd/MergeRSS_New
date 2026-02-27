@@ -47,30 +47,30 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
-import Landing from './pages/Landing';
-import Pricing from './pages/Pricing';
+import AdminHealth from './pages/AdminHealth';
 import Dashboard from './pages/Dashboard';
-import Feeds from './pages/Feeds';
 import Digests from './pages/Digests';
+import FeedCurator from './pages/FeedCurator';
+import Feeds from './pages/Feeds';
 import Inbox from './pages/Inbox';
 import Integrations from './pages/Integrations';
+import Landing from './pages/Landing';
+import Pricing from './pages/Pricing';
 import Settings from './pages/Settings';
-import AdminHealth from './pages/AdminHealth';
-import FeedCurator from './pages/FeedCurator';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "Landing": Landing,
-    "Pricing": Pricing,
+    "AdminHealth": AdminHealth,
     "Dashboard": Dashboard,
-    "Feeds": Feeds,
     "Digests": Digests,
+    "FeedCurator": FeedCurator,
+    "Feeds": Feeds,
     "Inbox": Inbox,
     "Integrations": Integrations,
+    "Landing": Landing,
+    "Pricing": Pricing,
     "Settings": Settings,
-    "AdminHealth": AdminHealth,
-    "FeedCurator": FeedCurator,
 }
 
 export const pagesConfig = {

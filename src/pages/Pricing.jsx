@@ -66,21 +66,14 @@ export default function Pricing() {
       base44.auth.redirectToLogin(createPageUrl('Dashboard'));
       return;
     }
-    
+
     if (plan.name === 'Free') {
       window.location.href = createPageUrl('Dashboard');
       return;
     }
 
-    // For Premium, simulate upgrade (in production, this would trigger Stripe)
-    setLoading(true);
-    try {
-      await base44.auth.updateMe({ plan: 'premium' });
-      window.location.href = createPageUrl('Dashboard');
-    } catch (e) {
-      console.error(e);
-    }
-    setLoading(false);
+    // Premium: contact to upgrade
+    window.location.href = 'mailto:support@mergerss.com?subject=MergeRSS Premium Upgrade&body=Hi, I would like to upgrade to the Premium plan. My email is ' + (user?.email || '');
   };
 
   return (

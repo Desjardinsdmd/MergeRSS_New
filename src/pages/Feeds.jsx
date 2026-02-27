@@ -75,11 +75,13 @@ export default function Feeds() {
 
   const handleFetchFeeds = async () => {
     setFetching(true);
-    // Simulate feed fetching - in production this would trigger a backend job
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    const response = await base44.functions.invoke('fetchFeeds');
     queryClient.invalidateQueries({ queryKey: ['feeds'] });
+    queryClient.invalidateQueries({ queryKey: ['feedItems'] });
     setFetching(false);
-    toast.success('Feeds refreshed');
+    const results = response.data?.results || [];
+    const newItems = results.reduce((sum, r) => sum + (r.new_items || 0), 0);
+    toast.success(`Feeds refreshed — ${newItems} new items found`);
   };
 
   const maxFeeds = user?.plan === 'premium' ? Infinity : 5;
