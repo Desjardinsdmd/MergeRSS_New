@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
+import { createPageUrl } from '@/utils';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus, Search, Filter, Rss, Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
