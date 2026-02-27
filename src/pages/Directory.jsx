@@ -74,9 +74,17 @@ function VoteButtons({ item, itemType, user, votes, onVote }) {
   );
 }
 
-function DirectoryCard({ item, itemType, user, votes, onVote, onAdd }) {
+function DirectoryCard({ item, itemType, user, votes, onVote, onAdd, addedItems }) {
+  const [adding, setAdding] = React.useState(false);
   const Icon = itemType === 'feed' ? Rss : FileText;
   const isOwner = item.created_by === user?.email;
+  const isAdded = addedItems?.includes(item.id);
+  
+  const handleAddClick = async () => {
+    setAdding(true);
+    await onAdd(item, itemType);
+    setAdding(false);
+  };
   
   return (
     <div className="bg-white border border-slate-100 rounded-xl p-4 flex gap-4 hover:shadow-sm transition">
@@ -101,16 +109,29 @@ function DirectoryCard({ item, itemType, user, votes, onVote, onAdd }) {
             <Badge variant="outline" className="text-xs h-7 px-2.5 flex-shrink-0">
               Your {itemType}
             </Badge>
+          ) : isAdded ? (
+            <Badge variant="outline" className="text-xs h-7 px-2.5 flex-shrink-0 bg-green-50 text-green-700 border-green-200">
+              ✓ Added
+            </Badge>
           ) : (
             <Button
               size="sm"
-              onClick={() => onAdd(item, itemType)}
-              disabled={!user}
+              onClick={handleAddClick}
+              disabled={!user || adding}
               className="bg-indigo-600 hover:bg-indigo-700 rounded-lg text-xs h-7 px-2.5 flex-shrink-0"
               title={user ? undefined : 'Sign in to add'}
             >
-              <Plus className="w-3 h-3 mr-1" />
-              Add
+              {adding ? (
+                <>
+                  <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                  Adding
+                </>
+              ) : (
+                <>
+                  <Plus className="w-3 h-3 mr-1" />
+                  Add
+                </>
+              )}
             </Button>
           )}
         </div>
