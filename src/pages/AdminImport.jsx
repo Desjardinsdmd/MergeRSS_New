@@ -78,6 +78,7 @@ export default function AdminImport() {
   const [manualDigest, setManualDigest] = useState({ name: '', description: '', categories: '', tags: '' });
   const [manualFeeds, setManualFeeds] = useState([]);
   const [manualDigests, setManualDigests] = useState([]);
+  const feedsUploadRef = useRef(null);
 
   const toggleSource = (url) => {
     const next = new Set(selectedSources);
