@@ -447,6 +447,63 @@ export default function Directory() {
         </div>
       </div>
 
+      {/* Bulk Actions Bar */}
+      {totalSelected > 0 && (
+        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3 bg-indigo-50 border-b border-indigo-200">
+          <span className="text-sm font-medium text-indigo-900">
+            {totalSelected} item{totalSelected > 1 ? 's' : ''} selected
+          </span>
+          {selectedFeeds.length > 0 && (
+            <>
+              <Button
+                size="sm"
+                onClick={handleBulkAdd}
+                disabled={bulkAdding}
+                className="bg-indigo-600 hover:bg-indigo-700 text-xs"
+              >
+                {bulkAdding ? (
+                  <>
+                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                    Adding
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-3 h-3 mr-1" />
+                    Add {selectedFeeds.length} Feed{selectedFeeds.length > 1 ? 's' : ''}
+                  </>
+                )}
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleCreateDigestFromFeeds}
+                disabled={digestCreating}
+                className="bg-emerald-600 hover:bg-emerald-700 text-xs"
+              >
+                {digestCreating ? (
+                  <>
+                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                    Creating
+                  </>
+                ) : (
+                  <>
+                    <FileText className="w-3 h-3 mr-1" />
+                    Create Digest
+                  </>
+                )}
+              </Button>
+            </>
+          )}
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setSelectedItems({})}
+            className="ml-auto text-xs"
+          >
+            Clear
+          </Button>
+        </div>
+      )}
+
       {/* Content */}
       <div className="max-w-4xl mx-auto px-4 pb-12">
         <Tabs defaultValue="all">
