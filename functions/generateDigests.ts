@@ -86,8 +86,18 @@ Deno.serve(async (req) => {
                 }
 
                 if (items.length === 0) {
-                    results.push({ digest: digest.name, skipped: true, reason: 'No new items in time window' });
-                    continue;
+                    if (!force) {
+                        results.push({ digest: digest.name, skipped: true, reason: 'No new items in time window' });
+                        continue;
+                    }
+                    // For forced test sends, use recent items regardless of date
+                    const recentItems = await base44.asServiceRole.entities.FeedItem.list('-published_date', 30);
+                    if (recentItems.length > 0) {
+                        items = recentItems.slice(0, 10);
+                    } else {
+                        results.push({ digest: digest.name, skipped: true, reason: 'No items available' });
+                        continue;
+                    }
                 }
 
                 // Sort by date, take top items
