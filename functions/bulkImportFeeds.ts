@@ -81,7 +81,7 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { content, format, mode, digest_name, category = 'Other' } = body;
+    const { content, format, mode, digest_name, category = 'Other', add_to_directory = false } = body;
     // format: 'opml' | 'urls'
     // mode: 'feeds' | 'digest'
 
@@ -137,17 +137,31 @@ Deno.serve(async (req) => {
       const skipped = [];
 
       for (const feed of parsedFeeds) {
-        const existing = await base44.entities.Feed.filter({ url: feed.url });
+        const checkEntity = add_to_directory ? 'DirectoryFeed' : 'Feed';
+        const existing = await base44.entities[checkEntity].filter({ url: feed.url });
         if (existing.length > 0) {
           skipped.push(feed.name);
           continue;
         }
-        await base44.entities.Feed.create({
-          name: feed.name,
-          url: feed.url,
-          category: feed.category || mapCategory(category),
-          status: 'active',
-        });
+
+        if (add_to_directory) {
+          await base44.entities.DirectoryFeed.create({
+            name: feed.name,
+            url: feed.url,
+            category: feed.category || mapCategory(category),
+            description: '',
+            added_count: 0,
+            upvotes: 0,
+            downvotes: 0,
+          });
+        } else {
+          await base44.entities.Feed.create({
+            name: feed.name,
+            url: feed.url,
+            category: feed.category || mapCategory(category),
+            status: 'active',
+          });
+        }
         created.push(feed.name);
       }
 
