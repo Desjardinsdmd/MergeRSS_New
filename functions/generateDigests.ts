@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
                 let lookbackDays = 1;
                 if (digest.frequency === 'weekly') lookbackDays = 7;
                 if (digest.frequency === 'monthly') lookbackDays = 31;
-                if (force) lookbackDays = 7;
+                if (force) lookbackDays = 30;
                 const since = digest.last_sent && !force
                     ? new Date(digest.last_sent)
                     : new Date(now - lookbackDays * 24 * 60 * 60 * 1000);
