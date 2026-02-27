@@ -162,37 +162,15 @@ export default function AdminImport() {
     const lines = csv.trim().split('\n').filter(l => l.trim());
     if (lines.length < 2) return [];
 
-    // Helper to parse CSV line respecting quotes
-    const parseLine = (line) => {
-      const values = [];
-      let current = '';
-      let inQuotes = false;
-      for (let i = 0; i < line.length; i++) {
-        const char = line[i];
-        if (char === '"') {
-          inQuotes = !inQuotes;
-        } else if (char === ',' && !inQuotes) {
-          values.push(current.trim());
-          current = '';
-        } else {
-          current += char;
-        }
-      }
-      values.push(current.trim());
-      return values;
+    // Simple CSV parser: split by comma and remove quotes
+    const parseRow = (row) => {
+      return row.split(',').map(val => val.trim().replace(/^"|"$/g, ''));
     };
 
-    // Parse header
-    let header = parseLine(lines[0]).map(h => h.toLowerCase());
+    const header = parseRow(lines[0]).map(h => h.toLowerCase());
 
-    // If header has only 1 item and it contains commas, it might be a quoted header, try splitting
-    if (header.length === 1 && header[0].includes(',')) {
-      header = header[0].split(',').map(h => h.trim().toLowerCase());
-    }
-
-    // Parse data rows
     return lines.slice(1).map(line => {
-      const values = parseLine(line);
+      const values = parseRow(line);
       return Object.fromEntries(header.map((h, i) => [h, values[i] || '']));
     });
   };
