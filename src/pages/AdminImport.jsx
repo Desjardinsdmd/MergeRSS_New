@@ -162,7 +162,25 @@ export default function AdminImport() {
     if (lines.length < 2) return [];
     const header = lines[0].split(',').map(h => h.trim().toLowerCase());
     return lines.slice(1).map(line => {
-      const values = line.split(',').map(v => v.trim());
+      const values = [];
+      let current = '';
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        const nextChar = line[i + 1];
+        if (char === '"' && nextChar === '"') {
+          current += '"';
+          i++;
+        } else if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+          values.push(current.trim());
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      values.push(current.trim());
       return Object.fromEntries(header.map((h, i) => [h, values[i] || '']));
     });
   };
