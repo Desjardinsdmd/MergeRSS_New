@@ -95,7 +95,13 @@ export default function Dashboard() {
 
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto">
-      {showTour && <OnboardingTour onComplete={() => setShowTour(false)} />}
+      {showTour && (
+        <OnboardingTour onComplete={(skipToWalkthrough) => {
+          setShowTour(false);
+          if (!skipToWalkthrough) setShowWalkthrough(true);
+        }} />
+      )}
+      {showWalkthrough && <SetupWalkthrough onComplete={() => setShowWalkthrough(false)} />}
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-slate-900 mb-1">
