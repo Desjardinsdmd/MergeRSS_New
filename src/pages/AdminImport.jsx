@@ -188,32 +188,20 @@ export default function AdminImport() {
 
   const handleBulkFeedsUpload = (e) => {
     const file = e.target.files?.[0];
-    console.log('Feeds upload triggered, file:', file?.name);
-    if (!file) {
-      console.log('No file selected');
-      return;
-    }
+    if (!file) return;
     const reader = new FileReader();
     reader.onload = (event) => {
-      console.log('FileReader onload triggered');
       try {
         const csv = event.target.result;
-        console.log('CSV content:', csv?.substring(0, 100));
         if (!csv) throw new Error('Failed to read file');
         const rows = parseCsv(csv);
-        console.log('Parsed rows:', rows);
-        const feeds = rows.map(r => {
-          console.log('Row object:', r);
-          return {
-            name: r.name || r.feed_name || '',
-            url: r.url || r.feed_url || '',
-            category: r.category || 'Other',
-            tags: (r.tags || '').split(';').map(t => t.trim()).filter(Boolean),
-          };
-        });
-        console.log('Mapped feeds:', feeds);
+        const feeds = rows.map(r => ({
+          name: r.name || r.feed_name || '',
+          url: r.url || r.feed_url || '',
+          category: r.category || 'Other',
+          tags: (r.tags || '').split(';').map(t => t.trim()).filter(Boolean),
+        }));
         const validFeeds = feeds.filter(f => f.name && f.url);
-        console.log('Valid feeds after filter:', validFeeds);
         if (validFeeds.length === 0) {
           toast.error('No valid feeds found in CSV');
           return;
