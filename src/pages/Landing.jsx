@@ -2,199 +2,245 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { 
-  Rss, 
-  Zap, 
-  Bell, 
-  Filter, 
-  Clock, 
+import {
+  Rss,
+  Zap,
+  Bell,
+  Filter,
+  Clock,
   Shield,
   Check,
   ArrowRight,
   Slack,
-  MessageCircle
+  MessageCircle,
+  BarChart3,
+  Layers
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const features = [
   {
-    icon: Rss,
+    icon: Layers,
     title: 'Aggregate Multiple Feeds',
-    description: 'Combine RSS feeds from any source into a single, organized stream.'
+    description: 'Combine RSS feeds from any source into a single, organized stream — no duplicates, no noise.'
   },
   {
     icon: Filter,
     title: 'Smart Categorization',
-    description: 'Organize feeds by category and tags for precise content curation.'
+    description: 'Organize feeds by category and tags for precise content curation tailored to your workflow.'
   },
   {
     icon: Clock,
     title: 'Scheduled Digests',
-    description: 'Get daily or weekly summaries delivered on your schedule.'
+    description: 'Receive daily or weekly AI-generated summaries delivered exactly when you need them.'
   },
   {
     icon: Zap,
     title: 'Instant Delivery',
-    description: 'Push digests to Slack, Discord, or your web inbox instantly.'
+    description: 'Push digests to Slack, Discord, or your web inbox the moment they\'re ready.'
   },
   {
-    icon: Bell,
-    title: 'Smart Deduplication',
-    description: 'Never see duplicate content across your feeds.'
+    icon: BarChart3,
+    title: 'AI-Powered Summaries',
+    description: 'Our AI reads your feeds and writes concise, actionable summaries — saving you hours.'
   },
   {
     icon: Shield,
     title: 'Secure & Reliable',
-    description: 'Enterprise-grade security with 99.9% uptime.'
+    description: 'Enterprise-grade infrastructure with automatic retries and 99.9% uptime.'
   }
+];
+
+const integrations = [
+  {
+    name: 'Slack',
+    description: 'Post digests to any channel with rich formatting',
+    icon: Slack,
+    bg: 'bg-[#4A154B]',
+  },
+  {
+    name: 'Discord',
+    description: 'Send to servers via webhook for instant delivery',
+    icon: MessageCircle,
+    bg: 'bg-[#5865F2]',
+  },
+  {
+    name: 'Web Inbox',
+    description: 'Access your full digest history anytime from the dashboard',
+    icon: Bell,
+    bg: 'bg-indigo-600',
+  },
 ];
 
 export default function Landing() {
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-white">
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-24">
-          <div className="text-center max-w-4xl mx-auto">
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-[#171a20] tracking-tight mb-6 leading-none">
-              RSS feeds,
-              <br />
-              <span className="text-[#e82127]">beautifully merged</span>
-            </h1>
-            
-            <p className="text-xl text-slate-600 mb-12 max-w-2xl mx-auto leading-relaxed font-light">
-              Turn overwhelming RSS feeds into curated digests. 
-              Delivered to Slack, Discord, or your inbox — on your schedule.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button 
-                size="lg"
-                onClick={() => base44.auth.redirectToLogin(createPageUrl('Dashboard'))}
-                className="bg-[#171a20] hover:bg-black h-14 px-12 text-base font-medium rounded-sm"
-              >
-                Order Now
-              </Button>
-              <Button 
-                variant="outline" 
-                size="lg" 
-                onClick={() => base44.auth.redirectToLogin(createPageUrl('Dashboard'))}
-                className="h-14 px-12 text-base font-medium border-2 border-[#171a20] hover:bg-[#171a20] hover:text-white rounded-sm"
-              >
-                Demo Drive
-              </Button>
-            </div>
 
-            <p className="mt-8 text-sm text-slate-500 font-light">
-              Free plan includes 5 feeds • No credit card required
-            </p>
+      {/* Hero */}
+      <section className="relative overflow-hidden bg-gradient-to-b from-slate-50 to-white pt-32 pb-24">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(99,102,241,0.08),transparent)]" />
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 border border-indigo-100 rounded-full text-xs font-medium text-indigo-700 mb-8">
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
+            AI-powered RSS aggregation — now live
           </div>
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-slate-900 tracking-tight mb-6 leading-[1.05]">
+            Your information,
+            <br />
+            <span className="text-indigo-600">curated & delivered</span>
+          </h1>
+          <p className="text-xl text-slate-500 mb-10 max-w-2xl mx-auto leading-relaxed">
+            Aggregate RSS feeds from any source, let AI summarize what matters,
+            and get it delivered to Slack, Discord, or your inbox — on your schedule.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Button
+              size="lg"
+              onClick={() => base44.auth.redirectToLogin(createPageUrl('Dashboard'))}
+              className="h-12 px-8 text-base font-semibold bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-lg shadow-indigo-200"
+            >
+              Get started free
+              <ArrowRight className="w-4 h-4 ml-1" />
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => base44.auth.redirectToLogin(createPageUrl('Dashboard'))}
+              className="h-12 px-8 text-base font-medium border-slate-200 hover:bg-slate-50 rounded-lg"
+            >
+              See how it works
+            </Button>
+          </div>
+          <p className="mt-5 text-sm text-slate-400">
+            Free plan includes 5 feeds · No credit card required
+          </p>
         </div>
       </section>
 
-      {/* Features Grid */}
-      <section className="py-24 bg-[#fafafa]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-bold text-[#171a20] mb-4 tracking-tight">
-              Built for Efficiency
+      {/* Social proof strip */}
+      <section className="border-y border-slate-100 py-5 bg-slate-50">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <p className="text-center text-xs font-medium text-slate-400 uppercase tracking-widest">
+            Works with your favorite news sources
+          </p>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="py-24 bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4 tracking-tight">
+              Everything you need to stay informed
             </h2>
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto font-light">
-              Powerful features to aggregate, filter, and deliver your content
+            <p className="text-lg text-slate-500 max-w-2xl mx-auto">
+              Powerful features built for professionals who need signal without the noise
             </p>
           </div>
-
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature, idx) => (
-              <div 
+              <div
                 key={idx}
-                className="p-8 bg-white border border-slate-100 hover:shadow-xl transition-all duration-300"
+                className="p-6 rounded-xl border border-slate-100 hover:border-indigo-100 hover:shadow-md transition-all duration-200 group"
               >
-                <feature.icon className="w-8 h-8 text-[#171a20] mb-6" />
-                <h3 className="text-lg font-semibold text-[#171a20] mb-3 tracking-tight">
-                  {feature.title}
-                </h3>
-                <p className="text-slate-600 font-light">
-                  {feature.description}
-                </p>
+                <div className="w-10 h-10 bg-indigo-50 rounded-lg flex items-center justify-center mb-4 group-hover:bg-indigo-100 transition">
+                  <feature.icon className="w-5 h-5 text-indigo-600" />
+                </div>
+                <h3 className="text-base font-semibold text-slate-900 mb-2">{feature.title}</h3>
+                <p className="text-sm text-slate-500 leading-relaxed">{feature.description}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Integrations Section */}
-      <section className="py-24 bg-[#171a20]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">
-              Deliver Anywhere
+      {/* Integrations */}
+      <section className="py-24 bg-slate-900">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 tracking-tight">
+              Deliver where your team works
             </h2>
-            <p className="text-lg text-slate-400 max-w-2xl mx-auto font-light">
+            <p className="text-lg text-slate-400 max-w-xl mx-auto">
               Push digests directly to Slack, Discord, or your web inbox
             </p>
           </div>
-
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            <div className="bg-[#1f2229] p-10 text-center border border-slate-800 hover:border-slate-700 transition">
-              <div className="w-16 h-16 bg-[#4A154B] flex items-center justify-center mx-auto mb-6">
-                <Slack className="w-8 h-8 text-white" />
+          <div className="grid md:grid-cols-3 gap-5">
+            {integrations.map((integ, idx) => (
+              <div
+                key={idx}
+                className="bg-slate-800 border border-slate-700 rounded-xl p-8 text-center hover:border-slate-600 transition"
+              >
+                <div className={`w-14 h-14 ${integ.bg} rounded-xl flex items-center justify-center mx-auto mb-5`}>
+                  <integ.icon className="w-7 h-7 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">{integ.name}</h3>
+                <p className="text-slate-400 text-sm">{integ.description}</p>
               </div>
-              <h3 className="text-xl font-semibold text-white mb-3 tracking-tight">Slack</h3>
-              <p className="text-slate-400 font-light">Post digests to any channel with rich formatting</p>
-            </div>
-
-            <div className="bg-[#1f2229] p-10 text-center border border-slate-800 hover:border-slate-700 transition">
-              <div className="w-16 h-16 bg-[#5865F2] flex items-center justify-center mx-auto mb-6">
-                <MessageCircle className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-semibold text-white mb-3 tracking-tight">Discord</h3>
-              <p className="text-slate-400 font-light">Send to servers via webhook or bot integration</p>
-            </div>
-
-            <div className="bg-[#1f2229] p-10 text-center border border-slate-800 hover:border-slate-700 transition">
-              <div className="w-16 h-16 bg-[#e82127] flex items-center justify-center mx-auto mb-6">
-                <Bell className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-semibold text-white mb-3 tracking-tight">Web Inbox</h3>
-              <p className="text-slate-400 font-light">Access your digests anytime from the dashboard</p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-32 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl md:text-5xl font-bold text-[#171a20] mb-6 tracking-tight">
-            Experience MergeRSS
+      {/* How it works */}
+      <section className="py-24 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4 tracking-tight">
+              Up and running in minutes
+            </h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              { step: '01', title: 'Add your feeds', desc: 'Paste any RSS/Atom URL. MergeRSS fetches and deduplicates everything automatically.' },
+              { step: '02', title: 'Configure a digest', desc: 'Choose your feeds, categories, frequency, and preferred delivery channels.' },
+              { step: '03', title: 'Receive summaries', desc: 'AI generates a clean, readable digest and delivers it right on schedule.' },
+            ].map(({ step, title, desc }) => (
+              <div key={step} className="relative">
+                <div className="text-5xl font-black text-slate-100 mb-4 leading-none">{step}</div>
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">{title}</h3>
+                <p className="text-slate-500 text-sm leading-relaxed">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="py-24 bg-gradient-to-b from-indigo-50 to-white">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4 tracking-tight">
+            Start reading smarter today
           </h2>
-          <p className="text-lg text-slate-600 mb-12 font-light">
-            Start with 5 free feeds. No credit card required.
+          <p className="text-lg text-slate-500 mb-8">
+            Join professionals using MergeRSS to stay on top of what matters.
           </p>
-          <Button 
+          <Button
             size="lg"
             onClick={() => base44.auth.redirectToLogin(createPageUrl('Dashboard'))}
-            className="bg-[#171a20] hover:bg-black h-14 px-12 text-base font-medium rounded-sm"
+            className="h-12 px-10 text-base font-semibold bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-lg shadow-indigo-200"
           >
-            Order Now
+            Get started for free
+            <ArrowRight className="w-4 h-4 ml-1" />
           </Button>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-8 bg-[#171a20] border-t border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <footer className="py-10 border-t border-slate-100 bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-white rounded-sm flex items-center justify-center">
-                <Rss className="w-4 h-4 text-[#171a20]" />
+              <div className="w-7 h-7 bg-indigo-600 rounded-lg flex items-center justify-center">
+                <Rss className="w-3.5 h-3.5 text-white" />
               </div>
-              <span className="font-semibold text-white tracking-tight">MergeRSS</span>
+              <span className="font-semibold text-slate-900">MergeRSS</span>
             </div>
-            <p className="text-sm text-slate-400 font-light">
-              © {new Date().getFullYear()} MergeRSS. All rights reserved.
-            </p>
+            <div className="flex items-center gap-6 text-sm text-slate-400">
+              <Link to={createPageUrl('Pricing')} className="hover:text-slate-600 transition">Pricing</Link>
+              <a href="mailto:support@mergerss.com" className="hover:text-slate-600 transition">Support</a>
+            </div>
+            <p className="text-sm text-slate-400">© {new Date().getFullYear()} MergeRSS. All rights reserved.</p>
           </div>
         </div>
       </footer>
