@@ -50,7 +50,7 @@ function LayoutContent({ children, currentPageName }) {
   const navigate = useNavigate();
   const { theme, setTheme, mounted } = useTheme();
 
-  const publicPages = ['Landing', 'Pricing', 'Directory'];
+  const publicPages = ['Landing', 'Pricing'];
   const isPublicPage = publicPages.includes(currentPageName);
 
   useEffect(() => {
