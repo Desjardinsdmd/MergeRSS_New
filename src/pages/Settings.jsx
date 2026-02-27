@@ -225,6 +225,31 @@ export default function Settings() {
           </CardContent>
         </Card>
 
+        {/* Help Section */}
+        <Card className="border-slate-100">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <PlayCircle className="w-5 h-5 text-slate-400" />
+              Help & Onboarding
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-slate-900">Restart the tour</p>
+              <p className="text-sm text-slate-500">Walk through the key features of MergeRSS again</p>
+            </div>
+            <Button
+              variant="outline"
+              onClick={async () => {
+                await base44.auth.updateMe({ onboarding_complete: false });
+                toast.success('Tour reset — go to the Dashboard to restart it');
+              }}
+            >
+              Restart Tour
+            </Button>
+          </CardContent>
+        </Card>
+
         {/* Save Button */}
         <div className="flex justify-end">
           <Button 
