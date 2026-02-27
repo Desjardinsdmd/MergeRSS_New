@@ -173,7 +173,8 @@ export default function AdminImport() {
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
-        const csv = event.target?.result;
+        const csv = event.target.result;
+        if (!csv) throw new Error('Failed to read file');
         const rows = parseCsv(csv);
         const feeds = rows.map(r => ({
           name: r.name || r.feed_name || '',
@@ -187,12 +188,12 @@ export default function AdminImport() {
         }
         setManualFeeds([...manualFeeds, ...feeds]);
         toast.success(`Added ${feeds.length} feed(s) from CSV`);
+        e.target.value = '';
       } catch (err) {
         toast.error('Failed to parse CSV: ' + err.message);
       }
     };
     reader.readAsText(file);
-    e.target.value = '';
   };
 
   const handleBulkDigestsUpload = (e) => {
