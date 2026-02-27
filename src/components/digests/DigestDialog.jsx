@@ -57,6 +57,8 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
     delivery_email: false,
     delivery_slack: false,
     delivery_discord: false,
+    slack_channel_id: '',
+    discord_webhook_url: '',
     status: 'active',
     is_public: false,
     public_description: '',
