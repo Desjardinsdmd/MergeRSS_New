@@ -312,16 +312,72 @@ export default function Settings() {
         </Card>
 
         {/* Save Button */}
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          {editingProfile && (
+            <Button 
+              variant="outline"
+              onClick={() => setEditingProfile(false)}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+          )}
           <Button 
             onClick={handleSave} 
-            disabled={loading}
+            disabled={loading || !editingProfile}
             className="bg-indigo-600 hover:bg-indigo-700 rounded-lg"
           >
             {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
             Save Changes
           </Button>
         </div>
+
+        {/* Password Verification Dialog */}
+        {showPasswordVerification && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <Card className="w-full max-w-sm mx-4">
+              <CardHeader>
+                <CardTitle>Verify Your Password</CardTitle>
+                <CardDescription>Enter your password to edit your profile</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="password">Password</Label>
+                  <Input 
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleVerifyPassword()}
+                    placeholder="Enter your password"
+                    autoFocus
+                  />
+                </div>
+              </CardContent>
+              <div className="px-6 pb-6 flex gap-2">
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    setShowPasswordVerification(false);
+                    setPassword('');
+                  }}
+                  disabled={loading}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleVerifyPassword}
+                  disabled={loading || !password}
+                  className="flex-1 bg-indigo-600 hover:bg-indigo-700"
+                >
+                  {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  Verify
+                </Button>
+              </div>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   );
