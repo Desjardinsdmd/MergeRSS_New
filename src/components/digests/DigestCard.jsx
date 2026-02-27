@@ -18,13 +18,11 @@ import {
   Play,
   Send,
   Clock,
-  Slack,
   MessageCircle,
   Inbox,
   ChevronDown,
   Globe,
-  Mail,
-  Hash
+  Mail
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
