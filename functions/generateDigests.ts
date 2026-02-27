@@ -108,6 +108,36 @@ Write a well-organized, professional digest. Group related stories where appropr
 
                 const deliveryTypes = ['web'];
 
+                // Slack delivery
+                if (digest.delivery_slack) {
+                    const slackIntegrations = await base44.asServiceRole.entities.Integration.filter({ type: 'slack', status: 'connected' });
+                    const slackInt = slackIntegrations[0];
+                    if (slackInt?.webhook_url) {
+                        const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                        const slackMsg = `*📰 ${digest.name}*\n_${dateStr} • ${items.length} articles_\n\n${content.slice(0, 2900)}${content.length > 2900 ? '\n\n_...read full digest in your MergeRSS inbox_' : ''}`;
+
+                        const slackRes = await fetch(slackInt.webhook_url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ text: slackMsg }),
+                        });
+
+                        await base44.asServiceRole.entities.DigestDelivery.create({
+                            digest_id: digest.id,
+                            delivery_type: 'slack',
+                            status: slackRes.ok ? 'sent' : 'failed',
+                            content: content,
+                            item_count: items.length,
+                            date_range_start: since.toISOString(),
+                            date_range_end: now.toISOString(),
+                            sent_at: now.toISOString(),
+                            error_message: slackRes.ok ? '' : `HTTP ${slackRes.status}`,
+                        });
+
+                        if (slackRes.ok) deliveryTypes.push('slack');
+                    }
+                }
+
                 // Discord delivery
                 if (digest.delivery_discord && digest.discord_webhook_url) {
                     const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
