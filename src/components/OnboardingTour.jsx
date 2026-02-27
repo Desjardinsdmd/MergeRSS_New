@@ -69,7 +69,7 @@ export default function OnboardingTour({ onComplete }) {
 
   const handleGoTo = async () => {
     await base44.auth.updateMe({ onboarding_complete: true });
-    onComplete();
+    onComplete(true); // true = skip to walkthrough
     navigate(createPageUrl(step.action.page));
   };
 
