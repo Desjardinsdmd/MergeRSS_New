@@ -44,6 +44,7 @@ export default function Feeds() {
   const [viewMode, setViewMode] = useState('grid'); // grid, list, compact
   const [selectedFeeds, setSelectedFeeds] = useState([]);
   const [deletingBulk, setDeletingBulk] = useState(false);
+  const [bulkDeleteMode, setBulkDeleteMode] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
