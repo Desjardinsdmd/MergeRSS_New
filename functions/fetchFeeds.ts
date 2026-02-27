@@ -1,18 +1,34 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import { XMLParser } from 'npm:fast-xml-parser@4.3.6';
 
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 async function parseFeed(url) {
     const response = await fetch(url, {
         headers: {
-            'User-Agent': 'MergeRSS/1.0',
+            'User-Agent': 'Mozilla/5.0 (compatible; MergeRSS/1.0; +https://mergerss.app)',
             'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*'
         },
-        signal: AbortSignal.timeout(15000)
+        signal: AbortSignal.timeout(20000),
+        redirect: 'follow',
     });
 
+    if (response.status === 429) throw new Error('Rate limit exceeded — try again later');
     if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 
+    const contentType = response.headers.get('content-type') || '';
     const xml = await response.text();
+
+    // Detect HTML responses (redirects to login pages, error pages, etc.)
+    if (
+        contentType.includes('text/html') &&
+        !contentType.includes('xml') &&
+        xml.trimStart().toLowerCase().startsWith('<!doctype html')
+    ) {
+        throw new Error('Feed returned HTML instead of XML — URL may have changed or requires auth');
+    }
 
     const parser = new XMLParser({
         ignoreAttributes: false,
