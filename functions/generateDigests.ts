@@ -178,14 +178,13 @@ Write a well-organized, professional digest. Group related stories where appropr
 
                 // Discord delivery
                 if (digest.delivery_discord) {
-                    const discordIntegrations = await base44.asServiceRole.entities.Integration.filter({ type: 'discord', status: 'connected' });
-                    const discordInt = discordIntegrations[0];
-                    if (discordInt?.webhook_url) {
+                    const webhookUrl = digest.discord_webhook_url;
+                    if (webhookUrl) {
                         const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                         const discordMsg = `**📰 ${digest.name}**\n*${dateStr} • ${items.length} articles*\n\n${content.slice(0, 1900)}${content.length > 1900 ? '\n\n*...read full digest in your MergeRSS inbox*' : ''}`;
 
                         try {
-                            const discordRes = await fetch(discordInt.webhook_url, {
+                            const discordRes = await fetch(webhookUrl, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ content: discordMsg }),
