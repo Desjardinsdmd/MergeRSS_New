@@ -126,6 +126,11 @@ export default function DigestCard({ digest, onEdit, onDelete, onToggleStatus, o
                     <Inbox className="w-3 h-3" />
                   </Badge>
                 )}
+                {digest.delivery_email && (
+                  <Badge variant="outline" className="text-xs gap-1 px-1.5 border-orange-200 text-orange-600">
+                    <Mail className="w-3 h-3" />
+                  </Badge>
+                )}
                 {digest.delivery_slack && (
                   <Badge variant="outline" className="text-xs gap-1 px-1.5 border-[#4A154B]/30 text-[#4A154B]">
                     <Slack className="w-3 h-3" />
@@ -133,7 +138,7 @@ export default function DigestCard({ digest, onEdit, onDelete, onToggleStatus, o
                 )}
                 {digest.delivery_discord && (
                   <Badge variant="outline" className="text-xs gap-1 px-1.5 border-[#5865F2]/30 text-[#5865F2]">
-                    <MessageCircle className="w-3 h-3" />
+                    <Hash className="w-3 h-3" />
                   </Badge>
                 )}
               </div>
