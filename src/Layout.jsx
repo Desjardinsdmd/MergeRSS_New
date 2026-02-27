@@ -155,7 +155,7 @@ export default function Layout({ children, currentPageName }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       {/* Mobile backdrop */}
       {sidebarOpen && (
         <div
@@ -166,18 +166,18 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Sidebar */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-50 w-60 bg-white border-r border-slate-100 flex flex-col transform transition-transform duration-200 ease-in-out lg:translate-x-0",
+        "fixed inset-y-0 left-0 z-50 w-60 bg-white dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800 flex flex-col transform transition-transform duration-200 ease-in-out lg:translate-x-0",
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         {/* Logo */}
-        <div className="flex items-center justify-between h-16 px-5 border-b border-slate-100 flex-shrink-0">
+        <div className="flex items-center justify-between h-16 px-5 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <Link to={createPageUrl('Dashboard')} className="flex items-center gap-2.5">
             <div className="w-7 h-7 bg-indigo-600 rounded-lg flex items-center justify-center">
               <Rss className="w-3.5 h-3.5 text-white" />
             </div>
-            <span className="font-bold text-slate-900 tracking-tight">MergeRSS</span>
+            <span className="font-bold text-slate-900 dark:text-white tracking-tight">MergeRSS</span>
           </Link>
-          <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-1 text-slate-400 hover:text-slate-600">
+          <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-400">
             <X className="w-5 h-5" />
           </button>
         </div>
