@@ -157,6 +157,71 @@ export default function AdminImport() {
     }
   };
 
+  const parseCsv = (csv) => {
+    const lines = csv.trim().split('\n');
+    const header = lines[0].split(',').map(h => h.trim().toLowerCase());
+    return lines.slice(1).map(line => {
+      const values = line.split(',').map(v => v.trim());
+      return Object.fromEntries(header.map((h, i) => [h, values[i] || '']));
+    });
+  };
+
+  const handleBulkFeedsUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const csv = event.target?.result;
+        const rows = parseCsv(csv);
+        const feeds = rows.map(r => ({
+          name: r.name || r.feed_name || '',
+          url: r.url || r.feed_url || '',
+          category: r.category || 'Other',
+          tags: (r.tags || '').split(';').map(t => t.trim()).filter(Boolean),
+        })).filter(f => f.name && f.url);
+        if (feeds.length === 0) {
+          toast.error('No valid feeds found in CSV');
+          return;
+        }
+        setManualFeeds([...manualFeeds, ...feeds]);
+        toast.success(`Added ${feeds.length} feed(s) from CSV`);
+      } catch (err) {
+        toast.error('Failed to parse CSV: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  const handleBulkDigestsUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const csv = event.target?.result;
+        const rows = parseCsv(csv);
+        const digests = rows.map(r => ({
+          name: r.name || r.digest_name || '',
+          description: r.description || r.desc || '',
+          categories: (r.categories || '').split(';').map(c => c.trim()).filter(Boolean),
+          tags: (r.tags || '').split(';').map(t => t.trim()).filter(Boolean),
+        })).filter(d => d.name);
+        if (digests.length === 0) {
+          toast.error('No valid digests found in CSV');
+          return;
+        }
+        setManualDigests([...manualDigests, ...digests]);
+        toast.success(`Added ${digests.length} digest(es) from CSV`);
+      } catch (err) {
+        toast.error('Failed to parse CSV: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
   const runImport = async (specificUrl = null) => {
     setLoading(true);
     setResults(null);
