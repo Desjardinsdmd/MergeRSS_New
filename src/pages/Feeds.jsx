@@ -107,7 +107,7 @@ export default function Feeds() {
             )}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button
             variant="outline"
             onClick={handleFetchFeeds}
@@ -115,6 +115,13 @@ export default function Feeds() {
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${fetching ? 'animate-spin' : ''}`} />
             Refresh
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setShowBulkImport(true)}
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            Bulk Import
           </Button>
           <Button 
             onClick={() => canAddMore ? setShowAddDialog(true) : null}
