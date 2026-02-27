@@ -153,7 +153,11 @@ export default function Directory() {
 
   const { data: publicFeeds = [] } = useQuery({
     queryKey: ['public-feeds'],
-    queryFn: () => base44.entities.Feed.filter({ is_public: true }),
+    queryFn: async () => {
+      const userPublic = await base44.entities.Feed.filter({ is_public: true });
+      const directoryFeeds = await base44.entities.DirectoryFeed.list();
+      return [...userPublic, ...directoryFeeds];
+    },
   });
 
   const { data: publicDigests = [] } = useQuery({
