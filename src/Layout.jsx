@@ -261,18 +261,27 @@ export default function Layout({ children, currentPageName }) {
       {/* Main */}
       <div className="lg:pl-60">
         {/* Mobile header */}
-        <header className="lg:hidden sticky top-0 z-30 bg-white border-b border-slate-100">
+        <header className="lg:hidden sticky top-0 z-30 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center justify-between h-14 px-4">
-            <button onClick={() => setSidebarOpen(true)} className="p-1.5 text-slate-600">
+            <button onClick={() => setSidebarOpen(true)} className="p-1.5 text-slate-600 dark:text-slate-400">
               <Menu className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 bg-indigo-600 rounded-md flex items-center justify-center">
                 <Rss className="w-3 h-3 text-white" />
               </div>
-              <span className="font-bold text-slate-900 tracking-tight">MergeRSS</span>
+              <span className="font-bold text-slate-900 dark:text-white tracking-tight">MergeRSS</span>
             </div>
-            <div className="w-8" />
+            {mounted && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                className="text-slate-600 dark:text-slate-400"
+              >
+                {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </Button>
+            )}
           </div>
         </header>
 
