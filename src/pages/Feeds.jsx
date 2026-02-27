@@ -330,31 +330,33 @@ export default function Feeds() {
       />
 
       {/* Delete Confirmation */}
-      <AlertDialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {deleteConfirm?.id === 'bulk' ? 'Delete Feeds' : 'Delete Feed'}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {deleteConfirm?.id === 'bulk'
-                ? `Are you sure you want to delete ${selectedFeeds.length} feed(s)? This will also remove all associated items.`
-                : `Are you sure you want to delete "${deleteConfirm?.name}"? This will also remove all associated items.`
-              }
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={deleteConfirm?.id === 'bulk' ? handleBulkDelete : handleDelete}
-              disabled={deletingBulk}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              {deletingBulk ? 'Deleting...' : 'Delete'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {deleteConfirm && (
+        <AlertDialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {deleteConfirm.id === 'bulk' ? 'Delete Feeds' : 'Delete Feed'}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {deleteConfirm.id === 'bulk'
+                  ? `Are you sure you want to delete ${selectedFeeds.length} feed(s)? This will also remove all associated items.`
+                  : `Are you sure you want to delete "${deleteConfirm.name}"? This will also remove all associated items.`
+                }
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={deleteConfirm.id === 'bulk' ? handleBulkDelete : handleDelete}
+                disabled={deletingBulk}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                {deletingBulk ? 'Deleting...' : 'Delete'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </div>
   );
 }
