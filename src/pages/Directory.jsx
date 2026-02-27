@@ -259,8 +259,8 @@ export default function Directory() {
     }
   };
 
-  const filteredFeeds = filterAndSort(publicFeeds);
-  const filteredDigests = filterAndSort(publicDigests);
+  const filteredFeeds = filterAndSort(directoryFeeds);
+  const filteredDigests = filterAndSort(directoryDigests);
 
   return (
     <div className="min-h-screen bg-slate-50">
