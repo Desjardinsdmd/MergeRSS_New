@@ -69,11 +69,7 @@ export default function Feeds() {
 
   const handleDelete = async () => {
     if (deleteConfirm) {
-      if (deleteConfirm.is_public) {
-        toast.error('Remove from directory first — make it private before deleting');
-        setDeleteConfirm(null);
-        return;
-      }
+      // Always allow deletion from personal library - removes from personal list only
       await base44.entities.Feed.delete(deleteConfirm.id);
       queryClient.invalidateQueries({ queryKey: ['feeds'] });
       setDeleteConfirm(null);
