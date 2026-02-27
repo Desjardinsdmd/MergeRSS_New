@@ -76,7 +76,7 @@ export default function Pricing() {
     });
     setLoading(false);
     if (response.data?.url) {
-      window.location.href = response.data.url;
+      window.open(response.data.url, '_blank');
     }
   };
 
