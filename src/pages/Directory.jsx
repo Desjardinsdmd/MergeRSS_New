@@ -164,6 +164,7 @@ export default function Directory() {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('All');
   const [sortBy, setSortBy] = useState('top');
+  const [addedItems, setAddedItems] = useState([]);
   const queryClient = useQueryClient();
 
   useEffect(() => {
