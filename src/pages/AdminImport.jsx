@@ -205,6 +205,189 @@ export default function AdminImport() {
       </div>
 
       <div className="space-y-6">
+        {/* Manual Feed Entry */}
+        <Card className="border-slate-100">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Add Feed to Directory</CardTitle>
+            <CardDescription className="text-xs">Manually add a single RSS feed to the public directory</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-0 space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs">Feed Name</Label>
+                <Input
+                  placeholder="e.g. TechCrunch"
+                  value={manualFeed.name}
+                  onChange={(e) => setManualFeed({ ...manualFeed, name: e.target.value })}
+                  className="mt-1 text-sm rounded-lg"
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Feed URL</Label>
+                <Input
+                  placeholder="https://example.com/feed.xml"
+                  value={manualFeed.url}
+                  onChange={(e) => setManualFeed({ ...manualFeed, url: e.target.value })}
+                  className="mt-1 text-sm rounded-lg"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs">Category</Label>
+                <Select value={manualFeed.category} onValueChange={(cat) => setManualFeed({ ...manualFeed, category: cat })}>
+                  <SelectTrigger className="mt-1 text-sm rounded-lg h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="CRE">CRE</SelectItem>
+                    <SelectItem value="Markets">Markets</SelectItem>
+                    <SelectItem value="Tech">Tech</SelectItem>
+                    <SelectItem value="News">News</SelectItem>
+                    <SelectItem value="Finance">Finance</SelectItem>
+                    <SelectItem value="Crypto">Crypto</SelectItem>
+                    <SelectItem value="AI">AI</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs">Tags (comma-separated)</Label>
+                <Input
+                  placeholder="e.g. tech, startup"
+                  value={manualFeed.tags}
+                  onChange={(e) => setManualFeed({ ...manualFeed, tags: e.target.value })}
+                  className="mt-1 text-sm rounded-lg"
+                />
+              </div>
+            </div>
+            <Button
+              onClick={addManualFeed}
+              disabled={!manualFeed.name.trim() || !manualFeed.url.trim()}
+              variant="outline"
+              className="rounded-lg w-full text-sm"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Feed
+            </Button>
+
+            {manualFeeds.length > 0 && (
+              <div className="border-t pt-3 space-y-2">
+                <p className="text-xs font-medium text-slate-700">{manualFeeds.length} feed(s) to add:</p>
+                {manualFeeds.map((f, i) => (
+                  <div key={i} className="flex items-center justify-between px-3 py-2 bg-slate-50 rounded-lg">
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-slate-900">{f.name}</p>
+                      <p className="text-[10px] text-slate-500 truncate">{f.url}</p>
+                    </div>
+                    <button
+                      onClick={() => removeManualFeed(i)}
+                      className="ml-2 p-1 text-slate-400 hover:text-red-600 transition flex-shrink-0"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Manual Digest Entry */}
+        <Card className="border-slate-100">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Add Digest to Directory</CardTitle>
+            <CardDescription className="text-xs">Manually add a single digest to the public directory</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-0 space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs">Digest Name</Label>
+                <Input
+                  placeholder="e.g. Daily Tech News"
+                  value={manualDigest.name}
+                  onChange={(e) => setManualDigest({ ...manualDigest, name: e.target.value })}
+                  className="mt-1 text-sm rounded-lg"
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Description</Label>
+                <Input
+                  placeholder="Brief description"
+                  value={manualDigest.description}
+                  onChange={(e) => setManualDigest({ ...manualDigest, description: e.target.value })}
+                  className="mt-1 text-sm rounded-lg"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs">Categories (comma-separated)</Label>
+                <Input
+                  placeholder="e.g. Tech, AI"
+                  value={manualDigest.categories}
+                  onChange={(e) => setManualDigest({ ...manualDigest, categories: e.target.value })}
+                  className="mt-1 text-sm rounded-lg"
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Tags (comma-separated)</Label>
+                <Input
+                  placeholder="e.g. news, daily"
+                  value={manualDigest.tags}
+                  onChange={(e) => setManualDigest({ ...manualDigest, tags: e.target.value })}
+                  className="mt-1 text-sm rounded-lg"
+                />
+              </div>
+            </div>
+            <Button
+              onClick={addManualDigest}
+              disabled={!manualDigest.name.trim()}
+              variant="outline"
+              className="rounded-lg w-full text-sm"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Digest
+            </Button>
+
+            {manualDigests.length > 0 && (
+              <div className="border-t pt-3 space-y-2">
+                <p className="text-xs font-medium text-slate-700">{manualDigests.length} digest(es) to add:</p>
+                {manualDigests.map((d, i) => (
+                  <div key={i} className="flex items-center justify-between px-3 py-2 bg-slate-50 rounded-lg">
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-slate-900">{d.name}</p>
+                      {d.description && <p className="text-[10px] text-slate-500">{d.description}</p>}
+                    </div>
+                    <button
+                      onClick={() => removeManualDigest(i)}
+                      className="ml-2 p-1 text-slate-400 hover:text-red-600 transition flex-shrink-0"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Submit all manual items */}
+        {(manualFeeds.length > 0 || manualDigests.length > 0) && (
+          <Card className="border-indigo-200 bg-indigo-50">
+            <CardContent className="p-4">
+              <Button
+                onClick={submitManualItems}
+                disabled={loading}
+                className="bg-indigo-600 hover:bg-indigo-700 rounded-lg w-full"
+              >
+                {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
+                Add {manualFeeds.length + manualDigests.length} Item(s) to Directory
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+      
         {/* Dry run toggle */}
         <Card className="border-slate-100">
           <CardContent className="p-4">
