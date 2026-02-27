@@ -322,6 +322,7 @@ export default function AdminImport() {
               <Upload className="w-5 h-5 text-slate-400 mb-2" />
               <span className="text-sm text-slate-600">Click to upload CSV or drag and drop</span>
               <input
+                ref={feedsUploadRef}
                 id="bulk-feeds-upload"
                 type="file"
                 accept=".csv"
