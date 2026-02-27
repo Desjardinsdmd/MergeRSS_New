@@ -77,19 +77,17 @@ export default function Integrations() {
 
   const handleConnectSlack = async () => {
     if (!isPremium || !slackWebhook) return;
-    setLoading(true);
-
     if (!slackWebhook.includes('hooks.slack.com')) {
       toast.error('Invalid Slack webhook URL');
-      setLoading(false);
       return;
     }
+    setLoading(true);
 
     await base44.entities.Integration.create({
       type: 'slack',
       status: 'connected',
-      webhook_url: slackWebhook,
       workspace_name: 'Slack Workspace',
+      webhook_url: slackWebhook,
     });
 
     queryClient.invalidateQueries({ queryKey: ['integrations'] });
