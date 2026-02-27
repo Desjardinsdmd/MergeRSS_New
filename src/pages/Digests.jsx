@@ -34,8 +34,12 @@ export default function Digests() {
 
   useEffect(() => {
     const loadUser = async () => {
-      const userData = await base44.auth.me();
-      setUser(userData);
+      try {
+        const userData = await base44.auth.me();
+        setUser(userData);
+      } catch (e) {
+        // user not authenticated
+      }
     };
     loadUser();
   }, []);
