@@ -177,14 +177,69 @@ export default function Dashboard() {
         </Card>
       )}
 
+      {expandedArticles && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <Card className="w-full max-w-2xl max-h-[90vh] flex flex-col border-slate-100">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-slate-100">
+              <CardTitle className="text-lg font-semibold">Latest Articles</CardTitle>
+              <button 
+                onClick={() => setExpandedArticles(false)}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                ✕
+              </button>
+            </CardHeader>
+            <CardContent className="p-0 overflow-y-auto flex-1">
+              {(liveArticles.length > 0 ? liveArticles : feedItems).length === 0 ? (
+                <div className="p-6 text-center text-slate-500">
+                  No items yet. Add feeds to start aggregating content.
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-100">
+                  {(liveArticles.length > 0 ? liveArticles : feedItems).map((item) => (
+                    <a 
+                      key={item.id}
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block p-4 hover:bg-slate-50 transition"
+                    >
+                      <p className="font-medium text-slate-900 mb-1 line-clamp-2">
+                        {item.title}
+                      </p>
+                      <div className="flex items-center gap-2 text-xs text-slate-500">
+                        <Clock className="w-3 h-3" />
+                        {item.published_date && (
+                          <>
+                            {new Date(item.published_date).toLocaleDateString()} at {new Date(item.published_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </>
+                        )}
+                        {item.category && (
+                          <Badge variant="secondary" className="text-xs">
+                            {item.category}
+                          </Badge>
+                        )}
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Recent Feed Items */}
         <Card className="border-slate-100">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-lg font-semibold">Latest Articles</CardTitle>
-            <Link to={createPageUrl('Feeds')} className="text-sm text-violet-600 hover:underline flex items-center gap-1">
+            <button 
+              onClick={() => setExpandedArticles(true)}
+              className="text-sm text-violet-600 hover:underline flex items-center gap-1 bg-none border-none cursor-pointer"
+            >
               View all <ArrowRight className="w-3 h-3" />
-            </Link>
+            </button>
           </CardHeader>
           <CardContent className="p-0">
             {(liveArticles.length > 0 ? liveArticles : feedItems).length === 0 ? (
