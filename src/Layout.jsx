@@ -36,6 +36,7 @@ const navigation = [
 
 const adminNav = [
   { name: 'System Health', href: 'AdminHealth', icon: Activity },
+  { name: 'Import Feeds', href: 'AdminImport', icon: Globe },
 ];
 
 export default function Layout({ children, currentPageName }) {
