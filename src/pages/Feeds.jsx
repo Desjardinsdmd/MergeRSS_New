@@ -213,6 +213,16 @@ export default function Feeds() {
         </div>
       )}
 
+      {/* Bulk Import Dialog */}
+      <BulkImportDialog
+        open={showBulkImport}
+        onOpenChange={setShowBulkImport}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['feeds'] });
+          queryClient.invalidateQueries({ queryKey: ['digests'] });
+        }}
+      />
+
       {/* Add/Edit Dialog */}
       <AddFeedDialog
         open={showAddDialog}
