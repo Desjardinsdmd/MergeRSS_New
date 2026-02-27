@@ -31,16 +31,23 @@ Deno.serve(async (req) => {
     let validated = 0;
     let deleted = 0;
     const invalidFeeds = [];
-
-    for (const feed of feeds) {
-      const isValid = await validateFeedUrl(feed.url);
+    
+    // Test feeds in batches of 10
+    const batchSize = 10;
+    for (let i = 0; i < feeds.length; i += batchSize) {
+      const batch = feeds.slice(i, i + batchSize);
+      const results = await Promise.all(
+        batch.map(feed => validateFeedUrl(feed.url).then(isValid => ({ feed, isValid })))
+      );
       
-      if (isValid) {
-        validated++;
-      } else {
-        invalidFeeds.push({ id: feed.id, name: feed.name, url: feed.url });
-        await base44.asServiceRole.entities.DirectoryFeed.delete(feed.id);
-        deleted++;
+      for (const { feed, isValid } of results) {
+        if (isValid) {
+          validated++;
+        } else {
+          invalidFeeds.push({ id: feed.id, name: feed.name, url: feed.url });
+          await base44.asServiceRole.entities.DirectoryFeed.delete(feed.id);
+          deleted++;
+        }
       }
     }
 
