@@ -169,7 +169,11 @@ export default function AdminImport() {
 
   const handleBulkFeedsUpload = (e) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    console.log('Feeds upload triggered, file:', file?.name);
+    if (!file) {
+      console.log('No file selected');
+      return;
+    }
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
