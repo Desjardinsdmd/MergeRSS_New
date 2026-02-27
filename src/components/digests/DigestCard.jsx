@@ -21,11 +21,12 @@ import {
   Slack,
   MessageCircle,
   Inbox,
-  ChevronDown
+  ChevronDown,
+  Globe
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export default function DigestCard({ digest, onEdit, onDelete, onToggleStatus, onSendTest }) {
+export default function DigestCard({ digest, onEdit, onDelete, onToggleStatus, onSendTest, onMakePublic }) {
   const [showComments, setShowComments] = useState(false);
   const frequencyLabel = digest.frequency === 'daily' ? 'Daily' : 'Weekly';
   
@@ -58,14 +59,18 @@ export default function DigestCard({ digest, onEdit, onDelete, onToggleStatus, o
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => onEdit(digest)}>
-                    <Pencil className="w-4 h-4 mr-2" />
-                    Edit
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onSendTest(digest)}>
-                    <Send className="w-4 h-4 mr-2" />
-                    Send Test
-                  </DropdownMenuItem>
+                   <DropdownMenuItem onClick={() => onEdit(digest)}>
+                     <Pencil className="w-4 h-4 mr-2" />
+                     Edit
+                   </DropdownMenuItem>
+                   <DropdownMenuItem onClick={() => onMakePublic?.(digest)}>
+                     <Globe className="w-4 h-4 mr-2" />
+                     {digest.is_public ? 'Make Private' : 'Make Public'}
+                   </DropdownMenuItem>
+                   <DropdownMenuItem onClick={() => onSendTest(digest)}>
+                     <Send className="w-4 h-4 mr-2" />
+                     Send Test
+                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => onToggleStatus(digest)}>
                     {digest.status === 'active' ? (
                       <>
