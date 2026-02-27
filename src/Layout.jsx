@@ -47,6 +47,7 @@ export default function Layout({ children, currentPageName }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { theme, setTheme, mounted } = useTheme();
 
   const publicPages = ['Landing', 'Pricing', 'Directory'];
   const isPublicPage = publicPages.includes(currentPageName);
