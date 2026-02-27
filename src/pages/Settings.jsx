@@ -60,6 +60,8 @@ export default function Settings() {
       const userData = await base44.auth.me();
       setUser(userData);
       setFormData({
+        full_name: userData.full_name || '',
+        email: userData.email || '',
         timezone: userData.timezone || 'America/New_York',
         emailNotifications: true,
         digestReminders: true,
