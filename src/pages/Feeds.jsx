@@ -29,6 +29,7 @@ import FeedCard from '@/components/feeds/FeedCard';
 import FeedListView from '@/components/feeds/FeedListView';
 import FeedCompactView from '@/components/feeds/FeedCompactView';
 import BulkImportDialog from '@/components/feeds/BulkImportDialog';
+import BulkFeedActions from '@/components/feeds/BulkFeedActions';
 
 const CATEGORIES = ['All', 'CRE', 'Markets', 'Tech', 'News', 'Finance', 'Crypto', 'AI', 'Other'];
 
@@ -45,6 +46,7 @@ export default function Feeds() {
   const [selectedFeeds, setSelectedFeeds] = useState([]);
   const [deletingBulk, setDeletingBulk] = useState(false);
   const [bulkDeleteMode, setBulkDeleteMode] = useState(false);
+  const [bulkActionOpen, setBulkActionOpen] = useState(null); // 'tag', 'category', 'directory'
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -265,14 +267,37 @@ export default function Feeds() {
           {selectedFeeds.length > 0 && (
             <div className="mb-6 flex items-center justify-between gap-4 bg-indigo-50 border border-indigo-200 rounded-lg px-4 py-3">
               <span className="text-sm font-medium text-indigo-900">{selectedFeeds.length} feed(s) selected</span>
-              <Button
-                size="sm"
-                onClick={() => setDeleteConfirm({ id: 'bulk', name: '' })}
-                className="bg-red-600 hover:bg-red-700"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete Selected
-              </Button>
+              <div className="flex gap-2 flex-wrap">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setBulkActionOpen('tag')}
+                >
+                  Add Tag
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setBulkActionOpen('category')}
+                >
+                  Change Category
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setBulkActionOpen('directory')}
+                >
+                  Copy to Directory
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => setDeleteConfirm({ id: 'bulk', name: '' })}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete Selected
+                </Button>
+              </div>
             </div>
           )}
           {viewMode === 'grid' && (
@@ -322,15 +347,27 @@ export default function Feeds() {
       />
 
       {/* Add/Edit Dialog */}
-      <AddFeedDialog
-        open={showAddDialog}
-        onOpenChange={(open) => {
-          setShowAddDialog(open);
-          if (!open) setEditFeed(null);
-        }}
-        onSuccess={() => queryClient.invalidateQueries({ queryKey: ['feeds'] })}
-        editFeed={editFeed}
-      />
+       <AddFeedDialog
+         open={showAddDialog}
+         onOpenChange={(open) => {
+           setShowAddDialog(open);
+           if (!open) setEditFeed(null);
+         }}
+         onSuccess={() => queryClient.invalidateQueries({ queryKey: ['feeds'] })}
+         editFeed={editFeed}
+       />
+
+       {/* Bulk Actions */}
+       <BulkFeedActions
+         selectedIds={selectedFeeds}
+         feeds={feeds}
+         onClose={() => setBulkActionOpen(null)}
+         onSuccess={() => {
+           queryClient.invalidateQueries({ queryKey: ['feeds'] });
+           setBulkActionOpen(null);
+           setSelectedFeeds([]);
+         }}
+       />
 
       {/* Delete Confirmation */}
       {deleteConfirm && (
