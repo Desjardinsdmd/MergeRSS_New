@@ -52,7 +52,7 @@ export default function FeedCard({ feed, onEdit, onDelete, onToggleStatus }) {
           
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
-              <div>
+              <div className="min-w-0 flex-1">
                 <h3 className="font-semibold text-slate-900 truncate">
                   {feed.name}
                 </h3>
@@ -60,7 +60,7 @@ export default function FeedCard({ feed, onEdit, onDelete, onToggleStatus }) {
                   href={feed.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-slate-500 hover:text-violet-600 truncate block max-w-[200px]"
+                  className="text-xs text-slate-500 hover:text-violet-600 truncate block"
                 >
                   {feed.url}
                 </a>
