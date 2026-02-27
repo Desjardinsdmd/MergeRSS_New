@@ -55,6 +55,7 @@ export default function Integrations() {
   const [disconnectConfirm, setDisconnectConfirm] = useState(null);
   const [loading, setLoading] = useState(false);
   const [discordWebhook, setDiscordWebhook] = useState('');
+  const [slackWebhook, setSlackWebhook] = useState('');
   const queryClient = useQueryClient();
 
   useEffect(() => {
