@@ -70,13 +70,37 @@ export default function Settings() {
     loadUser();
   }, []);
 
+  const handleVerifyPassword = async () => {
+    try {
+      setLoading(true);
+      await base44.auth.verifyPassword(password);
+      setShowPasswordVerification(false);
+      setPassword('');
+      setEditingProfile(true);
+      toast.success('Password verified');
+    } catch (error) {
+      toast.error('Incorrect password');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSave = async () => {
     setLoading(true);
-    await base44.auth.updateMe({
-      timezone: formData.timezone,
-    });
-    setLoading(false);
-    toast.success('Settings saved');
+    try {
+      await base44.auth.updateMe({
+        full_name: formData.full_name,
+        email: formData.email,
+        timezone: formData.timezone,
+      });
+      setUser({ ...user, full_name: formData.full_name, email: formData.email });
+      setEditingProfile(false);
+      toast.success('Profile updated');
+    } catch (error) {
+      toast.error('Failed to update profile');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const isPremium = user?.plan === 'premium';
