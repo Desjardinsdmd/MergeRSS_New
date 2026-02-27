@@ -87,7 +87,14 @@ function DirectoryCard({ item, itemType, user, votes, onVote, onAdd, addedItems,
   };
   
   return (
-    <div className="bg-white border border-slate-100 rounded-xl p-4 flex gap-4 hover:shadow-sm transition">
+    <div className={cn("bg-white border rounded-xl p-4 flex gap-4 hover:shadow-sm transition", isSelected ? "border-indigo-300 bg-indigo-50" : "border-slate-100")}>
+      <button
+        onClick={() => onToggleSelect && onToggleSelect(item.id, itemType)}
+        className="flex-shrink-0 mt-0.5 text-slate-400 hover:text-indigo-600 transition"
+        title={isSelected ? 'Deselect' : 'Select'}
+      >
+        {isSelected ? <CheckCircle2 className="w-5 h-5 text-indigo-600" /> : <Circle className="w-5 h-5" />}
+      </button>
       <VoteButtons item={item} itemType={itemType} user={user} votes={votes} onVote={onVote} />
 
       <div className="flex-1 min-w-0">
