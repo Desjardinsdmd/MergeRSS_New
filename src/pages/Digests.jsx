@@ -56,28 +56,18 @@ export default function Digests() {
 
   const handleSendTest = async (digest) => {
     setSendingTest(digest.id);
-    
-    // Create a test delivery record
-    await base44.entities.DigestDelivery.create({
-      digest_id: digest.id,
-      delivery_type: 'web',
-      status: 'sent',
-      content: `Test digest for ${digest.name}. This is a sample digest with your selected content.`,
-      item_count: 5,
-      date_range_start: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      date_range_end: new Date().toISOString(),
-      sent_at: new Date().toISOString(),
-    });
-
-    await base44.entities.Digest.update(digest.id, {
-      last_sent: new Date().toISOString()
-    });
-
+    const response = await base44.functions.invoke('generateDigests', { digest_id: digest.id, force: true });
     queryClient.invalidateQueries({ queryKey: ['digests'] });
     queryClient.invalidateQueries({ queryKey: ['deliveries'] });
-    
     setSendingTest(null);
-    toast.success('Test digest sent! Check your inbox.');
+    const result = response.data?.results?.[0];
+    if (result?.skipped) {
+      toast.info(`Digest skipped: ${result.reason}`);
+    } else if (result?.error) {
+      toast.error(`Error: ${result.error}`);
+    } else {
+      toast.success(`Digest generated with ${result?.items_included || 0} items! Check your inbox.`);
+    }
   };
 
   const maxDigests = user?.plan === 'premium' ? Infinity : 1;

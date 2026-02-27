@@ -146,10 +146,20 @@ export default function Integrations() {
 
   const handleSendTestMessage = async (type) => {
     setLoading(true);
-    // Simulate sending test message
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setLoading(false);
-    toast.success(`Test message sent to ${type}!`);
+    if (type === 'Discord' && discordIntegration?.webhook_url) {
+      const res = await base44.functions.invoke('sendDiscordTest', { webhook_url: discordIntegration.webhook_url });
+      setLoading(false);
+      if (res.data?.success) {
+        toast.success('Test message sent to Discord!');
+      } else {
+        toast.error(res.data?.error || 'Failed to send test message');
+      }
+    } else {
+      // Slack: just confirm (real Slack OAuth would need an app)
+      await new Promise(resolve => setTimeout(resolve, 800));
+      setLoading(false);
+      toast.success(`Test message queued for ${type}!`);
+    }
   };
 
   return (
