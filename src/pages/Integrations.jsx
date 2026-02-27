@@ -83,43 +83,53 @@ export default function Integrations() {
     }
     setLoading(true);
 
-    await base44.entities.Integration.create({
-      type: 'slack',
-      status: 'connected',
-      workspace_name: 'Slack Workspace',
-      webhook_url: slackWebhook,
-    });
+    try {
+      await base44.entities.Integration.create({
+        type: 'slack',
+        status: 'connected',
+        workspace_name: 'Slack Workspace',
+        webhook_url: slackWebhook,
+      });
 
-    queryClient.invalidateQueries({ queryKey: ['integrations'] });
-    setLoading(false);
-    setShowSlackDialog(false);
-    setSlackWebhook('');
-    toast.success('Slack connected successfully!');
+      queryClient.invalidateQueries({ queryKey: ['integrations'] });
+      setLoading(false);
+      setShowSlackDialog(false);
+      setSlackWebhook('');
+      toast.success('Slack connected successfully!');
+    } catch (error) {
+      setLoading(false);
+      toast.error(error.message || 'Failed to connect Slack');
+    }
   };
 
   const handleConnectDiscord = async () => {
     if (!isPremium || !discordWebhook) return;
     setLoading(true);
 
-    // Validate webhook URL format
-    if (!discordWebhook.includes('discord.com/api/webhooks/')) {
-      toast.error('Invalid Discord webhook URL');
+    try {
+      // Validate webhook URL format
+      if (!discordWebhook.includes('discord.com/api/webhooks/')) {
+        toast.error('Invalid Discord webhook URL');
+        setLoading(false);
+        return;
+      }
+
+      await base44.entities.Integration.create({
+        type: 'discord',
+        status: 'connected',
+        webhook_url: discordWebhook,
+        workspace_name: 'Discord Server',
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['integrations'] });
       setLoading(false);
-      return;
+      setShowDiscordDialog(false);
+      setDiscordWebhook('');
+      toast.success('Discord connected successfully!');
+    } catch (error) {
+      setLoading(false);
+      toast.error(error.message || 'Failed to connect Discord');
     }
-
-    await base44.entities.Integration.create({
-      type: 'discord',
-      status: 'connected',
-      webhook_url: discordWebhook,
-      workspace_name: 'Discord Server',
-    });
-
-    queryClient.invalidateQueries({ queryKey: ['integrations'] });
-    setLoading(false);
-    setShowDiscordDialog(false);
-    setDiscordWebhook('');
-    toast.success('Discord connected successfully!');
   };
 
   const handleDisconnect = async () => {
