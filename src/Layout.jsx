@@ -16,7 +16,8 @@ import {
   Activity,
   Zap,
   Inbox,
-  Users
+  Users,
+  Globe
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -27,6 +28,7 @@ const navigation = [
   { name: 'Feeds', href: 'Feeds', icon: Rss },
   { name: 'Digests', href: 'Digests', icon: FileText },
   { name: 'Inbox', href: 'Inbox', icon: Inbox },
+  { name: 'Directory', href: 'Directory', icon: Globe },
   { name: 'Team', href: 'Team', icon: Users },
   { name: 'Integrations', href: 'Integrations', icon: Link2 },
   { name: 'Settings', href: 'Settings', icon: Settings },
@@ -42,7 +44,7 @@ export default function Layout({ children, currentPageName }) {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const publicPages = ['Landing', 'Pricing'];
+  const publicPages = ['Landing', 'Pricing', 'Directory'];
   const isPublicPage = publicPages.includes(currentPageName);
 
   useEffect(() => {

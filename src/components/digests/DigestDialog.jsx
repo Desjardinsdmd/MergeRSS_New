@@ -21,7 +21,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, X, Crown } from 'lucide-react';
+import { Loader2, X, Crown, Globe } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 
 const CATEGORIES = ['CRE', 'Markets', 'Tech', 'News', 'Finance', 'Crypto', 'AI', 'Other'];
@@ -54,6 +55,8 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
     delivery_slack: false,
     delivery_discord: false,
     status: 'active',
+    is_public: false,
+    public_description: '',
   });
 
   useEffect(() => {
@@ -82,6 +85,8 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
         status: editDigest.status || 'active',
         slack_channel_id: editDigest.slack_channel_id || '',
         discord_webhook_url: editDigest.discord_webhook_url || '',
+        is_public: editDigest.is_public ?? false,
+        public_description: editDigest.public_description || '',
       });
     } else {
       setFormData({
@@ -98,6 +103,8 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
         delivery_slack: false,
         delivery_discord: false,
         status: 'active',
+        is_public: false,
+        public_description: '',
       });
     }
   }, [editDigest, open]);
@@ -353,6 +360,34 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
                 </div>
               </label>
             </div>
+          </div>
+
+          {/* Share to Directory */}
+          <div className="border border-slate-100 rounded-xl p-4 space-y-3 bg-slate-50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Globe className="w-4 h-4 text-indigo-500" />
+                <div>
+                  <p className="text-sm font-medium text-slate-900">Share to Public Directory</p>
+                  <p className="text-xs text-slate-500">Let others discover and add this digest</p>
+                </div>
+              </div>
+              <Switch
+                checked={formData.is_public}
+                onCheckedChange={(v) => setFormData({ ...formData, is_public: v })}
+              />
+            </div>
+            {formData.is_public && (
+              <div>
+                <Label className="text-xs">Short description for the directory</Label>
+                <Input
+                  value={formData.public_description}
+                  onChange={(e) => setFormData({ ...formData, public_description: e.target.value })}
+                  placeholder="What makes this digest valuable?"
+                  className="mt-1 text-sm"
+                />
+              </div>
+            )}
           </div>
 
           <DialogFooter>

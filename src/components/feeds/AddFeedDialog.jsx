@@ -18,7 +18,8 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, X, Plus } from 'lucide-react';
+import { Loader2, X, Plus, Globe } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 
 const CATEGORIES = ['CRE', 'Markets', 'Tech', 'News', 'Finance', 'Crypto', 'AI', 'Other'];
 
@@ -29,6 +30,8 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
     url: editFeed?.url || '',
     category: editFeed?.category || 'Other',
     tags: editFeed?.tags || [],
+    is_public: editFeed?.is_public || false,
+    public_description: editFeed?.public_description || '',
   });
   const [tagInput, setTagInput] = useState('');
 
@@ -49,7 +52,7 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
     setLoading(false);
     onSuccess();
     onOpenChange(false);
-    setFormData({ name: '', url: '', category: 'Other', tags: [] });
+    setFormData({ name: '', url: '', category: 'Other', tags: [], is_public: false, public_description: '' });
   };
 
   const addTag = () => {
@@ -134,6 +137,34 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
                     </button>
                   </Badge>
                 ))}
+              </div>
+            )}
+          </div>
+
+          {/* Share to Directory */}
+          <div className="border border-slate-100 rounded-xl p-4 space-y-3 bg-slate-50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Globe className="w-4 h-4 text-indigo-500" />
+                <div>
+                  <p className="text-sm font-medium text-slate-900">Share to Public Directory</p>
+                  <p className="text-xs text-slate-500">Let others discover and add this feed</p>
+                </div>
+              </div>
+              <Switch
+                checked={formData.is_public}
+                onCheckedChange={(v) => setFormData({ ...formData, is_public: v })}
+              />
+            </div>
+            {formData.is_public && (
+              <div>
+                <Label className="text-xs">Short description for the directory</Label>
+                <Input
+                  value={formData.public_description}
+                  onChange={(e) => setFormData({ ...formData, public_description: e.target.value })}
+                  placeholder="What makes this feed great?"
+                  className="mt-1 text-sm"
+                />
               </div>
             )}
           </div>
