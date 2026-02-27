@@ -76,27 +76,26 @@ export default function Integrations() {
   const isPremium = user?.plan === 'premium';
 
   const handleConnectSlack = async () => {
-    if (!isPremium) return;
+    if (!isPremium || !slackWebhook) return;
     setLoading(true);
-    
-    // Simulate Slack OAuth - in production this would redirect to Slack OAuth
+
+    if (!slackWebhook.includes('hooks.slack.com')) {
+      toast.error('Invalid Slack webhook URL');
+      setLoading(false);
+      return;
+    }
+
     await base44.entities.Integration.create({
       type: 'slack',
       status: 'connected',
-      workspace_name: 'My Workspace',
-      workspace_id: 'W' + Math.random().toString(36).substr(2, 9).toUpperCase(),
-      channels: [
-        { id: 'C001', name: 'general' },
-        { id: 'C002', name: 'random' },
-        { id: 'C003', name: 'team-updates' },
-      ],
-      selected_channel_id: 'C001',
-      selected_channel_name: 'general',
+      webhook_url: slackWebhook,
+      workspace_name: 'Slack Workspace',
     });
 
     queryClient.invalidateQueries({ queryKey: ['integrations'] });
     setLoading(false);
     setShowSlackDialog(false);
+    setSlackWebhook('');
     toast.success('Slack connected successfully!');
   };
 
