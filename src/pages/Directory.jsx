@@ -161,9 +161,9 @@ export default function Directory() {
     queryFn: () => base44.entities.Digest.filter({ is_public: true }),
   });
 
-  // Filter out current user's items from directory
-  const directoryFeeds = publicFeeds.filter(f => f.created_by !== user?.email);
-  const directoryDigests = publicDigests.filter(d => d.created_by !== user?.email);
+  // Filter out current user's items from directory (unless they're admin)
+  const directoryFeeds = publicFeeds.filter(f => user?.role === 'admin' || f.created_by !== user?.email);
+  const directoryDigests = publicDigests.filter(d => user?.role === 'admin' || d.created_by !== user?.email);
 
   const { data: votes = [] } = useQuery({
     queryKey: ['directory-votes', user?.email],
