@@ -33,8 +33,13 @@ Deno.serve(async (req) => {
         if (digest) {
             const recentItems = await base44.asServiceRole.entities.FeedItem.list('-published_date', 10);
             if (recentItems.length > 0) {
-                const itemList = recentItems.slice(0, 5).map(item => `• **${item.title}**\n${item.url}`).join('\n\n');
-                content = `📰 **${digest.name} - Test Digest**\n\n${itemList}`;
+                let itemList = '';
+                for (const item of recentItems) {
+                    const itemText = `• **${item.title}**\n${item.url || ''}`;
+                    if ((itemList + itemText).length > 1800) break;
+                    itemList += (itemList ? '\n\n' : '') + itemText;
+                }
+                content = `📰 **${digest.name} - Test Digest**\n\n${itemList}`.substring(0, 2000);
             }
         }
 
