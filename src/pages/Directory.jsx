@@ -511,7 +511,7 @@ export default function Directory() {
           <Button
             size="sm"
             variant="ghost"
-            onClick={() => setSelectedItems({})}
+            onClick={handleDeselectAll}
             className="ml-auto text-xs"
           >
             Clear
