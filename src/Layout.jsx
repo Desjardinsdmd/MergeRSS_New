@@ -43,7 +43,7 @@ const adminNav = [
   { name: 'Import Feeds', href: 'AdminImport', icon: Globe },
 ];
 
-export default function Layout({ children, currentPageName }) {
+function LayoutContent({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
