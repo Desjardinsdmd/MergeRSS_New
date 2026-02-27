@@ -26,6 +26,7 @@ export default function Dashboard() {
   const [showTour, setShowTour] = useState(false);
   const [showWalkthrough, setShowWalkthrough] = useState(false);
   const [liveArticles, setLiveArticles] = useState([]);
+  const [expandedArticles, setExpandedArticles] = useState(false);
 
   useEffect(() => {
     const loadUser = async () => {
