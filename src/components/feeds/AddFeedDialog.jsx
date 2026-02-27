@@ -167,32 +167,39 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
           </div>
 
           {/* Share to Directory */}
-          <div className="border border-slate-100 rounded-xl p-4 space-y-3 bg-slate-50">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Globe className="w-4 h-4 text-indigo-500" />
-                <div>
-                  <p className="text-sm font-medium text-slate-900">Share to Public Directory</p>
-                  <p className="text-xs text-slate-500">Let others discover and add this feed</p>
+          {editFeed && (
+            <div className="border border-slate-100 rounded-xl p-4 space-y-3 bg-slate-50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-indigo-500" />
+                  <div>
+                    <p className="text-sm font-medium text-slate-900">Share to Public Directory</p>
+                    <p className="text-xs text-slate-500">
+                      {canShareToDirectory 
+                        ? 'Let others discover and add this feed'
+                        : 'Feeds from the directory cannot be re-shared'}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <Switch
-                checked={formData.is_public}
-                onCheckedChange={(v) => setFormData({ ...formData, is_public: v })}
-              />
-            </div>
-            {formData.is_public && (
-              <div>
-                <Label className="text-xs">Short description for the directory</Label>
-                <Input
-                  value={formData.public_description}
-                  onChange={(e) => setFormData({ ...formData, public_description: e.target.value })}
-                  placeholder="What makes this feed great?"
-                  className="mt-1 text-sm"
+                <Switch
+                  checked={formData.is_public}
+                  onCheckedChange={(v) => setFormData({ ...formData, is_public: v })}
+                  disabled={!canShareToDirectory}
                 />
               </div>
-            )}
-          </div>
+              {formData.is_public && canShareToDirectory && (
+                <div>
+                  <Label className="text-xs">Short description for the directory</Label>
+                  <Input
+                    value={formData.public_description}
+                    onChange={(e) => setFormData({ ...formData, public_description: e.target.value })}
+                    placeholder="What makes this feed great?"
+                    className="mt-1 text-sm"
+                  />
+                </div>
+              )}
+            </div>
+          )}
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
