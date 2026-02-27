@@ -85,6 +85,78 @@ export default function AdminImport() {
     setSelectedSources(next);
   };
 
+  const addManualFeed = () => {
+    if (!manualFeed.name.trim() || !manualFeed.url.trim()) {
+      toast.error('Feed name and URL are required');
+      return;
+    }
+    const tags = manualFeed.tags.split(',').map(t => t.trim()).filter(Boolean);
+    setManualFeeds([...manualFeeds, { ...manualFeed, tags }]);
+    setManualFeed({ name: '', url: '', category: 'Other', tags: '' });
+  };
+
+  const removeManualFeed = (index) => {
+    setManualFeeds(manualFeeds.filter((_, i) => i !== index));
+  };
+
+  const addManualDigest = () => {
+    if (!manualDigest.name.trim()) {
+      toast.error('Digest name is required');
+      return;
+    }
+    const categories = manualDigest.categories.split(',').map(c => c.trim()).filter(Boolean);
+    const tags = manualDigest.tags.split(',').map(t => t.trim()).filter(Boolean);
+    setManualDigests([...manualDigests, { ...manualDigest, categories, tags }]);
+    setManualDigest({ name: '', description: '', categories: '', tags: '' });
+  };
+
+  const removeManualDigest = (index) => {
+    setManualDigests(manualDigests.filter((_, i) => i !== index));
+  };
+
+  const submitManualItems = async () => {
+    if (manualFeeds.length === 0 && manualDigests.length === 0) {
+      toast.error('Add at least one feed or digest');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      if (manualFeeds.length > 0) {
+        await Promise.all(manualFeeds.map(feed =>
+          base44.entities.Feed.create({
+            name: feed.name,
+            url: feed.url,
+            category: feed.category,
+            tags: feed.tags,
+            is_public: true,
+          })
+        ));
+      }
+
+      if (manualDigests.length > 0) {
+        await Promise.all(manualDigests.map(digest =>
+          base44.entities.Digest.create({
+            name: digest.name,
+            description: digest.description,
+            categories: digest.categories,
+            tags: digest.tags,
+            frequency: 'daily',
+            is_public: true,
+          })
+        ));
+      }
+
+      toast.success(`Added ${manualFeeds.length} feed(s) and ${manualDigests.length} digest(s) to directory`);
+      setManualFeeds([]);
+      setManualDigests([]);
+    } catch (e) {
+      toast.error('Failed to add items: ' + e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const runImport = async (specificUrl = null) => {
     setLoading(true);
     setResults(null);
