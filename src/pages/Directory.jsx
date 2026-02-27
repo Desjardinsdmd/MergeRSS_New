@@ -74,7 +74,7 @@ function VoteButtons({ item, itemType, user, votes, onVote }) {
   );
 }
 
-function DirectoryCard({ item, itemType, user, votes, onVote, onAdd, addedItems }) {
+function DirectoryCard({ item, itemType, user, votes, onVote, onAdd, addedItems, isSelected, onToggleSelect }) {
   const [adding, setAdding] = React.useState(false);
   const Icon = itemType === 'feed' ? Rss : FileText;
   const isAdded = addedItems?.includes(item.id);
