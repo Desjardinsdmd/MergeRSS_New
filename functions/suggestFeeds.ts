@@ -1,5 +1,19 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+const testFeedUrl = async (url) => {
+  try {
+    const res = await fetch(url, { 
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; MergeRSS/1.0)' }
+    });
+    if (!res.ok) return false;
+    const content = await res.text();
+    // Check if it's valid RSS/Atom XML
+    return content.includes('<?xml') && (content.includes('<rss') || content.includes('<feed'));
+  } catch {
+    return false;
+  }
+};
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -50,7 +64,29 @@ Return ONLY real, working RSS feed URLs. Do not make up URLs. Search for actual 
       }
     });
 
-    return Response.json(result);
+    // Test each feed and filter out broken ones
+    const testedFeeds = [];
+    for (const feed of result.feeds || []) {
+      const isValid = await testFeedUrl(feed.url);
+      if (isValid) {
+        testedFeeds.push(feed);
+        
+        // Check if this feed already exists in directory
+        const existing = await base44.asServiceRole.entities.DirectoryFeed.filter({ url: feed.url });
+        if (existing.length === 0) {
+          // Add to directory automatically
+          await base44.asServiceRole.entities.DirectoryFeed.create({
+            name: feed.name,
+            url: feed.url,
+            category: feed.category || 'Other',
+            tags: feed.tags || [],
+            description: feed.description,
+          });
+        }
+      }
+    }
+
+    return Response.json({ ...result, feeds: testedFeeds });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
