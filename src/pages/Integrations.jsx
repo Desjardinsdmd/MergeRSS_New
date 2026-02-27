@@ -77,17 +77,19 @@ export default function Integrations() {
 
   const handleConnectSlack = async () => {
     if (!isPremium || !slackWebhook) return;
+    setLoading(true);
+
     if (!slackWebhook.includes('hooks.slack.com')) {
       toast.error('Invalid Slack webhook URL');
+      setLoading(false);
       return;
     }
-    setLoading(true);
 
     await base44.entities.Integration.create({
       type: 'slack',
       status: 'connected',
-      workspace_name: 'Slack Workspace',
       webhook_url: slackWebhook,
+      workspace_name: 'Slack Workspace',
     });
 
     queryClient.invalidateQueries({ queryKey: ['integrations'] });
@@ -152,11 +154,20 @@ export default function Integrations() {
       } else {
         toast.error(res.data?.error || 'Failed to send test message');
       }
-    } else {
-      // Slack: just confirm (real Slack OAuth would need an app)
-      await new Promise(resolve => setTimeout(resolve, 800));
+    } else if (type === 'Slack' && slackIntegration?.webhook_url) {
+      const res = await base44.functions.invoke('sendSlackMessage', {
+        webhook_url: slackIntegration.webhook_url,
+        text: '✅ *MergeRSS Test Message* — Your Slack integration is working!',
+      });
       setLoading(false);
-      toast.success(`Test message queued for ${type}!`);
+      if (res.data?.success) {
+        toast.success('Test message sent to Slack!');
+      } else {
+        toast.error(res.data?.error || 'Failed to send test message');
+      }
+    } else {
+      setLoading(false);
+      toast.error('No webhook configured');
     }
   };
 
