@@ -25,6 +25,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useTheme } from 'next-themes';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { Toaster } from 'sonner';
 
 const navigation = [
   { name: 'Dashboard', href: 'Dashboard', icon: LayoutDashboard },
@@ -308,6 +309,7 @@ export default function Layout({ children, currentPageName }) {
   return (
     <ThemeProvider>
       <LayoutContent children={children} currentPageName={currentPageName} />
+      <Toaster />
     </ThemeProvider>
   );
 }
