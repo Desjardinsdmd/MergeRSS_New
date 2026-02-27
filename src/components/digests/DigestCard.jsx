@@ -67,10 +67,19 @@ export default function DigestCard({ digest, onEdit, onDelete, onToggleStatus, o
                      <Globe className="w-4 h-4 mr-2" />
                      {digest.is_public ? 'Make Private' : 'Make Public'}
                    </DropdownMenuItem>
-                   <DropdownMenuItem onClick={() => onSendTest(digest)}>
-                     <Send className="w-4 h-4 mr-2" />
-                     Send Test
-                   </DropdownMenuItem>
+                   <DropdownMenuItem onClick={() => onSendTest(digest)} disabled={isSending}>
+                      {isSending ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Sending...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4 mr-2" />
+                          Send Test
+                        </>
+                      )}
+                    </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => onToggleStatus(digest)}>
                     {digest.status === 'active' ? (
                       <>
