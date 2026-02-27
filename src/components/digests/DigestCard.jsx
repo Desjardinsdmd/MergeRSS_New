@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export default function DigestCard({ digest, onEdit, onDelete, onToggleStatus, onSendTest, onMakePublic }) {
+export default function DigestCard({ digest, onEdit, onDelete, onToggleStatus, onSendTest, onMakePublic, isSending }) {
   const [showComments, setShowComments] = useState(false);
   const frequencyLabel = digest.frequency === 'daily' ? 'Daily' : 'Weekly';
   
