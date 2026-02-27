@@ -186,7 +186,7 @@ export default function Settings() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className={`w-10 h-10 flex items-center justify-center ${
-                  isPremium ? 'bg-[#e82127]' : 'bg-slate-100'
+                  isPremium ? 'bg-indigo-600' : 'bg-slate-100'
                 }`}>
                   <Crown className={`w-5 h-5 ${isPremium ? 'text-white' : 'text-slate-400'}`} />
                 </div>
@@ -196,7 +196,7 @@ export default function Settings() {
                       {isPremium ? 'Premium' : 'Free'} Plan
                     </p>
                     {isPremium && (
-                      <Badge className="bg-[#e82127] text-white">Active</Badge>
+                      <Badge className="bg-indigo-100 text-indigo-700">Active</Badge>
                     )}
                   </div>
                   <p className="text-sm text-slate-500">
@@ -215,7 +215,7 @@ export default function Settings() {
                 </Button>
               ) : (
                 <Link to={createPageUrl('Pricing')}>
-                  <Button className="bg-[#171a20] hover:bg-black rounded-sm">
+                  <Button className="bg-indigo-600 hover:bg-indigo-700 rounded-lg">
                     Upgrade
                   </Button>
                 </Link>
@@ -229,7 +229,7 @@ export default function Settings() {
           <Button 
             onClick={handleSave} 
             disabled={loading}
-            className="bg-[#171a20] hover:bg-black rounded-sm"
+            className="bg-indigo-600 hover:bg-indigo-700 rounded-lg"
           >
             {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
             Save Changes
