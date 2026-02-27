@@ -23,6 +23,7 @@ import SetupWalkthrough from '@/components/SetupWalkthrough';
 export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [showTour, setShowTour] = useState(false);
+  const [showWalkthrough, setShowWalkthrough] = useState(false);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -30,6 +31,8 @@ export default function Dashboard() {
       setUser(userData);
       if (!userData.onboarding_complete) {
         setShowTour(true);
+      } else if (!userData.setup_walkthrough_complete) {
+        setShowWalkthrough(true);
       }
     };
     loadUser();
