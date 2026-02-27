@@ -184,7 +184,7 @@ Write a well-organized, professional digest. Group related stories where appropr
                         const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                         const discordMsg = `**📰 ${digest.name}**\n*${dateStr} • ${items.length} articles*\n\n${content.slice(0, 1900)}${content.length > 1900 ? '\n\n*...read full digest in your MergeRSS inbox*' : ''}`;
 
-                        const discordRes = await fetch(discordInt.webhook_url, {
+                        const discordRes = await fetch(discordInt.discord_webhook_url, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ content: discordMsg }),
