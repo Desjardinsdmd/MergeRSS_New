@@ -25,7 +25,7 @@ const plans = [
   },
   {
     name: 'Premium',
-    price: 19,
+    price: 5,
     description: 'For professionals who need more',
     features: [
       { text: 'Unlimited RSS feeds', included: true },
