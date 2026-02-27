@@ -206,11 +206,15 @@ export default function AdminImport() {
           url: r.url || r.feed_url || '',
           category: r.category || 'Other',
           tags: (r.tags || '').split(';').map(t => t.trim()).filter(Boolean),
-        })).filter(f => f.name && f.url);
-        if (feeds.length === 0) {
+        }));
+        console.log('Mapped feeds:', feeds);
+        const validFeeds = feeds.filter(f => f.name && f.url);
+        console.log('Valid feeds after filter:', validFeeds);
+        if (validFeeds.length === 0) {
           toast.error('No valid feeds found in CSV');
           return;
         }
+        setManualFeeds([...manualFeeds, ...validFeeds]);
         setManualFeeds([...manualFeeds, ...feeds]);
         toast.success(`Added ${feeds.length} feed(s) from CSV`);
         e.target.value = '';
