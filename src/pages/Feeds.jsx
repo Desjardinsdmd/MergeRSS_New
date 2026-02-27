@@ -84,7 +84,8 @@ export default function Feeds() {
     toast.success(`Feeds refreshed — ${newItems} new items found`);
   };
 
-  const maxFeeds = user?.plan === 'premium' ? Infinity : 5;
+  const isPremium = user?.plan === 'premium';
+  const maxFeeds = isPremium ? Infinity : 5;
   const canAddMore = feeds.length < maxFeeds;
 
   return (
@@ -95,9 +96,9 @@ export default function Feeds() {
           <h1 className="text-2xl font-bold text-slate-900">Feeds</h1>
           <p className="text-slate-600">
             Manage your RSS feed sources
-            {user?.plan !== 'premium' && (
+            {!isPremium && (
               <span className="text-sm text-slate-500 ml-2">
-                ({feeds.length}/{maxFeeds} feeds)
+                ({feeds.length}/{maxFeeds} used)
               </span>
             )}
           </p>
@@ -112,15 +113,30 @@ export default function Feeds() {
             Refresh
           </Button>
           <Button 
-            onClick={() => setShowAddDialog(true)}
+            onClick={() => canAddMore ? setShowAddDialog(true) : null}
             disabled={!canAddMore}
-            className="bg-indigo-600 hover:bg-indigo-700 rounded-lg"
+            title={!canAddMore ? 'Upgrade to Premium to add more feeds' : ''}
+            className="bg-indigo-600 hover:bg-indigo-700 rounded-lg disabled:opacity-60"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add Feed
           </Button>
         </div>
       </div>
+
+      {/* Free plan limit banner */}
+      {!isPremium && feeds.length >= maxFeeds && (
+        <div className="mb-6 flex items-center justify-between gap-4 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+          <p className="text-sm text-amber-800 font-medium">
+            You've reached the 5-feed limit on the Free plan. Upgrade to Premium for unlimited feeds.
+          </p>
+          <Link to={createPageUrl('Pricing')}>
+            <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 rounded-lg whitespace-nowrap">
+              Upgrade
+            </Button>
+          </Link>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
