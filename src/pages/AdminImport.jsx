@@ -277,10 +277,11 @@ export default function AdminImport() {
             <CardDescription className="text-xs">Upload a CSV file with columns: name, url, category (optional), tags (optional, semicolon-separated)</CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
-            <label className="flex flex-col items-center justify-center w-full px-4 py-6 border-2 border-dashed border-slate-200 rounded-lg hover:border-indigo-300 hover:bg-indigo-50 cursor-pointer transition">
+            <label htmlFor="bulk-feeds-upload" className="flex flex-col items-center justify-center w-full px-4 py-6 border-2 border-dashed border-slate-200 rounded-lg hover:border-indigo-300 hover:bg-indigo-50 cursor-pointer transition">
               <Upload className="w-5 h-5 text-slate-400 mb-2" />
               <span className="text-sm text-slate-600">Click to upload CSV or drag and drop</span>
               <input
+                id="bulk-feeds-upload"
                 type="file"
                 accept=".csv"
                 onChange={handleBulkFeedsUpload}
@@ -298,10 +299,11 @@ export default function AdminImport() {
             <CardDescription className="text-xs">Upload a CSV file with columns: name, description (optional), categories (optional, semicolon-separated), tags (optional, semicolon-separated)</CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
-            <label className="flex flex-col items-center justify-center w-full px-4 py-6 border-2 border-dashed border-slate-200 rounded-lg hover:border-indigo-300 hover:bg-indigo-50 cursor-pointer transition">
+            <label htmlFor="bulk-digests-upload" className="flex flex-col items-center justify-center w-full px-4 py-6 border-2 border-dashed border-slate-200 rounded-lg hover:border-indigo-300 hover:bg-indigo-50 cursor-pointer transition">
               <Upload className="w-5 h-5 text-slate-400 mb-2" />
               <span className="text-sm text-slate-600">Click to upload CSV or drag and drop</span>
               <input
+                id="bulk-digests-upload"
                 type="file"
                 accept=".csv"
                 onChange={handleBulkDigestsUpload}
