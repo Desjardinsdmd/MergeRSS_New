@@ -77,17 +77,22 @@ export default function Digests() {
 
   const handleSendTest = async (digest) => {
     setSendingTest(digest.id);
-    const response = await base44.functions.invoke('generateDigests', { digest_id: digest.id, force: true });
-    queryClient.invalidateQueries({ queryKey: ['digests'] });
-    queryClient.invalidateQueries({ queryKey: ['deliveries'] });
-    setSendingTest(null);
-    const result = response.data?.results?.[0];
-    if (result?.skipped) {
-      toast.info(`Digest skipped: ${result.reason}`);
-    } else if (result?.error) {
-      toast.error(`Error: ${result.error}`);
-    } else {
-      toast.success(`Digest generated with ${result?.items_included || 0} items! Check your inbox.`);
+    try {
+      const response = await base44.functions.invoke('generateDigests', { digest_id: digest.id, force: true });
+      queryClient.invalidateQueries({ queryKey: ['digests'] });
+      queryClient.invalidateQueries({ queryKey: ['deliveries'] });
+      const result = response.data?.results?.[0];
+      if (result?.skipped) {
+        toast.info(`Digest skipped: ${result.reason}`);
+      } else if (result?.error) {
+        toast.error(`Error: ${result.error}`);
+      } else {
+        toast.success(`Digest generated with ${result?.items_included || 0} items! Check your inbox.`);
+      }
+    } catch (error) {
+      toast.error(`Failed to send test: ${error.message}`);
+    } finally {
+      setSendingTest(null);
     }
   };
 
