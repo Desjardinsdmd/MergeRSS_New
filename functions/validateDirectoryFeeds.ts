@@ -2,16 +2,20 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 const validateFeedUrl = async (url) => {
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    
     const response = await fetch(url, {
-      method: 'GET',
-      timeout: 10000,
+      signal: controller.signal,
       headers: { 'User-Agent': 'Mozilla/5.0' }
     });
+    
+    clearTimeout(timeoutId);
     
     if (!response.ok) return false;
     
     const content = await response.text();
-    return content.includes('<rss') || content.includes('<feed') || content.includes('<?xml');
+    return (content.includes('<rss') || content.includes('<feed') || content.includes('<?xml')) && content.length > 0;
   } catch (e) {
     return false;
   }
