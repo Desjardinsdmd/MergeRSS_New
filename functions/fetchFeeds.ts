@@ -145,7 +145,13 @@ Deno.serve(async (req) => {
                     status: 'error',
                     fetch_error: err.message,
                 });
-                results.push({ feed: feed.name, error: err.message, status: 'error' });
+                // If rate limited, don't mark as error — just skip this cycle
+                const isRateLimit = err.message.includes('429') || err.message.toLowerCase().includes('rate limit');
+                await base44.asServiceRole.entities.Feed.update(feed.id, {
+                    status: isRateLimit ? 'active' : 'error',
+                    fetch_error: err.message,
+                });
+                results.push({ feed: feed.name, error: err.message, status: isRateLimit ? 'rate_limited' : 'error' });
             }
         }
 
