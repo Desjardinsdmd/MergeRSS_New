@@ -162,26 +162,8 @@ export default function AdminImport() {
     const lines = csv.trim().split('\n').filter(l => l.trim());
     if (lines.length < 2) return [];
 
-    // Parse header with proper quote handling
-    const headerLine = lines[0];
-    const header = [];
-    let current = '';
-    let inQuotes = false;
-    for (let i = 0; i < headerLine.length; i++) {
-      const char = headerLine[i];
-      if (char === '"') {
-        inQuotes = !inQuotes;
-      } else if (char === ',' && !inQuotes) {
-        header.push(current.trim().toLowerCase());
-        current = '';
-      } else {
-        current += char;
-      }
-    }
-    header.push(current.trim().toLowerCase());
-
-    // Parse data rows
-    return lines.slice(1).map(line => {
+    // Helper to parse CSV line respecting quotes
+    const parseLine = (line) => {
       const values = [];
       let current = '';
       let inQuotes = false;
@@ -197,6 +179,20 @@ export default function AdminImport() {
         }
       }
       values.push(current.trim());
+      return values;
+    };
+
+    // Parse header
+    let header = parseLine(lines[0]).map(h => h.toLowerCase());
+
+    // If header has only 1 item and it contains commas, it might be a quoted header, try splitting
+    if (header.length === 1 && header[0].includes(',')) {
+      header = header[0].split(',').map(h => h.trim().toLowerCase());
+    }
+
+    // Parse data rows
+    return lines.slice(1).map(line => {
+      const values = parseLine(line);
       return Object.fromEntries(header.map((h, i) => [h, values[i] || '']));
     });
   };
