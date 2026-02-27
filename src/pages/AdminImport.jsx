@@ -161,18 +161,33 @@ export default function AdminImport() {
   const parseCsv = (csv) => {
     const lines = csv.trim().split('\n').filter(l => l.trim());
     if (lines.length < 2) return [];
-    const header = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/^"|"$/g, ''));
+
+    // Parse header with proper quote handling
+    const headerLine = lines[0];
+    const header = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < headerLine.length; i++) {
+      const char = headerLine[i];
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ',' && !inQuotes) {
+        header.push(current.trim().toLowerCase());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    header.push(current.trim().toLowerCase());
+
+    // Parse data rows
     return lines.slice(1).map(line => {
       const values = [];
       let current = '';
       let inQuotes = false;
       for (let i = 0; i < line.length; i++) {
         const char = line[i];
-        const nextChar = line[i + 1];
-        if (char === '"' && nextChar === '"') {
-          current += '"';
-          i++;
-        } else if (char === '"') {
+        if (char === '"') {
           inQuotes = !inQuotes;
         } else if (char === ',' && !inQuotes) {
           values.push(current.trim());
