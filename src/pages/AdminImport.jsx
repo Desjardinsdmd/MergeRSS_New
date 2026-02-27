@@ -218,17 +218,11 @@ export default function AdminImport() {
 
   const handleBulkDigestsUpload = (e) => {
     const file = e.target.files?.[0];
-    console.log('Digests upload triggered, file:', file?.name);
-    if (!file) {
-      console.log('No file selected');
-      return;
-    }
+    if (!file) return;
     const reader = new FileReader();
     reader.onload = (event) => {
-      console.log('FileReader onload triggered for digests');
       try {
         const csv = event.target.result;
-        console.log('CSV content:', csv?.substring(0, 100));
         if (!csv) throw new Error('Failed to read file');
         const rows = parseCsv(csv);
         console.log('Parsed rows:', rows);
