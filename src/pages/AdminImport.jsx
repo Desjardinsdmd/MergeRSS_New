@@ -161,7 +161,7 @@ export default function AdminImport() {
   const parseCsv = (csv) => {
     const lines = csv.trim().split('\n').filter(l => l.trim());
     if (lines.length < 2) return [];
-    const header = lines[0].split(',').map(h => h.trim().toLowerCase());
+    const header = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/^"|"$/g, ''));
     return lines.slice(1).map(line => {
       const values = [];
       let current = '';
