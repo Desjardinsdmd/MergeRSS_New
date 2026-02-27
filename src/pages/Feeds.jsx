@@ -369,16 +369,19 @@ export default function Feeds() {
        />
 
        {/* Bulk Actions */}
-       <BulkFeedActions
-         selectedIds={selectedFeeds}
-         feeds={feeds}
-         onClose={() => setBulkActionOpen(null)}
-         onSuccess={() => {
-           queryClient.invalidateQueries({ queryKey: ['feeds'] });
-           setBulkActionOpen(null);
-           setSelectedFeeds([]);
-         }}
-       />
+       {bulkActionOpen && (
+         <BulkFeedActions
+           selectedIds={selectedFeeds}
+           feeds={feeds}
+           action={bulkActionOpen}
+           onClose={() => setBulkActionOpen(null)}
+           onSuccess={() => {
+             queryClient.invalidateQueries({ queryKey: ['feeds'] });
+             setBulkActionOpen(null);
+             setSelectedFeeds([]);
+           }}
+         />
+       )}
 
       {/* Delete Confirmation */}
       {deleteConfirm && (
