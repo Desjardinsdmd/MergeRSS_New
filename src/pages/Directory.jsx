@@ -335,6 +335,21 @@ export default function Directory() {
   const selectedDigests = filteredDigests.filter(d => selectedItems[`digest-${d.id}`]);
   const totalSelected = selectedFeeds.length + selectedDigests.length;
 
+  const handleSelectAll = () => {
+    const newSelected = { ...selectedItems };
+    filteredFeeds.forEach(f => {
+      newSelected[`feed-${f.id}`] = true;
+    });
+    filteredDigests.forEach(d => {
+      newSelected[`digest-${d.id}`] = true;
+    });
+    setSelectedItems(newSelected);
+  };
+
+  const handleDeselectAll = () => {
+    setSelectedItems({});
+  };
+
   const handleBulkAdd = async () => {
     if (selectedFeeds.length === 0) return;
     setBulkAdding(true);
