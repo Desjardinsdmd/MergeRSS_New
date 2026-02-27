@@ -23,11 +23,15 @@ import { Tag, Folder, Globe, Loader2 } from 'lucide-react';
 
 const CATEGORIES = ['CRE', 'Markets', 'Tech', 'News', 'Finance', 'Crypto', 'AI', 'Other'];
 
-export default function BulkFeedActions({ selectedIds, feeds, onClose, onSuccess }) {
-  const [action, setAction] = useState(null); // 'tag', 'category', 'directory'
+export default function BulkFeedActions({ selectedIds, feeds, action: externalAction, onClose, onSuccess }) {
+  const [action, setAction] = useState(externalAction); // 'tag', 'category', 'directory'
   const [tagInput, setTagInput] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [loading, setLoading] = useState(false);
+
+  React.useEffect(() => {
+    setAction(externalAction);
+  }, [externalAction]);
 
   const selectedFeeds = feeds.filter(f => selectedIds.includes(f.id));
 
