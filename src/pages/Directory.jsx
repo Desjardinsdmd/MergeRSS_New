@@ -448,7 +448,26 @@ export default function Directory() {
             </button>
           ))}
         </div>
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2">
+          {totalSelected === 0 ? (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleSelectAll}
+              className="text-xs h-8"
+            >
+              Select All
+            </Button>
+          ) : (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleDeselectAll}
+              className="text-xs h-8 text-slate-500"
+            >
+              Deselect All
+            </Button>
+          )}
           <Select value={sortBy} onValueChange={setSortBy}>
             <SelectTrigger className="h-8 text-xs w-32 rounded-lg">
               <SelectValue />
