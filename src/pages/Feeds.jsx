@@ -89,11 +89,17 @@ export default function Feeds() {
       return;
     }
     setDeletingBulk(true);
-    await Promise.all(selectedFeeds.map(id => base44.entities.Feed.delete(id)));
-    queryClient.invalidateQueries({ queryKey: ['feeds'] });
-    setSelectedFeeds([]);
-    setDeletingBulk(false);
-    toast.success(`${selectedFeeds.length} feed(s) deleted`);
+    try {
+      await Promise.all(selectedFeeds.map(id => base44.entities.Feed.delete(id)));
+      queryClient.invalidateQueries({ queryKey: ['feeds'] });
+      setSelectedFeeds([]);
+      toast.success(`${selectedFeeds.length} feed(s) deleted`);
+    } catch (err) {
+      toast.error('Failed to delete feeds: ' + err.message);
+    } finally {
+      setDeletingBulk(false);
+      setDeleteConfirm(null);
+    }
   };
 
   const handleToggleStatus = async (feed) => {
