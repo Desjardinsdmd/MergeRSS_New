@@ -118,23 +118,53 @@ export default function Settings() {
       <div className="space-y-6">
         {/* Profile Section */}
         <Card className="border-slate-100">
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-lg">
               <User className="w-5 h-5 text-slate-400" />
               Profile
             </CardTitle>
+            {!editingProfile && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setShowPasswordVerification(true)}
+              >
+                Edit Profile
+              </Button>
+            )}
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <Label>Name</Label>
-                <Input value={user?.full_name || ''} disabled className="bg-slate-50" />
+            {editingProfile ? (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <Label>Name</Label>
+                  <Input 
+                    value={formData.full_name} 
+                    onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                    placeholder="Your full name"
+                  />
+                </div>
+                <div>
+                  <Label>Email</Label>
+                  <Input 
+                    value={formData.email} 
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    placeholder="your@email.com"
+                  />
+                </div>
               </div>
-              <div>
-                <Label>Email</Label>
-                <Input value={user?.email || ''} disabled className="bg-slate-50" />
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <Label>Name</Label>
+                  <Input value={user?.full_name || ''} disabled className="bg-slate-50" />
+                </div>
+                <div>
+                  <Label>Email</Label>
+                  <Input value={user?.email || ''} disabled className="bg-slate-50" />
+                </div>
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
 
