@@ -534,6 +534,8 @@ export default function Directory() {
                       onVote={handleVote}
                       onAdd={handleAdd}
                       addedItems={addedItems}
+                      isSelected={selectedItems[`${item._type}-${item.id}`]}
+                      onToggleSelect={toggleSelectItem}
                     />
                   ))}
                   </div>
@@ -544,7 +546,7 @@ export default function Directory() {
                   {filteredFeeds.length === 0 ? <EmptyState search={search} /> : (
                   <div className="space-y-3">
                   {filteredFeeds.map(item => (
-                  <DirectoryCard key={item.id} item={item} itemType="feed" user={user} votes={votes} onVote={handleVote} onAdd={handleAdd} addedItems={addedItems} />
+                  <DirectoryCard key={item.id} item={item} itemType="feed" user={user} votes={votes} onVote={handleVote} onAdd={handleAdd} addedItems={addedItems} isSelected={selectedItems[`feed-${item.id}`]} onToggleSelect={toggleSelectItem} />
                   ))}
                   </div>
                   )}
@@ -554,7 +556,7 @@ export default function Directory() {
                   {filteredDigests.length === 0 ? <EmptyState search={search} /> : (
                   <div className="space-y-3">
                   {filteredDigests.map(item => (
-                  <DirectoryCard key={item.id} item={item} itemType="digest" user={user} votes={votes} onVote={handleVote} onAdd={handleAdd} addedItems={addedItems} />
+                  <DirectoryCard key={item.id} item={item} itemType="digest" user={user} votes={votes} onVote={handleVote} onAdd={handleAdd} addedItems={addedItems} isSelected={selectedItems[`digest-${item.id}`]} onToggleSelect={toggleSelectItem} />
                   ))}
                   </div>
                   )}
