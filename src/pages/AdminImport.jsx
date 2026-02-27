@@ -212,10 +212,13 @@ export default function AdminImport() {
     }
     const reader = new FileReader();
     reader.onload = (event) => {
+      console.log('FileReader onload triggered for digests');
       try {
         const csv = event.target.result;
+        console.log('CSV content:', csv?.substring(0, 100));
         if (!csv) throw new Error('Failed to read file');
         const rows = parseCsv(csv);
+        console.log('Parsed rows:', rows);
         const digests = rows.map(r => ({
           name: r.name || r.digest_name || '',
           description: r.description || r.desc || '',
