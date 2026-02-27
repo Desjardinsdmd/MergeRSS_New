@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { 
   Dialog, 
@@ -34,6 +34,29 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
     public_description: editFeed?.public_description || '',
   });
   const [tagInput, setTagInput] = useState('');
+
+  useEffect(() => {
+    if (editFeed) {
+      setFormData({
+        name: editFeed.name,
+        url: editFeed.url,
+        category: editFeed.category || 'Other',
+        tags: editFeed.tags || [],
+        is_public: editFeed.is_public || false,
+        public_description: editFeed.public_description || '',
+      });
+    } else {
+      setFormData({
+        name: '',
+        url: '',
+        category: 'Other',
+        tags: [],
+        is_public: false,
+        public_description: '',
+      });
+    }
+    setTagInput('');
+  }, [editFeed, open]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
