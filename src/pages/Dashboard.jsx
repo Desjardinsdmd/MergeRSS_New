@@ -186,13 +186,13 @@ export default function Dashboard() {
             </Link>
           </CardHeader>
           <CardContent className="p-0">
-            {feedItems.length === 0 ? (
+            {(liveArticles.length > 0 ? liveArticles : feedItems).length === 0 ? (
               <div className="p-6 text-center text-slate-500">
                 No items yet. Add feeds to start aggregating content.
               </div>
             ) : (
               <div className="divide-y divide-slate-100">
-                {feedItems.slice(0, 5).map((item) => (
+                {(liveArticles.length > 0 ? liveArticles : feedItems).slice(0, 5).map((item) => (
                   <a 
                     key={item.id}
                     href={item.url}
@@ -205,7 +205,11 @@ export default function Dashboard() {
                     </p>
                     <div className="flex items-center gap-2 text-xs text-slate-500">
                       <Clock className="w-3 h-3" />
-                      {item.published_date && new Date(item.published_date).toLocaleDateString()}
+                      {item.published_date && (
+                        <>
+                          {new Date(item.published_date).toLocaleDateString()} at {new Date(item.published_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </>
+                      )}
                       {item.category && (
                         <Badge variant="secondary" className="text-xs">
                           {item.category}
