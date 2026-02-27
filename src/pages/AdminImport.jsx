@@ -295,7 +295,10 @@ export default function AdminImport() {
                 id="bulk-feeds-upload"
                 type="file"
                 accept=".csv"
-                onChange={handleBulkFeedsUpload}
+                onChange={(e) => {
+                  console.log('onChange fired for feeds');
+                  handleBulkFeedsUpload(e);
+                }}
                 className="hidden"
               />
             </label>
