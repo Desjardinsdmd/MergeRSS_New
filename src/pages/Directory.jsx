@@ -197,6 +197,25 @@ export default function Directory() {
     enabled: !!user?.email,
   });
 
+  const { data: userFeeds = [] } = useQuery({
+    queryKey: ['user-feeds', user?.email],
+    queryFn: () => base44.entities.Feed.filter({ created_by: user?.email }),
+    enabled: !!user?.email,
+  });
+
+  const { data: userDigests = [] } = useQuery({
+    queryKey: ['user-digests', user?.email],
+    queryFn: () => base44.entities.Digest.filter({ created_by: user?.email }),
+    enabled: !!user?.email,
+  });
+
+  // Track which directory items user has already added
+  useEffect(() => {
+    const feedIds = userFeeds.filter(f => f.sourced_from_directory).map(f => f.directory_feed_id).filter(Boolean);
+    const digestIds = userDigests.map(d => d.directory_digest_id).filter(Boolean);
+    setAddedItems([...feedIds, ...digestIds]);
+  }, [userFeeds, userDigests]);
+
   const filterAndSort = (items) => {
     let filtered = items.filter(item => {
       const matchSearch = !search ||
