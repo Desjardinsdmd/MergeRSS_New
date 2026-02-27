@@ -26,6 +26,7 @@ import {
 import { toast } from 'sonner';
 import AddFeedDialog from '@/components/feeds/AddFeedDialog';
 import FeedCard from '@/components/feeds/FeedCard';
+import BulkImportDialog from '@/components/feeds/BulkImportDialog';
 
 const CATEGORIES = ['All', 'CRE', 'Markets', 'Tech', 'News', 'Finance', 'Crypto', 'AI', 'Other'];
 
