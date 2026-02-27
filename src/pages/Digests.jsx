@@ -46,7 +46,8 @@ export default function Digests() {
 
   const { data: digests = [], isLoading } = useQuery({
     queryKey: ['digests'],
-    queryFn: () => base44.entities.Digest.list('-created_date'),
+    queryFn: () => base44.entities.Digest.filter({ created_by: user?.email }, '-created_date'),
+    enabled: !!user,
   });
 
   const handleDelete = async () => {

@@ -70,7 +70,8 @@ export default function Feeds() {
 
   const { data: feeds = [], isLoading } = useQuery({
     queryKey: ['feeds'],
-    queryFn: () => base44.entities.Feed.list('-created_date'),
+    queryFn: () => base44.entities.Feed.filter({ created_by: user?.email }, '-created_date'),
+    enabled: !!user,
   });
 
   const filteredFeeds = feeds.filter((feed) => {

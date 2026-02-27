@@ -41,22 +41,26 @@ export default function Dashboard() {
 
   const { data: feeds = [] } = useQuery({
     queryKey: ['feeds'],
-    queryFn: () => base44.entities.Feed.list('-created_date', 10),
+    queryFn: () => base44.entities.Feed.filter({ created_by: user?.email }, '-created_date', 10),
+    enabled: !!user,
   });
 
   const { data: digests = [] } = useQuery({
     queryKey: ['digests'],
-    queryFn: () => base44.entities.Digest.list('-created_date', 10),
+    queryFn: () => base44.entities.Digest.filter({ created_by: user?.email }, '-created_date', 10),
+    enabled: !!user,
   });
 
   const { data: deliveries = [] } = useQuery({
     queryKey: ['deliveries'],
     queryFn: () => base44.entities.DigestDelivery.list('-created_date', 5),
+    enabled: !!user,
   });
 
   const { data: feedItems = [] } = useQuery({
     queryKey: ['feedItems'],
     queryFn: () => base44.entities.FeedItem.list('-published_date', 10),
+    enabled: !!user,
   });
 
   const totalAdded = digests.reduce((sum, d) => sum + (d.added_count || 0), 0);
