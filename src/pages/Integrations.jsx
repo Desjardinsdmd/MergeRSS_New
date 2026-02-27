@@ -77,19 +77,17 @@ export default function Integrations() {
 
   const handleConnectSlack = async () => {
     if (!isPremium || !slackWebhook) return;
-    setLoading(true);
-
     if (!slackWebhook.includes('hooks.slack.com')) {
       toast.error('Invalid Slack webhook URL');
-      setLoading(false);
       return;
     }
+    setLoading(true);
 
     await base44.entities.Integration.create({
       type: 'slack',
       status: 'connected',
-      webhook_url: slackWebhook,
       workspace_name: 'Slack Workspace',
+      webhook_url: slackWebhook,
     });
 
     queryClient.invalidateQueries({ queryKey: ['integrations'] });
@@ -157,7 +155,7 @@ export default function Integrations() {
     } else if (type === 'Slack' && slackIntegration?.webhook_url) {
       const res = await base44.functions.invoke('sendSlackMessage', {
         webhook_url: slackIntegration.webhook_url,
-        text: '✅ *MergeRSS Test Message* — Your Slack integration is working!',
+        text: '✅ *MergeRSS test message* — your Slack integration is working!',
       });
       setLoading(false);
       if (res.data?.success) {
@@ -167,7 +165,6 @@ export default function Integrations() {
       }
     } else {
       setLoading(false);
-      toast.error('No webhook configured');
     }
   };
 
