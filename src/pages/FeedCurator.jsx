@@ -30,7 +30,26 @@ export default function FeedCurator() {
 
   useEffect(() => {
     loadExistingCategories();
+    // Restore saved search state
+    const saved = localStorage.getItem('feedCuratorState');
+    if (saved) {
+      try {
+        const { query: savedQuery, suggestions: savedSuggestions, summary: savedSummary } = JSON.parse(saved);
+        setQuery(savedQuery || '');
+        setSuggestions(savedSuggestions || []);
+        setSummary(savedSummary || '');
+      } catch (e) {}
+    }
   }, []);
+
+  // Save state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('feedCuratorState', JSON.stringify({
+      query,
+      suggestions,
+      summary
+    }));
+  }, [query, suggestions, summary]);
 
   const loadExistingCategories = async () => {
     try {
