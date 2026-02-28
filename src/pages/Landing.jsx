@@ -278,9 +278,9 @@ export default function Landing() {
           </div>
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              { step: '01', title: 'Add your feeds', desc: 'Paste any RSS/Atom URL. MergeRSS fetches and deduplicates everything automatically.' },
-              { step: '02', title: 'Configure a digest', desc: 'Choose your feeds, categories, frequency, and preferred delivery channels.' },
-              { step: '03', title: 'Receive summaries', desc: 'AI generates a clean, readable digest and delivers it right on schedule.' },
+              { step: '01', title: 'Add your feeds', desc: 'Paste any RSS or Atom URL. MergeRSS fetches and deduplicates articles automatically across all your sources.' },
+              { step: '02', title: 'Configure a digest', desc: 'Choose which feeds or categories to include, set a daily, weekly, or monthly schedule, and pick your delivery channels.' },
+              { step: '03', title: 'Get your digest', desc: 'AI summarizes the best content and delivers a clean, readable digest to your inbox, Slack, Discord, or email — right on time.' },
             ].map(({ step, title, desc }) => (
               <div key={step} className="relative">
                 <div className="text-5xl font-black text-slate-100 mb-4 leading-none">{step}</div>
