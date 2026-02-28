@@ -430,9 +430,9 @@ export default function Dashboard() {
 
         {/* Right sidebar widgets */}
         <div className="flex flex-col gap-4">
-          <DigestQuickActions digests={digests} />
-          <DigestDeliveryHistory digests={digests} />
-          <FeedHealthWidget feeds={feeds} />
+          {widget('digestActions') && <DigestQuickActions digests={digests} />}
+          {widget('deliveryHistory') && <DigestDeliveryHistory digests={digests} />}
+          {widget('feedHealth') && <FeedHealthWidget feeds={feeds} />}
         </div>
       </div>
 
