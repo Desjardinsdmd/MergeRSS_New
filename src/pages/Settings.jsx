@@ -44,8 +44,6 @@ export default function Settings() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [editingProfile, setEditingProfile] = useState(false);
-  const [showPasswordVerification, setShowPasswordVerification] = useState(false);
-  const [password, setPassword] = useState('');
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
@@ -71,20 +69,7 @@ export default function Settings() {
     loadUser();
   }, []);
 
-  const handleVerifyPassword = async () => {
-    try {
-      setLoading(true);
-      await base44.auth.verifyPassword(password);
-      setShowPasswordVerification(false);
-      setPassword('');
-      setEditingProfile(true);
-      toast.success('Password verified');
-    } catch (error) {
-      toast.error('Incorrect password');
-    } finally {
-      setLoading(false);
-    }
-  };
+
 
   const handleSave = async () => {
     setLoading(true);
@@ -148,7 +133,7 @@ export default function Settings() {
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => setShowPasswordVerification(true)}
+                onClick={() => setEditingProfile(true)}
               >
                 Edit Profile
               </Button>
@@ -277,11 +262,22 @@ export default function Settings() {
                   <ExternalLink className="w-4 h-4 ml-2" />
                 </Button>
               ) : (
-                <Link to={createPageUrl('Pricing')}>
+                 <Link to={createPageUrl('Pricing')}>
                   <Button className="bg-indigo-600 hover:bg-indigo-700 rounded-lg">
                     Upgrade
                   </Button>
                 </Link>
+              ) : (
+                <Button 
+                  variant="outline"
+                  onClick={async () => {
+                    const { data } = await base44.functions.invoke('createPortalSession', { return_url: window.location.href });
+                    if (data?.url) window.open(data.url, '_blank');
+                  }}
+                >
+                  Manage Billing
+                  <ExternalLink className="w-4 h-4 ml-2" />
+                </Button>
               )}
             </div>
           </CardContent>
@@ -333,52 +329,7 @@ export default function Settings() {
           </Button>
         </div>
 
-        {/* Password Verification Dialog */}
-        {showPasswordVerification && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <Card className="w-full max-w-sm mx-4">
-              <CardHeader>
-                <CardTitle>Verify Your Password</CardTitle>
-                <CardDescription>Enter your password to edit your profile</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="password">Password</Label>
-                  <Input 
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleVerifyPassword()}
-                    placeholder="Enter your password"
-                    autoFocus
-                  />
-                </div>
-              </CardContent>
-              <div className="px-6 pb-6 flex gap-2">
-                <Button 
-                  variant="outline"
-                  onClick={() => {
-                    setShowPasswordVerification(false);
-                    setPassword('');
-                  }}
-                  disabled={loading}
-                  className="flex-1"
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  onClick={handleVerifyPassword}
-                  disabled={loading || !password}
-                  className="flex-1 bg-indigo-600 hover:bg-indigo-700"
-                >
-                  {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  Verify
-                </Button>
-              </div>
-            </Card>
-          </div>
-        )}
+
       </div>
     </div>
   );
