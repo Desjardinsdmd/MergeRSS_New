@@ -30,6 +30,7 @@ export default function Dashboard() {
   const [showWalkthrough, setShowWalkthrough] = useState(false);
   const [liveArticles, setLiveArticles] = useState([]);
   const [expandedArticles, setExpandedArticles] = useState(false);
+  const [expandedItem, setExpandedItem] = useState(null);
   const [activeCategory, setActiveCategory] = useState('All');
   const [articleSummaries, setArticleSummaries] = useState({});
 
