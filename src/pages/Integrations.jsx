@@ -75,6 +75,14 @@ export default function Integrations() {
   const slackIntegration = integrations.find(i => i.type === 'slack');
   const discordIntegration = integrations.find(i => i.type === 'discord');
   const isPremium = user?.plan === 'premium';
+  
+  const checkIntegrationLimit = () => {
+    if (!isPremium) {
+      toast.error('Integrations are premium only. Upgrade to connect Slack, Discord, and Email.');
+      return false;
+    }
+    return true;
+  };
 
   const handleConnectSlack = async () => {
     if (!isPremium || !slackWebhook) return;
