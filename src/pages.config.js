@@ -55,13 +55,14 @@ import Digests from './pages/Digests';
 import Directory from './pages/Directory';
 import FeedCurator from './pages/FeedCurator';
 import Feeds from './pages/Feeds';
+import Inbox from './pages/Inbox';
 import Integrations from './pages/Integrations';
 import Landing from './pages/Landing';
 import Pricing from './pages/Pricing';
 import RssFeedGenerator from './pages/RssFeedGenerator';
 import Settings from './pages/Settings';
 import Team from './pages/Team';
-import Inbox from './pages/Inbox';
+import Dashboard from './pages/Dashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -74,13 +75,14 @@ export const PAGES = {
     "Directory": Directory,
     "FeedCurator": FeedCurator,
     "Feeds": Feeds,
+    "Inbox": Inbox,
     "Integrations": Integrations,
     "Landing": Landing,
     "Pricing": Pricing,
     "RssFeedGenerator": RssFeedGenerator,
     "Settings": Settings,
     "Team": Team,
-    "Inbox": Inbox,
+    "Dashboard": Dashboard,
 }
 
 export const pagesConfig = {
