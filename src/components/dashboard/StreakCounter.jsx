@@ -42,7 +42,7 @@ export default function StreakCounter({ user }) {
         : 'bg-orange-50 text-orange-600'
     }`}>
       <Flame className="w-4 h-4" />
-      <span>{streak}-day streak</span>
+      <span>{displayStreak}-day streak</span>
       {isNew && <span className="text-xs font-normal opacity-70">🎉</span>}
     </div>
   );
