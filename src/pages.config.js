@@ -56,7 +56,6 @@ import Digests from './pages/Digests';
 import Directory from './pages/Directory';
 import FeedCurator from './pages/FeedCurator';
 import Feeds from './pages/Feeds';
-import Inbox from './pages/Inbox';
 import Integrations from './pages/Integrations';
 import Landing from './pages/Landing';
 import Pricing from './pages/Pricing';
@@ -76,7 +75,6 @@ export const PAGES = {
     "Directory": Directory,
     "FeedCurator": FeedCurator,
     "Feeds": Feeds,
-    "Inbox": Inbox,
     "Integrations": Integrations,
     "Landing": Landing,
     "Pricing": Pricing,
