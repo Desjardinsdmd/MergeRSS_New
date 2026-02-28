@@ -202,32 +202,74 @@ export default function Dashboard() {
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <Card className="w-full max-w-2xl max-h-[90vh] flex flex-col border-slate-100">
             <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-slate-100">
-              <CardTitle className="text-lg font-semibold">Latest Articles</CardTitle>
+              <div className="flex items-center gap-2">
+                {expandedItem && (
+                  <button
+                    onClick={() => setExpandedItem(null)}
+                    className="text-slate-400 hover:text-slate-600 text-sm mr-1"
+                  >
+                    ← Back
+                  </button>
+                )}
+                <CardTitle className="text-lg font-semibold">
+                  {expandedItem ? 'Article' : 'Latest Articles'}
+                </CardTitle>
+              </div>
               <button 
-                onClick={() => setExpandedArticles(false)}
+                onClick={() => { setExpandedArticles(false); setExpandedItem(null); }}
                 className="text-slate-400 hover:text-slate-600"
               >
                 ✕
               </button>
             </CardHeader>
             <CardContent className="p-0 overflow-y-auto flex-1">
-              {(liveArticles.length > 0 ? liveArticles : feedItems).length === 0 ? (
-                <div className="p-6 text-center text-slate-500">
-                  No items yet. Add feeds to start aggregating content.
+              {expandedItem ? (
+                /* Single article expanded view */
+                <div className="p-5">
+                  <a
+                    href={expandedItem.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group"
+                  >
+                    <h2 className="text-base font-semibold text-slate-900 group-hover:text-indigo-700 transition-colors mb-2 leading-snug">
+                      {expandedItem.title}
+                    </h2>
+                  </a>
+                  <div className="flex items-center gap-2 text-xs text-slate-500 mb-3">
+                    <Clock className="w-3 h-3" />
+                    {expandedItem.published_date && new Date(expandedItem.published_date).toLocaleString()}
+                    {expandedItem.category && (
+                      <Badge variant="secondary" className="text-xs">{expandedItem.category}</Badge>
+                    )}
+                    {expandedItem.author && <span>by {expandedItem.author}</span>}
+                  </div>
+                  {expandedItem.description && (
+                    <p className="text-sm text-slate-600 leading-relaxed mb-3">{expandedItem.description}</p>
+                  )}
+                  <ArticleSummarizeButton item={mergeItem(expandedItem)} onSummaryUpdate={(updated) => { handleSummaryUpdate(updated); setExpandedItem(updated); }} />
+                  <RelatedArticles
+                    currentItem={expandedItem}
+                    allItems={liveArticles.length > 0 ? liveArticles : feedItems}
+                  />
                 </div>
               ) : (
-                <div className="divide-y divide-slate-100">
-                  {(liveArticles.length > 0 ? liveArticles : feedItems).map((item) => {
-                    const merged = mergeItem(item);
-                    return (
-                      <div key={item.id} className="p-4 hover:bg-slate-50 transition">
-                        <a
-                          href={item.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block"
+                /* Article list view */
+                (liveArticles.length > 0 ? liveArticles : feedItems).length === 0 ? (
+                  <div className="p-6 text-center text-slate-500">
+                    No items yet. Add feeds to start aggregating content.
+                  </div>
+                ) : (
+                  <div className="divide-y divide-slate-100">
+                    {(liveArticles.length > 0 ? liveArticles : feedItems).map((item) => {
+                      const merged = mergeItem(item);
+                      return (
+                        <div
+                          key={item.id}
+                          className="p-4 hover:bg-slate-50 transition cursor-pointer"
+                          onClick={() => setExpandedItem(merged)}
                         >
-                          <p className="font-medium text-slate-900 mb-1 line-clamp-2">
+                          <p className="font-medium text-slate-900 mb-1 line-clamp-2 hover:text-indigo-700 transition-colors">
                             {item.title}
                           </p>
                           <div className="flex items-center gap-2 text-xs text-slate-500">
@@ -243,12 +285,12 @@ export default function Dashboard() {
                               </Badge>
                             )}
                           </div>
-                        </a>
-                        <ArticleSummarizeButton item={merged} onSummaryUpdate={handleSummaryUpdate} />
-                      </div>
-                    );
-                  })}
-                </div>
+                          <ArticleSummarizeButton item={merged} onSummaryUpdate={handleSummaryUpdate} />
+                        </div>
+                      );
+                    })}
+                  </div>
+                )
               )}
             </CardContent>
           </Card>
