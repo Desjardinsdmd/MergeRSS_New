@@ -109,6 +109,23 @@ export default function Settings() {
 
   const isPremium = user?.plan === 'premium';
 
+  const handleSavePreferences = async () => {
+    setLoading(true);
+    try {
+      await base44.auth.updateMe({
+        notification_prefs: notifPrefs,
+        dashboard_layout: dashboardLayout,
+        accent_color: accentColor,
+        timezone: formData.timezone,
+      });
+      toast.success('Preferences saved');
+    } catch {
+      toast.error('Failed to save preferences');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="p-6 lg:p-8 max-w-3xl mx-auto">
       {/* Header */}
