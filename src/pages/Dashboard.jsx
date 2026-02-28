@@ -439,7 +439,7 @@ export default function Dashboard() {
       {allArticles.length >= 3 && widget('trendingArticles') && <TrendingArticles articles={allArticles} />}
 
       {/* Quick Links */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
+      {widget('quickLinks') && <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
         <Link to={createPageUrl('Feeds')}>
           <Card className="border-slate-100 hover:border-violet-200 hover:shadow-md transition cursor-pointer h-full">
             <CardContent className="p-4 flex items-center gap-3">
