@@ -85,7 +85,9 @@ export default function Dashboard() {
   const totalAdded = digests.reduce((sum, d) => sum + (d.added_count || 0), 0);
 
   const allArticles = liveArticles.length > 0 ? liveArticles : feedItems;
-  const categories = ['All', ...Array.from(new Set(allArticles.map(i => i.category).filter(Boolean)))];
+  const FEED_CATEGORIES = ['CRE', 'Markets', 'Tech', 'News', 'Finance', 'Crypto', 'AI', 'Other'];
+  const presentCategories = FEED_CATEGORIES.filter(cat => allArticles.some(i => i.category === cat));
+  const categories = ['All', ...presentCategories];
   const filteredArticles = activeCategory === 'All' ? allArticles : allArticles.filter(i => i.category === activeCategory);
 
   const stats = [
