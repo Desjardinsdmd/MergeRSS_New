@@ -188,7 +188,13 @@ export default function Directory() {
     queryFn: async () => {
       const userPublic = await base44.entities.Feed.filter({ is_public: true });
       const directoryFeeds = await base44.entities.DirectoryFeed.list();
-      return [...userPublic, ...directoryFeeds];
+      const combined = [...userPublic, ...directoryFeeds];
+      const seenUrls = new Set();
+      return combined.filter(feed => {
+        if (seenUrls.has(feed.url)) return false;
+        seenUrls.add(feed.url);
+        return true;
+      });
     },
   });
 
@@ -312,7 +318,7 @@ export default function Directory() {
         status: 'active',
         directory_digest_id: item.id,
       });
-      await base44.entities.DirectoryDigest.update(item.id, { added_count: (item.added_count || 0) + 1 });
+      await base44.entities.Digest.update(item.id, { added_count: (item.added_count || 0) + 1 });
       setAddedItems([...addedItems, item.id]);
       queryClient.invalidateQueries({ queryKey: ['user-digests'] });
       queryClient.invalidateQueries({ queryKey: ['public-digests'] });
