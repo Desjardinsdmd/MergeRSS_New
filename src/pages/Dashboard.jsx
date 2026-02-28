@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { 
   Rss, 
   FileText, 
@@ -13,7 +13,10 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  Users
+  Users,
+  Eye,
+  EyeOff,
+  Keyboard
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,6 +29,9 @@ import SetupWalkthrough from '@/components/SetupWalkthrough';
 import DailySnapshot from '@/components/dashboard/DailySnapshot';
 import StreakCounter from '@/components/dashboard/StreakCounter';
 import BookmarkButton from '@/components/dashboard/BookmarkButton';
+import FeedHealthWidget from '@/components/dashboard/FeedHealthWidget';
+import DigestQuickActions from '@/components/dashboard/DigestQuickActions';
+import DigestDeliveryHistory from '@/components/dashboard/DigestDeliveryHistory';
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
@@ -36,6 +42,10 @@ export default function Dashboard() {
   const [expandedItem, setExpandedItem] = useState(null);
   const [activeCategory, setActiveCategory] = useState('All');
   const [articleSummaries, setArticleSummaries] = useState({});
+  const [readItems, setReadItems] = useState(new Set());
+  const [focusedIndex, setFocusedIndex] = useState(-1);
+  const [showShortcuts, setShowShortcuts] = useState(false);
+  const queryClient = useQueryClient();
 
   const handleSummaryUpdate = (updatedItem) => {
     setArticleSummaries(prev => ({ ...prev, [updatedItem.id]: updatedItem.ai_summary }));
@@ -61,7 +71,7 @@ export default function Dashboard() {
 
   const { data: feeds = [] } = useQuery({
     queryKey: ['feeds'],
-    queryFn: () => base44.entities.Feed.filter({ created_by: user?.email }, '-created_date', 10),
+    queryFn: () => base44.entities.Feed.filter({ created_by: user?.email }, '-created_date', 50),
     enabled: !!user,
   });
 
@@ -73,60 +83,82 @@ export default function Dashboard() {
 
   const { data: feedItems = [] } = useQuery({
     queryKey: ['feedItems'],
-    queryFn: () => base44.entities.FeedItem.list('-published_date', 10),
+    queryFn: () => base44.entities.FeedItem.list('-published_date', 50),
     enabled: !!user,
   });
 
   // Real-time subscription to new feed items
   useEffect(() => {
     if (!user) return;
-    
     const unsubscribe = base44.entities.FeedItem.subscribe((event) => {
       if (event.type === 'create') {
-        setLiveArticles(prev => {
-          const updated = [event.data, ...prev];
-          return updated.slice(0, 10);
-        });
+        setLiveArticles(prev => [event.data, ...prev].slice(0, 50));
       }
     });
-
     return () => unsubscribe();
   }, [user]);
 
-  const totalAdded = digests.reduce((sum, d) => sum + (d.added_count || 0), 0);
+  // Keyboard shortcuts
+  useEffect(() => {
+    if (!expandedArticles) return;
+    const articles = filteredArticles.slice(0, displayCount);
 
+    const handleKey = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.key === 'j' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        setFocusedIndex(prev => Math.min(prev + 1, articles.length - 1));
+      } else if (e.key === 'k' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        setFocusedIndex(prev => Math.max(prev - 1, 0));
+      } else if (e.key === 'o' || e.key === 'Enter') {
+        if (focusedIndex >= 0 && articles[focusedIndex]) {
+          setExpandedItem(mergeItem(articles[focusedIndex]));
+        }
+      } else if (e.key === 'b' && focusedIndex >= 0 && articles[focusedIndex]) {
+        // bookmark handled by BookmarkButton
+      } else if (e.key === 'Escape') {
+        if (expandedItem) setExpandedItem(null);
+        else setExpandedArticles(false);
+      } else if (e.key === '?') {
+        setShowShortcuts(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [expandedArticles, focusedIndex, expandedItem]);
+
+  const markAsRead = async (item, e) => {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    setReadItems(prev => new Set([...prev, item.id]));
+    await base44.entities.FeedItem.update(item.id, { is_read: true });
+  };
+
+  const totalAdded = digests.reduce((sum, d) => sum + (d.added_count || 0), 0);
   const allArticles = liveArticles.length > 0 ? liveArticles : feedItems;
+  const unreadCount = allArticles.filter(i => !i.is_read && !readItems.has(i.id)).length;
+
   const FEED_CATEGORIES = ['CRE', 'Markets', 'Tech', 'News', 'Finance', 'Crypto', 'AI', 'Other'];
   const presentCategories = FEED_CATEGORIES.filter(cat => allArticles.some(i => i.category === cat));
+
+  // Unread counts per category
+  const unreadByCategory = {};
+  presentCategories.forEach(cat => {
+    unreadByCategory[cat] = allArticles.filter(i => i.category === cat && !i.is_read && !readItems.has(i.id)).length;
+  });
+
   const categories = ['All', ...presentCategories];
-  const filteredArticles = activeCategory === 'All' ? allArticles : allArticles.filter(i => i.category === activeCategory);
+  const filteredArticles = (activeCategory === 'All' ? allArticles : allArticles.filter(i => i.category === activeCategory))
+    .filter(i => !readItems.has(i.id));
+  const displayCount = expandedArticles ? filteredArticles.length : 5;
+
+  const errorFeeds = feeds.filter(f => f.status === 'error');
 
   const stats = [
-    { 
-      name: 'Active Feeds', 
-      value: feeds.filter(f => f.status === 'active').length,
-      total: feeds.length,
-      icon: Rss,
-      color: 'violet'
-    },
-    { 
-      name: 'Digests', 
-      value: digests.length,
-      icon: FileText,
-      color: 'indigo'
-    },
-    { 
-      name: 'Items This Week', 
-      value: feedItems.length,
-      icon: TrendingUp,
-      color: 'emerald'
-    },
-    { 
-      name: 'Digest Adds', 
-      value: totalAdded,
-      icon: Users,
-      color: 'amber'
-    },
+    { name: 'Active Feeds', value: feeds.filter(f => f.status === 'active').length, total: feeds.length, icon: Rss, color: 'violet' },
+    { name: 'Digests', value: digests.length, icon: FileText, color: 'indigo' },
+    { name: 'Unread Items', value: unreadCount, icon: TrendingUp, color: 'emerald' },
+    { name: 'Digest Adds', value: totalAdded, icon: Users, color: 'amber' },
   ];
 
   const colorClasses = {
@@ -145,6 +177,16 @@ export default function Dashboard() {
         }} />
       )}
       {showWalkthrough && <SetupWalkthrough onComplete={() => setShowWalkthrough(false)} />}
+
+      {/* Feed error banner */}
+      {errorFeeds.length > 0 && (
+        <div className="mb-4 flex items-center gap-3 p-3 bg-red-50 border border-red-100 rounded-lg text-sm text-red-700">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          <span>{errorFeeds.length} feed{errorFeeds.length > 1 ? 's are' : ' is'} experiencing errors.</span>
+          <Link to={createPageUrl('Feeds')} className="ml-auto font-medium underline">Fix now →</Link>
+        </div>
+      )}
+
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-1">
@@ -183,9 +225,7 @@ export default function Dashboard() {
             <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4">
               <Rss className="w-6 h-6 text-indigo-600" />
             </div>
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">
-              Add your first feed
-            </h3>
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">Add your first feed</h3>
             <p className="text-slate-600 mb-4 max-w-sm mx-auto">
               Start by adding RSS feeds to aggregate content from your favorite sources
             </p>
@@ -199,40 +239,51 @@ export default function Dashboard() {
         </Card>
       )}
 
+      {/* Article modal */}
       {expandedArticles && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <Card className="w-full max-w-2xl max-h-[90vh] flex flex-col border-slate-100">
             <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 {expandedItem && (
-                  <button
-                    onClick={() => setExpandedItem(null)}
-                    className="text-slate-400 hover:text-slate-600 text-sm mr-1"
-                  >
+                  <button onClick={() => setExpandedItem(null)} className="text-slate-400 hover:text-slate-600 text-sm mr-1">
                     ← Back
                   </button>
                 )}
                 <CardTitle className="text-lg font-semibold">
                   {expandedItem ? 'Article' : 'Latest Articles'}
                 </CardTitle>
+                {!expandedItem && unreadCount > 0 && (
+                  <Badge className="bg-indigo-100 text-indigo-700 text-xs">{unreadCount} unread</Badge>
+                )}
               </div>
-              <button 
-                onClick={() => { setExpandedArticles(false); setExpandedItem(null); }}
-                className="text-slate-400 hover:text-slate-600"
-              >
-                ✕
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowShortcuts(s => !s)}
+                  title="Keyboard shortcuts (?)"
+                  className="text-slate-400 hover:text-slate-600 p-1"
+                >
+                  <Keyboard className="w-4 h-4" />
+                </button>
+                <button onClick={() => { setExpandedArticles(false); setExpandedItem(null); }} className="text-slate-400 hover:text-slate-600">
+                  ✕
+                </button>
+              </div>
             </CardHeader>
+
+            {showShortcuts && (
+              <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 text-xs text-slate-500 flex flex-wrap gap-x-4 gap-y-1">
+                <span><kbd className="bg-white border border-slate-200 rounded px-1">j/↓</kbd> next</span>
+                <span><kbd className="bg-white border border-slate-200 rounded px-1">k/↑</kbd> prev</span>
+                <span><kbd className="bg-white border border-slate-200 rounded px-1">o/↵</kbd> open</span>
+                <span><kbd className="bg-white border border-slate-200 rounded px-1">Esc</kbd> back/close</span>
+              </div>
+            )}
+
             <CardContent className="p-0 overflow-y-auto flex-1">
               {expandedItem ? (
-                /* Single article expanded view */
                 <div className="p-5">
-                  <a
-                    href={expandedItem.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group"
-                  >
+                  <a href={expandedItem.url} target="_blank" rel="noopener noreferrer" className="group">
                     <h2 className="text-base font-semibold text-slate-900 group-hover:text-indigo-700 transition-colors mb-2 leading-snug">
                       {expandedItem.title}
                     </h2>
@@ -240,51 +291,68 @@ export default function Dashboard() {
                   <div className="flex items-center gap-2 text-xs text-slate-500 mb-3">
                     <Clock className="w-3 h-3" />
                     {expandedItem.published_date && new Date(expandedItem.published_date).toLocaleString()}
-                    {expandedItem.category && (
-                      <Badge variant="secondary" className="text-xs">{expandedItem.category}</Badge>
-                    )}
+                    {expandedItem.category && <Badge variant="secondary" className="text-xs">{expandedItem.category}</Badge>}
                     {expandedItem.author && <span>by {expandedItem.author}</span>}
                   </div>
                   {expandedItem.description && (
                     <p className="text-sm text-slate-600 leading-relaxed mb-3">{expandedItem.description}</p>
                   )}
                   <ArticleSummarizeButton item={mergeItem(expandedItem)} onSummaryUpdate={(updated) => { handleSummaryUpdate(updated); setExpandedItem(updated); }} />
-                  <RelatedArticles
-                    currentItem={expandedItem}
-                    allItems={liveArticles.length > 0 ? liveArticles : feedItems}
-                  />
+                  <RelatedArticles currentItem={expandedItem} allItems={allArticles} />
                 </div>
               ) : (
-                /* Article list view */
-                (liveArticles.length > 0 ? liveArticles : feedItems).length === 0 ? (
-                  <div className="p-6 text-center text-slate-500">
-                    No items yet. Add feeds to start aggregating content.
-                  </div>
+                filteredArticles.length === 0 ? (
+                  <div className="p-6 text-center text-slate-500">No unread items. All caught up! 🎉</div>
                 ) : (
                   <div className="divide-y divide-slate-100">
-                    {(liveArticles.length > 0 ? liveArticles : feedItems).map((item) => {
+                    {/* Category filter tabs */}
+                    {categories.length > 1 && (
+                      <div className="p-3 flex gap-1.5 flex-wrap border-b border-slate-100">
+                        {categories.map(cat => (
+                          <button
+                            key={cat}
+                            onClick={() => setActiveCategory(cat)}
+                            className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors flex items-center gap-1 ${
+                              activeCategory === cat ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                            }`}
+                          >
+                            {cat}
+                            {cat !== 'All' && unreadByCategory[cat] > 0 && (
+                              <span className={`text-xs rounded-full px-1 ${activeCategory === cat ? 'bg-white/20' : 'bg-indigo-100 text-indigo-700'}`}>
+                                {unreadByCategory[cat]}
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {filteredArticles.map((item, idx) => {
                       const merged = mergeItem(item);
+                      const isFocused = idx === focusedIndex;
                       return (
                         <div
                           key={item.id}
-                          className="p-4 hover:bg-slate-50 transition cursor-pointer"
+                          className={`p-4 hover:bg-slate-50 transition cursor-pointer group ${isFocused ? 'bg-indigo-50 ring-1 ring-inset ring-indigo-200' : ''}`}
                           onClick={() => setExpandedItem(merged)}
                         >
-                          <p className="font-medium text-slate-900 mb-1 line-clamp-2 hover:text-indigo-700 transition-colors">
-                            {item.title}
-                          </p>
-                          <div className="flex items-center gap-2 text-xs text-slate-500">
-                            <Clock className="w-3 h-3" />
-                            {item.published_date && (
-                              <>
-                                {new Date(item.published_date).toLocaleDateString()} at {new Date(item.published_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </>
-                            )}
-                            {item.category && (
-                              <Badge variant="secondary" className="text-xs">
-                                {item.category}
-                              </Badge>
-                            )}
+                          <div className="flex items-start gap-2">
+                            <div className="flex-1 min-w-0">
+                              <p className={`font-medium mb-1 line-clamp-2 hover:text-indigo-700 transition-colors ${item.is_read ? 'text-slate-500' : 'text-slate-900'}`}>
+                                {item.title}
+                              </p>
+                              <div className="flex items-center gap-2 text-xs text-slate-500">
+                                <Clock className="w-3 h-3" />
+                                {item.published_date && new Date(item.published_date).toLocaleDateString()}
+                                {item.category && <Badge variant="secondary" className="text-xs">{item.category}</Badge>}
+                              </div>
+                            </div>
+                            <button
+                              onClick={(e) => markAsRead(item, e)}
+                              title="Mark as read"
+                              className="opacity-0 group-hover:opacity-100 p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition flex-shrink-0"
+                            >
+                              <CheckCircle className="w-3.5 h-3.5" />
+                            </button>
                           </div>
                           <ArticleSummarizeButton item={merged} onSummaryUpdate={handleSummaryUpdate} />
                         </div>
@@ -298,81 +366,97 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="grid lg:grid-cols-1 gap-6">
-        {/* Recent Feed Items */}
-        <Card className="border-slate-100">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-lg font-semibold">Latest Articles</CardTitle>
-            <button 
-              onClick={() => setExpandedArticles(true)}
-              className="text-sm text-violet-600 hover:underline flex items-center gap-1 bg-none border-none cursor-pointer"
-            >
-              View all <ArrowRight className="w-3 h-3" />
-            </button>
-          </CardHeader>
-          {categories.length > 1 && (
-            <div className="px-4 pb-2 flex gap-1.5 flex-wrap">
-              {categories.map(cat => (
-                <button
-                  key={cat}
-                  onClick={() => setActiveCategory(cat)}
-                  className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${
-                    activeCategory === cat
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-          )}
-          <CardContent className="p-0">
-            {filteredArticles.length === 0 ? (
-              <div className="p-6 text-center text-slate-500">
-                No items yet. Add feeds to start aggregating content.
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Recent Feed Items - takes 2 cols */}
+        <div className="lg:col-span-2">
+          <Card className="border-slate-100">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-lg font-semibold">Latest Articles</CardTitle>
+                {unreadCount > 0 && (
+                  <Badge className="bg-indigo-100 text-indigo-700 text-xs">{unreadCount} unread</Badge>
+                )}
               </div>
-            ) : (
-              <div className="divide-y divide-slate-100">
-                {filteredArticles.slice(0, 5).map((item) => {
-                  const merged = mergeItem(item);
-                  return (
-                    <div key={item.id} className="p-4 hover:bg-slate-50 transition">
-                      <div className="flex items-start gap-2">
-                        <a 
-                          href={item.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block flex-1 min-w-0"
-                        >
-                          <p className="font-medium text-slate-900 mb-1 line-clamp-1">
-                            {item.title}
-                          </p>
-                          <div className="flex items-center gap-2 text-xs text-slate-500">
-                            <Clock className="w-3 h-3" />
-                            {item.published_date && (
-                              <>
-                                {new Date(item.published_date).toLocaleDateString()} at {new Date(item.published_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </>
-                            )}
-                            {item.category && activeCategory === 'All' && (
-                              <Badge variant="secondary" className="text-xs">
-                                {item.category}
-                              </Badge>
-                            )}
-                          </div>
-                        </a>
-                        <BookmarkButton item={item} />
-                      </div>
-                      <ArticleSummarizeButton item={merged} onSummaryUpdate={handleSummaryUpdate} />
-                    </div>
-                  );
-                })}
+              <button
+                onClick={() => setExpandedArticles(true)}
+                className="text-sm text-violet-600 hover:underline flex items-center gap-1 bg-none border-none cursor-pointer"
+              >
+                View all <ArrowRight className="w-3 h-3" />
+              </button>
+            </CardHeader>
+            {categories.length > 1 && (
+              <div className="px-4 pb-2 flex gap-1.5 flex-wrap">
+                {categories.map(cat => (
+                  <button
+                    key={cat}
+                    onClick={() => setActiveCategory(cat)}
+                    className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors flex items-center gap-1 ${
+                      activeCategory === cat ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {cat}
+                    {cat !== 'All' && unreadByCategory[cat] > 0 && (
+                      <span className={`text-xs rounded-full px-1 ${activeCategory === cat ? 'bg-white/20' : 'bg-indigo-100 text-indigo-700'}`}>
+                        {unreadByCategory[cat]}
+                      </span>
+                    )}
+                  </button>
+                ))}
               </div>
             )}
-          </CardContent>
-        </Card>
+            <CardContent className="p-0">
+              {filteredArticles.length === 0 ? (
+                <div className="p-6 text-center text-slate-500">
+                  {allArticles.length === 0 ? 'No items yet. Add feeds to start aggregating content.' : 'All caught up! 🎉'}
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-100">
+                  {filteredArticles.slice(0, 5).map((item) => {
+                    const merged = mergeItem(item);
+                    return (
+                      <div key={item.id} className="p-4 hover:bg-slate-50 transition group">
+                        <div className="flex items-start gap-2">
+                          <a href={item.url} target="_blank" rel="noopener noreferrer" className="block flex-1 min-w-0">
+                            <p className={`font-medium mb-1 line-clamp-1 ${item.is_read ? 'text-slate-400' : 'text-slate-900'}`}>
+                              {item.title}
+                            </p>
+                            <div className="flex items-center gap-2 text-xs text-slate-500">
+                              <Clock className="w-3 h-3" />
+                              {item.published_date && (
+                                <>{new Date(item.published_date).toLocaleDateString()} at {new Date(item.published_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</>
+                              )}
+                              {item.category && activeCategory === 'All' && (
+                                <Badge variant="secondary" className="text-xs">{item.category}</Badge>
+                              )}
+                            </div>
+                          </a>
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            <button
+                              onClick={(e) => markAsRead(item, e)}
+                              title="Mark as read"
+                              className="opacity-0 group-hover:opacity-100 p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition"
+                            >
+                              <CheckCircle className="w-3.5 h-3.5" />
+                            </button>
+                            <BookmarkButton item={item} />
+                          </div>
+                        </div>
+                        <ArticleSummarizeButton item={merged} onSummaryUpdate={handleSummaryUpdate} />
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
+        {/* Right sidebar widgets */}
+        <div className="flex flex-col gap-4">
+          <DigestQuickActions digests={digests} />
+          <DigestDeliveryHistory digests={digests} />
+          <FeedHealthWidget feeds={feeds} />
+        </div>
       </div>
 
       {/* Trending Articles */}
