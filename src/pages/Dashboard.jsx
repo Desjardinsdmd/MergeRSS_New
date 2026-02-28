@@ -29,6 +29,16 @@ export default function Dashboard() {
   const [liveArticles, setLiveArticles] = useState([]);
   const [expandedArticles, setExpandedArticles] = useState(false);
   const [activeCategory, setActiveCategory] = useState('All');
+  const [articleSummaries, setArticleSummaries] = useState({});
+
+  const handleSummaryUpdate = (updatedItem) => {
+    setArticleSummaries(prev => ({ ...prev, [updatedItem.id]: updatedItem.ai_summary }));
+  };
+
+  const mergeItem = (item) => ({
+    ...item,
+    ai_summary: articleSummaries[item.id] ?? item.ai_summary,
+  });
 
   useEffect(() => {
     const loadUser = async () => {
