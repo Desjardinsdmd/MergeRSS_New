@@ -62,7 +62,7 @@ export default function Inbox() {
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-slate-900">Inbox</h1>
         <p className="text-slate-600">
-          View your delivered digests
+          Your AI-generated digests, delivered to your web inbox
         </p>
       </div>
 
