@@ -150,11 +150,11 @@ async function fetchFeedsWithThrottling(feeds, base44, batchSize = 5, delayBetwe
 
                 itemsToCreate.push({
                     feed_id: feed.id,
-                    title: (item.title || '').slice(0, 500),
-                    url: item.url,
-                    description: (item.description || '').slice(0, 2000),
-                    content: (item.content || '').slice(0, 5000),
-                    author: (item.author || '').slice(0, 200),
+                    title: String(item.title || '').slice(0, 500),
+                    url: String(item.url || ''),
+                    description: String(item.description || '').slice(0, 2000),
+                    content: String(item.content || '').slice(0, 5000),
+                    author: String(item.author || '').slice(0, 200),
                     published_date: item.published_date,
                     guid: String(item.guid || item.url || ''),
                     category: feed.category,
