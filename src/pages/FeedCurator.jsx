@@ -314,6 +314,8 @@ export default function FeedCurator() {
           </p>
         </div>
       )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
