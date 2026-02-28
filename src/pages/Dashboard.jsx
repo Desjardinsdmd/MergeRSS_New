@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { 
   Rss, 
   FileText, 
@@ -32,6 +32,7 @@ import DigestQuickActions from '@/components/dashboard/DigestQuickActions';
 import DigestDeliveryHistory from '@/components/dashboard/DigestDeliveryHistory';
 
 export default function Dashboard() {
+  const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
   const [showTour, setShowTour] = useState(false);
   const [showWalkthrough, setShowWalkthrough] = useState(false);
