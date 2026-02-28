@@ -156,7 +156,7 @@ async function fetchFeedsWithThrottling(feeds, base44, batchSize = 5, delayBetwe
                     content: (item.content || '').slice(0, 5000),
                     author: (item.author || '').slice(0, 200),
                     published_date: item.published_date,
-                    guid: item.guid || item.url,
+                    guid: String(item.guid || item.url || ''),
                     category: feed.category,
                     tags: feed.tags || [],
                     is_read: false,
