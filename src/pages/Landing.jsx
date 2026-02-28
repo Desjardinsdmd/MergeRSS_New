@@ -75,6 +75,87 @@ const integrations = [
   },
 ];
 
+const categoryColors = {
+  CRE: 'bg-orange-100 text-orange-700',
+  Markets: 'bg-blue-100 text-blue-700',
+  Tech: 'bg-purple-100 text-purple-700',
+  News: 'bg-slate-100 text-slate-700',
+  Finance: 'bg-green-100 text-green-700',
+  Crypto: 'bg-yellow-100 text-yellow-700',
+  AI: 'bg-indigo-100 text-indigo-700',
+  Other: 'bg-gray-100 text-gray-700',
+};
+
+function PopularFeedsSection() {
+  const [feeds, setFeeds] = useState([]);
+
+  useEffect(() => {
+    base44.entities.DirectoryFeed.list('-added_count', 8).then(setFeeds).catch(() => {});
+  }, []);
+
+  if (!feeds.length) return null;
+
+  return (
+    <section className="py-24 bg-slate-50">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 border border-indigo-100 rounded-full text-xs font-medium text-indigo-700 mb-4">
+            <TrendingUp className="w-3.5 h-3.5" />
+            Trending in the community
+          </div>
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4 tracking-tight">
+            Popular Feeds
+          </h2>
+          <p className="text-lg text-slate-500 max-w-xl mx-auto">
+            Discover what other professionals are reading — add any feed with one click.
+          </p>
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {feeds.map((feed) => (
+            <div
+              key={feed.id}
+              className="bg-white border border-slate-100 rounded-xl p-5 hover:border-indigo-200 hover:shadow-md transition-all duration-200 flex flex-col gap-3"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="w-9 h-9 bg-indigo-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Rss className="w-4 h-4 text-indigo-600" />
+                </div>
+                {feed.category && (
+                  <Badge className={`text-xs border-0 ${categoryColors[feed.category] || categoryColors.Other}`}>
+                    {feed.category}
+                  </Badge>
+                )}
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-slate-900 text-sm leading-snug mb-1">{feed.name}</h3>
+                {feed.description && (
+                  <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">{feed.description}</p>
+                )}
+              </div>
+              {feed.added_count > 0 && (
+                <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                  <Users className="w-3 h-3" />
+                  {feed.added_count} subscriber{feed.added_count !== 1 ? 's' : ''}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        <div className="text-center mt-10">
+          <Button
+            variant="outline"
+            onClick={() => base44.auth.redirectToLogin(createPageUrl('Directory'))}
+            className="border-slate-200 hover:bg-slate-50 rounded-lg"
+          >
+            Browse all feeds in the directory
+            <ArrowRight className="w-4 h-4 ml-1" />
+          </Button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function Landing() {
   return (
     <div className="min-h-screen bg-white">
