@@ -95,7 +95,7 @@ export default function RssFeedGenerator() {
             </Button>
           </form>
           <p className="text-xs text-slate-400 mt-2 ml-1">
-            Works with blogs, news sites, and any page with multiple article links. If the page already has an RSS feed, we'll detect it automatically.
+            We'll auto-detect hidden RSS feeds in the page (so adding it will stay live & updated). If none is found, we'll scrape article links as a static snapshot.
           </p>
         </CardContent>
       </Card>
