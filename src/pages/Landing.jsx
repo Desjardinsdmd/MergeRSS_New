@@ -248,7 +248,7 @@ export default function Landing() {
               Deliver where your team works
             </h2>
             <p className="text-lg text-slate-400 max-w-xl mx-auto">
-              Push digests directly to Slack, Discord, or your web inbox
+              Each digest can be sent to multiple destinations at once — web inbox, Slack, Discord, and email
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-5">
