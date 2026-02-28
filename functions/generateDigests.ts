@@ -61,10 +61,9 @@ Deno.serve(async (req) => {
                 // Gather items
                 let allItems = [];
                 if (digest.feed_ids?.length > 0) {
-                    for (const feedId of digest.feed_ids) {
-                        const items = await base44.asServiceRole.entities.FeedItem.filter({ feed_id: feedId });
-                        allItems.push(...items);
-                    }
+                    allItems = await base44.asServiceRole.entities.FeedItem.filter({ 
+                        feed_id: { $in: digest.feed_ids } 
+                    }, '-published_date', 500);
                 } else {
                     allItems = await base44.asServiceRole.entities.FeedItem.list('-published_date', 500);
                 }

@@ -191,6 +191,13 @@ async function fetchFeedsWithThrottling(feeds, base44, batchSize = 5, delayBetwe
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
+        
+        // Verify this is called by the scheduler or a valid service request
+        const authHeader = req.headers.get('authorization');
+        if (!authHeader) {
+            return Response.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+        
         const startedAt = new Date().toISOString();
 
         const feeds = await base44.asServiceRole.entities.Feed.filter({ status: 'active' });
