@@ -23,6 +23,9 @@ import TrendingArticles from '@/components/feeds/TrendingArticles';
 import RelatedArticles from '@/components/feeds/RelatedArticles';
 import OnboardingTour from '@/components/OnboardingTour';
 import SetupWalkthrough from '@/components/SetupWalkthrough';
+import DailySnapshot from '@/components/dashboard/DailySnapshot';
+import StreakCounter from '@/components/dashboard/StreakCounter';
+import BookmarkButton from '@/components/dashboard/BookmarkButton';
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
