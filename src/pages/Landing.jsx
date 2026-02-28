@@ -196,7 +196,7 @@ export default function Landing() {
             </Button>
           </div>
           <p className="mt-5 text-sm text-slate-400">
-            Free plan includes 5 feeds · No credit card required
+            Free plan includes 5 feeds & 1 digest · No credit card required
           </p>
         </div>
       </section>
