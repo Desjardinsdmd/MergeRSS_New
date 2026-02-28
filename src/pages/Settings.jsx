@@ -50,9 +50,10 @@ export default function Settings() {
     full_name: '',
     email: '',
     timezone: 'America/New_York',
-    emailNotifications: true,
-    digestReminders: true,
   });
+  const [notifPrefs, setNotifPrefs] = useState({});
+  const [dashboardLayout, setDashboardLayout] = useState({});
+  const [accentColor, setAccentColor] = useState('indigo');
 
   useEffect(() => {
     const loadUser = async () => {
