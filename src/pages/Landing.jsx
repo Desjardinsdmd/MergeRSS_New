@@ -69,7 +69,7 @@ const integrations = [
   },
   {
     name: 'Web Inbox',
-    description: 'Access your full digest history anytime from the dashboard',
+    description: 'Access every delivered digest in a clean, readable view — anytime',
     icon: Bell,
     bg: 'bg-indigo-600',
   },
