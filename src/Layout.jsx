@@ -34,6 +34,7 @@ const navigation = [
   { name: 'Feeds', href: 'Feeds', icon: Rss },
   { name: 'Digests', href: 'Digests', icon: FileText },
   { name: 'Inbox', href: 'Inbox', icon: Inbox },
+  { name: 'Search', href: 'ArticleSearch', icon: Search },
   { name: 'Directory', href: 'Directory', icon: Globe },
   { name: 'Team', href: 'Team', icon: Users },
   { name: 'Integrations', href: 'Integrations', icon: Link2 },
