@@ -214,32 +214,37 @@ export default function Dashboard() {
                 </div>
               ) : (
                 <div className="divide-y divide-slate-100">
-                  {(liveArticles.length > 0 ? liveArticles : feedItems).map((item) => (
-                    <a 
-                      key={item.id}
-                      href={item.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block p-4 hover:bg-slate-50 transition"
-                    >
-                      <p className="font-medium text-slate-900 mb-1 line-clamp-2">
-                        {item.title}
-                      </p>
-                      <div className="flex items-center gap-2 text-xs text-slate-500">
-                        <Clock className="w-3 h-3" />
-                        {item.published_date && (
-                          <>
-                            {new Date(item.published_date).toLocaleDateString()} at {new Date(item.published_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </>
-                        )}
-                        {item.category && (
-                          <Badge variant="secondary" className="text-xs">
-                            {item.category}
-                          </Badge>
-                        )}
+                  {(liveArticles.length > 0 ? liveArticles : feedItems).map((item) => {
+                    const merged = mergeItem(item);
+                    return (
+                      <div key={item.id} className="p-4 hover:bg-slate-50 transition">
+                        <a
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block"
+                        >
+                          <p className="font-medium text-slate-900 mb-1 line-clamp-2">
+                            {item.title}
+                          </p>
+                          <div className="flex items-center gap-2 text-xs text-slate-500">
+                            <Clock className="w-3 h-3" />
+                            {item.published_date && (
+                              <>
+                                {new Date(item.published_date).toLocaleDateString()} at {new Date(item.published_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </>
+                            )}
+                            {item.category && (
+                              <Badge variant="secondary" className="text-xs">
+                                {item.category}
+                              </Badge>
+                            )}
+                          </div>
+                        </a>
+                        <ArticleSummarizeButton item={merged} onSummaryUpdate={handleSummaryUpdate} />
                       </div>
-                    </a>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </CardContent>
