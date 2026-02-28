@@ -218,7 +218,7 @@ export default function Landing() {
               Everything you need to stay informed
             </h2>
             <p className="text-lg text-slate-500 max-w-2xl mx-auto">
-              Powerful features built for professionals who need signal without the noise
+              Powerful features built for professionals who need to track a lot — without spending hours doing it
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
