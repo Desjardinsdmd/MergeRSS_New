@@ -152,14 +152,18 @@ export default function Dashboard() {
       )}
       {showWalkthrough && <SetupWalkthrough onComplete={() => setShowWalkthrough(false)} />}
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900 mb-1">
-          Welcome back{user?.full_name ? `, ${user.full_name.split(' ')[0]}` : ''}
-        </h1>
-        <p className="text-slate-600">
-          Here's what's happening with your feeds
-        </p>
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-1">
+          <h1 className="text-2xl font-bold text-slate-900">
+            Welcome back{user?.full_name ? `, ${user.full_name.split(' ')[0]}` : ''}
+          </h1>
+          <StreakCounter user={user} />
+        </div>
+        <p className="text-slate-600">Here's what's happening with your feeds</p>
       </div>
+
+      {/* Daily AI Snapshot */}
+      {feeds.length > 0 && <DailySnapshot />}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
