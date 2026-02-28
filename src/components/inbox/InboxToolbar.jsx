@@ -1,0 +1,81 @@
+import React, { useState } from 'react';
+import { CheckSquare, Square, MailOpen, Mail, Star, StarOff, FolderInput, Tag, Trash2, ChevronDown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel
+} from '@/components/ui/dropdown-menu';
+
+export default function InboxToolbar({ selectedIds, allIds, onSelectAll, onDeselectAll, onMarkRead, onMarkUnread, onFavorite, onUnfavorite, onMoveToFolder, onAddTag, folders, tags }) {
+  const allSelected = allIds.length > 0 && selectedIds.length === allIds.length;
+  const someSelected = selectedIds.length > 0;
+
+  return (
+    <div className="flex items-center gap-2 py-2 px-1 border-b border-slate-100 bg-white sticky top-0 z-10">
+      <button
+        onClick={allSelected ? onDeselectAll : onSelectAll}
+        className="text-slate-400 hover:text-slate-700 transition p-1"
+        title={allSelected ? 'Deselect all' : 'Select all'}
+      >
+        {allSelected ? <CheckSquare className="w-4 h-4 text-indigo-600" /> : <Square className="w-4 h-4" />}
+      </button>
+
+      {someSelected && (
+        <>
+          <span className="text-xs text-slate-500 font-medium">{selectedIds.length} selected</span>
+          <div className="flex items-center gap-1 ml-1">
+            <Button size="sm" variant="ghost" className="h-7 text-xs gap-1" onClick={onMarkRead}>
+              <MailOpen className="w-3.5 h-3.5" /> Mark read
+            </Button>
+            <Button size="sm" variant="ghost" className="h-7 text-xs gap-1" onClick={onMarkUnread}>
+              <Mail className="w-3.5 h-3.5" /> Mark unread
+            </Button>
+            <Button size="sm" variant="ghost" className="h-7 text-xs gap-1" onClick={onFavorite}>
+              <Star className="w-3.5 h-3.5" /> Star
+            </Button>
+            <Button size="sm" variant="ghost" className="h-7 text-xs gap-1" onClick={onUnfavorite}>
+              <StarOff className="w-3.5 h-3.5" /> Unstar
+            </Button>
+
+            {/* Move to folder */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="ghost" className="h-7 text-xs gap-1">
+                  <FolderInput className="w-3.5 h-3.5" /> Move <ChevronDown className="w-3 h-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuLabel className="text-xs">Move to folder</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {['Inbox', ...folders].map(f => (
+                  <DropdownMenuItem key={f} onClick={() => onMoveToFolder(f)} className="text-sm">
+                    {f}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Add tag */}
+            {tags.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="sm" variant="ghost" className="h-7 text-xs gap-1">
+                    <Tag className="w-3.5 h-3.5" /> Tag <ChevronDown className="w-3 h-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  <DropdownMenuLabel className="text-xs">Apply tag</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {tags.map(t => (
+                    <DropdownMenuItem key={t} onClick={() => onAddTag(t)} className="text-sm">
+                      {t}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
