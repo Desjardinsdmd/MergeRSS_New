@@ -71,12 +71,6 @@ export default function Dashboard() {
     enabled: !!user,
   });
 
-  const { data: deliveries = [] } = useQuery({
-    queryKey: ['deliveries'],
-    queryFn: () => base44.entities.DigestDelivery.list('-created_date', 5),
-    enabled: !!user,
-  });
-
   const { data: feedItems = [] } = useQuery({
     queryKey: ['feedItems'],
     queryFn: () => base44.entities.FeedItem.list('-published_date', 10),
