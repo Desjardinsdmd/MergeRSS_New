@@ -294,15 +294,17 @@ function LayoutContent({ children, currentPageName }) {
               </div>
               <span className="font-bold text-slate-900 dark:text-white tracking-tight">MergeRSS</span>
             </div>
-            <InboxBell user={user} />
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="text-slate-600 dark:text-slate-400"
-            >
-              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </Button>
+            <div className="flex items-center gap-1">
+              <InboxBell user={user} />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                className="text-slate-600 dark:text-slate-400"
+              >
+                {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </Button>
+            </div>
           </div>
         </header>
 
