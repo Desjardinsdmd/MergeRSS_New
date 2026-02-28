@@ -93,6 +93,9 @@ export default function Settings() {
         full_name: formData.full_name,
         email: formData.email,
         timezone: formData.timezone,
+        notification_prefs: notifPrefs,
+        dashboard_layout: dashboardLayout,
+        accent_color: accentColor,
       });
       setUser({ ...user, full_name: formData.full_name, email: formData.email });
       setEditingProfile(false);
