@@ -49,6 +49,7 @@
  */
 import AdminHealth from './pages/AdminHealth';
 import AdminImport from './pages/AdminImport';
+import ArticleSearch from './pages/ArticleSearch';
 import Dashboard from './pages/Dashboard';
 import Digests from './pages/Digests';
 import Directory from './pages/Directory';
@@ -58,16 +59,17 @@ import Inbox from './pages/Inbox';
 import Integrations from './pages/Integrations';
 import Landing from './pages/Landing';
 import Pricing from './pages/Pricing';
+import RssFeedGenerator from './pages/RssFeedGenerator';
 import Settings from './pages/Settings';
 import Team from './pages/Team';
-import ArticleSearch from './pages/ArticleSearch';
-import RssFeedGenerator from './pages/RssFeedGenerator';
+import Bookmarks from './pages/Bookmarks';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AdminHealth": AdminHealth,
     "AdminImport": AdminImport,
+    "ArticleSearch": ArticleSearch,
     "Dashboard": Dashboard,
     "Digests": Digests,
     "Directory": Directory,
@@ -77,10 +79,10 @@ export const PAGES = {
     "Integrations": Integrations,
     "Landing": Landing,
     "Pricing": Pricing,
+    "RssFeedGenerator": RssFeedGenerator,
     "Settings": Settings,
     "Team": Team,
-    "ArticleSearch": ArticleSearch,
-    "RssFeedGenerator": RssFeedGenerator,
+    "Bookmarks": Bookmarks,
 }
 
 export const pagesConfig = {

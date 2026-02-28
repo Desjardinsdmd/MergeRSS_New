@@ -1,0 +1,159 @@
+import React, { useState } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Bookmark, Trash2, ExternalLink, Clock, CheckCircle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import ArticleSummarizeButton from '@/components/feeds/ArticleSummarizeButton';
+
+const categoryColors = {
+  CRE: 'bg-orange-100 text-orange-700',
+  Markets: 'bg-blue-100 text-blue-700',
+  Tech: 'bg-purple-100 text-purple-700',
+  News: 'bg-slate-100 text-slate-700',
+  Finance: 'bg-green-100 text-green-700',
+  Crypto: 'bg-yellow-100 text-yellow-700',
+  AI: 'bg-indigo-100 text-indigo-700',
+  Other: 'bg-gray-100 text-gray-700',
+};
+
+export default function Bookmarks() {
+  const queryClient = useQueryClient();
+  const [filter, setFilter] = useState('all');
+
+  const { data: bookmarks = [], isLoading } = useQuery({
+    queryKey: ['bookmarks'],
+    queryFn: () => base44.entities.Bookmark.list('-created_date', 50),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.Bookmark.delete(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['bookmarks'] }),
+  });
+
+  const markReadMutation = useMutation({
+    mutationFn: (id) => base44.entities.Bookmark.update(id, { is_read: true }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['bookmarks'] }),
+  });
+
+  const filtered = filter === 'unread'
+    ? bookmarks.filter(b => !b.is_read)
+    : filter === 'read'
+    ? bookmarks.filter(b => b.is_read)
+    : bookmarks;
+
+  const unreadCount = bookmarks.filter(b => !b.is_read).length;
+
+  return (
+    <div className="p-6 lg:p-8 max-w-3xl mx-auto">
+      <div className="mb-8 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
+            <Bookmark className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">Read Later</h1>
+            <p className="text-sm text-slate-500">{unreadCount} unread · {bookmarks.length} total</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="flex gap-2 mb-6">
+        {['all', 'unread', 'read'].map(f => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={`text-sm px-4 py-1.5 rounded-full font-medium capitalize transition-colors ${
+              filter === f
+                ? 'bg-indigo-600 text-white'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+          >
+            {f}
+          </button>
+        ))}
+      </div>
+
+      {isLoading ? (
+        <div className="text-center py-16 text-slate-400">Loading...</div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-16">
+          <Bookmark className="w-12 h-12 text-slate-200 mx-auto mb-3" />
+          <p className="text-slate-500 font-medium">No bookmarks yet</p>
+          <p className="text-slate-400 text-sm mt-1">
+            Tap the bookmark icon on any article to save it here.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {filtered.map((bookmark) => (
+            <Card
+              key={bookmark.id}
+              className={`border-slate-100 transition-all ${bookmark.is_read ? 'opacity-60' : 'hover:border-indigo-200 hover:shadow-sm'}`}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      {bookmark.category && (
+                        <Badge className={`text-xs border-0 ${categoryColors[bookmark.category] || categoryColors.Other}`}>
+                          {bookmark.category}
+                        </Badge>
+                      )}
+                      {bookmark.is_read && (
+                        <span className="text-xs text-slate-400">Read</span>
+                      )}
+                    </div>
+                    <a
+                      href={bookmark.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => !bookmark.is_read && markReadMutation.mutate(bookmark.id)}
+                      className="font-medium text-slate-900 hover:text-indigo-700 transition-colors text-sm leading-snug line-clamp-2 block mb-2"
+                    >
+                      {bookmark.title}
+                    </a>
+                    {bookmark.published_date && (
+                      <div className="flex items-center gap-1 text-xs text-slate-400">
+                        <Clock className="w-3 h-3" />
+                        {new Date(bookmark.published_date).toLocaleDateString()}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <a
+                      href={bookmark.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                    {!bookmark.is_read && (
+                      <button
+                        onClick={() => markReadMutation.mutate(bookmark.id)}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
+                        title="Mark as read"
+                      >
+                        <CheckCircle className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => deleteMutation.mutate(bookmark.id)}
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                      title="Remove bookmark"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
