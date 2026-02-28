@@ -249,17 +249,14 @@ function LayoutContent({ children, currentPageName }) {
           )}
 
           <div className="flex items-center justify-between px-3 py-2 mb-2">
-            <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                className="text-slate-600 dark:text-slate-400 h-8 w-8"
-              >
-                {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              </Button>
-              <InboxBell user={user} />
-            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="text-slate-600 dark:text-slate-400 h-8 w-8"
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </Button>
             <span className="text-xs text-slate-400 dark:text-slate-500">
               {theme === 'dark' ? 'Dark' : 'Light'}
             </span>
