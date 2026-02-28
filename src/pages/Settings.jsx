@@ -257,17 +257,6 @@ export default function Settings() {
               </div>
               
               {isPremium ? (
-                <Button variant="outline">
-                  Manage Billing
-                  <ExternalLink className="w-4 h-4 ml-2" />
-                </Button>
-              ) : (
-                 <Link to={createPageUrl('Pricing')}>
-                  <Button className="bg-indigo-600 hover:bg-indigo-700 rounded-lg">
-                    Upgrade
-                  </Button>
-                </Link>
-              ) : (
                 <Button 
                   variant="outline"
                   onClick={async () => {
@@ -278,6 +267,12 @@ export default function Settings() {
                   Manage Billing
                   <ExternalLink className="w-4 h-4 ml-2" />
                 </Button>
+              ) : (
+                <Link to={createPageUrl('Pricing')}>
+                  <Button className="bg-indigo-600 hover:bg-indigo-700 rounded-lg">
+                    Upgrade
+                  </Button>
+                </Link>
               )}
             </div>
           </CardContent>
