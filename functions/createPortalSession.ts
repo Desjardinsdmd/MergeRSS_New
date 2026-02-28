@@ -12,16 +12,20 @@ Deno.serve(async (req) => {
         const { return_url } = body;
 
         const subs = await base44.asServiceRole.entities.Subscription.filter({
-            created_by: user.email
+            $or: [
+                { created_by: user.email },
+                { user_id: user.id }
+            ]
         });
 
         if (!subs.length || !subs[0].stripe_customer_id) {
             return Response.json({ error: 'No active subscription found' }, { status: 404 });
         }
 
+        const origin = req.headers.get('origin') || 'https://mergerss.app';
         const session = await stripe.billingPortal.sessions.create({
             customer: subs[0].stripe_customer_id,
-            return_url: return_url || 'https://mergerss.app/Settings'
+            return_url: return_url || `${origin}/Settings`
         });
 
         return Response.json({ url: session.url });

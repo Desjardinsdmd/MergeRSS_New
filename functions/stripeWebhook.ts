@@ -19,6 +19,14 @@ Deno.serve(async (req) => {
             const session = event.data.object;
             const userId = session.metadata?.user_id;
 
+            // Idempotency check: ensure we don't create duplicate subscriptions
+            const existing = await base44.asServiceRole.entities.Subscription.filter({
+                stripe_subscription_id: session.subscription
+            });
+            if (existing.length > 0) {
+                return Response.json({ received: true });
+            }
+
             if (userId) {
                 await base44.asServiceRole.entities.User.update(userId, { plan: 'premium' });
             }

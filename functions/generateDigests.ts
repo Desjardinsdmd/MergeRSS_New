@@ -24,7 +24,14 @@ Deno.serve(async (req) => {
             try {
                 // Check frequency unless forced
                 if (!force && digest.last_sent) {
-                    const hoursSince = (now - new Date(digest.last_sent)) / (1000 * 60 * 60);
+                    const timeSince = (now - new Date(digest.last_sent)) / (1000 * 60); // in minutes
+                    // Skip if recently sent (within 5 minutes) to prevent duplicate sends
+                    if (timeSince < 5) {
+                        results.push({ digest: digest.name, skipped: true, reason: 'Recently sent, preventing duplicates' });
+                        continue;
+                    }
+                    
+                    const hoursSince = timeSince / 60;
                     let minHours = 20; // daily
                     if (digest.frequency === 'weekly') minHours = 168;
                     if (digest.frequency === 'monthly') minHours = 24 * 28;
@@ -145,7 +152,13 @@ Write a well-organized, professional digest. Group related stories where appropr
                     const owner = users[0];
                     if (owner?.email) {
                         const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                        const emailBody = `<h2>📰 ${digest.name}</h2><p><em>${dateStr} • ${items.length} articles</em></p><hr/>${content.replace(/\n/g, '<br/>')}`;
+                        // Sanitize content to prevent HTML injection
+                        const sanitizedContent = content
+                            .replace(/&/g, '&amp;')
+                            .replace(/</g, '&lt;')
+                            .replace(/>/g, '&gt;')
+                            .replace(/\n/g, '<br/>');
+                        const emailBody = `<h2>📰 ${digest.name}</h2><p><em>${dateStr} • ${items.length} articles</em></p><hr/><div style="white-space: pre-wrap;">${sanitizedContent}</div>`;
                         await base44.asServiceRole.integrations.Core.SendEmail({
                             to: owner.email,
                             subject: `📰 ${digest.name} — ${dateStr}`,
