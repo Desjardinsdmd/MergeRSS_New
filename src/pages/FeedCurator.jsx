@@ -150,170 +150,135 @@ export default function FeedCurator() {
         <TabsContent value="discover" className="mt-6">
           {/* Search */}
           <div className="bg-white border border-slate-200 rounded-2xl p-6 mb-6 shadow-sm">
-        <label className="block text-sm font-semibold text-slate-700 mb-2">
-          What topics are you interested in?
-        </label>
-        <div className="flex gap-2">
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            placeholder="e.g. Canadian real estate, AI startup news, crypto market..."
-            className="flex-1 h-11 rounded-xl border-slate-200 focus-visible:ring-indigo-500"
-          />
-          <Button
-            onClick={() => handleSearch()}
-            disabled={!query.trim() || loading}
-            className="h-11 px-5 bg-indigo-600 hover:bg-indigo-700 rounded-xl font-medium"
-          >
-            {loading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <><Search className="w-4 h-4 mr-1.5" /> Search</>
-            )}
-          </Button>
-        </div>
-
-        {/* Example queries */}
-        <div className="mt-4">
-          <p className="text-xs text-slate-400 mb-2 flex items-center gap-1">
-            <Lightbulb className="w-3 h-3" /> Try one of these
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {EXAMPLE_QUERIES.map((q) => (
-              <button
-                key={q}
-                onClick={() => {
-                  setQuery(q);
-                  handleSearch(q);
-                }}
-                className="text-xs px-3 py-1.5 border border-slate-200 rounded-full text-slate-600 hover:border-indigo-300 hover:text-indigo-700 hover:bg-indigo-50 transition"
-              >
-                {q}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Existing category suggestion */}
-        {existingCategories.length > 0 && suggestions.length === 0 && (
-          <div className="mt-4 pt-4 border-t border-slate-100">
-            <p className="text-xs text-slate-400 mb-2">Or discover more in your existing categories</p>
-            <div className="flex flex-wrap gap-2">
-              {existingCategories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => {
-                    setQuery(`More ${cat} feeds`);
-                    handleSearch(`More ${cat} RSS feeds and news sources`);
-                  }}
-                  className="text-xs px-3 py-1.5 border border-indigo-200 rounded-full text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition"
-                >
-                  More {cat} feeds
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Loading state */}
-      {loading && (
-        <div className="flex flex-col items-center justify-center py-16">
-          <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center mb-4">
-            <Loader2 className="w-6 h-6 text-indigo-600 animate-spin" />
-          </div>
-          <p className="text-slate-700 font-medium">Searching and testing relevant feeds...</p>
-          <p className="text-slate-400 text-sm mt-1">AI is scanning the web and validating RSS sources</p>
-        </div>
-      )}
-
-      {/* Error */}
-      {error && !loading && (
-        <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
-          <AlertCircle className="w-5 h-5 flex-shrink-0" />
-          {error}
-        </div>
-      )}
-
-      {/* Results */}
-      {!loading && suggestions.length > 0 && (
-        <div>
-          {/* Results header */}
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="font-semibold text-slate-900">
-                {suggestions.length} feeds found
-              </h2>
-              {summary && (
-                <p className="text-sm text-slate-500 mt-0.5">{summary}</p>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleSearch()}
-                className="text-xs rounded-lg border-slate-200 gap-1.5"
-              >
-                <RefreshCw className="w-3 h-3" /> Refresh
-              </Button>
-              {suggestions.some(f => !addedFeeds.has(f.url)) && (
-                <Button
-                  size="sm"
-                  onClick={handleAddAll}
-                  className="text-xs rounded-lg bg-indigo-600 hover:bg-indigo-700 gap-1.5"
-                >
-                  <Rss className="w-3 h-3" />
-                  Add All ({suggestions.filter(f => !addedFeeds.has(f.url)).length})
-                </Button>
-              )}
-            </div>
-          </div>
-
-          {/* Feed cards */}
-          <div className="grid gap-3">
-            {suggestions.map((feed, idx) => (
-              <FeedSuggestionCard
-                key={idx}
-                feed={feed}
-                onAdd={handleAddFeed}
-                added={addedFeeds.has(feed.url)}
-                adding={addingFeed === feed.url}
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
+              What topics are you interested in?
+            </label>
+            <div className="flex gap-2">
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                placeholder="e.g. Canadian real estate, AI startup news, crypto market..."
+                className="flex-1 h-11 rounded-xl border-slate-200 focus-visible:ring-indigo-500"
               />
-            ))}
+              <Button
+                onClick={() => handleSearch()}
+                disabled={!query.trim() || loading}
+                className="h-11 px-5 bg-indigo-600 hover:bg-indigo-700 rounded-xl font-medium"
+              >
+                {loading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <><Search className="w-4 h-4 mr-1.5" /> Search</>
+                )}
+              </Button>
+            </div>
+            <div className="mt-4">
+              <p className="text-xs text-slate-400 mb-2 flex items-center gap-1">
+                <Lightbulb className="w-3 h-3" /> Try one of these
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {EXAMPLE_QUERIES.map((q) => (
+                  <button
+                    key={q}
+                    onClick={() => { setQuery(q); handleSearch(q); }}
+                    className="text-xs px-3 py-1.5 border border-slate-200 rounded-full text-slate-600 hover:border-indigo-300 hover:text-indigo-700 hover:bg-indigo-50 transition"
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {existingCategories.length > 0 && suggestions.length === 0 && (
+              <div className="mt-4 pt-4 border-t border-slate-100">
+                <p className="text-xs text-slate-400 mb-2">Or discover more in your existing categories</p>
+                <div className="flex flex-wrap gap-2">
+                  {existingCategories.map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => { setQuery(`More ${cat} feeds`); handleSearch(`More ${cat} RSS feeds and news sources`); }}
+                      className="text-xs px-3 py-1.5 border border-indigo-200 rounded-full text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition"
+                    >
+                      More {cat} feeds
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Added count summary */}
-          {addedFeeds.size > 0 && (
-            <div className="mt-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between">
-              <div className="flex items-center gap-2 text-emerald-700 text-sm font-medium">
-                <Rss className="w-4 h-4" />
-                {addedFeeds.size} feed{addedFeeds.size > 1 ? 's' : ''} added to your library
+          {loading && (
+            <div className="flex flex-col items-center justify-center py-16">
+              <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center mb-4">
+                <Loader2 className="w-6 h-6 text-indigo-600 animate-spin" />
               </div>
-              <a
-                href="/Feeds"
-                className="text-xs text-emerald-700 flex items-center gap-1 hover:text-emerald-800 font-medium"
-              >
-                View in Feeds <ChevronRight className="w-3 h-3" />
-              </a>
+              <p className="text-slate-700 font-medium">Searching and testing relevant feeds...</p>
+              <p className="text-slate-400 text-sm mt-1">AI is scanning the web and validating RSS sources</p>
             </div>
           )}
-        </div>
-      )}
 
-      {/* Empty state */}
-      {!loading && suggestions.length === 0 && !error && (
-        <div className="text-center py-16">
-          <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Sparkles className="w-8 h-8 text-indigo-400" />
-          </div>
-          <h3 className="font-semibold text-slate-700 mb-1">Discover new feeds</h3>
-          <p className="text-slate-400 text-sm max-w-xs mx-auto">
-            Search for any topic and our AI will find the best RSS sources for you
-          </p>
-        </div>
-      )}
+          {error && !loading && (
+            <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+              <AlertCircle className="w-5 h-5 flex-shrink-0" />
+              {error}
+            </div>
+          )}
+
+          {!loading && suggestions.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="font-semibold text-slate-900">{suggestions.length} feeds found</h2>
+                  {summary && <p className="text-sm text-slate-500 mt-0.5">{summary}</p>}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={() => handleSearch()} className="text-xs rounded-lg border-slate-200 gap-1.5">
+                    <RefreshCw className="w-3 h-3" /> Refresh
+                  </Button>
+                  {suggestions.some(f => !addedFeeds.has(f.url)) && (
+                    <Button size="sm" onClick={handleAddAll} className="text-xs rounded-lg bg-indigo-600 hover:bg-indigo-700 gap-1.5">
+                      <Rss className="w-3 h-3" />
+                      Add All ({suggestions.filter(f => !addedFeeds.has(f.url)).length})
+                    </Button>
+                  )}
+                </div>
+              </div>
+              <div className="grid gap-3">
+                {suggestions.map((feed, idx) => (
+                  <FeedSuggestionCard
+                    key={idx}
+                    feed={feed}
+                    onAdd={handleAddFeed}
+                    added={addedFeeds.has(feed.url)}
+                    adding={addingFeed === feed.url}
+                  />
+                ))}
+              </div>
+              {addedFeeds.size > 0 && (
+                <div className="mt-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-emerald-700 text-sm font-medium">
+                    <Rss className="w-4 h-4" />
+                    {addedFeeds.size} feed{addedFeeds.size > 1 ? 's' : ''} added to your library
+                  </div>
+                  <a href="/Feeds" className="text-xs text-emerald-700 flex items-center gap-1 hover:text-emerald-800 font-medium">
+                    View in Feeds <ChevronRight className="w-3 h-3" />
+                  </a>
+                </div>
+              )}
+            </div>
+          )}
+
+          {!loading && suggestions.length === 0 && !error && (
+            <div className="text-center py-16">
+              <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Sparkles className="w-8 h-8 text-indigo-400" />
+              </div>
+              <h3 className="font-semibold text-slate-700 mb-1">Discover new feeds</h3>
+              <p className="text-slate-400 text-sm max-w-xs mx-auto">
+                Search for any topic and our AI will find the best RSS sources for you
+              </p>
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>
