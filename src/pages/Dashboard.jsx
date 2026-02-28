@@ -418,6 +418,11 @@ export default function Dashboard() {
         </Card>
       </div>
 
+      {/* Trending Articles */}
+      {allArticles.length >= 3 && (
+        <TrendingArticles articles={allArticles} />
+      )}
+
       {/* Quick Links */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
         <Link to={createPageUrl('Feeds')}>
