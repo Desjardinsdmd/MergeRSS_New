@@ -123,9 +123,11 @@ export default function RssFeedGenerator() {
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   {result.is_native_feed ? (
-                    <Badge className="bg-green-100 text-green-700 border-0">Native RSS</Badge>
+                    <Badge className="bg-green-100 text-green-700 border-0">
+                      {result.discovered_from ? '🔍 Auto-detected RSS' : 'Native RSS'}
+                    </Badge>
                   ) : (
-                    <Badge className="bg-indigo-100 text-indigo-700 border-0">Generated</Badge>
+                    <Badge className="bg-amber-100 text-amber-700 border-0">Scraped (static)</Badge>
                   )}
                   <Badge variant="secondary">{result.item_count} items</Badge>
                 </div>
