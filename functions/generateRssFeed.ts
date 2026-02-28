@@ -142,17 +142,42 @@ Deno.serve(async (req) => {
 
     const html = await fetchPage(pageUrl);
 
-    // If the URL already is an RSS feed, just return its content directly
+    // If the URL itself is an RSS feed, return it directly
     if (isRss(html)) {
+      const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '@_' });
+      const parsed = parser.parse(html);
+      const feedTitle = parsed.rss?.channel?.title || parsed.feed?.title || 'RSS Feed';
       return Response.json({
         rss_xml: html,
         is_native_feed: true,
         feed_url: pageUrl,
-        title: 'Existing RSS Feed',
+        title: typeof feedTitle === 'string' ? feedTitle : (feedTitle?.['#text'] || 'RSS Feed'),
         item_count: (html.match(/<item>/g) || html.match(/<entry>/g) || []).length,
       });
     }
 
+    // Look for embedded/hidden RSS feed links in the HTML
+    const embeddedFeeds = findEmbeddedFeedUrls(html, pageUrl);
+    for (const feedUrl of embeddedFeeds) {
+      try {
+        const feedHtml = await fetchPage(feedUrl);
+        if (isRss(feedHtml)) {
+          const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '@_' });
+          const parsed = parser.parse(feedHtml);
+          const feedTitle = parsed.rss?.channel?.title || parsed.feed?.title || 'RSS Feed';
+          return Response.json({
+            rss_xml: feedHtml,
+            is_native_feed: true,
+            feed_url: feedUrl,
+            title: typeof feedTitle === 'string' ? feedTitle : (feedTitle?.['#text'] || 'RSS Feed'),
+            item_count: (feedHtml.match(/<item>/g) || feedHtml.match(/<entry>/g) || []).length,
+            discovered_from: pageUrl,
+          });
+        }
+      } catch {}
+    }
+
+    // Fall back to scraping article links
     const { title, description } = extractMetaFromHtml(html, pageUrl);
     const items = extractLinksFromHtml(html, pageUrl);
 
