@@ -51,7 +51,6 @@ import AdminHealth from './pages/AdminHealth';
 import AdminImport from './pages/AdminImport';
 import ArticleSearch from './pages/ArticleSearch';
 import Bookmarks from './pages/Bookmarks';
-import Dashboard from './pages/Dashboard';
 import Digests from './pages/Digests';
 import Directory from './pages/Directory';
 import FeedCurator from './pages/FeedCurator';
@@ -71,7 +70,6 @@ export const PAGES = {
     "AdminImport": AdminImport,
     "ArticleSearch": ArticleSearch,
     "Bookmarks": Bookmarks,
-    "Dashboard": Dashboard,
     "Digests": Digests,
     "Directory": Directory,
     "FeedCurator": FeedCurator,
