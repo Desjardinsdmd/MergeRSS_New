@@ -12,6 +12,7 @@ Deno.serve(async (req) => {
 
         const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
 
+        const origin = req.headers.get('origin') || 'https://mergerss.app';
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             line_items: [{
@@ -19,8 +20,8 @@ Deno.serve(async (req) => {
                 quantity: 1,
             }],
             mode: 'subscription',
-            success_url: success_url || 'https://app.base44.com',
-            cancel_url: cancel_url || 'https://app.base44.com',
+            success_url: success_url || `${origin}${createPageUrl('Pricing')}?payment=success`,
+            cancel_url: cancel_url || `${origin}${createPageUrl('Pricing')}`,
             customer_email: user.email,
             metadata: {
                 user_id: user.id,

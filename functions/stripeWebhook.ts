@@ -26,6 +26,7 @@ Deno.serve(async (req) => {
             await base44.asServiceRole.entities.Subscription.create({
                 stripe_customer_id: session.customer,
                 stripe_subscription_id: session.subscription,
+                user_id: userId,
                 plan: 'premium',
                 status: 'active',
                 current_period_start: new Date().toISOString(),
@@ -39,12 +40,13 @@ Deno.serve(async (req) => {
                 stripe_subscription_id: subscription.id
             });
             if (subs.length > 0) {
-                await base44.asServiceRole.entities.Subscription.update(subs[0].id, {
+                const sub = subs[0];
+                await base44.asServiceRole.entities.Subscription.update(sub.id, {
                     status: 'canceled',
                     plan: 'free',
                 });
-                if (subs[0].user_id) {
-                    await base44.asServiceRole.entities.User.update(subs[0].user_id, { plan: 'free' });
+                if (sub.user_id) {
+                    await base44.asServiceRole.entities.User.update(sub.user_id, { plan: 'free' });
                 }
             }
         }
