@@ -296,10 +296,10 @@ export default function Landing() {
       <section className="py-24 bg-gradient-to-b from-indigo-50 to-white">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4 tracking-tight">
-            Start reading smarter today
+            Stop drowning in tabs. Start reading smarter.
           </h2>
           <p className="text-lg text-slate-500 mb-8">
-            Join professionals using MergeRSS to stay on top of what matters.
+            Thousands of professionals use MergeRSS to cut through the noise and stay on top of what actually matters.
           </p>
           <Button
             size="lg"
