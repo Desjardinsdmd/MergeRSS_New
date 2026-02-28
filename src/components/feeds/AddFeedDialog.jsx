@@ -49,8 +49,8 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
       });
     } else {
       setFormData({
-        name: '',
-        url: '',
+        name: prefillName || '',
+        url: prefillUrl || '',
         category: 'Other',
         tags: [],
         is_public: false,
