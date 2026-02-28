@@ -50,6 +50,7 @@
 import AdminHealth from './pages/AdminHealth';
 import AdminImport from './pages/AdminImport';
 import ArticleSearch from './pages/ArticleSearch';
+import Bookmarks from './pages/Bookmarks';
 import Dashboard from './pages/Dashboard';
 import Digests from './pages/Digests';
 import Directory from './pages/Directory';
@@ -62,7 +63,6 @@ import Pricing from './pages/Pricing';
 import RssFeedGenerator from './pages/RssFeedGenerator';
 import Settings from './pages/Settings';
 import Team from './pages/Team';
-import Bookmarks from './pages/Bookmarks';
 import __Layout from './Layout.jsx';
 
 
@@ -70,6 +70,7 @@ export const PAGES = {
     "AdminHealth": AdminHealth,
     "AdminImport": AdminImport,
     "ArticleSearch": ArticleSearch,
+    "Bookmarks": Bookmarks,
     "Dashboard": Dashboard,
     "Digests": Digests,
     "Directory": Directory,
@@ -82,7 +83,6 @@ export const PAGES = {
     "RssFeedGenerator": RssFeedGenerator,
     "Settings": Settings,
     "Team": Team,
-    "Bookmarks": Bookmarks,
 }
 
 export const pagesConfig = {

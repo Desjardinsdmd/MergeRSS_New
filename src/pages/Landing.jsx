@@ -39,18 +39,18 @@ const features = [
   },
   {
     icon: Zap,
-    title: 'Instant Delivery',
-    description: 'Push digests to Slack, Discord, or your web inbox the moment they\'re ready.'
+    title: 'Multi-Channel Delivery',
+    description: 'Send digests to Slack, Discord, your web inbox, or email — wherever your workflow lives.'
   },
   {
     icon: BarChart3,
     title: 'AI-Powered Summaries',
-    description: 'Our AI reads your feeds and writes concise, actionable summaries — saving you hours.'
+    description: 'Our AI reads every article in your feeds and writes concise, readable summaries — so you get the signal without the noise.'
   },
   {
     icon: Shield,
-    title: 'Secure & Reliable',
-    description: 'Enterprise-grade infrastructure with automatic retries and 99.9% uptime.'
+    title: 'Built to Stay On',
+    description: 'Automatic feed fetching, deduplication, and retry logic keep your content flowing without manual intervention.'
   }
 ];
 
