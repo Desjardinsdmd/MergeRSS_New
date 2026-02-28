@@ -304,7 +304,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid lg:grid-cols-1 gap-6">
         {/* Recent Feed Items */}
         <Card className="border-slate-100">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
