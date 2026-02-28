@@ -19,6 +19,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import ArticleSummarizeButton from '@/components/feeds/ArticleSummarizeButton';
+import TrendingArticles from '@/components/feeds/TrendingArticles';
+import RelatedArticles from '@/components/feeds/RelatedArticles';
 import OnboardingTour from '@/components/OnboardingTour';
 import SetupWalkthrough from '@/components/SetupWalkthrough';
 
