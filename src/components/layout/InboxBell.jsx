@@ -8,12 +8,12 @@ import { base44 } from '@/api/base44Client';
 export default function InboxBell({ user }) {
   const { data: deliveries = [] } = useQuery({
     queryKey: ['inboxCount', user?.email],
-    queryFn: () => base44.entities.DigestDelivery.filter({ delivery_type: 'web', status: 'sent' }, '-created_date', 50),
+    queryFn: () => base44.entities.DigestDelivery.filter({ created_by: user?.email, delivery_type: 'web', status: 'sent', is_read: false }, '-created_date', 100),
     enabled: !!user,
     refetchInterval: 60000,
   });
 
-  const unread = deliveries.filter(d => !d.is_read).length;
+  const unread = deliveries.length;
 
   return (
     <Link
