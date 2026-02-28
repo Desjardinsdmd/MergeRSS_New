@@ -84,21 +84,26 @@ export default function Dashboard() {
   });
 
   const { data: feedItems = [] } = useQuery({
-    queryKey: ['feedItems'],
-    queryFn: () => base44.entities.FeedItem.list('-published_date', 50),
-    enabled: !!user,
+    queryKey: ['feedItems', user?.email],
+    queryFn: async () => {
+      if (!feeds.length) return [];
+      const feedIds = feeds.map(f => f.id);
+      return base44.entities.FeedItem.filter({ feed_id: { $in: feedIds } }, '-published_date', 50);
+    },
+    enabled: !!user && feeds.length >= 0,
   });
 
   // Real-time subscription to new feed items
   useEffect(() => {
-    if (!user) return;
+    if (!user || !feeds.length) return;
+    const feedIds = new Set(feeds.map(f => f.id));
     const unsubscribe = base44.entities.FeedItem.subscribe((event) => {
-      if (event.type === 'create') {
+      if (event.type === 'create' && feedIds.has(event.data.feed_id)) {
         setLiveArticles(prev => [event.data, ...prev].slice(0, 50));
       }
     });
     return () => unsubscribe();
-  }, [user]);
+  }, [user, feeds]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -129,6 +134,7 @@ export default function Dashboard() {
     if (e) { e.preventDefault(); e.stopPropagation(); }
     setReadItems(prev => new Set([...prev, item.id]));
     await base44.entities.FeedItem.update(item.id, { is_read: true });
+    queryClient.invalidateQueries({ queryKey: ['feedItems', user?.email] });
   };
 
   const totalAdded = digests.reduce((sum, d) => sum + (d.added_count || 0), 0);
