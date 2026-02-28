@@ -148,7 +148,7 @@ export default function FeedCurator() {
         </TabsContent>
 
         <TabsContent value="discover" className="mt-6">
-      {/* Search */}
+          {/* Search */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 mb-6 shadow-sm">
         <label className="block text-sm font-semibold text-slate-700 mb-2">
           What topics are you interested in?
