@@ -436,7 +436,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {allArticles.length >= 3 && <TrendingArticles articles={allArticles} />}
+      {allArticles.length >= 3 && widget('trendingArticles') && <TrendingArticles articles={allArticles} />}
 
       {/* Quick Links */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
