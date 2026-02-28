@@ -19,7 +19,8 @@ import {
   Users,
   Globe,
   Moon,
-  Sun
+  Sun,
+  Search
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
