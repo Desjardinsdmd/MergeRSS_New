@@ -62,6 +62,7 @@ import Pricing from './pages/Pricing';
 import RssFeedGenerator from './pages/RssFeedGenerator';
 import Settings from './pages/Settings';
 import Team from './pages/Team';
+import Inbox from './pages/Inbox';
 import __Layout from './Layout.jsx';
 
 
@@ -81,6 +82,7 @@ export const PAGES = {
     "RssFeedGenerator": RssFeedGenerator,
     "Settings": Settings,
     "Team": Team,
+    "Inbox": Inbox,
 }
 
 export const pagesConfig = {
