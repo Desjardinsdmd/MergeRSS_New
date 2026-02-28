@@ -53,10 +53,13 @@ export default function Dashboard() {
     ai_summary: articleSummaries[item.id] ?? item.ai_summary,
   });
 
+  const [dashLayout, setDashLayout] = useState({});
+
   useEffect(() => {
     const loadUser = async () => {
       const userData = await base44.auth.me();
       setUser(userData);
+      setDashLayout(userData.dashboard_layout || {});
       if (!userData.onboarding_complete) {
         setShowTour(true);
       } else if (!userData.setup_walkthrough_complete) {
@@ -65,6 +68,8 @@ export default function Dashboard() {
     };
     loadUser();
   }, []);
+
+  const widget = (id) => dashLayout?.widgets?.[id] !== false;
 
   const { data: feeds = [] } = useQuery({
     queryKey: ['feeds'],
