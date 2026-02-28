@@ -17,6 +17,41 @@ function isRss(text) {
   return t.startsWith('<?xml') || t.startsWith('<rss') || t.startsWith('<feed') || t.startsWith('<rdf');
 }
 
+function findEmbeddedFeedUrls(html, baseUrl) {
+  const base = new URL(baseUrl);
+  const candidates = [];
+
+  // <link rel="alternate" type="application/rss+xml" ...>
+  const linkRe = /<link[^>]+rel=["']alternate["'][^>]*>/gi;
+  let m;
+  while ((m = linkRe.exec(html)) !== null) {
+    const tag = m[0];
+    const typeMatch = tag.match(/type=["']([^"']+)["']/i);
+    const hrefMatch = tag.match(/href=["']([^"']+)["']/i);
+    if (!hrefMatch) continue;
+    const type = typeMatch?.[1]?.toLowerCase() || '';
+    if (type.includes('rss') || type.includes('atom') || type.includes('xml')) {
+      try {
+        candidates.push(new URL(hrefMatch[1], base).href);
+      } catch {}
+    }
+  }
+
+  // Also look for common feed URL patterns mentioned in the HTML
+  const patterns = [/href=["']([^"']*\/feed\/?["'])/gi, /href=["']([^"']*\.rss["'])/gi, /href=["']([^"']*\/rss\/?["'])/gi, /href=["']([^"']*\/atom\/?["'])/gi];
+  for (const re of patterns) {
+    let pm;
+    while ((pm = re.exec(html)) !== null) {
+      try {
+        candidates.push(new URL(pm[1].replace(/["']$/, ''), base).href);
+      } catch {}
+    }
+  }
+
+  // Deduplicate
+  return [...new Set(candidates)];
+}
+
 function extractMetaFromHtml(html, pageUrl) {
   const get = (re) => (html.match(re) || [])[1]?.trim() || '';
 
