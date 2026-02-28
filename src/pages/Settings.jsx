@@ -4,15 +4,12 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { 
   User, 
-  Bell, 
   Globe, 
   CreditCard, 
   Loader2,
   Crown,
-  Check,
   ExternalLink,
   PlayCircle,
-  Lock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -25,10 +22,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
+import DashboardLayoutSettings from '@/components/settings/DashboardLayoutSettings';
+import NotificationPreferences from '@/components/settings/NotificationPreferences';
+import ThemeSettings from '@/components/settings/ThemeSettings';
 
 const TIMEZONES = [
   'America/New_York',
