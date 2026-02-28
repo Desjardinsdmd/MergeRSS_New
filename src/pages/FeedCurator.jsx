@@ -126,12 +126,28 @@ export default function FeedCurator() {
             <Sparkles className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">AI Feed Suggester</h1>
-            <p className="text-sm text-slate-500">Discover relevant RSS feeds with AI-powered search</p>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">AI Curator</h1>
+            <p className="text-sm text-slate-500">Discover feeds, spot trends, and get personalized recommendations</p>
           </div>
         </div>
       </div>
 
+      <Tabs defaultValue="discover" className="mb-6">
+        <TabsList className="bg-slate-100 rounded-xl p-1">
+          <TabsTrigger value="discover" className="rounded-lg text-sm gap-2"><Search className="w-3.5 h-3.5" />Discover Feeds</TabsTrigger>
+          <TabsTrigger value="trending" className="rounded-lg text-sm gap-2"><TrendingUp className="w-3.5 h-3.5" />Trending Topics</TabsTrigger>
+          <TabsTrigger value="recommended" className="rounded-lg text-sm gap-2"><Star className="w-3.5 h-3.5" />For You</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="trending" className="mt-6">
+          <TrendingTopics />
+        </TabsContent>
+
+        <TabsContent value="recommended" className="mt-6">
+          <RecommendedFeeds />
+        </TabsContent>
+
+        <TabsContent value="discover" className="mt-6">
       {/* Search */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 mb-6 shadow-sm">
         <label className="block text-sm font-semibold text-slate-700 mb-2">
