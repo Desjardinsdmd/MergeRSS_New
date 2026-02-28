@@ -23,11 +23,11 @@ import { Switch } from '@/components/ui/switch';
 
 const CATEGORIES = ['CRE', 'Markets', 'Tech', 'News', 'Finance', 'Crypto', 'AI', 'Other'];
 
-export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed = null }) {
+export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed = null, prefillUrl = '', prefillName = '' }) {
    const [loading, setLoading] = useState(false);
    const [formData, setFormData] = useState({
-     name: editFeed?.name || '',
-     url: editFeed?.url || '',
+     name: editFeed?.name || prefillName || '',
+     url: editFeed?.url || prefillUrl || '',
      category: editFeed?.category || 'Other',
      tags: editFeed?.tags || [],
      is_public: editFeed?.is_public || false,
