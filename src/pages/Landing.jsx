@@ -174,8 +174,8 @@ export default function Landing() {
             <span className="text-indigo-600">curated & delivered</span>
           </h1>
           <p className="text-xl text-slate-500 mb-10 max-w-2xl mx-auto leading-relaxed">
-            Aggregate RSS feeds from any source, let AI summarize what matters,
-            and get it delivered to Slack, Discord, or your inbox — on your schedule.
+            Aggregate RSS feeds from any source, let AI summarize the articles that matter,
+            and get a clean digest delivered to Slack, Discord, email, or your web inbox — on your schedule.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Button
