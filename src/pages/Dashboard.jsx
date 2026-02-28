@@ -149,11 +149,11 @@ export default function Dashboard() {
       <div className="mb-6">
         <div className="flex items-center justify-between mb-1">
           <h1 className="text-2xl font-bold text-slate-900">
-            Welcome back{user?.full_name ? `, ${user.full_name.split(' ')[0]}` : ''}
+            {(() => { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; })()}{user?.full_name ? `, ${user.full_name.split(' ')[0]}` : ''}
           </h1>
           <StreakCounter user={user} />
         </div>
-        <p className="text-slate-600">Here's what's happening with your feeds</p>
+        <p className="text-slate-600">Here's what's happening across your feeds today</p>
       </div>
 
       {/* Daily AI Snapshot */}
