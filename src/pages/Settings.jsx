@@ -220,42 +220,22 @@ export default function Settings() {
           </CardContent>
         </Card>
 
-        {/* Notifications Section */}
-        <Card className="border-slate-100">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Bell className="w-5 h-5 text-slate-400" />
-              Notifications
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-slate-900">Email Notifications</p>
-                <p className="text-sm text-slate-500">Receive important updates via email</p>
-              </div>
-              <Switch
-                checked={formData.emailNotifications}
-                onCheckedChange={(checked) => 
-                  setFormData({ ...formData, emailNotifications: checked })
-                }
-              />
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-slate-900">Digest Reminders</p>
-                <p className="text-sm text-slate-500">Get notified when digests are delivered</p>
-              </div>
-              <Switch
-                checked={formData.digestReminders}
-                onCheckedChange={(checked) => 
-                  setFormData({ ...formData, digestReminders: checked })
-                }
-              />
-            </div>
-          </CardContent>
-        </Card>
+        {/* Appearance */}
+        <ThemeSettings accentColor={accentColor} onAccentChange={setAccentColor} />
+
+        {/* Notifications */}
+        <NotificationPreferences prefs={notifPrefs} onChange={setNotifPrefs} />
+
+        {/* Dashboard Layout */}
+        <DashboardLayoutSettings layout={dashboardLayout} onChange={setDashboardLayout} />
+
+        {/* Save preferences button */}
+        <div className="flex justify-end">
+          <Button onClick={handleSavePreferences} disabled={loading} className="bg-indigo-600 hover:bg-indigo-700 rounded-lg">
+            {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            Save Preferences
+          </Button>
+        </div>
 
         {/* Subscription Section */}
         <Card className="border-slate-100">
