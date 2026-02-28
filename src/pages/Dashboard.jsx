@@ -379,53 +379,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Recent Deliveries */}
-        <Card className="border-slate-100">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-lg font-semibold">Digest History</CardTitle>
-            <Link to={createPageUrl('Inbox')} className="text-sm text-violet-600 hover:underline flex items-center gap-1">
-              View inbox <ArrowRight className="w-3 h-3" />
-            </Link>
-          </CardHeader>
-          <CardContent className="p-0">
-            {deliveries.length === 0 ? (
-              <div className="p-6 text-center text-slate-500">
-                No deliveries yet. Create a digest to get started.
-              </div>
-            ) : (
-              <div className="divide-y divide-slate-100">
-                {deliveries.slice(0, 5).map((delivery) => (
-                  <div key={delivery.id} className="p-4 flex items-center gap-3">
-                    {delivery.status === 'sent' ? (
-                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                    ) : delivery.status === 'failed' ? (
-                      <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
-                    ) : (
-                      <Clock className="w-4 h-4 text-amber-500 flex-shrink-0" />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-slate-900 text-sm">
-                        {delivery.delivery_type.charAt(0).toUpperCase() + delivery.delivery_type.slice(1)} Delivery
-                      </p>
-                      <p className="text-xs text-slate-500">
-                        {delivery.sent_at 
-                          ? new Date(delivery.sent_at).toLocaleString()
-                          : 'Pending'
-                        }
-                      </p>
-                    </div>
-                    <Badge 
-                      variant={delivery.status === 'sent' ? 'default' : 'secondary'}
-                      className={delivery.status === 'sent' ? 'bg-green-100 text-green-700' : ''}
-                    >
-                      {delivery.status}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
       </div>
 
       {/* Trending Articles */}
