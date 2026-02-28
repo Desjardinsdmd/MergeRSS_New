@@ -205,7 +205,7 @@ export default function Landing() {
       <section className="border-y border-slate-100 py-5 bg-slate-50">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <p className="text-center text-xs font-medium text-slate-400 uppercase tracking-widest">
-            Works with your favorite news sources
+            Works with any RSS or Atom feed — news sites, blogs, newsletters, and more
           </p>
         </div>
       </section>
