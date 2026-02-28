@@ -63,9 +63,10 @@ export default function Settings() {
         full_name: userData.full_name || '',
         email: userData.email || '',
         timezone: userData.timezone || 'America/New_York',
-        emailNotifications: true,
-        digestReminders: true,
       });
+      setNotifPrefs(userData.notification_prefs || {});
+      setDashboardLayout(userData.dashboard_layout || {});
+      setAccentColor(userData.accent_color || 'indigo');
     };
     loadUser();
   }, []);
