@@ -20,7 +20,8 @@ import {
   Globe,
   Moon,
   Sun,
-  Search
+  Search,
+  Bookmark
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
