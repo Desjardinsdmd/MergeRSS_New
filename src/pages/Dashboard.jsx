@@ -246,14 +246,31 @@ export default function Dashboard() {
               View all <ArrowRight className="w-3 h-3" />
             </button>
           </CardHeader>
+          {categories.length > 1 && (
+            <div className="px-4 pb-2 flex gap-1.5 flex-wrap">
+              {categories.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setActiveCategory(cat)}
+                  className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${
+                    activeCategory === cat
+                      ? 'bg-indigo-600 text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          )}
           <CardContent className="p-0">
-            {(liveArticles.length > 0 ? liveArticles : feedItems).length === 0 ? (
+            {filteredArticles.length === 0 ? (
               <div className="p-6 text-center text-slate-500">
                 No items yet. Add feeds to start aggregating content.
               </div>
             ) : (
               <div className="divide-y divide-slate-100">
-                {(liveArticles.length > 0 ? liveArticles : feedItems).slice(0, 5).map((item) => (
+                {filteredArticles.slice(0, 5).map((item) => (
                   <a 
                     key={item.id}
                     href={item.url}
@@ -271,7 +288,7 @@ export default function Dashboard() {
                           {new Date(item.published_date).toLocaleDateString()} at {new Date(item.published_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </>
                       )}
-                      {item.category && (
+                      {item.category && activeCategory === 'All' && (
                         <Badge variant="secondary" className="text-xs">
                           {item.category}
                         </Badge>
