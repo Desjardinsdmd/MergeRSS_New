@@ -180,7 +180,10 @@ export default function Landing() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Button
               size="lg"
-              onClick={() => base44.auth.redirectToLogin(createPageUrl('Dashboard'))}
+              onClick={() => {
+                base44.analytics.track({ eventName: 'cta_clicked', properties: { location: 'hero', label: 'get_started_free' } });
+                base44.auth.redirectToLogin(createPageUrl('Dashboard'));
+              }}
               className="h-12 px-8 text-base font-semibold bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-lg shadow-indigo-200"
             >
               Get started free
@@ -189,7 +192,10 @@ export default function Landing() {
             <Button
               variant="outline"
               size="lg"
-              onClick={() => base44.auth.redirectToLogin(createPageUrl('Dashboard'))}
+              onClick={() => {
+                base44.analytics.track({ eventName: 'cta_clicked', properties: { location: 'hero', label: 'see_how_it_works' } });
+                base44.auth.redirectToLogin(createPageUrl('Dashboard'));
+              }}
               className="h-12 px-8 text-base font-medium border-slate-200 hover:bg-slate-50 rounded-lg"
             >
               See how it works
