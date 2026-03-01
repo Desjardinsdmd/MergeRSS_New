@@ -32,45 +32,63 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'query is required' }, { status: 400 });
     }
 
-    // Use LLM with internet search to discover real, popular RSS feeds
-    const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
-      prompt: `Search the internet thoroughly and find the most popular, widely-used, and highly-regarded RSS/Atom feeds related to: "${query}".
-
-Focus on:
-1. Major publishers, well-known media outlets, and authoritative sources
-2. Popular blogs and independent creators with large audiences
-3. Official feeds from companies, organizations, or governments (if relevant)
-4. Feeds that are confirmed active in 2024-2025
-
-For each feed you find, provide:
-- name: The exact publication or blog name
-- url: The direct RSS or Atom feed URL (must be a direct feed URL like https://example.com/feed.xml or https://example.com/rss - not just the website homepage)
-- description: One sentence about what this feed covers
-- tags: 2-4 lowercase keywords
-
-Find up to 25 feeds. Only include feeds where you are highly confident the feed URL is correct and active. Do NOT make up URLs - only include real ones you found.`,
-      add_context_from_internet: true,
-      response_json_schema: {
-        type: "object",
-        properties: {
-          feeds: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                name: { type: "string" },
-                url: { type: "string" },
-                description: { type: "string" },
-                tags: { type: "array", items: { type: "string" } }
-              },
-              required: ["name", "url"]
-            }
+    const feedSchema = {
+      type: "object",
+      properties: {
+        feeds: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+              url: { type: "string" },
+              description: { type: "string" },
+              tags: { type: "array", items: { type: "string" } }
+            },
+            required: ["name", "url"]
           }
         }
       }
-    });
+    };
 
-    const discoveredFeeds = result?.feeds || [];
+    const makePrompt = (q, angle) =>
+      `Search the internet and find real, active RSS/Atom feeds related to: "${q}". Focus on ${angle}.
+For each feed provide: name, url (must be a direct feed URL ending in /feed, /rss, .xml, /atom, etc — NOT a homepage), description (one sentence), tags (2-4 keywords).
+Return up to 20 feeds. Only include feeds you are highly confident exist and are active in 2024-2025. Do NOT invent URLs.`;
+
+    // Run 3 parallel searches with different angles for broader coverage
+    const [r1, r2, r3] = await Promise.all([
+      base44.asServiceRole.integrations.Core.InvokeLLM({
+        prompt: makePrompt(query, 'major publishers, mainstream media outlets, and well-known news sources'),
+        add_context_from_internet: true,
+        response_json_schema: feedSchema
+      }),
+      base44.asServiceRole.integrations.Core.InvokeLLM({
+        prompt: makePrompt(query, 'popular independent blogs, newsletters with RSS feeds, and niche expert sites'),
+        add_context_from_internet: true,
+        response_json_schema: feedSchema
+      }),
+      base44.asServiceRole.integrations.Core.InvokeLLM({
+        prompt: makePrompt(query, 'official organizational feeds, trade publications, industry journals, and authoritative sources'),
+        add_context_from_internet: true,
+        response_json_schema: feedSchema
+      }),
+    ]);
+
+    // Merge and deduplicate by URL
+    const allRaw = [
+      ...(r1?.feeds || []),
+      ...(r2?.feeds || []),
+      ...(r3?.feeds || []),
+    ];
+    const seenUrls = new Set();
+    const discoveredFeeds = allRaw.filter(f => {
+      if (!f.url) return false;
+      const norm = f.url.toLowerCase().trim();
+      if (seenUrls.has(norm)) return false;
+      seenUrls.add(norm);
+      return true;
+    });
 
     // Get existing directory feeds to avoid duplicates
     const existing = await base44.asServiceRole.entities.DirectoryFeed.list();
