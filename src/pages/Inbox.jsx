@@ -37,10 +37,16 @@ export default function Inbox() {
   const { data: deliveries = [], isLoading } = useQuery({
     queryKey: ['deliveries', 'web', user?.email],
     queryFn: async () => {
-      const all = await base44.entities.DigestDelivery.filter({ created_by: user?.email }, '-created_date');
-      return all.filter(d => d.delivery_type === 'web' && d.status === 'sent');
+      if (!digests.length) return [];
+      const digestIds = digests.map(d => d.id);
+      const all = await base44.entities.DigestDelivery.filter(
+        { digest_id: { $in: digestIds }, delivery_type: 'web', status: 'sent' },
+        '-created_date',
+        200
+      );
+      return all;
     },
-    enabled: !!user,
+    enabled: !!user && digests.length >= 0,
   });
 
   const { data: digests = [] } = useQuery({
