@@ -53,6 +53,7 @@ export default function Inbox() {
     queryKey: ['digests', user?.email],
     queryFn: () => base44.entities.Digest.filter({ created_by: user?.email }),
     enabled: !!user,
+    staleTime: 0,
   });
 
   const { customFolders, allTags } = useMemo(() => {
