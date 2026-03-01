@@ -6,10 +6,23 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 
 export default function InboxBell({ user }) {
-  const { data: deliveries = [] } = useQuery({
-    queryKey: ['inboxCount', user?.email],
-    queryFn: () => base44.entities.DigestDelivery.filter({ created_by: user?.email, delivery_type: 'web', status: 'sent', is_read: false }, '-created_date', 100),
+  const { data: digests = [] } = useQuery({
+    queryKey: ['digests', user?.email],
+    queryFn: () => base44.entities.Digest.filter({ created_by: user?.email }),
     enabled: !!user,
+    staleTime: 60000,
+  });
+
+  const digestIds = digests.map(d => d.id);
+
+  const { data: deliveries = [] } = useQuery({
+    queryKey: ['inboxCount', user?.email, digestIds.join(',')],
+    queryFn: () => base44.entities.DigestDelivery.filter(
+      { digest_id: { $in: digestIds }, delivery_type: 'web', status: 'sent', is_read: false },
+      '-created_date',
+      100
+    ),
+    enabled: !!user && digestIds.length > 0,
     refetchInterval: 60000,
   });
 
