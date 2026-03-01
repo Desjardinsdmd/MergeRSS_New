@@ -324,6 +324,8 @@ export default function Landing() {
             </div>
             <div className="flex items-center gap-6 text-sm text-slate-400">
               <Link to={createPageUrl('Pricing')} className="hover:text-slate-600 transition">Pricing</Link>
+              <Link to={createPageUrl('Privacy')} className="hover:text-slate-600 transition">Privacy</Link>
+              <Link to={createPageUrl('Terms')} className="hover:text-slate-600 transition">Terms</Link>
               <a href="mailto:support@mergerss.com" className="hover:text-slate-600 transition">Support</a>
             </div>
             <p className="text-sm text-slate-400">© {new Date().getFullYear()} MergeRSS. All rights reserved.</p>
