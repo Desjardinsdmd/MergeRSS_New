@@ -79,6 +79,7 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
         });
       }
       await base44.entities.Feed.update(editFeed.id, { name: formData.name, url: formData.url, category: formData.category, tags: formData.tags });
+      base44.analytics.track({ eventName: 'feed_edited', properties: { category: formData.category } });
     } else {
       await base44.entities.Feed.create({
         name: formData.name,
@@ -88,6 +89,7 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
         status: 'active',
         item_count: 0
       });
+      base44.analytics.track({ eventName: 'feed_added', properties: { category: formData.category } });
     }
 
     setLoading(false);
