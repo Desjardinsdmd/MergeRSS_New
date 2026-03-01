@@ -101,7 +101,7 @@ export default function Dashboard() {
     if (!user || !feeds.length) return;
     const feedIdSet = new Set(feeds.map(f => f.id));
     const unsubscribe = base44.entities.FeedItem.subscribe((event) => {
-      if (event.type === 'create' && feedIds.has(event.data.feed_id)) {
+      if (event.type === 'create' && feedIdSet.has(event.data?.feed_id)) {
         setLiveArticles(prev => [event.data, ...prev].slice(0, 50));
       }
     });
