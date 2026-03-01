@@ -153,8 +153,10 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
 
     if (editDigest) {
       await base44.entities.Digest.update(editDigest.id, data);
+      base44.analytics.track({ eventName: 'digest_edited', properties: { frequency: data.frequency, delivery_slack: data.delivery_slack, delivery_discord: data.delivery_discord, delivery_email: data.delivery_email } });
     } else {
       await base44.entities.Digest.create(data);
+      base44.analytics.track({ eventName: 'digest_created', properties: { frequency: data.frequency, delivery_slack: data.delivery_slack, delivery_discord: data.delivery_discord, delivery_email: data.delivery_email } });
     }
 
     setLoading(false);
