@@ -60,6 +60,7 @@ export default function Pricing() {
   }, []);
 
   const handleGetStarted = async (plan) => {
+    base44.analytics.track({ eventName: 'upgrade_started', properties: { plan: plan.name.toLowerCase(), authenticated: !!user } });
     if (!user) {
       base44.auth.redirectToLogin(createPageUrl('Pricing'));
       return;
@@ -76,6 +77,7 @@ export default function Pricing() {
     });
     setLoading(false);
     if (response.data?.url) {
+      base44.analytics.track({ eventName: 'upgrade_checkout_opened', properties: { plan: 'premium' } });
       window.open(response.data.url, '_blank');
     }
   };
