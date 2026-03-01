@@ -306,10 +306,12 @@ ${itemsXml}
 // ============================================================
 async function saveGeneratedFeed(base44, existing, data) {
     try {
+        // Strip fields that can exceed entity size limits
+        const { cached_xml, items_cache, ...safeData } = data;
         if (existing) {
-            await base44.entities.GeneratedFeed.update(existing.id, data);
+            await base44.entities.GeneratedFeed.update(existing.id, safeData);
         } else {
-            await base44.entities.GeneratedFeed.create(data);
+            await base44.entities.GeneratedFeed.create(safeData);
         }
     } catch (e) {
         // Non-fatal — don't let storage failures block the user response
