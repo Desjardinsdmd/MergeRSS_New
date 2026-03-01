@@ -429,13 +429,40 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
                 </div>
               </label>
               {formData.delivery_discord && isPremium && (
-                <div className="ml-8 -mt-2 mb-3">
-                  <Input
-                    placeholder="Paste your Discord webhook URL"
-                    value={formData.discord_webhook_url}
-                    onChange={(e) => setFormData({ ...formData, discord_webhook_url: e.target.value })}
-                    className="text-sm"
-                  />
+                <div className="ml-8 -mt-1 mb-3 space-y-2">
+                  {discordIntegration && (
+                    <label className="flex items-center gap-3 p-2.5 bg-indigo-50 border border-indigo-100 rounded-lg cursor-pointer">
+                      <input
+                        type="radio"
+                        name="discord_source"
+                        checked={formData.discord_webhook_url === discordIntegration.webhook_url}
+                        onChange={() => setFormData({ ...formData, discord_webhook_url: discordIntegration.webhook_url })}
+                        className="accent-indigo-600"
+                      />
+                      <div>
+                        <p className="text-xs font-medium text-indigo-800">Use connected integration</p>
+                        <p className="text-xs text-indigo-600 truncate max-w-xs">{discordIntegration.webhook_url?.slice(0, 50)}…</p>
+                      </div>
+                    </label>
+                  )}
+                  <label className="flex items-center gap-3 p-2.5 border border-slate-200 rounded-lg cursor-pointer">
+                    <input
+                      type="radio"
+                      name="discord_source"
+                      checked={!discordIntegration || formData.discord_webhook_url !== discordIntegration?.webhook_url}
+                      onChange={() => setFormData({ ...formData, discord_webhook_url: '' })}
+                      className="accent-indigo-600"
+                    />
+                    <p className="text-xs font-medium text-slate-700">Use a custom webhook URL</p>
+                  </label>
+                  {(!discordIntegration || formData.discord_webhook_url !== discordIntegration?.webhook_url) && (
+                    <Input
+                      placeholder="Paste your Discord webhook URL"
+                      value={formData.discord_webhook_url}
+                      onChange={(e) => setFormData({ ...formData, discord_webhook_url: e.target.value })}
+                      className="text-sm"
+                    />
+                  )}
                 </div>
               )}
             </div>
