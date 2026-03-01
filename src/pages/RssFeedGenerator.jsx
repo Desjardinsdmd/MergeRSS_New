@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AddFeedDialog from '@/components/feeds/AddFeedDialog';
 import AdvancedOptions from '@/components/rss/AdvancedOptions';
 import GenerateProgress from '@/components/rss/GenerateProgress';
@@ -39,6 +40,7 @@ export default function RssFeedGenerator() {
     const [result, setResult] = useState(null);
     const [error, setError] = useState(null); // {message, suggestions, guidance, is_social, social_platform}
     const [addFeedOpen, setAddFeedOpen] = useState(false);
+    const [feedType, setFeedType] = useState('auto');
     const [options, setOptions] = useState({
         refresh_frequency: '1hour',
         item_limit: 25,
@@ -68,6 +70,7 @@ export default function RssFeedGenerator() {
         try {
             const res = await base44.functions.invoke('generateRssFeed', {
                 url: url.trim(),
+                feed_type: feedType,
                 ...options,
             });
 
@@ -125,7 +128,7 @@ export default function RssFeedGenerator() {
             {/* URL Input Form */}
             <Card className="border-slate-100 mb-5">
                 <CardContent className="pt-5">
-                    <form onSubmit={handleGenerate} className="space-y-4">
+                    <form onSubmit={handleGenerate} className="space-y-3">
                         <div className="flex gap-2">
                             <div className="relative flex-1">
                                 <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -137,13 +140,28 @@ export default function RssFeedGenerator() {
                                     required
                                 />
                             </div>
+                        </div>
+                        <div className="flex gap-2">
+                            <Select value={feedType} onValueChange={setFeedType}>
+                                <SelectTrigger className="text-sm flex-1">
+                                    <SelectValue placeholder="Feed type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="auto">🔍 Auto-detect (recommended)</SelectItem>
+                                    <SelectItem value="page">📄 Website page → RSS</SelectItem>
+                                    <SelectItem value="domain">🌐 Website domain → find existing feed</SelectItem>
+                                    <SelectItem value="social_profile">👤 Social profile</SelectItem>
+                                    <SelectItem value="social_page">📣 Social page / group</SelectItem>
+                                    <SelectItem value="social_post">🧵 Social post / thread</SelectItem>
+                                </SelectContent>
+                            </Select>
                             <Button
                                 type="submit"
                                 disabled={loading || !url.trim()}
                                 className="bg-indigo-600 hover:bg-indigo-700 gap-2 flex-shrink-0"
                             >
                                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
-                                {loading ? 'Generating…' : 'Generate'}
+                                {loading ? 'Generating…' : 'Generate Feed'}
                             </Button>
                         </div>
 
