@@ -73,9 +73,10 @@ export default function Dashboard() {
   const widget = (id) => dashLayout?.widgets?.[id] !== false;
 
   const { data: feeds = [] } = useQuery({
-    queryKey: ['feeds'],
+    queryKey: ['feeds', user?.email],
     queryFn: () => base44.entities.Feed.filter({ created_by: user?.email }, '-created_date', 50),
     enabled: !!user,
+    staleTime: 0,
   });
 
   const { data: digests = [] } = useQuery({
