@@ -31,7 +31,6 @@ import {
 } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
 
 const jobTypeIcons = {
   feed_fetch: Rss,
