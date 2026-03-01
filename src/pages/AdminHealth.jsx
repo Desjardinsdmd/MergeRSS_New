@@ -232,6 +232,78 @@ export default function AdminHealth() {
         </CardContent>
       </Card>
 
+      {/* Generated Feeds Monitor */}
+      <Card className="border-slate-100 mb-6">
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Wand2 className="w-4 h-4 text-indigo-500" />
+            Generated Feeds
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Source URL</TableHead>
+                  <TableHead>Method</TableHead>
+                  <TableHead>Last Success</TableHead>
+                  <TableHead>Errors</TableHead>
+                  <TableHead>User</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {generatedFeeds.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center text-slate-500 py-8">
+                      No generated feeds yet
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  generatedFeeds.map(feed => (
+                    <TableRow key={feed.id} className={feed.is_disabled ? 'opacity-50' : ''}>
+                      <TableCell className="font-medium max-w-[200px] truncate text-xs">
+                        <a href={feed.source_url} target="_blank" rel="noopener noreferrer"
+                          className="text-indigo-600 hover:underline">{feed.source_url}</a>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={cn(
+                          feed.method === 'direct_rss' || feed.method === 'discovered_rss'
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-amber-100 text-amber-700'
+                        )}>
+                          {feed.method || 'unknown'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm text-slate-500">
+                        {feed.last_success ? format(new Date(feed.last_success), 'MMM d, h:mm a') : 'Never'}
+                      </TableCell>
+                      <TableCell>
+                        {feed.error_count > 0
+                          ? <Badge className="bg-red-100 text-red-700">{feed.error_count}</Badge>
+                          : <span className="text-slate-400">0</span>}
+                      </TableCell>
+                      <TableCell className="text-xs text-slate-500">{feed.created_by}</TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost" size="sm"
+                          onClick={() => toggleFeedDisabled(feed)}
+                          className="h-7 text-xs gap-1"
+                        >
+                          <Ban className="w-3 h-3" />
+                          {feed.is_disabled ? 'Enable' : 'Disable'}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Job History */}
       <Card className="border-slate-100">
         <CardHeader>
