@@ -99,7 +99,7 @@ export default function Dashboard() {
   // Real-time subscription to new feed items
   useEffect(() => {
     if (!user || !feeds.length) return;
-    const feedIds = new Set(feeds.map(f => f.id));
+    const feedIdSet = new Set(feeds.map(f => f.id));
     const unsubscribe = base44.entities.FeedItem.subscribe((event) => {
       if (event.type === 'create' && feedIds.has(event.data.feed_id)) {
         setLiveArticles(prev => [event.data, ...prev].slice(0, 50));
