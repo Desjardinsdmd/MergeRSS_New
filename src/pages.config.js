@@ -60,10 +60,10 @@ import Inbox from './pages/Inbox';
 import Integrations from './pages/Integrations';
 import Landing from './pages/Landing';
 import Pricing from './pages/Pricing';
+import Privacy from './pages/Privacy';
 import RssFeedGenerator from './pages/RssFeedGenerator';
 import Settings from './pages/Settings';
 import Team from './pages/Team';
-import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import __Layout from './Layout.jsx';
 
@@ -82,10 +82,10 @@ export const PAGES = {
     "Integrations": Integrations,
     "Landing": Landing,
     "Pricing": Pricing,
+    "Privacy": Privacy,
     "RssFeedGenerator": RssFeedGenerator,
     "Settings": Settings,
     "Team": Team,
-    "Privacy": Privacy,
     "Terms": Terms,
 }
 

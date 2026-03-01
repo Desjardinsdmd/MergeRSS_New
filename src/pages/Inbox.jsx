@@ -34,26 +34,26 @@ export default function Inbox() {
     base44.auth.me().then(setUser);
   }, []);
 
-  const { data: deliveries = [], isLoading } = useQuery({
-    queryKey: ['deliveries', 'web', user?.email],
-    queryFn: async () => {
-      if (!digests.length) return [];
-      const digestIds = digests.map(d => d.id);
-      const all = await base44.entities.DigestDelivery.filter(
-        { digest_id: { $in: digestIds }, delivery_type: 'web', status: 'sent' },
-        '-created_date',
-        200
-      );
-      return all;
-    },
-    enabled: !!user && digests.length >= 0,
-  });
-
   const { data: digests = [] } = useQuery({
     queryKey: ['digests', user?.email],
     queryFn: () => base44.entities.Digest.filter({ created_by: user?.email }),
     enabled: !!user,
     staleTime: 0,
+  });
+
+  const digestIds = digests.map(d => d.id);
+
+  const { data: deliveries = [], isLoading } = useQuery({
+    queryKey: ['deliveries', 'web', user?.email, digestIds.join(',')],
+    queryFn: async () => {
+      if (!digestIds.length) return [];
+      return base44.entities.DigestDelivery.filter(
+        { digest_id: { $in: digestIds }, delivery_type: 'web', status: 'sent' },
+        '-created_date',
+        200
+      );
+    },
+    enabled: !!user && digests.length > 0,
   });
 
   const { customFolders, allTags } = useMemo(() => {
