@@ -63,6 +63,7 @@ import Pricing from './pages/Pricing';
 import RssFeedGenerator from './pages/RssFeedGenerator';
 import Settings from './pages/Settings';
 import Team from './pages/Team';
+import Privacy from './pages/Privacy';
 import __Layout from './Layout.jsx';
 
 
@@ -83,6 +84,7 @@ export const PAGES = {
     "RssFeedGenerator": RssFeedGenerator,
     "Settings": Settings,
     "Team": Team,
+    "Privacy": Privacy,
 }
 
 export const pagesConfig = {
