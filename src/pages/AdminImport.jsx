@@ -293,6 +293,9 @@ export default function AdminImport() {
       </div>
 
       <div className="space-y-6">
+        {/* AI RSS Discovery */}
+        <RssCrawler />
+
         {/* Bulk Feed Upload */}
         <Card className="border-slate-100">
           <CardHeader className="pb-3">
