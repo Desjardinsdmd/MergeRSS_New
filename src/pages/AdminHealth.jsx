@@ -116,6 +116,18 @@ export default function AdminHealth() {
     toast.success('Data refreshed');
   };
 
+  const { data: generatedFeeds = [], refetch: refetchGeneratedFeeds } = useQuery({
+    queryKey: ['generatedFeeds'],
+    queryFn: () => base44.entities.GeneratedFeed.list('-created_date', 50),
+    enabled: user?.role === 'admin',
+  });
+
+  const toggleFeedDisabled = async (feed) => {
+    await base44.entities.GeneratedFeed.update(feed.id, { is_disabled: !feed.is_disabled });
+    refetchGeneratedFeeds();
+    toast.success(feed.is_disabled ? 'Feed re-enabled' : 'Feed disabled');
+  };
+
   // Redirect non-admins
   if (user && user.role !== 'admin') {
     return (
