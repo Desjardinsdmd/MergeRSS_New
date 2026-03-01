@@ -84,14 +84,15 @@ export default function Dashboard() {
     enabled: !!user,
   });
 
+  const feedIds = feeds.map(f => f.id);
+
   const { data: feedItems = [] } = useQuery({
-    queryKey: ['feedItems', user?.email],
+    queryKey: ['feedItems', feedIds.join(',')],
     queryFn: async () => {
-      if (!feeds.length) return [];
-      const feedIds = feeds.map(f => f.id);
+      if (!feedIds.length) return [];
       return base44.entities.FeedItem.filter({ feed_id: { $in: feedIds } }, '-published_date', 50);
     },
-    enabled: !!user && feeds.length >= 0,
+    enabled: !!user && feedIds.length > 0,
   });
 
   // Real-time subscription to new feed items
