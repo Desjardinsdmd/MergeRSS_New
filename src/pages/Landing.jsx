@@ -245,6 +245,8 @@ export default function Landing() {
         </div>
       </section>
 
+      <DigestPreview />
+
       <PopularFeedsSection />
 
       {/* Integrations */}
@@ -310,7 +312,10 @@ export default function Landing() {
           </p>
           <Button
             size="lg"
-            onClick={() => base44.auth.redirectToLogin(createPageUrl('Dashboard'))}
+            onClick={() => {
+              base44.analytics.track({ eventName: 'cta_clicked', properties: { location: 'bottom', label: 'get_started_free' } });
+              base44.auth.redirectToLogin(createPageUrl('Dashboard'));
+            }}
             className="h-12 px-10 text-base font-semibold bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-lg shadow-indigo-200"
           >
             Get started for free
