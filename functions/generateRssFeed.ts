@@ -306,12 +306,10 @@ ${itemsXml}
 // ============================================================
 async function saveGeneratedFeed(base44, existing, data) {
     try {
-        // Strip fields that can exceed entity size limits
-        const { cached_xml, items_cache, ...safeData } = data;
         if (existing) {
-            await base44.entities.GeneratedFeed.update(existing.id, safeData);
+            await base44.entities.GeneratedFeed.update(existing.id, data);
         } else {
-            await base44.entities.GeneratedFeed.create(safeData);
+            await base44.entities.GeneratedFeed.create(data);
         }
     } catch (e) {
         // Non-fatal — don't let storage failures block the user response
@@ -347,6 +345,7 @@ Deno.serve(async (req) => {
         const body = await req.json().catch(() => ({}));
         const {
             url,
+            feed_type = 'auto',
             refresh_frequency = '1hour',
             item_limit = 25,
             include_full_content = false,
@@ -385,9 +384,11 @@ Deno.serve(async (req) => {
             }, { status: 429 });
         }
 
-        // --- Social platform detection ---
+        // --- Social platform detection (always check, even if user picked "domain" etc.) ---
         let social = null;
         try { social = detectSocial(pageUrl); } catch {}
+
+        const isSocialFeedType = feed_type.startsWith('social');
 
         if (social && !social.scrape_ok) {
             return Response.json({
@@ -410,6 +411,16 @@ Deno.serve(async (req) => {
                 method: 'social_native',
                 rss_xml: null,
             });
+        }
+
+        // If user explicitly chose a social feed type but platform isn't known, warn them
+        if (isSocialFeedType) {
+            return Response.json({
+                error: `Social feed generation requires official API access for this platform.`,
+                guidance: `MergeRSS does not scrape social platforms. For ${new URL(pageUrl).hostname}, check if they offer an official API or RSS export. Try their developer portal or help docs.`,
+                is_social: true,
+                social_platform: new URL(pageUrl).hostname,
+            }, { status: 422 });
         }
 
         // --- Fetch the target URL ---
