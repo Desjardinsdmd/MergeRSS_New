@@ -260,6 +260,7 @@ function LayoutContent({ children, currentPageName }) {
                 <item.icon className={cn("w-4 h-4 flex-shrink-0", isActive ? "text-indigo-600" : "text-slate-400")} />
                 <span className="flex-1">{item.name}</span>
                 {isInbox && <InboxNavBadge user={user} />}
+                {item.href === 'Bookmarks' && <BookmarkNavBadge user={user} />}
               </Link>
             );
           })}
