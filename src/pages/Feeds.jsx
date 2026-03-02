@@ -277,8 +277,8 @@ export default function Feeds() {
       ) : (
         <>
           {selectedFeeds.length > 0 && (
-            <div className="mb-6 flex items-center justify-between gap-4 bg-indigo-50 border border-indigo-200 rounded-lg px-4 py-3">
-              <span className="text-sm font-medium text-indigo-900">{selectedFeeds.length} feed(s) selected</span>
+            <div className="mb-6 flex items-center justify-between gap-4 bg-stone-900 border border-stone-800 rounded-lg px-4 py-3">
+              <span className="text-sm font-medium text-stone-300">{selectedFeeds.length} feed(s) selected</span>
               <div className="flex gap-2 flex-wrap">
                 <Button
                   size="sm"
