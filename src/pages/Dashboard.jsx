@@ -352,9 +352,10 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Latest Articles - 2 cols */}
-        <div className="lg:col-span-2">
+      {/* Latest Articles and Trending side by side */}
+      <div className="grid lg:grid-cols-2 gap-6 mb-6">
+        {/* Latest Articles */}
+        <div>
           <div className="bg-stone-900 border border-stone-800">
             <div className="flex flex-row items-center justify-between p-4 pb-2">
               <div className="flex items-center gap-2">
@@ -432,15 +433,22 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Right sidebar widgets */}
-        <div className="flex flex-col gap-4">
-          {widget('digestActions') && <DigestQuickActions digests={digests} />}
-          {widget('deliveryHistory') && <DigestDeliveryHistory digests={digests} />}
-          {widget('feedHealth') && <FeedHealthWidget feeds={feeds} />}
-        </div>
+        {/* Trending Now */}
+        {allArticles.length >= 3 && widget('trendingArticles') && (
+          <div>
+            <TrendingArticles articles={allArticles} />
+          </div>
+        )}
       </div>
 
-      {allArticles.length >= 3 && widget('trendingArticles') && <TrendingArticles articles={allArticles} />}
+      {/* Stacked widgets below */}
+      <div className="space-y-6">
+        <div className="grid lg:grid-cols-3 gap-6">
+          {widget('digestActions') && <DigestQuickActions digests={digests} />}
+          {widget('feedHealth') && <FeedHealthWidget feeds={feeds} />}
+          {widget('deliveryHistory') && <DigestDeliveryHistory digests={digests} />}
+        </div>
+      </div>
 
       {/* Quick Links */}
       {widget('quickLinks') && (
