@@ -115,25 +115,25 @@ export default function RssFeedGenerator() {
             {/* Header */}
             <div className="mb-8">
                 <div className="flex items-center gap-3 mb-2">
-                    <div className="w-9 h-9 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <Rss className="w-5 h-5 text-white" />
+                    <div className="w-9 h-9 bg-amber-400 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <Rss className="w-5 h-5 text-stone-900" />
                     </div>
-                    <h1 className="text-2xl font-bold text-slate-900">RSS Feed Generator</h1>
+                    <h1 className="text-2xl font-bold text-stone-100">RSS Feed Generator</h1>
                 </div>
-                <p className="text-slate-600 text-sm leading-relaxed">
+                <p className="text-stone-500 text-sm leading-relaxed">
                     Paste any public website URL and we'll discover or generate an RSS feed. Supports auto-detection of existing feeds, scraping for sites without one, and social platform guidance.
                 </p>
             </div>
 
             {/* URL Input Form */}
-            <Card className="border-slate-100 mb-5">
+            <Card className="border-stone-800 bg-stone-900 mb-5">
                 <CardContent className="pt-5">
                     <form onSubmit={handleGenerate} className="space-y-3">
                         <div className="flex gap-2">
                             <div className="relative flex-1">
-                                <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-600" />
                                 <Input
-                                    className="pl-9 text-sm"
+                                    className="pl-9 text-sm bg-stone-800 border-stone-700 text-stone-100 placeholder-stone-600"
                                     placeholder="https://example.com/blog"
                                     value={url}
                                     onChange={e => setUrl(e.target.value)}
@@ -158,7 +158,7 @@ export default function RssFeedGenerator() {
                             <Button
                                 type="submit"
                                 disabled={loading || !url.trim()}
-                                className="bg-indigo-600 hover:bg-indigo-700 gap-2 flex-shrink-0"
+                                className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-semibold gap-2 flex-shrink-0"
                             >
                                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
                                 {loading ? 'Generating…' : 'Generate Feed'}
@@ -167,7 +167,7 @@ export default function RssFeedGenerator() {
 
                         <AdvancedOptions options={options} onChange={setOptions} />
 
-                        <div className="flex items-start gap-2 text-xs text-slate-400">
+                        <div className="flex items-start gap-2 text-xs text-stone-500">
                             <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
                             <span>
                                 We first check for a native RSS/Atom feed. If none exists, we extract article links as a static snapshot.
@@ -180,7 +180,7 @@ export default function RssFeedGenerator() {
 
             {/* Progress Steps */}
             {loading && (
-                <Card className="border-slate-100 mb-5">
+                <Card className="border-stone-800 bg-stone-900 mb-5">
                     <CardContent className="pt-5">
                         <GenerateProgress step={progressStep} />
                     </CardContent>
@@ -197,13 +197,13 @@ export default function RssFeedGenerator() {
                             platform={error.social_platform}
                         />
                     ) : (
-                        <div className="p-4 bg-red-50 border border-red-100 rounded-xl">
+                        <div className="p-4 bg-red-900/20 border border-red-700 rounded-xl">
                             <div className="flex items-start gap-3">
                                 <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
                                 <div className="space-y-2">
-                                    <p className="text-sm font-medium text-red-800">{error.message}</p>
+                                    <p className="text-sm font-medium text-red-400">{error.message}</p>
                                     {error.suggestions?.length > 0 && (
-                                        <ul className="text-xs text-red-700 space-y-1">
+                                        <ul className="text-xs text-red-400 space-y-1">
                                             {error.suggestions.map((s, i) => (
                                                 <li key={i} className="flex items-start gap-1.5">
                                                     <span className="text-red-400 flex-shrink-0">→</span>
@@ -235,32 +235,32 @@ export default function RssFeedGenerator() {
             {/* My Generated Feeds */}
             {myFeeds.length > 0 && (
                 <div className="mt-8">
-                    <h2 className="text-base font-semibold text-slate-800 mb-3">
+                    <h2 className="text-base font-semibold text-stone-200 mb-3">
                         Your Generated Feeds
-                        <span className="ml-2 text-xs text-slate-400 font-normal">
+                        <span className="ml-2 text-xs text-stone-500 font-normal">
                             {myFeeds.length} / 20 used
                         </span>
                     </h2>
                     <div className="space-y-2">
                         {myFeeds.map(feed => (
-                            <Card key={feed.id} className={cn("border-slate-100", feed.is_disabled && "opacity-50")}>
+                            <Card key={feed.id} className={cn("border-stone-800 bg-stone-900", feed.is_disabled && "opacity-50")}>
                                 <CardContent className="p-4">
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="flex-1 min-w-0">
                                             <div className="flex flex-wrap items-center gap-2 mb-1">
-                                                <p className="text-sm font-medium text-slate-800 truncate">
+                                                <p className="text-sm font-medium text-stone-200 truncate">
                                                     {feed.title || feed.source_url}
                                                 </p>
                                                 {feed.is_native_feed
-                                                    ? <Badge className="bg-green-100 text-green-700 border-0 text-xs">Live RSS</Badge>
-                                                    : <Badge className="bg-amber-100 text-amber-700 border-0 text-xs">Scraped</Badge>
+                                                    ? <Badge className="bg-green-900/30 text-green-400 border-0 text-xs">Live RSS</Badge>
+                                                    : <Badge className="bg-amber-900/30 text-amber-400 border-0 text-xs">Scraped</Badge>
                                                 }
-                                                {feed.is_disabled && <Badge className="bg-slate-100 text-slate-500 border-0 text-xs">Disabled</Badge>}
-                                                {feed.error_count > 2 && <Badge className="bg-red-100 text-red-600 border-0 text-xs">{feed.error_count} errors</Badge>}
+                                                {feed.is_disabled && <Badge className="bg-stone-800 text-stone-500 border-0 text-xs">Disabled</Badge>}
+                                                {feed.error_count > 2 && <Badge className="bg-red-900/30 text-red-400 border-0 text-xs">{feed.error_count} errors</Badge>}
                                             </div>
-                                            <p className="text-xs text-slate-400 truncate">{feed.source_url}</p>
+                                            <p className="text-xs text-stone-600 truncate">{feed.source_url}</p>
                                             {feed.last_success && (
-                                                <p className="text-xs text-slate-400 mt-0.5">
+                                                <p className="text-xs text-stone-600 mt-0.5">
                                                     Last success: {format(new Date(feed.last_success), 'MMM d, h:mm a')}
                                                 </p>
                                             )}
@@ -268,7 +268,7 @@ export default function RssFeedGenerator() {
                                         <div className="flex items-center gap-1 flex-shrink-0">
                                             <Button
                                                 variant="ghost" size="icon"
-                                                className="h-8 w-8 text-slate-400 hover:text-indigo-600"
+                                                className="h-8 w-8 text-stone-600 hover:text-amber-400"
                                                 title="Regenerate"
                                                 onClick={() => handleRegenerate(feed)}
                                             >
@@ -276,7 +276,7 @@ export default function RssFeedGenerator() {
                                             </Button>
                                             <Button
                                                 variant="ghost" size="icon"
-                                                className="h-8 w-8 text-slate-400 hover:text-red-500"
+                                                className="h-8 w-8 text-stone-600 hover:text-red-400"
                                                 title="Delete"
                                                 onClick={() => handleDelete(feed.id)}
                                             >
