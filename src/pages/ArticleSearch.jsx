@@ -76,7 +76,7 @@ export default function ArticleSearch() {
   };
 
   return (
-    <div className="p-6 lg:p-8 max-w-5xl mx-auto">
+    <div className="p-6 lg:p-8 max-w-full mx-auto">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-stone-100 mb-1">Search Articles</h1>
         <p className="text-stone-500">Find content across all your feeds</p>
@@ -205,15 +205,15 @@ export default function ArticleSearch() {
             </div>
           ) : (
             <div className="space-y-2">
-              {filtered.map(item => {
-                const merged = mergeItem(item);
-                const isSelected = selectedArticle?.id === item.id;
-                return (
-                  <Card
-                    key={item.id}
-                    className={`border transition cursor-pointer ${isSelected ? 'border-amber-400 bg-stone-800 shadow-sm' : 'border-stone-800 bg-stone-900 hover:shadow-sm'}`}
-                    onClick={() => setSelectedArticle(isSelected ? null : merged)}
-                  >
+               {filtered.map(item => {
+                 const merged = mergeItem(item);
+                 const isSelected = selectedArticle?.id === item.id;
+                 return (
+                   <Card
+                     key={item.id}
+                     className={`border transition cursor-pointer rounded-none ${isSelected ? 'border-amber-400 bg-stone-800 shadow-sm' : 'border-stone-800 bg-stone-900 hover:shadow-sm'}`}
+                     onClick={() => setSelectedArticle(isSelected ? null : merged)}
+                   >
                     <CardContent className="p-4">
                       <p className={`font-medium line-clamp-2 mb-1 text-sm ${isSelected ? 'text-amber-400' : 'text-stone-200'}`}>
                         {item.title}
