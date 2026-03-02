@@ -116,9 +116,30 @@ export default function DailySnapshot() {
       </div>
 
       {!collapsed && (
-        <p className="text-sm leading-relaxed mt-3 opacity-95">
-          {currentBrief || 'No brief available for this category.'}
-        </p>
+        <>
+          <p className="text-sm leading-relaxed mt-3 opacity-95">
+            {currentBrief || 'No brief available for this category.'}
+          </p>
+          {currentRelated.length > 0 && (
+            <div className="mt-4 pt-3 border-t border-white/20">
+              <p className="text-[10px] font-semibold uppercase tracking-widest opacity-60 mb-2">Related Articles</p>
+              <div className="flex flex-col gap-1.5">
+                {currentRelated.map((article, i) => (
+                  <a
+                    key={i}
+                    href={article.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-start gap-1.5 text-xs opacity-80 hover:opacity-100 hover:underline transition-opacity group"
+                  >
+                    <ExternalLink className="w-3 h-3 mt-0.5 flex-shrink-0 group-hover:text-white" />
+                    <span className="line-clamp-1">{article.title}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
