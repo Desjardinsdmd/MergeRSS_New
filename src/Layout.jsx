@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { createPageUrl } from '@/utils';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import InboxBell from '@/components/layout/InboxBell';
+import BookmarkBell from '@/components/layout/BookmarkBell';
 import {
   Rss,
   LayoutDashboard,
