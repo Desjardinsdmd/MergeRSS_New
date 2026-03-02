@@ -201,12 +201,12 @@ export default function Feeds() {
       {/* Filters and View Options */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-600" />
           <Input
             placeholder="Search feeds..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
+            className="pl-9 bg-stone-900 border-stone-800 text-stone-200 placeholder-stone-600"
           />
         </div>
         <Select value={categoryFilter} onValueChange={setCategoryFilter}>
