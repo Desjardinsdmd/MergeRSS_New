@@ -131,17 +131,24 @@ Write a well-organized, professional digest. Group related stories where appropr
 
                 const content = await base44.asServiceRole.integrations.Core.InvokeLLM({ prompt });
 
+                // Build compact items list for storage
+                const itemsList = topItems.map(i => ({ title: i.title, url: i.url }));
+
                 // Web delivery
-                await base44.asServiceRole.entities.DigestDelivery.create({
+                const webDelivery = await base44.asServiceRole.entities.DigestDelivery.create({
                     digest_id: digest.id,
                     delivery_type: 'web',
                     status: 'sent',
                     content: content,
                     item_count: items.length,
+                    items: itemsList,
                     date_range_start: since.toISOString(),
                     date_range_end: now.toISOString(),
                     sent_at: now.toISOString(),
                 });
+
+                // Deep link to this specific delivery in the inbox
+                const inboxUrl = `https://app.base44.com/apps/683c8dffd5a77e5aee16a6da/Inbox?delivery_id=${webDelivery.id}`;
 
                 const deliveryTypes = ['web'];
 
