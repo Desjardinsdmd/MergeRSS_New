@@ -280,7 +280,7 @@ export default function Inbox() {
         />
 
         <div className="flex-1 min-w-0">
-          <div className="bg-white border border-slate-100 rounded-xl overflow-hidden">
+          <div className="bg-stone-900 border border-stone-800 rounded-xl overflow-hidden">
             <InboxToolbar
               selectedIds={selectedIds}
               allIds={filtered.map(d => d.id)}
