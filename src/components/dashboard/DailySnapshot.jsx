@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Sparkles, Loader2, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
+import { Sparkles, Loader2, RefreshCw, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 
 export default function DailySnapshot() {
   const [snapshot, setSnapshot] = useState(null);
