@@ -445,38 +445,19 @@ export default function Dashboard() {
       {/* Quick Links */}
       {widget('quickLinks') && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
-          <Link to={createPageUrl('Feeds')}>
-            <Card className="border-slate-100 hover:border-violet-200 hover:shadow-md transition cursor-pointer h-full">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="p-2 bg-violet-50 rounded-lg"><Rss className="w-4 h-4 text-violet-600" /></div>
-                <span className="text-sm font-medium text-slate-700">Manage Feeds</span>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link to={createPageUrl('Digests')}>
-            <Card className="border-slate-100 hover:border-violet-200 hover:shadow-md transition cursor-pointer h-full">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="p-2 bg-indigo-50 rounded-lg"><FileText className="w-4 h-4 text-indigo-600" /></div>
-                <span className="text-sm font-medium text-slate-700">Manage Digests</span>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link to={createPageUrl('Inbox')}>
-            <Card className="border-slate-100 hover:border-violet-200 hover:shadow-md transition cursor-pointer h-full">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="p-2 bg-emerald-50 rounded-lg"><Bell className="w-4 h-4 text-emerald-600" /></div>
-                <span className="text-sm font-medium text-slate-700">View Inbox</span>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link to={createPageUrl('Integrations')}>
-            <Card className="border-slate-100 hover:border-violet-200 hover:shadow-md transition cursor-pointer h-full">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="p-2 bg-amber-50 rounded-lg"><TrendingUp className="w-4 h-4 text-amber-600" /></div>
-                <span className="text-sm font-medium text-slate-700">Connect Apps</span>
-              </CardContent>
-            </Card>
-          </Link>
+          {[
+            { href: 'Feeds', icon: Rss, label: 'Manage Feeds' },
+            { href: 'Digests', icon: FileText, label: 'Manage Digests' },
+            { href: 'Inbox', icon: Bell, label: 'View Inbox' },
+            { href: 'Integrations', icon: TrendingUp, label: 'Connect Apps' },
+          ].map(({ href, icon: Icon, label }) => (
+            <Link key={href} to={createPageUrl(href)}>
+              <div className="bg-stone-900 border border-stone-800 hover:border-stone-700 hover:bg-stone-800 transition cursor-pointer p-4 flex items-center gap-3 h-full">
+                <div className="p-2 bg-stone-800"><Icon className="w-4 h-4 text-amber-400" /></div>
+                <span className="text-sm font-medium text-stone-400">{label}</span>
+              </div>
+            </Link>
+          ))}
         </div>
       )}
     </div>
