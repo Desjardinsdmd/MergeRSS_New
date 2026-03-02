@@ -140,7 +140,6 @@ export default function Dashboard() {
     queryClient.invalidateQueries({ queryKey: ['feedItems', user?.email] });
   };
 
-  const totalAdded = digests.reduce((sum, d) => sum + (d.added_count || 0), 0);
   const allArticles = liveArticles.length > 0 ? liveArticles : feedItems;
   const unreadCount = allArticles.filter(i => !i.is_read && !readItems.has(i.id)).length;
 
@@ -157,17 +156,15 @@ export default function Dashboard() {
   const errorFeeds = feeds.filter(f => f.status === 'error');
 
   const stats = [
-    { name: 'Active Feeds', value: feeds.length, icon: Rss, color: 'violet' },
-    { name: 'Digests', value: digests.length, icon: FileText, color: 'indigo' },
-    { name: 'Unread Items', value: unreadCount, icon: TrendingUp, color: 'emerald' },
-    { name: 'Digest Adds', value: totalAdded, icon: Users, color: 'amber' },
+    { name: 'Active Feeds', value: feeds.length, icon: Rss, color: 'violet', href: 'Feeds' },
+    { name: 'Digests', value: digests.length, icon: FileText, color: 'indigo', href: 'Digests' },
+    { name: 'Unread Items', value: unreadCount, icon: TrendingUp, color: 'emerald', href: 'Inbox' },
   ];
 
   const colorClasses = {
     violet: 'bg-indigo-50 text-indigo-600',
     indigo: 'bg-violet-50 text-violet-600',
     emerald: 'bg-emerald-50 text-emerald-600',
-    amber: 'bg-amber-50 text-amber-600',
   };
 
   return (
