@@ -16,14 +16,15 @@ import {
   Trash2,
   Pause,
   Play,
-  Send,
+  Zap,
   Clock,
   MessageCircle,
   Inbox,
   ChevronDown,
   Globe,
   Mail,
-  Loader2
+  Loader2,
+  CheckCircle2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 

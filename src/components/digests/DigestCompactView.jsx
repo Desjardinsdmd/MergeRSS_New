@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreVertical, Edit, Trash2, Pause, Play, Globe, Send } from 'lucide-react';
+import { MoreVertical, Edit, Trash2, Pause, Play, Globe, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function DigestCompactView({
