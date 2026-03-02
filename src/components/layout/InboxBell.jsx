@@ -28,8 +28,6 @@ export default function InboxBell({ user }) {
 
   const unread = deliveries.filter(d => !d.is_read).length;
 
-  const unread = deliveries.length;
-
   return (
     <Link
       to={createPageUrl('Inbox')}
