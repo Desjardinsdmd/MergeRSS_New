@@ -105,29 +105,29 @@ export default function Pricing() {
             <div
               key={plan.name}
               className={cn(
-                "relative rounded-2xl border-2 p-8 transition-all",
+                "relative border p-8 transition-all",
                 plan.popular
-                  ? "border-indigo-600 shadow-xl shadow-indigo-100"
-                  : "border-slate-200 hover:border-slate-300"
+                  ? "border-amber-400/30 bg-stone-900 shadow-lg shadow-amber-400/10"
+                  : "border-stone-800 bg-stone-900/50 hover:border-stone-700"
               )}
             >
               {plan.popular && (
                 <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                  <span className="px-4 py-1 bg-indigo-600 text-white text-xs font-semibold rounded-full tracking-wide">
+                  <span className="px-4 py-1 bg-amber-400 text-stone-900 text-xs font-semibold rounded-full tracking-wide">
                     MOST POPULAR
                   </span>
                 </div>
               )}
 
               <div className="mb-6">
-                <h3 className="text-xl font-bold text-slate-900 mb-1">{plan.name}</h3>
-                <p className="text-slate-500 text-sm">{plan.description}</p>
+                <h3 className="text-xl font-bold text-stone-100 mb-1">{plan.name}</h3>
+                <p className="text-stone-500 text-sm">{plan.description}</p>
               </div>
 
               <div className="mb-7">
                 <div className="flex items-end gap-1">
-                  <span className="text-4xl font-bold text-slate-900">${plan.price}</span>
-                  <span className="text-slate-400 mb-1">/month</span>
+                  <span className="text-4xl font-bold text-stone-100">${plan.price}</span>
+                  <span className="text-stone-600 mb-1">/month</span>
                 </div>
               </div>
 
@@ -135,11 +135,11 @@ export default function Pricing() {
                 {plan.features.map((feature, idx) => (
                   <li key={idx} className="flex items-center gap-3 text-sm">
                     {feature.included ? (
-                      <Check className="w-4 h-4 text-indigo-600 flex-shrink-0" />
+                      <Check className="w-4 h-4 text-amber-400 flex-shrink-0" />
                     ) : (
-                      <X className="w-4 h-4 text-slate-300 flex-shrink-0" />
+                      <X className="w-4 h-4 text-stone-700 flex-shrink-0" />
                     )}
-                    <span className={feature.included ? "text-slate-700" : "text-slate-400"}>
+                    <span className={feature.included ? "text-stone-300" : "text-stone-600"}>
                       {feature.text}
                     </span>
                   </li>
@@ -150,10 +150,10 @@ export default function Pricing() {
                 onClick={() => handleGetStarted(plan)}
                 disabled={loading}
                 className={cn(
-                  "w-full h-11 font-semibold rounded-xl",
+                  "w-full h-11 font-semibold",
                   plan.popular
-                    ? "bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-200"
-                    : "bg-slate-900 hover:bg-slate-800 text-white"
+                    ? "bg-amber-400 hover:bg-amber-300 text-stone-900"
+                    : "bg-stone-800 hover:bg-stone-700 text-stone-100"
                 )}
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
@@ -165,7 +165,7 @@ export default function Pricing() {
               </Button>
 
               {user?.plan === plan.name.toLowerCase() && (
-                <p className="text-center text-sm text-indigo-600 font-medium mt-3">✓ Your current plan</p>
+                <p className="text-center text-sm text-amber-400 font-medium mt-3">✓ Your current plan</p>
               )}
             </div>
           ))}
