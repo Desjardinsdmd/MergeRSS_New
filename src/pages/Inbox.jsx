@@ -31,6 +31,7 @@ export default function Inbox() {
   const [selectedFolder, setSelectedFolder] = useState('Inbox');
   const [selectedTag, setSelectedTag] = useState(null);
   const [user, setUser] = React.useState(null);
+  const [autoOpenId, setAutoOpenId] = React.useState(null);
   const queryClient = useQueryClient();
 
   const [showItems, setShowItems] = useState(false);
