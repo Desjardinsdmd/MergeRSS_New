@@ -9,7 +9,6 @@ import {
   Filter,
   Clock,
   Shield,
-  Check,
   ArrowRight,
   Slack,
   MessageCircle,
@@ -19,73 +18,21 @@ import {
   Users
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import DigestPreview from '@/components/landing/DigestPreview';
 
 const features = [
-  {
-    icon: Layers,
-    title: 'Aggregate Multiple Feeds',
-    description: 'Combine RSS feeds from any source into a single, organized stream — no duplicates, no noise.'
-  },
-  {
-    icon: Filter,
-    title: 'Smart Categorization',
-    description: 'Organize feeds by category and tags for precise content curation tailored to your workflow.'
-  },
-  {
-    icon: Clock,
-    title: 'Scheduled Digests',
-    description: 'Receive daily or weekly AI-generated summaries delivered exactly when you need them.'
-  },
-  {
-    icon: Zap,
-    title: 'Multi-Channel Delivery',
-    description: 'Send digests to Slack, Discord, your web inbox, or email — wherever your workflow lives.'
-  },
-  {
-    icon: BarChart3,
-    title: 'AI-Powered Summaries',
-    description: 'Our AI reads every article in your feeds and writes concise, readable summaries — so you get the signal without the noise.'
-  },
-  {
-    icon: Shield,
-    title: 'Built to Stay On',
-    description: 'Automatic feed fetching, deduplication, and retry logic keep your content flowing without manual intervention.'
-  }
+  { icon: Layers, title: 'Aggregate Multiple Feeds', description: 'Combine RSS feeds from any source into a single, organized stream — no duplicates, no noise.' },
+  { icon: Filter, title: 'Smart Categorization', description: 'Organize feeds by category and tags for precise content curation tailored to your workflow.' },
+  { icon: Clock, title: 'Scheduled Digests', description: 'Receive daily or weekly AI-generated summaries delivered exactly when you need them.' },
+  { icon: Zap, title: 'Multi-Channel Delivery', description: 'Send digests to Slack, Discord, your web inbox, or email — wherever your workflow lives.' },
+  { icon: BarChart3, title: 'AI-Powered Summaries', description: 'Our AI reads every article and writes concise, readable summaries — signal without the noise.' },
+  { icon: Shield, title: 'Built to Stay On', description: 'Automatic feed fetching, deduplication, and retry logic keep your content flowing without interruption.' },
 ];
 
 const integrations = [
-  {
-    name: 'Slack',
-    description: 'Post digests to any channel with rich formatting',
-    icon: Slack,
-    bg: 'bg-[#4A154B]',
-  },
-  {
-    name: 'Discord',
-    description: 'Send to servers via webhook for instant delivery',
-    icon: MessageCircle,
-    bg: 'bg-[#5865F2]',
-  },
-  {
-    name: 'Web Inbox',
-    description: 'Access every delivered digest in a clean, readable view — anytime',
-    icon: Bell,
-    bg: 'bg-indigo-600',
-  },
+  { name: 'Slack', description: 'Post digests to any channel with rich formatting', icon: Slack },
+  { name: 'Discord', description: 'Send to servers via webhook for instant delivery', icon: MessageCircle },
+  { name: 'Web Inbox', description: 'Access every delivered digest in a clean, readable view — anytime', icon: Bell },
 ];
-
-const categoryColors = {
-  CRE: 'bg-orange-100 text-orange-700',
-  Markets: 'bg-blue-100 text-blue-700',
-  Tech: 'bg-purple-100 text-purple-700',
-  News: 'bg-slate-100 text-slate-700',
-  Finance: 'bg-green-100 text-green-700',
-  Crypto: 'bg-yellow-100 text-yellow-700',
-  AI: 'bg-indigo-100 text-indigo-700',
-  Other: 'bg-gray-100 text-gray-700',
-};
 
 function PopularFeedsSection() {
   const [feeds, setFeeds] = useState([]);
@@ -97,44 +44,40 @@ function PopularFeedsSection() {
   if (!feeds.length) return null;
 
   return (
-    <section className="py-24 bg-slate-50">
+    <section className="py-28 bg-[#0e0b07]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 border border-indigo-100 rounded-full text-xs font-medium text-indigo-700 mb-4">
-            <TrendingUp className="w-3.5 h-3.5" />
+        <div className="mb-14">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 border border-amber-800/40 rounded-full text-xs font-medium text-amber-500/80 mb-6">
+            <TrendingUp className="w-3 h-3" />
             Trending in the community
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4 tracking-tight">
+          <h2 className="text-4xl md:text-5xl font-black text-stone-100 tracking-tight leading-none mb-4">
             Popular Feeds
           </h2>
-          <p className="text-lg text-slate-500 max-w-xl mx-auto">
-            Discover what other professionals are reading — add any feed with one click.
+          <p className="text-stone-400 max-w-xl text-lg">
+            Discover what other professionals are reading — add any feed in one click.
           </p>
         </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-px bg-stone-800/40">
           {feeds.map((feed) => (
             <div
               key={feed.id}
-              className="bg-white border border-slate-100 rounded-xl p-5 hover:border-indigo-200 hover:shadow-md transition-all duration-200 flex flex-col gap-3"
+              className="bg-[#0e0b07] p-6 hover:bg-stone-900/60 transition-colors duration-200 flex flex-col gap-3"
             >
-              <div className="flex items-start justify-between gap-2">
-                <div className="w-9 h-9 bg-indigo-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Rss className="w-4 h-4 text-indigo-600" />
-                </div>
-                {feed.category && (
-                  <Badge className={`text-xs border-0 ${categoryColors[feed.category] || categoryColors.Other}`}>
-                    {feed.category}
-                  </Badge>
-                )}
+              <div className="w-8 h-8 border border-amber-700/30 rounded flex items-center justify-center flex-shrink-0">
+                <Rss className="w-3.5 h-3.5 text-amber-500" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-slate-900 text-sm leading-snug mb-1">{feed.name}</h3>
+                <h3 className="font-semibold text-stone-200 text-sm leading-snug mb-1">{feed.name}</h3>
                 {feed.description && (
-                  <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">{feed.description}</p>
+                  <p className="text-xs text-stone-500 line-clamp-2 leading-relaxed">{feed.description}</p>
                 )}
               </div>
+              {feed.category && (
+                <span className="text-[10px] font-medium text-amber-600/70 uppercase tracking-wider">{feed.category}</span>
+              )}
               {feed.added_count > 0 && (
-                <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                <div className="flex items-center gap-1.5 text-xs text-stone-600">
                   <Users className="w-3 h-3" />
                   {feed.added_count} subscriber{feed.added_count !== 1 ? 's' : ''}
                 </div>
@@ -142,15 +85,14 @@ function PopularFeedsSection() {
             </div>
           ))}
         </div>
-        <div className="text-center mt-10">
-          <Button
-            variant="outline"
+        <div className="mt-10">
+          <button
             onClick={() => base44.auth.redirectToLogin(createPageUrl('Directory'))}
-            className="border-slate-200 hover:bg-slate-50 rounded-lg"
+            className="inline-flex items-center gap-2 text-sm text-stone-400 hover:text-amber-400 transition-colors"
           >
             Browse all feeds in the directory
-            <ArrowRight className="w-4 h-4 ml-1" />
-          </Button>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
         </div>
       </div>
     </section>
@@ -159,118 +101,112 @@ function PopularFeedsSection() {
 
 export default function Landing() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#0a0805]">
 
       {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-slate-50 to-white pt-32 pb-24">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(99,102,241,0.08),transparent)]" />
-        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 border border-indigo-100 rounded-full text-xs font-medium text-indigo-700 mb-8">
-            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
+      <section className="relative overflow-hidden pt-36 pb-32">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_50%_-10%,rgba(251,146,60,0.07),transparent)]" />
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 border border-amber-800/40 rounded-full text-xs font-medium text-amber-500/80 mb-10">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
             AI-powered RSS aggregation — now live
           </div>
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-slate-900 tracking-tight mb-6 leading-[1.05]">
+          <h1 className="text-6xl md:text-7xl lg:text-8xl font-black text-stone-100 tracking-tight leading-[0.95] mb-8">
             Your information,
             <br />
-            <span className="text-indigo-600">curated & delivered</span>
+            <span className="text-amber-400">curated &</span>
+            <br />
+            delivered.
           </h1>
-          <p className="text-xl text-slate-500 mb-10 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg text-stone-400 mb-12 max-w-xl leading-relaxed">
             Aggregate RSS feeds from any source, let AI summarize the articles that matter,
             and get a clean digest delivered to Slack, Discord, email, or your web inbox — on your schedule.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Button
-              size="lg"
+          <div className="flex flex-col sm:flex-row items-start gap-4">
+            <button
               onClick={() => {
                 base44.analytics.track({ eventName: 'cta_clicked', properties: { location: 'hero', label: 'get_started_free' } });
                 base44.auth.redirectToLogin(createPageUrl('Dashboard'));
               }}
-              className="h-12 px-8 text-base font-semibold bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-lg shadow-indigo-200"
+              className="inline-flex items-center gap-2 bg-amber-400 hover:bg-amber-300 text-stone-900 font-bold px-8 py-4 text-base transition-colors"
             >
               Get started free
-              <ArrowRight className="w-4 h-4 ml-1" />
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={() => {
-                base44.analytics.track({ eventName: 'cta_clicked', properties: { location: 'hero', label: 'see_how_it_works' } });
-                base44.auth.redirectToLogin(createPageUrl('Dashboard'));
-              }}
-              className="h-12 px-8 text-base font-medium border-slate-200 hover:bg-slate-50 rounded-lg"
+              <ArrowRight className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => base44.auth.redirectToLogin(createPageUrl('Dashboard'))}
+              className="inline-flex items-center gap-2 text-stone-400 hover:text-stone-200 font-medium px-2 py-4 text-base border-b border-stone-700 hover:border-stone-400 transition-colors"
             >
               See how it works
-            </Button>
+            </button>
           </div>
-          <p className="mt-5 text-sm text-slate-400">
+          <p className="mt-8 text-xs text-stone-600 tracking-wide">
             Free plan includes 5 feeds & 1 digest · No credit card required
           </p>
         </div>
       </section>
 
-      {/* Social proof strip */}
-      <section className="border-y border-slate-100 py-5 bg-slate-50">
+      {/* Divider strip */}
+      <section className="border-y border-stone-800 py-5 bg-[#0d0a06]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-center text-xs font-medium text-slate-400 uppercase tracking-widest">
+          <p className="text-center text-[10px] font-medium text-stone-600 uppercase tracking-[0.2em]">
             Works with any RSS or Atom feed — news sites, blogs, newsletters, and more
           </p>
         </div>
       </section>
 
       {/* Features */}
-      <section className="py-24 bg-white">
+      <section className="py-28 bg-[#0a0805]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4 tracking-tight">
-              Everything you need to stay informed
+          <div className="mb-16">
+            <h2 className="text-4xl md:text-5xl font-black text-stone-100 tracking-tight leading-none mb-4">
+              Everything you need<br />to stay informed
             </h2>
-            <p className="text-lg text-slate-500 max-w-2xl mx-auto">
-              Powerful features built for professionals who need to track a lot — without spending hours doing it
+            <p className="text-stone-400 max-w-lg text-lg">
+              Powerful features built for professionals who need to track a lot — without spending hours doing it.
             </p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-px bg-stone-800/40">
             {features.map((feature, idx) => (
               <div
                 key={idx}
-                className="p-6 rounded-xl border border-slate-100 hover:border-indigo-100 hover:shadow-md transition-all duration-200 group"
+                className="bg-[#0a0805] p-8 hover:bg-stone-900/50 transition-colors duration-200 group"
               >
-                <div className="w-10 h-10 bg-indigo-50 rounded-lg flex items-center justify-center mb-4 group-hover:bg-indigo-100 transition">
-                  <feature.icon className="w-5 h-5 text-indigo-600" />
+                <div className="w-10 h-10 border border-amber-800/40 flex items-center justify-center mb-6 group-hover:border-amber-600/60 transition-colors">
+                  <feature.icon className="w-5 h-5 text-amber-500" />
                 </div>
-                <h3 className="text-base font-semibold text-slate-900 mb-2">{feature.title}</h3>
-                <p className="text-sm text-slate-500 leading-relaxed">{feature.description}</p>
+                <h3 className="text-base font-bold text-stone-200 mb-3 tracking-tight">{feature.title}</h3>
+                <p className="text-sm text-stone-500 leading-relaxed">{feature.description}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <DigestPreview />
-
       <PopularFeedsSection />
 
       {/* Integrations */}
-      <section className="py-24 bg-slate-900">
+      <section className="py-28 bg-[#0d0a06] border-t border-stone-800">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 tracking-tight">
-              Deliver where your team works
+          <div className="mb-16">
+            <h2 className="text-4xl md:text-5xl font-black text-stone-100 tracking-tight leading-none mb-4">
+              Deliver where your<br />team works
             </h2>
-            <p className="text-lg text-slate-400 max-w-xl mx-auto">
-              Each digest can be sent to multiple destinations at once — web inbox, Slack, Discord, and email
+            <p className="text-stone-400 max-w-lg text-lg">
+              Each digest can be sent to multiple destinations — web inbox, Slack, Discord, and email.
             </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-5">
+          <div className="grid md:grid-cols-3 gap-px bg-stone-800/40">
             {integrations.map((integ, idx) => (
               <div
                 key={idx}
-                className="bg-slate-800 border border-slate-700 rounded-xl p-8 text-center hover:border-slate-600 transition"
+                className="bg-[#0d0a06] p-8 hover:bg-stone-900/50 transition-colors"
               >
-                <div className={`w-14 h-14 ${integ.bg} rounded-xl flex items-center justify-center mx-auto mb-5`}>
-                  <integ.icon className="w-7 h-7 text-white" />
+                <div className="w-12 h-12 border border-amber-800/40 flex items-center justify-center mb-6">
+                  <integ.icon className="w-6 h-6 text-amber-500" />
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-2">{integ.name}</h3>
-                <p className="text-slate-400 text-sm">{integ.description}</p>
+                <h3 className="text-lg font-bold text-stone-200 mb-2">{integ.name}</h3>
+                <p className="text-stone-500 text-sm leading-relaxed">{integ.description}</p>
               </div>
             ))}
           </div>
@@ -278,23 +214,23 @@ export default function Landing() {
       </section>
 
       {/* How it works */}
-      <section className="py-24 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4 tracking-tight">
-              Up and running in minutes
+      <section className="py-28 bg-[#0a0805] border-t border-stone-800">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-16">
+            <h2 className="text-4xl md:text-5xl font-black text-stone-100 tracking-tight leading-none mb-4">
+              Up and running<br />in minutes
             </h2>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-px bg-stone-800/40">
             {[
               { step: '01', title: 'Add your feeds', desc: 'Paste any RSS or Atom URL. MergeRSS fetches and deduplicates articles automatically across all your sources.' },
-              { step: '02', title: 'Configure a digest', desc: 'Choose which feeds or categories to include, set a daily, weekly, or monthly schedule, and pick your delivery channels.' },
-              { step: '03', title: 'Get your digest', desc: 'AI summarizes the best content and delivers a clean, readable digest to your inbox, Slack, Discord, or email — right on time.' },
+              { step: '02', title: 'Configure a digest', desc: 'Choose which feeds or categories to include, set a schedule, and pick your delivery channels.' },
+              { step: '03', title: 'Get your digest', desc: 'AI summarizes the best content and delivers a clean, readable digest right on time.' },
             ].map(({ step, title, desc }) => (
-              <div key={step} className="relative">
-                <div className="text-5xl font-black text-slate-100 mb-4 leading-none">{step}</div>
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">{title}</h3>
-                <p className="text-slate-500 text-sm leading-relaxed">{desc}</p>
+              <div key={step} className="bg-[#0a0805] p-8 hover:bg-stone-900/50 transition-colors">
+                <div className="text-6xl font-black text-stone-800 mb-4 leading-none select-none">{step}</div>
+                <h3 className="text-lg font-bold text-stone-200 mb-3">{title}</h3>
+                <p className="text-stone-500 text-sm leading-relaxed">{desc}</p>
               </div>
             ))}
           </div>
@@ -302,45 +238,45 @@ export default function Landing() {
       </section>
 
       {/* CTA */}
-      <section className="py-24 bg-gradient-to-b from-indigo-50 to-white">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4 tracking-tight">
-            Stop drowning in tabs. Start reading smarter.
+      <section className="py-28 border-t border-stone-800 bg-[#0d0a06]">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-5xl md:text-6xl font-black text-stone-100 tracking-tight leading-[0.95] mb-6">
+            Stop drowning in tabs.<br />
+            <span className="text-amber-400">Start reading smarter.</span>
           </h2>
-          <p className="text-lg text-slate-500 mb-8">
-            Thousands of professionals use MergeRSS to cut through the noise and stay on top of what actually matters.
+          <p className="text-stone-400 text-lg mb-10 max-w-lg">
+            Professionals use MergeRSS to cut through the noise and stay on top of what actually matters.
           </p>
-          <Button
-            size="lg"
+          <button
             onClick={() => {
               base44.analytics.track({ eventName: 'cta_clicked', properties: { location: 'bottom', label: 'get_started_free' } });
               base44.auth.redirectToLogin(createPageUrl('Dashboard'));
             }}
-            className="h-12 px-10 text-base font-semibold bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-lg shadow-indigo-200"
+            className="inline-flex items-center gap-2 bg-amber-400 hover:bg-amber-300 text-stone-900 font-bold px-10 py-4 text-base transition-colors"
           >
             Get started for free
-            <ArrowRight className="w-4 h-4 ml-1" />
-          </Button>
+            <ArrowRight className="w-4 h-4" />
+          </button>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-10 border-t border-slate-100 bg-white">
+      <footer className="py-10 border-t border-stone-800 bg-[#0a0805]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 bg-indigo-600 rounded-lg flex items-center justify-center">
-                <Rss className="w-3.5 h-3.5 text-white" />
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 bg-amber-400 flex items-center justify-center">
+                <Rss className="w-3.5 h-3.5 text-stone-900" />
               </div>
-              <span className="font-semibold text-slate-900">MergeRSS</span>
+              <span className="font-bold text-stone-200 tracking-tight">MergeRSS</span>
             </div>
-            <div className="flex items-center gap-6 text-sm text-slate-400">
-              <Link to={createPageUrl('Pricing')} className="hover:text-slate-600 transition">Pricing</Link>
-              <Link to={createPageUrl('Privacy')} className="hover:text-slate-600 transition">Privacy</Link>
-              <Link to={createPageUrl('Terms')} className="hover:text-slate-600 transition">Terms</Link>
-              <a href="mailto:support@mergerss.com" className="hover:text-slate-600 transition">Support</a>
+            <div className="flex items-center gap-6 text-sm text-stone-600">
+              <Link to={createPageUrl('Pricing')} className="hover:text-stone-300 transition">Pricing</Link>
+              <Link to={createPageUrl('Privacy')} className="hover:text-stone-300 transition">Privacy</Link>
+              <Link to={createPageUrl('Terms')} className="hover:text-stone-300 transition">Terms</Link>
+              <a href="mailto:support@mergerss.com" className="hover:text-stone-300 transition">Support</a>
             </div>
-            <p className="text-sm text-slate-400">© {new Date().getFullYear()} MergeRSS. All rights reserved.</p>
+            <p className="text-sm text-stone-700">© {new Date().getFullYear()} MergeRSS</p>
           </div>
         </div>
       </footer>
