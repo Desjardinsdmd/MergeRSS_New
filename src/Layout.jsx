@@ -135,57 +135,48 @@ function LayoutContent({ children, currentPageName }) {
   // Public pages layout
   if (isPublicPage) {
     return (
-      <div className="min-h-screen bg-white dark:bg-slate-950">
-        <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-slate-950/90 backdrop-blur-lg border-b border-slate-100 dark:border-slate-800">
+      <div className="min-h-screen bg-[#0a0805]">
+        <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0805]/90 backdrop-blur-lg border-b border-stone-800">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               <Link to={createPageUrl('Landing')} className="flex items-center gap-2.5">
-                <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-                  <Rss className="w-4 h-4 text-white" />
+                <div className="w-7 h-7 bg-amber-400 flex items-center justify-center">
+                  <Rss className="w-3.5 h-3.5 text-stone-900" />
                 </div>
-                <span className="font-bold text-lg text-slate-900 dark:text-white tracking-tight">MergeRSS</span>
+                <span className="font-bold text-stone-100 tracking-tight">MergeRSS</span>
               </Link>
 
               <nav className="hidden md:flex items-center gap-8">
-                <Link to={createPageUrl('Landing')} className="text-sm text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition font-medium">
+                <Link to={createPageUrl('Landing')} className="text-sm text-stone-500 hover:text-stone-200 transition font-medium">
                   Home
                 </Link>
-                <Link to={createPageUrl('Pricing')} className="text-sm text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition font-medium">
+                <Link to={createPageUrl('Pricing')} className="text-sm text-stone-500 hover:text-stone-200 transition font-medium">
                   Pricing
                 </Link>
               </nav>
 
               <div className="flex items-center gap-3">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                  className="text-slate-600 dark:text-slate-400"
-                >
-                  {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-                </Button>
                 {user ? (
-                  <Button
+                  <button
                     onClick={() => navigate(createPageUrl('Dashboard'))}
-                    className="bg-indigo-600 hover:bg-indigo-700 rounded-lg text-sm"
+                    className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-bold px-5 py-2 text-sm transition-colors"
                   >
                     Go to Dashboard
-                  </Button>
+                  </button>
                 ) : (
                   <>
-                    <Button
-                      variant="ghost"
+                    <button
                       onClick={() => base44.auth.redirectToLogin(createPageUrl('Dashboard'))}
-                      className="text-slate-600 dark:text-slate-300 text-sm font-medium"
+                      className="text-stone-500 hover:text-stone-200 text-sm font-medium transition"
                     >
                       Sign in
-                    </Button>
-                    <Button
+                    </button>
+                    <button
                       onClick={() => base44.auth.redirectToLogin(createPageUrl('Dashboard'))}
-                      className="bg-indigo-600 hover:bg-indigo-700 rounded-lg text-sm"
+                      className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-bold px-5 py-2 text-sm transition-colors"
                     >
                       Get started
-                    </Button>
+                    </button>
                   </>
                 )}
               </div>
