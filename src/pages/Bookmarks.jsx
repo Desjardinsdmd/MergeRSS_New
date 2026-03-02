@@ -91,32 +91,32 @@ export default function Bookmarks() {
           {filtered.map((bookmark) => (
             <Card
               key={bookmark.id}
-              className={`border-slate-100 transition-all ${bookmark.is_read ? 'opacity-60' : 'hover:border-indigo-200 hover:shadow-sm'}`}
+              className={`border-stone-800 bg-stone-900 transition-all ${bookmark.is_read ? 'opacity-60' : 'hover:border-stone-700 hover:shadow-sm'}`}
             >
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      {bookmark.category && (
-                        <Badge className={`text-xs border-0 ${categoryColors[bookmark.category] || categoryColors.Other}`}>
-                          {bookmark.category}
-                        </Badge>
-                      )}
-                      {bookmark.is_read && (
-                        <span className="text-xs text-slate-400">Read</span>
-                      )}
+                       {bookmark.category && (
+                         <Badge className={`text-xs border-0 ${categoryColors[bookmark.category] || categoryColors.Other}`}>
+                           {bookmark.category}
+                         </Badge>
+                       )}
+                       {bookmark.is_read && (
+                         <span className="text-xs text-stone-600">Read</span>
+                       )}
                     </div>
                     <a
                       href={bookmark.url}
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={() => !bookmark.is_read && markReadMutation.mutate(bookmark.id)}
-                      className="font-medium text-slate-900 hover:text-indigo-700 transition-colors text-sm leading-snug line-clamp-2 block mb-2"
+                      className="font-medium text-stone-200 hover:text-amber-400 transition-colors text-sm leading-snug line-clamp-2 block mb-2"
                     >
                       {bookmark.title}
                     </a>
                     {bookmark.published_date && (
-                      <div className="flex items-center gap-1 text-xs text-slate-400">
+                      <div className="flex items-center gap-1 text-xs text-stone-600">
                         <Clock className="w-3 h-3" />
                         {new Date(bookmark.published_date).toLocaleDateString()}
                       </div>
@@ -127,14 +127,14 @@ export default function Bookmarks() {
                       href={bookmark.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                      className="p-1.5 rounded-lg text-stone-600 hover:text-amber-400 hover:bg-stone-800 transition-colors"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
                     </a>
                     {!bookmark.is_read && (
                       <button
                         onClick={() => markReadMutation.mutate(bookmark.id)}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
+                        className="p-1.5 rounded-lg text-stone-600 hover:text-emerald-400 hover:bg-stone-800 transition-colors"
                         title="Mark as read"
                       >
                         <CheckCircle className="w-3.5 h-3.5" />
@@ -142,7 +142,7 @@ export default function Bookmarks() {
                     )}
                     <button
                       onClick={() => deleteMutation.mutate(bookmark.id)}
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                      className="p-1.5 rounded-lg text-stone-600 hover:text-red-400 hover:bg-stone-800 transition-colors"
                       title="Remove bookmark"
                     >
                       <Trash2 className="w-3.5 h-3.5" />

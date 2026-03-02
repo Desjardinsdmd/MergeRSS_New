@@ -115,18 +115,18 @@ export default function Settings() {
     <div className="p-6 lg:p-8 max-w-3xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Settings</h1>
-        <p className="text-slate-600">
+        <h1 className="text-2xl font-bold text-stone-100">Settings</h1>
+        <p className="text-stone-500">
           Manage your account and preferences
         </p>
       </div>
 
       <div className="space-y-6">
         {/* Profile Section */}
-        <Card className="border-slate-100">
+        <Card className="border-stone-800 bg-stone-900">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <User className="w-5 h-5 text-slate-400" />
+            <CardTitle className="flex items-center gap-2 text-lg text-stone-100">
+              <User className="w-5 h-5 text-amber-400" />
               Profile
             </CardTitle>
             {!editingProfile && (
@@ -143,62 +143,64 @@ export default function Settings() {
             {editingProfile ? (
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <Label>Name</Label>
+                  <Label className="text-stone-400">Name</Label>
                   <Input 
                     value={formData.full_name} 
                     onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                     placeholder="Your full name"
+                    className="bg-stone-800 border-stone-700 text-stone-100 placeholder-stone-600"
                   />
-                </div>
-                <div>
-                  <Label>Email</Label>
+                  </div>
+                  <div>
+                  <Label className="text-stone-400">Email</Label>
                   <Input 
                     value={formData.email} 
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     placeholder="your@email.com"
+                    className="bg-stone-800 border-stone-700 text-stone-100 placeholder-stone-600"
                   />
-                </div>
+                  </div>
               </div>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <Label>Name</Label>
-                  <Input value={user?.full_name || ''} disabled className="bg-slate-50" />
-                </div>
-                <div>
-                  <Label>Email</Label>
-                  <Input value={user?.email || ''} disabled className="bg-slate-50" />
-                </div>
-              </div>
+                 <div>
+                   <Label className="text-stone-400">Name</Label>
+                   <Input value={user?.full_name || ''} disabled className="bg-stone-800 border-stone-700 text-stone-500" />
+                 </div>
+                 <div>
+                   <Label className="text-stone-400">Email</Label>
+                   <Input value={user?.email || ''} disabled className="bg-stone-800 border-stone-700 text-stone-500" />
+                 </div>
+               </div>
             )}
           </CardContent>
         </Card>
 
         {/* Preferences Section */}
-        <Card className="border-slate-100">
+        <Card className="border-stone-800 bg-stone-900">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Globe className="w-5 h-5 text-slate-400" />
+            <CardTitle className="flex items-center gap-2 text-lg text-stone-100">
+              <Globe className="w-5 h-5 text-amber-400" />
               Preferences
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label>Timezone</Label>
+              <Label className="text-stone-400">Timezone</Label>
               <Select
                 value={formData.timezone}
                 onValueChange={(v) => setFormData({ ...formData, timezone: v })}
               >
-                <SelectTrigger className="w-full sm:w-72">
+                <SelectTrigger className="w-full sm:w-72 bg-stone-800 border-stone-700 text-stone-100">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-stone-800 border-stone-700">
                   {TIMEZONES.map((tz) => (
-                    <SelectItem key={tz} value={tz}>{tz}</SelectItem>
+                    <SelectItem key={tz} value={tz} className="text-stone-100">{tz}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-stone-500 mt-1">
                 Used for scheduling digest deliveries
               </p>
             </div>
@@ -216,17 +218,17 @@ export default function Settings() {
 
         {/* Save preferences button */}
         <div className="flex justify-end">
-          <Button onClick={handleSavePreferences} disabled={loading} className="bg-indigo-600 hover:bg-indigo-700 rounded-lg">
+          <Button onClick={handleSavePreferences} disabled={loading} className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-semibold rounded-lg">
             {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
             Save Preferences
           </Button>
         </div>
 
         {/* Subscription Section */}
-        <Card className="border-slate-100">
+        <Card className="border-stone-800 bg-stone-900">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <CreditCard className="w-5 h-5 text-slate-400" />
+            <CardTitle className="flex items-center gap-2 text-lg text-stone-100">
+              <CreditCard className="w-5 h-5 text-amber-400" />
               Subscription
             </CardTitle>
           </CardHeader>
@@ -234,20 +236,20 @@ export default function Settings() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className={`w-10 h-10 flex items-center justify-center ${
-                  isPremium ? 'bg-indigo-600' : 'bg-slate-100'
+                  isPremium ? 'bg-amber-400' : 'bg-stone-800'
                 }`}>
-                  <Crown className={`w-5 h-5 ${isPremium ? 'text-white' : 'text-slate-400'}`} />
+                  <Crown className={`w-5 h-5 ${isPremium ? 'text-stone-900' : 'text-stone-600'}`} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <p className="font-semibold text-slate-900">
+                    <p className="font-semibold text-stone-100">
                       {isPremium ? 'Premium' : 'Free'} Plan
                     </p>
                     {isPremium && (
-                      <Badge className="bg-indigo-100 text-indigo-700">Active</Badge>
+                      <Badge className="bg-amber-400 text-stone-900 font-semibold">Active</Badge>
                     )}
                   </div>
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-stone-500">
                     {isPremium 
                       ? 'Unlimited feeds, digests, and integrations'
                       : '5 feeds, 1 digest, web inbox only'
@@ -263,13 +265,14 @@ export default function Settings() {
                     const { data } = await base44.functions.invoke('createPortalSession', { return_url: window.location.href });
                     if (data?.url) window.open(data.url, '_blank');
                   }}
+                  className="border-stone-700 text-stone-300 hover:bg-stone-800"
                 >
                   Manage Billing
                   <ExternalLink className="w-4 h-4 ml-2" />
                 </Button>
               ) : (
                 <Link to={createPageUrl('Pricing')}>
-                  <Button className="bg-indigo-600 hover:bg-indigo-700 rounded-lg">
+                  <Button className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-semibold rounded-lg">
                     Upgrade
                   </Button>
                 </Link>
@@ -279,17 +282,17 @@ export default function Settings() {
         </Card>
 
         {/* Help Section */}
-        <Card className="border-slate-100">
+        <Card className="border-stone-800 bg-stone-900">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <PlayCircle className="w-5 h-5 text-slate-400" />
+            <CardTitle className="flex items-center gap-2 text-lg text-stone-100">
+              <PlayCircle className="w-5 h-5 text-amber-400" />
               Help & Onboarding
             </CardTitle>
           </CardHeader>
           <CardContent className="flex items-center justify-between">
             <div>
-              <p className="font-medium text-slate-900">Restart the tour</p>
-              <p className="text-sm text-slate-500">Walk through the key features of MergeRSS again</p>
+              <p className="font-medium text-stone-100">Restart the tour</p>
+              <p className="text-sm text-stone-500">Walk through the key features of MergeRSS again</p>
             </div>
             <Button
               variant="outline"
@@ -297,6 +300,7 @@ export default function Settings() {
                 await base44.auth.updateMe({ onboarding_complete: false });
                 toast.success('Tour reset — go to the Dashboard to restart it');
               }}
+              className="border-stone-700 text-stone-300 hover:bg-stone-800"
             >
               Restart Tour
             </Button>
@@ -310,6 +314,7 @@ export default function Settings() {
               variant="outline"
               onClick={() => setEditingProfile(false)}
               disabled={loading}
+              className="border-stone-700 text-stone-300 hover:bg-stone-800"
             >
               Cancel
             </Button>
@@ -317,7 +322,7 @@ export default function Settings() {
           <Button 
             onClick={handleSave} 
             disabled={loading || !editingProfile}
-            className="bg-indigo-600 hover:bg-indigo-700 rounded-lg"
+            className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-semibold rounded-lg"
           >
             {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
             Save Changes
