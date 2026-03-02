@@ -78,22 +78,22 @@ export default function ArticleSearch() {
   return (
     <div className="p-6 lg:p-8 max-w-5xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900 mb-1">Search Articles</h1>
-        <p className="text-slate-600">Find content across all your feeds</p>
+        <h1 className="text-2xl font-bold text-stone-100 mb-1">Search Articles</h1>
+        <p className="text-stone-500">Find content across all your feeds</p>
       </div>
 
       {/* Search bar */}
       <div className="flex gap-2 mb-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-600" />
           <Input
-            className="pl-9"
+            className="pl-9 bg-stone-900 border-stone-800 text-stone-100 placeholder-stone-600"
             placeholder="Search by keyword, title, or content…"
             value={keyword}
             onChange={e => setKeyword(e.target.value)}
           />
           {keyword && (
-            <button onClick={() => setKeyword('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+            <button onClick={() => setKeyword('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-600 hover:text-stone-400">
               <X className="w-4 h-4" />
             </button>
           )}
@@ -101,26 +101,26 @@ export default function ArticleSearch() {
         <Button
           variant="outline"
           onClick={() => setShowFilters(v => !v)}
-          className={showFilters ? 'border-indigo-400 text-indigo-600' : ''}
+          className={showFilters ? 'border-amber-400 text-amber-400' : 'border-stone-700 text-stone-400'}
         >
           <Filter className="w-4 h-4 mr-1.5" />
           Filters
-          {hasFilters && !keyword && <span className="ml-1 w-2 h-2 rounded-full bg-indigo-600 inline-block" />}
+          {hasFilters && !keyword && <span className="ml-1 w-2 h-2 rounded-full bg-amber-400 inline-block" />}
         </Button>
         {hasFilters && (
-          <Button variant="ghost" onClick={clearAll} className="text-slate-500">
-            Clear all
-          </Button>
-        )}
+           <Button variant="ghost" onClick={clearAll} className="text-stone-500 hover:text-stone-400">
+             Clear all
+           </Button>
+         )}
       </div>
 
       {/* Expanded filters */}
       {showFilters && (
-        <Card className="border-slate-100 mb-6">
+        <Card className="border-stone-800 bg-stone-900 mb-6">
           <CardContent className="p-4 grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Author */}
             <div>
-              <label className="text-xs font-medium text-slate-600 flex items-center gap-1 mb-1.5">
+              <label className="text-xs font-medium text-stone-400 flex items-center gap-1 mb-1.5">
                 <User className="w-3 h-3" /> Author
               </label>
               <div className="relative">
@@ -128,10 +128,10 @@ export default function ArticleSearch() {
                   placeholder="Filter by author…"
                   value={author}
                   onChange={e => setAuthor(e.target.value)}
-                  className="text-sm"
+                  className="text-sm bg-stone-800 border-stone-700 text-stone-100 placeholder-stone-600"
                 />
                 {author && (
-                  <button onClick={() => setAuthor('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                  <button onClick={() => setAuthor('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-stone-600 hover:text-stone-400">
                     <X className="w-3.5 h-3.5" />
                   </button>
                 )}
@@ -140,11 +140,11 @@ export default function ArticleSearch() {
 
             {/* Category */}
             <div>
-              <label className="text-xs font-medium text-slate-600 mb-1.5 block">Category</label>
+              <label className="text-xs font-medium text-stone-400 mb-1.5 block">Category</label>
               <select
                 value={selectedCategory}
                 onChange={e => setSelectedCategory(e.target.value)}
-                className="w-full text-sm border border-slate-200 rounded-md px-2.5 py-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                className="w-full text-sm border border-stone-700 rounded-md px-2.5 py-2 bg-stone-800 text-stone-100 focus:outline-none focus:ring-2 focus:ring-amber-400"
               >
                 <option value="">All categories</option>
                 {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
@@ -153,27 +153,27 @@ export default function ArticleSearch() {
 
             {/* Date from */}
             <div>
-              <label className="text-xs font-medium text-slate-600 flex items-center gap-1 mb-1.5">
+              <label className="text-xs font-medium text-stone-400 flex items-center gap-1 mb-1.5">
                 <CalendarRange className="w-3 h-3" /> From date
               </label>
               <Input
                 type="date"
                 value={dateFrom}
                 onChange={e => setDateFrom(e.target.value)}
-                className="text-sm"
+                className="text-sm bg-stone-800 border-stone-700 text-stone-100"
               />
             </div>
 
             {/* Date to */}
             <div>
-              <label className="text-xs font-medium text-slate-600 flex items-center gap-1 mb-1.5">
+              <label className="text-xs font-medium text-stone-400 flex items-center gap-1 mb-1.5">
                 <CalendarRange className="w-3 h-3" /> To date
               </label>
               <Input
                 type="date"
                 value={dateTo}
                 onChange={e => setDateTo(e.target.value)}
-                className="text-sm"
+                className="text-sm bg-stone-800 border-stone-700 text-stone-100"
               />
             </div>
           </CardContent>
@@ -182,7 +182,7 @@ export default function ArticleSearch() {
 
       {/* Results count */}
       {!isLoading && (
-        <p className="text-sm text-slate-500 mb-4">
+        <p className="text-sm text-stone-500 mb-4">
           {hasFilters
             ? `${filtered.length} result${filtered.length !== 1 ? 's' : ''} found`
             : `${allItems.length} articles total`}
@@ -195,11 +195,11 @@ export default function ArticleSearch() {
         <div>
           {isLoading ? (
             <div className="flex items-center justify-center py-16">
-              <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
+              <Loader2 className="w-6 h-6 animate-spin text-amber-400" />
             </div>
           ) : filtered.length === 0 ? (
-            <div className="text-center py-16 text-slate-500">
-              <Search className="w-10 h-10 mx-auto mb-3 text-slate-300" />
+            <div className="text-center py-16 text-stone-500">
+              <Search className="w-10 h-10 mx-auto mb-3 text-stone-700" />
               <p className="font-medium">No articles found</p>
               <p className="text-sm mt-1">Try different keywords or adjust your filters</p>
             </div>
@@ -211,14 +211,14 @@ export default function ArticleSearch() {
                 return (
                   <Card
                     key={item.id}
-                    className={`border transition cursor-pointer ${isSelected ? 'border-indigo-400 shadow-sm' : 'border-slate-100 hover:shadow-sm'}`}
+                    className={`border transition cursor-pointer ${isSelected ? 'border-amber-400 bg-stone-800 shadow-sm' : 'border-stone-800 bg-stone-900 hover:shadow-sm'}`}
                     onClick={() => setSelectedArticle(isSelected ? null : merged)}
                   >
                     <CardContent className="p-4">
-                      <p className={`font-medium line-clamp-2 mb-1 text-sm ${isSelected ? 'text-indigo-700' : 'text-slate-900'}`}>
+                      <p className={`font-medium line-clamp-2 mb-1 text-sm ${isSelected ? 'text-amber-400' : 'text-stone-200'}`}>
                         {item.title}
                       </p>
-                      <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-stone-500">
                         <span className="flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           {item.published_date ? new Date(item.published_date).toLocaleDateString() : 'Unknown'}
@@ -234,7 +234,7 @@ export default function ArticleSearch() {
                         )}
                       </div>
                       {item.ai_summary && (
-                        <p className="mt-2 text-xs text-indigo-600 line-clamp-2 bg-indigo-50 rounded px-2 py-1">
+                        <p className="mt-2 text-xs text-amber-400 line-clamp-2 bg-stone-800 rounded px-2 py-1">
                           {item.ai_summary}
                         </p>
                       )}
@@ -249,17 +249,17 @@ export default function ArticleSearch() {
         {/* Article detail panel */}
         {selectedArticle ? (
           <div className="lg:sticky lg:top-6 self-start">
-            <Card className="border-slate-100">
-              <CardHeader className="pb-2 border-b border-slate-100">
+            <Card className="border-stone-800 bg-stone-900">
+              <CardHeader className="pb-2 border-b border-stone-800">
                 <div className="flex items-start justify-between gap-2">
-                  <CardTitle className="text-base font-semibold text-slate-900 leading-snug">
+                  <CardTitle className="text-base font-semibold text-stone-100 leading-snug">
                     {selectedArticle.title}
                   </CardTitle>
-                  <button onClick={() => setSelectedArticle(null)} className="text-slate-400 hover:text-slate-600 flex-shrink-0 mt-0.5">
+                  <button onClick={() => setSelectedArticle(null)} className="text-stone-600 hover:text-stone-400 flex-shrink-0 mt-0.5">
                     <X className="w-4 h-4" />
                   </button>
                 </div>
-                <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 mt-1">
+                <div className="flex flex-wrap items-center gap-2 text-xs text-stone-500 mt-1">
                   <Clock className="w-3 h-3" />
                   {selectedArticle.published_date && new Date(selectedArticle.published_date).toLocaleString()}
                   {selectedArticle.author && (
@@ -272,13 +272,13 @@ export default function ArticleSearch() {
               </CardHeader>
               <CardContent className="pt-4">
                 {selectedArticle.description && (
-                  <p className="text-sm text-slate-600 leading-relaxed mb-3">{selectedArticle.description}</p>
+                  <p className="text-sm text-stone-400 leading-relaxed mb-3">{selectedArticle.description}</p>
                 )}
                 <a
                   href={selectedArticle.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-sm text-indigo-600 hover:underline font-medium"
+                  className="inline-flex items-center gap-1.5 text-sm text-amber-400 hover:underline font-medium"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                   Read full article
@@ -294,7 +294,7 @@ export default function ArticleSearch() {
             </Card>
           </div>
         ) : (
-          <div className="hidden lg:flex items-center justify-center py-16 text-slate-400 text-sm">
+          <div className="hidden lg:flex items-center justify-center py-16 text-stone-600 text-sm">
             Click an article to view details
           </div>
         )}
