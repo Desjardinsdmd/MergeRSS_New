@@ -23,12 +23,9 @@ import {
   Inbox,
   Users,
   Globe,
-  Moon,
-  Sun,
   Search,
   Bookmark
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { Toaster } from 'sonner';
