@@ -388,7 +388,7 @@ export default function Inbox() {
         <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-indigo-600" />
+              <FileText className="w-5 h-5 text-amber-400" />
               {selectedDelivery && getDigestName(selectedDelivery.digest_id)}
             </DialogTitle>
           </DialogHeader>
