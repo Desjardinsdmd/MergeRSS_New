@@ -58,7 +58,7 @@ const adminNav = [
 function BookmarkNavBadge({ user }) {
   const { data: bookmarks = [] } = useQuery({
     queryKey: ['bookmarks-unread', user?.email],
-    queryFn: () => base44.entities.Bookmark.filter({ created_by: user?.email, is_read: false }),
+    queryFn: () => base44.entities.Bookmark.list('-created_date', 200),
     enabled: !!user,
     refetchInterval: 60000,
   });
