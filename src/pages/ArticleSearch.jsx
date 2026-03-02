@@ -11,6 +11,17 @@ import RelatedArticles from '@/components/feeds/RelatedArticles';
 
 const CATEGORIES = ['CRE', 'Markets', 'Tech', 'News', 'Finance', 'Crypto', 'AI', 'Other'];
 
+const categoryColors = {
+  CRE: 'bg-blue-950 text-blue-400',
+  Markets: 'bg-green-950 text-green-400',
+  Tech: 'bg-purple-950 text-purple-400',
+  News: 'bg-orange-950 text-orange-400',
+  Finance: 'bg-emerald-950 text-emerald-400',
+  Crypto: 'bg-yellow-950 text-yellow-400',
+  AI: 'bg-pink-950 text-pink-400',
+  Other: 'bg-stone-800 text-stone-300',
+};
+
 export default function ArticleSearch() {
   const [user, setUser] = React.useState(null);
   const [keyword, setKeyword] = useState('');
@@ -230,7 +241,7 @@ export default function ArticleSearch() {
                           </span>
                         )}
                         {item.category && (
-                          <Badge variant="secondary" className="text-xs py-0">{item.category}</Badge>
+                          <Badge className={`text-xs py-0 ${categoryColors[item.category] || categoryColors.Other}`}>{item.category}</Badge>
                         )}
                       </div>
                       {item.ai_summary && (
@@ -266,8 +277,8 @@ export default function ArticleSearch() {
                     <span className="flex items-center gap-1"><User className="w-3 h-3" />{selectedArticle.author}</span>
                   )}
                   {selectedArticle.category && (
-                    <Badge variant="secondary" className="text-xs">{selectedArticle.category}</Badge>
-                  )}
+                     <Badge className={`text-xs ${categoryColors[selectedArticle.category] || categoryColors.Other}`}>{selectedArticle.category}</Badge>
+                   )}
                 </div>
               </CardHeader>
               <CardContent className="pt-4">
