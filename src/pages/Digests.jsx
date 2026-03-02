@@ -196,8 +196,8 @@ export default function Digests() {
           </div>
 
           {selectedDigests.length > 0 && (
-            <div className="mb-6 flex items-center justify-between gap-4 bg-indigo-50 border border-indigo-200 rounded-lg px-4 py-3">
-              <span className="text-sm font-medium text-indigo-900">{selectedDigests.length} digest(es) selected</span>
+            <div className="mb-6 flex items-center justify-between gap-4 bg-stone-900 border border-stone-800 rounded-lg px-4 py-3">
+              <span className="text-sm font-medium text-stone-300">{selectedDigests.length} digest(es) selected</span>
               <Button
                 size="sm"
                 onClick={() => setDeleteConfirm({ id: 'bulk', name: '' })}
