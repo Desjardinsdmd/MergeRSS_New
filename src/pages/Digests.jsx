@@ -150,18 +150,18 @@ export default function Digests() {
       {/* Digest List */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-6 h-6 animate-spin text-violet-600" />
+          <Loader2 className="w-6 h-6 animate-spin text-amber-400" />
         </div>
       ) : digests.length === 0 ? (
         <div className="text-center py-12">
-          <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <FileText className="w-6 h-6 text-slate-400" />
+          <div className="w-12 h-12 bg-stone-800 rounded-full flex items-center justify-center mx-auto mb-4">
+            <FileText className="w-6 h-6 text-stone-600" />
           </div>
-          <h3 className="text-lg font-medium text-slate-900 mb-1">No digests yet</h3>
-          <p className="text-slate-500 mb-4">
+          <h3 className="text-lg font-medium text-stone-100 mb-1">No digests yet</h3>
+          <p className="text-stone-500 mb-4">
             Create your first digest to start receiving curated content
           </p>
-          <Button onClick={() => setShowDialog(true)} className="bg-indigo-600 hover:bg-indigo-700 rounded-lg">
+          <Button onClick={() => setShowDialog(true)} className="bg-amber-400 hover:bg-amber-300 text-stone-900 rounded-lg font-bold">
             <Plus className="w-4 h-4 mr-2" />
             Create Digest
           </Button>
