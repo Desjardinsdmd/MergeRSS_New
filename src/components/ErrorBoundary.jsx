@@ -24,18 +24,18 @@ export default class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+        <div className="min-h-screen flex items-center justify-center bg-stone-900 p-4">
           <div className="text-center">
-            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <AlertCircle className="w-6 h-6 text-red-600" />
+            <div className="w-12 h-12 bg-red-950 rounded-full flex items-center justify-center mx-auto mb-4">
+              <AlertCircle className="w-6 h-6 text-red-400" />
             </div>
-            <h1 className="text-2xl font-bold text-slate-900 mb-2">Something went wrong</h1>
-            <p className="text-slate-600 mb-6 max-w-sm mx-auto">
+            <h1 className="text-2xl font-bold text-stone-100 mb-2">Something went wrong</h1>
+            <p className="text-stone-400 mb-6 max-w-sm mx-auto">
               We encountered an unexpected error. Please try refreshing the page or go back to the home page.
             </p>
             <Button 
               onClick={this.reset}
-              className="bg-indigo-600 hover:bg-indigo-700 rounded-lg"
+              className="bg-amber-400 hover:bg-amber-300 text-stone-900 rounded-lg"
             >
               Go to Home
             </Button>

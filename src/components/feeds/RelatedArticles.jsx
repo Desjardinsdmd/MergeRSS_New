@@ -40,8 +40,8 @@ export default function RelatedArticles({ currentItem, allItems }) {
   if (related.length === 0) return null;
 
   return (
-    <div className="mt-5 pt-4 border-t border-slate-100">
-      <h4 className="text-sm font-semibold text-slate-700 mb-3">Related Articles</h4>
+    <div className="mt-5 pt-4 border-t border-stone-800">
+      <h4 className="text-sm font-semibold text-stone-200 mb-3">Related Articles</h4>
       <div className="space-y-2.5">
         {related.map(item => (
           <a
@@ -49,23 +49,23 @@ export default function RelatedArticles({ currentItem, allItems }) {
             href={item.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-start gap-2.5 group hover:bg-slate-50 rounded-lg p-2 -mx-2 transition"
+            className="flex items-start gap-2.5 group hover:bg-stone-800 rounded-lg p-2 -mx-2 transition"
           >
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-slate-800 line-clamp-2 group-hover:text-indigo-700 transition-colors">
+              <p className="text-sm font-medium text-stone-200 line-clamp-2 group-hover:text-amber-400 transition-colors">
                 {item.title}
               </p>
-              <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-400">
+              <div className="flex items-center gap-2 mt-0.5 text-xs text-stone-500">
                 <Clock className="w-3 h-3" />
                 {item.published_date
                   ? new Date(item.published_date).toLocaleDateString()
                   : ''}
                 {item.category && (
-                  <Badge variant="secondary" className="text-xs py-0">{item.category}</Badge>
+                  <Badge variant="secondary" className="text-xs py-0 bg-stone-800 text-stone-300">{item.category}</Badge>
                 )}
               </div>
             </div>
-            <ExternalLink className="w-3.5 h-3.5 text-slate-300 group-hover:text-indigo-400 flex-shrink-0 mt-0.5 transition-colors" />
+            <ExternalLink className="w-3.5 h-3.5 text-stone-600 group-hover:text-amber-400 flex-shrink-0 mt-0.5 transition-colors" />
           </a>
         ))}
       </div>
