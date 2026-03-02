@@ -67,8 +67,8 @@ export default function Bookmarks() {
             onClick={() => setFilter(f)}
             className={`text-sm px-4 py-1.5 rounded-full font-medium capitalize transition-colors ${
               filter === f
-                ? 'bg-indigo-600 text-white'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                ? 'bg-amber-400 text-stone-900'
+                : 'bg-stone-800 text-stone-400 hover:bg-stone-700'
             }`}
           >
             {f}
