@@ -186,13 +186,13 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
 
           {/* Share to Directory */}
           {editFeed && (
-            <div className="border border-slate-100 rounded-xl p-4 space-y-3 bg-slate-50">
+            <div className="border border-stone-800 rounded-xl p-4 space-y-3 bg-stone-800">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Globe className="w-4 h-4 text-indigo-500" />
+                  <Globe className="w-4 h-4 text-amber-400" />
                   <div>
-                    <p className="text-sm font-medium text-slate-900">Share to Public Directory</p>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-sm font-medium text-stone-200">Share to Public Directory</p>
+                    <p className="text-xs text-stone-500">
                       {canShareToDirectory 
                         ? 'Let others discover and add this feed'
                         : 'Feeds from the directory cannot be re-shared'}
@@ -223,7 +223,7 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading} className="bg-[#171a20] hover:bg-black rounded-sm">
+            <Button type="submit" disabled={loading} className="bg-amber-400 hover:bg-amber-300 text-stone-900 rounded-sm">
               {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               {editFeed ? 'Save Changes' : 'Add Feed'}
             </Button>

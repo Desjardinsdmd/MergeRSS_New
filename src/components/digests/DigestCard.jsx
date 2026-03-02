@@ -40,7 +40,7 @@ export default function DigestCard({ digest, onEdit, onDelete, onToggleStatus, o
   
   return (
     <Card className={cn(
-      "border-slate-100 transition-all hover:shadow-md",
+      "border-stone-800 bg-stone-900 transition-all hover:shadow-md",
       digest.status === 'paused' && "opacity-60"
     )}>
       <CardContent className="p-4">
@@ -52,9 +52,9 @@ export default function DigestCard({ digest, onEdit, onDelete, onToggleStatus, o
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <h3 className="font-semibold text-slate-900">{digest.name}</h3>
+                <h3 className="font-semibold text-stone-200">{digest.name}</h3>
                 {digest.description && (
-                  <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">
+                  <p className="text-xs text-stone-500 mt-0.5 line-clamp-1">
                     {digest.description}
                   </p>
                 )}
@@ -129,7 +129,7 @@ export default function DigestCard({ digest, onEdit, onDelete, onToggleStatus, o
             )}
 
             {/* Schedule & Delivery */}
-            <div className="flex flex-wrap items-center gap-3 mt-3 text-xs text-slate-500">
+            <div className="flex flex-wrap items-center gap-3 mt-3 text-xs text-stone-500">
               <span className="flex items-center gap-1">
                 <Clock className="w-3 h-3" />
                 {frequencyLabel} at {digest.schedule_time || '09:00'}
@@ -142,7 +142,7 @@ export default function DigestCard({ digest, onEdit, onDelete, onToggleStatus, o
                   </Badge>
                 )}
                 {digest.delivery_email && (
-                  <Badge variant="outline" className="text-xs gap-1 px-1.5 border-orange-200 text-orange-600">
+                  <Badge variant="outline" className="text-xs gap-1 px-1.5 border-stone-700 text-amber-400">
                     <Mail className="w-3 h-3" />
                   </Badge>
                 )}
@@ -167,7 +167,7 @@ export default function DigestCard({ digest, onEdit, onDelete, onToggleStatus, o
             {/* Last sent + Run Now */}
             <div className="flex items-center justify-between mt-2">
               {digest.last_sent ? (
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-stone-500">
                   Last sent: {new Date(digest.last_sent).toLocaleString()}
                 </p>
               ) : <span />}
@@ -176,7 +176,7 @@ export default function DigestCard({ digest, onEdit, onDelete, onToggleStatus, o
                 disabled={isSending || ran}
                 className={cn(
                   'flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md transition-colors',
-                  ran ? 'text-emerald-600 bg-emerald-50' : 'text-indigo-600 bg-indigo-50 hover:bg-indigo-100',
+                  ran ? 'text-emerald-400 bg-emerald-950' : 'text-stone-900 bg-amber-400 hover:bg-amber-300',
                   (isSending || ran) && 'opacity-60 cursor-not-allowed'
                 )}
               >
@@ -188,7 +188,7 @@ export default function DigestCard({ digest, onEdit, onDelete, onToggleStatus, o
             {/* Toggle comments */}
             <button
               onClick={() => setShowComments(!showComments)}
-              className="flex items-center gap-1 mt-3 text-xs text-slate-400 hover:text-indigo-600 transition"
+              className="flex items-center gap-1 mt-3 text-xs text-stone-500 hover:text-amber-400 transition"
             >
               <MessageCircle className="w-3 h-3" />
               Discussion

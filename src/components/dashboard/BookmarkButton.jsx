@@ -33,8 +33,8 @@ export default function BookmarkButton({ item, className = '' }) {
       title={saved ? 'Saved' : 'Save for later'}
       className={`p-1.5 rounded-lg transition-colors ${
         saved
-          ? 'text-indigo-600 bg-indigo-50'
-          : 'text-slate-300 hover:text-slate-500 hover:bg-slate-50'
+          ? 'text-amber-400 bg-amber-950'
+          : 'text-stone-600 hover:text-stone-400 hover:bg-stone-800'
       } ${className}`}
     >
       {loading ? (
