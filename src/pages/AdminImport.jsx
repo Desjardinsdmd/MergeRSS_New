@@ -316,18 +316,38 @@ export default function AdminImport() {
             <CardDescription className="text-xs">Upload a CSV file with columns: name, url, category (optional), tags (optional, semicolon-separated)</CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
-            <label htmlFor="bulk-feeds-upload" className="flex flex-col items-center justify-center w-full px-4 py-6 border-2 border-dashed border-slate-200 rounded-lg hover:border-indigo-300 hover:bg-indigo-50 cursor-pointer transition">
-              <Upload className="w-5 h-5 text-slate-400 mb-2" />
-              <span className="text-sm text-slate-600">Click to upload CSV or drag and drop</span>
-              <input
-                ref={feedsUploadRef}
-                id="bulk-feeds-upload"
-                type="file"
-                accept=".csv"
-                onChange={handleBulkFeedsUpload}
-                className="hidden"
-              />
-            </label>
+            {pendingCsvFile ? (
+              <div className="relative border-2 border-indigo-300 bg-indigo-50 rounded-lg px-4 py-5 flex flex-col items-center gap-3">
+                <button
+                  onClick={cancelCsvUpload}
+                  className="absolute top-2 right-2 p-1 text-slate-400 hover:text-red-500 transition"
+                  title="Remove file"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+                <div className="flex items-center gap-2 text-indigo-700">
+                  <Upload className="w-4 h-4" />
+                  <span className="text-sm font-medium truncate max-w-[240px]">{pendingCsvFile}</span>
+                </div>
+                <p className="text-xs text-slate-500">{pendingCsvFeeds.length} valid feed(s) found</p>
+                <Button onClick={confirmCsvUpload} className="bg-indigo-600 hover:bg-indigo-700 rounded-lg w-full text-sm">
+                  Confirm Upload
+                </Button>
+              </div>
+            ) : (
+              <label htmlFor="bulk-feeds-upload" className="flex flex-col items-center justify-center w-full px-4 py-6 border-2 border-dashed border-slate-200 rounded-lg hover:border-indigo-300 hover:bg-indigo-50 cursor-pointer transition">
+                <Upload className="w-5 h-5 text-slate-400 mb-2" />
+                <span className="text-sm text-slate-600">Click to upload CSV or drag and drop</span>
+                <input
+                  ref={feedsUploadRef}
+                  id="bulk-feeds-upload"
+                  type="file"
+                  accept=".csv"
+                  onChange={handleBulkFeedsUpload}
+                  className="hidden"
+                />
+              </label>
+            )}
             <p className="text-[10px] text-slate-500 mt-2">Example: Feed1,https://example.com/feed.xml,Tech,ai;startup</p>
           </CardContent>
         </Card>
