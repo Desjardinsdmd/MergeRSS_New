@@ -161,9 +161,9 @@ export default function Dashboard() {
   ];
 
   const colorClasses = {
-    violet: 'bg-indigo-50 text-indigo-600',
-    indigo: 'bg-violet-50 text-violet-600',
-    emerald: 'bg-emerald-50 text-emerald-600',
+    violet: 'bg-stone-800 text-amber-400',
+    indigo: 'bg-stone-800 text-amber-400',
+    emerald: 'bg-stone-800 text-amber-400',
   };
 
   return (
