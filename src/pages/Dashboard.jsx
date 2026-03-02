@@ -301,7 +301,7 @@ export default function Dashboard() {
                             key={cat}
                             onClick={() => setActiveCategory(cat)}
                             className={`text-xs px-2.5 py-1 font-medium transition-colors flex items-center gap-1 ${
-                              activeCategory === cat ? 'bg-amber-400 text-stone-900' : 'bg-stone-800 text-stone-400 hover:text-stone-200'
+                              activeCategory === cat ? categoryColors[cat] || 'bg-stone-800 text-stone-300' : 'bg-stone-800 text-stone-400 hover:text-stone-200'
                             }`}
                           >
                             {cat}
@@ -375,7 +375,7 @@ export default function Dashboard() {
                     key={cat}
                     onClick={() => setActiveCategory(cat)}
                     className={`text-xs px-2.5 py-1 font-medium transition-colors flex items-center gap-1 ${
-                      activeCategory === cat ? 'bg-amber-400 text-stone-900' : 'bg-stone-800 text-stone-400 hover:text-stone-200'
+                      activeCategory === cat ? categoryColors[cat] || 'bg-stone-800 text-stone-300' : 'bg-stone-800 text-stone-400 hover:text-stone-200'
                     }`}
                   >
                     {cat}
