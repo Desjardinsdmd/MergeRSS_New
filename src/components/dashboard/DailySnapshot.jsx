@@ -38,9 +38,9 @@ export default function DailySnapshot() {
 
   if (loading) {
     return (
-      <div className="bg-gradient-to-r from-indigo-600 to-violet-600 rounded-2xl p-5 mb-6 text-white flex items-center gap-3">
-        <Loader2 className="w-5 h-5 animate-spin flex-shrink-0 opacity-80" />
-        <p className="text-sm opacity-90">Generating today's brief...</p>
+      <div className="bg-stone-900 border border-stone-800 p-5 mb-6 text-stone-200 flex items-center gap-3">
+        <Loader2 className="w-5 h-5 animate-spin flex-shrink-0 text-amber-400" />
+        <p className="text-sm text-stone-400">Generating today's brief...</p>
       </div>
     );
   }
