@@ -419,8 +419,8 @@ export default function Inbox() {
               </div>
 
               {selectedDelivery.date_range_start && selectedDelivery.date_range_end && (
-                <div className="bg-slate-50 rounded-lg p-3 text-sm">
-                  <p className="text-slate-600">
+                <div className="bg-stone-800 rounded-lg p-3 text-sm">
+                  <p className="text-stone-400">
                     <Clock className="w-4 h-4 inline mr-1" />
                     Coverage: {format(new Date(selectedDelivery.date_range_start), 'MMM d')} – {format(new Date(selectedDelivery.date_range_end), 'MMM d, yyyy')}
                   </p>
