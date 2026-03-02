@@ -190,25 +190,25 @@ export default function Integrations() {
   return (
     <div className="p-6 lg:p-8 max-w-4xl mx-auto">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Integrations</h1>
-        <p className="text-slate-600">
-          Connect your favorite apps to deliver digests
-        </p>
-      </div>
+       <div className="mb-8">
+         <h1 className="text-2xl font-bold text-stone-100">Integrations</h1>
+         <p className="text-stone-500">
+           Connect your favorite apps to deliver digests
+         </p>
+       </div>
 
       {/* Premium Notice */}
       {!isPremium && (
-        <div className="mb-6 p-4 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center gap-4">
-          <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
-            <Crown className="w-5 h-5 text-white" />
+        <div className="mb-6 p-4 rounded-xl bg-amber-900/20 border border-amber-700 flex items-center gap-4">
+          <div className="w-10 h-10 bg-amber-400 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Crown className="w-5 h-5 text-stone-900" />
           </div>
           <div className="flex-1">
-            <p className="font-semibold text-slate-900">Upgrade to Premium</p>
-            <p className="text-sm text-slate-500">Unlock Slack and Discord integrations</p>
+            <p className="font-semibold text-stone-200">Upgrade to Premium</p>
+            <p className="text-sm text-stone-500">Unlock Slack and Discord integrations</p>
           </div>
           <Link to={createPageUrl('Pricing')}>
-            <Button className="bg-indigo-600 hover:bg-indigo-700 rounded-lg text-sm">
+            <Button className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-semibold rounded-lg text-sm">
               Upgrade
             </Button>
           </Link>
@@ -218,7 +218,7 @@ export default function Integrations() {
       {/* Integration Cards */}
       <div className="space-y-4">
         {/* Slack */}
-        <Card className="border-slate-100">
+        <Card className="border-stone-800 bg-stone-900">
           <CardContent className="p-6">
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 bg-[#4A154B] rounded-xl flex items-center justify-center">
@@ -227,24 +227,24 @@ export default function Integrations() {
               
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className="font-semibold text-slate-900">Slack</h3>
-                  {!isPremium && (
-                    <Badge variant="secondary" className="text-xs gap-1">
-                      <Crown className="w-3 h-3" /> Premium
-                    </Badge>
-                  )}
-                </div>
-                <p className="text-sm text-slate-600 mb-4">
+                    <h3 className="font-semibold text-stone-200">Slack</h3>
+                    {!isPremium && (
+                      <Badge variant="secondary" className="text-xs gap-1 bg-stone-800 text-amber-400">
+                        <Crown className="w-3 h-3" /> Premium
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-sm text-stone-400 mb-4">
                   Post digests directly to your Slack channels
                 </p>
 
                 {slackIntegration?.status === 'connected' ? (
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
-                      <Badge className="bg-green-100 text-green-700">
+                      <Badge className="bg-green-900/30 text-green-400">
                         <Check className="w-3 h-3 mr-1" /> Connected
                       </Badge>
-                      <span className="text-sm text-slate-500">Webhook configured</span>
+                      <span className="text-sm text-stone-500">Webhook configured</span>
                     </div>
                     
                     <div className="flex items-center gap-3">
@@ -261,7 +261,7 @@ export default function Integrations() {
                         variant="ghost"
                         size="sm"
                         onClick={() => setDisconnectConfirm(slackIntegration)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -285,7 +285,7 @@ export default function Integrations() {
         </Card>
 
         {/* Discord */}
-        <Card className="border-slate-100">
+        <Card className="border-stone-800 bg-stone-900">
           <CardContent className="p-6">
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 bg-[#5865F2] rounded-xl flex items-center justify-center">
@@ -294,24 +294,24 @@ export default function Integrations() {
               
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className="font-semibold text-slate-900">Discord</h3>
-                  {!isPremium && (
-                    <Badge variant="secondary" className="text-xs gap-1">
-                      <Crown className="w-3 h-3" /> Premium
-                    </Badge>
-                  )}
-                </div>
-                <p className="text-sm text-slate-600 mb-4">
+                    <h3 className="font-semibold text-stone-200">Discord</h3>
+                    {!isPremium && (
+                      <Badge variant="secondary" className="text-xs gap-1 bg-stone-800 text-amber-400">
+                        <Crown className="w-3 h-3" /> Premium
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-sm text-stone-400 mb-4">
                   Send digests to your Discord server via webhook
                 </p>
 
                 {discordIntegration?.status === 'connected' ? (
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
-                      <Badge className="bg-green-100 text-green-700">
+                      <Badge className="bg-green-900/30 text-green-400">
                         <Check className="w-3 h-3 mr-1" /> Connected
                       </Badge>
-                      <span className="text-sm text-slate-500">
+                      <span className="text-sm text-stone-500">
                         Webhook configured
                       </span>
                     </div>
@@ -330,7 +330,7 @@ export default function Integrations() {
                         variant="ghost"
                         size="sm"
                         onClick={() => setDisconnectConfirm(discordIntegration)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -365,23 +365,23 @@ export default function Integrations() {
             <DialogDescription>
               Connect your Slack workspace to receive digests in your channels
             </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
+            </DialogHeader>
+
+            <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="slackWebhook">Incoming Webhook URL</Label>
+              <Label htmlFor="slackWebhook" className="text-stone-300">Incoming Webhook URL</Label>
               <Input
                 id="slackWebhook"
                 value={slackWebhook}
                 onChange={(e) => setSlackWebhook(e.target.value)}
                 placeholder="https://hooks.slack.com/services/..."
-                className="mt-1"
+                className="mt-1 bg-stone-800 border-stone-700 text-stone-100 placeholder-stone-600"
               />
             </div>
-            <div className="bg-slate-50 rounded-lg p-4 text-sm text-slate-600">
-              <p className="font-medium text-slate-900 mb-2">How to get a webhook:</p>
+            <div className="bg-stone-800 rounded-lg p-4 text-sm text-stone-400">
+              <p className="font-medium text-stone-300 mb-2">How to get a webhook:</p>
               <ol className="space-y-1 list-decimal list-inside">
-                <li>Go to <a href="https://api.slack.com/apps" target="_blank" rel="noreferrer" className="text-indigo-600 underline">api.slack.com/apps</a></li>
+                <li>Go to <a href="https://api.slack.com/apps" target="_blank" rel="noreferrer" className="text-amber-400 underline">api.slack.com/apps</a></li>
                 <li>Create an app → Incoming Webhooks</li>
                 <li>Enable and add a new webhook to your channel</li>
                 <li>Copy the webhook URL and paste it above</li>
@@ -396,7 +396,7 @@ export default function Integrations() {
             <Button
               onClick={handleConnectSlack}
               disabled={loading || !slackWebhook}
-              className="bg-[#4A154B] hover:bg-[#3e1140]"
+              className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-semibold"
             >
               {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Connect Slack
@@ -416,21 +416,22 @@ export default function Integrations() {
             <DialogDescription>
               Add a Discord webhook to receive digests in your server
             </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
+            </DialogHeader>
+
+            <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="webhook">Webhook URL</Label>
+              <Label htmlFor="webhook" className="text-stone-300">Webhook URL</Label>
               <Input
                 id="webhook"
                 value={discordWebhook}
                 onChange={(e) => setDiscordWebhook(e.target.value)}
                 placeholder="https://discord.com/api/webhooks/..."
+                className="bg-stone-800 border-stone-700 text-stone-100 placeholder-stone-600"
               />
             </div>
-            
-            <div className="bg-slate-50 rounded-lg p-4 text-sm text-slate-600">
-              <p className="font-medium text-slate-900 mb-2">How to get a webhook:</p>
+
+            <div className="bg-stone-800 rounded-lg p-4 text-sm text-stone-400">
+              <p className="font-medium text-stone-300 mb-2">How to get a webhook:</p>
               <ol className="space-y-1 list-decimal list-inside">
                 <li>Open Discord server settings</li>
                 <li>Go to Integrations → Webhooks</li>
@@ -446,7 +447,7 @@ export default function Integrations() {
             <Button
               onClick={handleConnectDiscord}
               disabled={loading || !discordWebhook}
-              className="bg-[#5865F2] hover:bg-[#4752c4]"
+              className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-semibold"
             >
               {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Connect Discord

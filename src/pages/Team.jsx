@@ -23,24 +23,24 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 const ROLE_META = {
-  admin: {
-    label: 'Admin',
-    icon: Crown,
-    color: 'bg-indigo-100 text-indigo-700 border-indigo-200',
-    description: 'Full access: manage feeds, digests, team, and settings',
-  },
-  editor: {
-    label: 'Editor',
-    icon: Edit3,
-    color: 'bg-amber-100 text-amber-700 border-amber-200',
-    description: 'Can add/edit feeds and digests, cannot manage team',
-  },
-  viewer: {
-    label: 'Viewer',
-    icon: Eye,
-    color: 'bg-slate-100 text-slate-600 border-slate-200',
-    description: 'Read-only access to feeds, digests, and inbox',
-  },
+admin: {
+  label: 'Admin',
+  icon: Crown,
+  color: 'bg-amber-900/30 text-amber-400 border-amber-700',
+  description: 'Full access: manage feeds, digests, team, and settings',
+},
+editor: {
+  label: 'Editor',
+  icon: Edit3,
+  color: 'bg-stone-800 text-amber-400 border-stone-700',
+  description: 'Can add/edit feeds and digests, cannot manage team',
+},
+viewer: {
+  label: 'Viewer',
+  icon: Eye,
+  color: 'bg-stone-800 text-stone-500 border-stone-700',
+  description: 'Read-only access to feeds, digests, and inbox',
+},
 };
 
 function RoleBadge({ role }) {
@@ -115,13 +115,13 @@ export default function Team() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Team</h1>
-          <p className="text-slate-500 text-sm mt-0.5">Manage who has access and what they can do</p>
+          <h1 className="text-2xl font-bold text-stone-100">Team</h1>
+          <p className="text-stone-500 text-sm mt-0.5">Manage who has access and what they can do</p>
         </div>
         {isAdmin && (
           <Button
             onClick={() => setShowInvite(true)}
-            className="bg-indigo-600 hover:bg-indigo-700 rounded-lg"
+            className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-semibold rounded-lg"
           >
             <Plus className="w-4 h-4 mr-2" />
             Invite Member
@@ -134,24 +134,24 @@ export default function Team() {
         {Object.entries(ROLE_META).map(([key, meta]) => {
           const Icon = meta.icon;
           return (
-            <div key={key} className="p-4 border border-slate-100 rounded-xl bg-white">
+            <div key={key} className="p-4 border border-stone-800 rounded-xl bg-stone-900">
               <div className="flex items-center gap-2 mb-1">
-                <Icon className="w-4 h-4 text-slate-500" />
-                <span className="font-semibold text-slate-800 text-sm">{meta.label}</span>
+                <Icon className="w-4 h-4 text-stone-500" />
+                <span className="font-semibold text-stone-200 text-sm">{meta.label}</span>
               </div>
-              <p className="text-xs text-slate-500 leading-relaxed">{meta.description}</p>
+              <p className="text-xs text-stone-500 leading-relaxed">{meta.description}</p>
             </div>
           );
         })}
       </div>
 
       {/* Members list */}
-      <Card className="border-slate-100">
+      <Card className="border-stone-800 bg-stone-900">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
-            <Users className="w-4 h-4 text-slate-400" />
+            <Users className="w-4 h-4 text-stone-500" />
             Team Members
-            <Badge variant="secondary" className="ml-1 text-xs">{members.length}</Badge>
+            <Badge variant="secondary" className="ml-1 text-xs bg-stone-800 text-stone-400">{members.length}</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
@@ -175,33 +175,33 @@ export default function Team() {
               )}
             </div>
           ) : (
-            <div className="divide-y divide-slate-50">
+            <div className="divide-y divide-stone-800">
               {/* Current user row */}
               <div className="flex items-center justify-between px-6 py-3.5">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-xs font-bold text-indigo-700">
+                    <div className="w-8 h-8 bg-amber-900/30 rounded-full flex items-center justify-center text-xs font-bold text-amber-400">
                     {user?.full_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase()}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-slate-900">{user?.full_name || user?.email}</p>
-                    <p className="text-xs text-slate-400">{user?.email}</p>
+                    <p className="text-sm font-medium text-stone-200">{user?.full_name || user?.email}</p>
+                    <p className="text-xs text-stone-500">{user?.email}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <RoleBadge role={user?.role === 'admin' ? 'admin' : 'viewer'} />
-                  <Badge variant="outline" className="text-xs text-slate-400">You</Badge>
-                </div>
+                   <RoleBadge role={user?.role === 'admin' ? 'admin' : 'viewer'} />
+                   <Badge variant="outline" className="text-xs text-stone-500 border-stone-700">You</Badge>
+                 </div>
               </div>
 
               {members.map((member) => (
                 <div key={member.id} className="flex items-center justify-between px-6 py-3.5">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-xs font-bold text-slate-500">
+                    <div className="w-8 h-8 bg-stone-800 rounded-full flex items-center justify-center text-xs font-bold text-stone-500">
                       {member.email[0].toUpperCase()}
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-slate-900">{member.email}</p>
-                      <p className="text-xs text-slate-400">
+                      <p className="text-sm font-medium text-stone-200">{member.email}</p>
+                      <p className="text-xs text-stone-500">
                         {member.status === 'pending' ? 'Invite pending' : 'Active'}
                         {member.invited_by && ` · invited by ${member.invited_by}`}
                       </p>
@@ -210,7 +210,7 @@ export default function Team() {
                   <div className="flex items-center gap-2">
                     <RoleBadge role={member.role} />
                     {member.status === 'pending' && (
-                      <Badge variant="outline" className="text-xs text-amber-600 border-amber-200">Pending</Badge>
+                    <Badge variant="outline" className="text-xs text-amber-400 border-amber-700">Pending</Badge>
                     )}
                     {isAdmin && (
                       <DropdownMenu>
@@ -257,28 +257,28 @@ export default function Team() {
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div>
-              <Label className="mb-1.5 block">Email address</Label>
+              <Label className="mb-1.5 block text-stone-300">Email address</Label>
               <Input
                 type="email"
                 placeholder="colleague@company.com"
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleInvite()}
-                className="rounded-lg"
+                className="rounded-lg bg-stone-800 border-stone-700 text-stone-100 placeholder-stone-600"
               />
             </div>
             <div>
-              <Label className="mb-1.5 block">Role</Label>
+              <Label className="mb-1.5 block text-stone-300">Role</Label>
               <Select value={inviteRole} onValueChange={setInviteRole}>
-                <SelectTrigger className="rounded-lg">
+                <SelectTrigger className="rounded-lg bg-stone-800 border-stone-700 text-stone-100">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {Object.entries(ROLE_META).map(([key, meta]) => (
                     <SelectItem key={key} value={key}>
-                      <div>
-                        <p className="font-medium">{meta.label}</p>
-                        <p className="text-xs text-slate-500">{meta.description}</p>
+                       <div>
+                         <p className="font-medium">{meta.label}</p>
+                         <p className="text-xs text-stone-500">{meta.description}</p>
                       </div>
                     </SelectItem>
                   ))}
@@ -287,11 +287,11 @@ export default function Team() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowInvite(false)} className="rounded-lg">Cancel</Button>
+            <Button variant="outline" onClick={() => setShowInvite(false)} className="rounded-lg border-stone-700 text-stone-400 hover:text-stone-200">Cancel</Button>
             <Button
               onClick={handleInvite}
               disabled={!inviteEmail.trim() || inviting}
-              className="bg-indigo-600 hover:bg-indigo-700 rounded-lg"
+              className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-semibold rounded-lg"
             >
               {inviting ? <Loader2 className="w-4 h-4 animate-spin" /> : (
                 <><Mail className="w-4 h-4 mr-2" />Send Invite</>
