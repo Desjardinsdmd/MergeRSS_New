@@ -173,9 +173,9 @@ export default function Pricing() {
 
         {/* FAQ nudge */}
         <div className="mt-16 text-center">
-          <p className="text-slate-500 text-sm">
+          <p className="text-stone-500 text-sm">
             Need a custom plan?{' '}
-            <a href="mailto:support@mergerss.com" className="text-indigo-600 hover:text-indigo-700 font-medium">
+            <a href="mailto:support@mergerss.com" className="text-amber-400 hover:text-amber-300 font-medium">
               Contact us
             </a>
           </p>
