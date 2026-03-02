@@ -49,12 +49,12 @@ export default function Bookmarks() {
     <div className="p-6 lg:p-8 max-w-3xl mx-auto">
       <div className="mb-8 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
-            <Bookmark className="w-5 h-5 text-white" />
+          <div className="w-10 h-10 bg-amber-400 rounded-xl flex items-center justify-center">
+            <Bookmark className="w-5 h-5 text-stone-900" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">Read Later</h1>
-            <p className="text-sm text-slate-500">{unreadCount} unread · {bookmarks.length} total</p>
+            <h1 className="text-2xl font-bold text-stone-100">Read Later</h1>
+            <p className="text-sm text-stone-500">{unreadCount} unread · {bookmarks.length} total</p>
           </div>
         </div>
       </div>
