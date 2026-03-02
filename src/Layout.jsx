@@ -194,6 +194,7 @@ function LayoutContent({ children, currentPageName }) {
         <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
           {navigation.map((item) => {
             const isActive = currentPageName === item.href;
+            const isInbox = item.href === 'Inbox';
             return (
               <Link
                 key={item.name}
@@ -205,8 +206,9 @@ function LayoutContent({ children, currentPageName }) {
                     : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
                 )}
               >
-                <item.icon className={cn("w-4 h-4", isActive ? "text-indigo-600" : "text-slate-400")} />
-                {item.name}
+                <item.icon className={cn("w-4 h-4 flex-shrink-0", isActive ? "text-indigo-600" : "text-slate-400")} />
+                <span className="flex-1">{item.name}</span>
+                {isInbox && <InboxNavBadge user={user} />}
               </Link>
             );
           })}
