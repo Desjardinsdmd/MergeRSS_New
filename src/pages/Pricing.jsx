@@ -83,18 +83,18 @@ export default function Pricing() {
   };
 
   return (
-    <div className="min-h-screen bg-white py-24">
+    <div className="min-h-screen bg-[#0a0805] py-24">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 border border-indigo-100 rounded-full text-xs font-medium text-indigo-700 mb-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-stone-900 border border-stone-800 rounded-full text-xs font-medium text-amber-400 mb-6">
             <Zap className="w-3 h-3" />
             Simple, transparent pricing
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4 tracking-tight">
+          <h1 className="text-4xl md:text-5xl font-bold text-stone-100 mb-4 tracking-tight">
             Choose your plan
           </h1>
-          <p className="text-xl text-slate-500 max-w-xl mx-auto">
+          <p className="text-xl text-stone-500 max-w-xl mx-auto">
             Start free, upgrade when you need more power
           </p>
         </div>
