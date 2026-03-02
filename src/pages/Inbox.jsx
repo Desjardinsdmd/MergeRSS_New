@@ -38,6 +38,10 @@ export default function Inbox() {
 
   React.useEffect(() => {
     base44.auth.me().then(setUser);
+    // Check for deep-link delivery_id in URL params
+    const params = new URLSearchParams(window.location.search);
+    const did = params.get('delivery_id');
+    if (did) setAutoOpenId(did);
   }, []);
 
   const { data: digests = [] } = useQuery({
