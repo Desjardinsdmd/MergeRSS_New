@@ -364,10 +364,10 @@ export default function Dashboard() {
       )}
 
       {/* Latest Articles and Trending side by side */}
-      <div className="grid lg:grid-cols-2 gap-6 mb-6">
+      <div className="grid lg:grid-cols-2 gap-6 mb-6 auto-rows-max lg:auto-rows-fr">
         {/* Latest Articles */}
-        <div>
-          <div className="bg-stone-900 border border-stone-800">
+        <div className="flex flex-col">
+          <div className="bg-stone-900 border border-stone-800 flex flex-col h-full">
             <div className="flex flex-row items-center justify-between p-4 pb-2">
               <div className="flex items-center gap-2">
                 <span className="text-base font-semibold text-stone-100">Latest Articles</span>
@@ -399,7 +399,7 @@ export default function Dashboard() {
                 ))}
               </div>
             )}
-            <div className="p-0">
+            <div className="p-0 flex-1">
               {filteredArticles.length === 0 ? (
                 <div className="p-6 text-center text-stone-500">
                   {allArticles.length === 0 ? 'No items yet. Add feeds to start aggregating content.' : 'All caught up! 🎉'}

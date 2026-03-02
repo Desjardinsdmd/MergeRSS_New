@@ -44,7 +44,7 @@ export default function TrendingArticles({ articles }) {
   if (trending.length === 0) return null;
 
   return (
-    <div className="bg-stone-900 border border-stone-800">
+    <div className="bg-stone-900 border border-stone-800 flex flex-col h-full">
       <div className="flex flex-row items-center justify-between p-4 pb-2">
         <div className="flex items-center gap-2">
           <span className="text-base font-semibold text-stone-100 flex items-center gap-2">
@@ -53,7 +53,7 @@ export default function TrendingArticles({ articles }) {
           </span>
         </div>
       </div>
-      <div className="p-0">
+      <div className="p-0 flex-1">
         <div className="divide-y divide-stone-800">
           {trending.map((item) => (
             <a
