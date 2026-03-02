@@ -32,14 +32,14 @@ export default function ArticleSummarizeButton({ item, onSummaryUpdate, compact 
       <div className="mt-2">
         <button
           onClick={toggleSummary}
-          className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+          className="flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300 font-medium"
         >
           <Sparkles className="w-3 h-3" />
           AI Summary
           {showSummary ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
         </button>
         {showSummary && (
-          <p className="mt-1.5 text-xs text-slate-600 bg-indigo-50 rounded-lg px-3 py-2 border border-indigo-100 leading-relaxed">
+          <p className="mt-1.5 text-xs text-stone-400 bg-stone-800 px-3 py-2 border border-stone-700 leading-relaxed">
             {item.ai_summary}
           </p>
         )}
