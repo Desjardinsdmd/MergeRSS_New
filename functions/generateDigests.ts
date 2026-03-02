@@ -146,26 +146,21 @@ Write a well-organized, professional digest. Group related stories where appropr
                 const deliveryTypes = ['web'];
 
                 // Email delivery
-                if (digest.delivery_email) {
-                    // Find the owner of this digest
-                    const users = await base44.asServiceRole.entities.User.filter({ email: digest.created_by });
-                    const owner = users[0];
-                    if (owner?.email) {
-                        const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                        // Sanitize content to prevent HTML injection
-                        const sanitizedContent = content
-                            .replace(/&/g, '&amp;')
-                            .replace(/</g, '&lt;')
-                            .replace(/>/g, '&gt;')
-                            .replace(/\n/g, '<br/>');
-                        const emailBody = `<h2>📰 ${digest.name}</h2><p><em>${dateStr} • ${items.length} articles</em></p><hr/><div style="white-space: pre-wrap;">${sanitizedContent}</div>`;
-                        await base44.asServiceRole.integrations.Core.SendEmail({
-                            to: owner.email,
-                            subject: `📰 ${digest.name} — ${dateStr}`,
-                            body: emailBody,
-                        });
-                        deliveryTypes.push('email');
-                    }
+                if (digest.delivery_email && digest.created_by) {
+                    const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                    // Sanitize content to prevent HTML injection
+                    const sanitizedContent = content
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/\n/g, '<br/>');
+                    const emailBody = `<h2>📰 ${digest.name}</h2><p><em>${dateStr} • ${items.length} articles</em></p><hr/><div style="white-space: pre-wrap;">${sanitizedContent}</div>`;
+                    await base44.asServiceRole.integrations.Core.SendEmail({
+                        to: digest.created_by,
+                        subject: `📰 ${digest.name} — ${dateStr}`,
+                        body: emailBody,
+                    });
+                    deliveryTypes.push('email');
                 }
 
                 // Slack delivery
