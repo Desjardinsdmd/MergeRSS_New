@@ -220,7 +220,7 @@ export default function Feeds() {
             ))}
           </SelectContent>
         </Select>
-        <div className="flex gap-1 border border-slate-200 rounded-lg p-1 bg-white">
+        <div className="flex gap-1 border border-stone-800 rounded-lg p-1 bg-stone-900">
           <Button
             variant={viewMode === 'grid' ? 'default' : 'ghost'}
             size="sm"
