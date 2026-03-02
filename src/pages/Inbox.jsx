@@ -260,8 +260,8 @@ export default function Inbox() {
   return (
     <div className="p-6 lg:p-8 max-w-6xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">Inbox</h1>
-        <p className="text-slate-600">Your AI-generated digests, delivered to your web inbox</p>
+        <h1 className="text-2xl font-bold text-stone-100">Inbox</h1>
+        <p className="text-stone-500">Your AI-generated digests, delivered to your web inbox</p>
       </div>
 
       <div className="flex gap-6">
