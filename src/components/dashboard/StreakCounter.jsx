@@ -36,10 +36,10 @@ export default function StreakCounter({ user }) {
   if (false) return null; // always show for preview
 
   return (
-    <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold transition-all ${
+    <div className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold transition-all ${
       isNew
-        ? 'bg-orange-100 text-orange-700 animate-pulse'
-        : 'bg-orange-50 text-orange-600'
+        ? 'bg-amber-400 text-stone-900 animate-pulse'
+        : 'bg-stone-800 text-amber-400'
     }`}>
       <Flame className="w-4 h-4" />
       <span>{displayStreak}-day streak</span>
