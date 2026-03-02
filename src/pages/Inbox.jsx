@@ -443,17 +443,17 @@ export default function Inbox() {
                     {showItems ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                   </button>
                   {showItems && (
-                    <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto">
+                    <div className="divide-y divide-stone-800 max-h-64 overflow-y-auto">
                       {selectedDelivery.items.map((item, i) => (
                         <a
                           key={i}
                           href={item.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-start gap-2 px-4 py-2.5 hover:bg-indigo-50 transition group"
+                          className="flex items-start gap-2 px-4 py-2.5 hover:bg-stone-700 transition group"
                         >
-                          <ExternalLink className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-slate-400 group-hover:text-indigo-500" />
-                          <span className="text-sm text-slate-700 group-hover:text-indigo-700 line-clamp-2">{item.title}</span>
+                          <ExternalLink className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-stone-600 group-hover:text-amber-400" />
+                          <span className="text-sm text-stone-400 group-hover:text-amber-400 line-clamp-2">{item.title}</span>
                         </a>
                       ))}
                     </div>
