@@ -176,7 +176,7 @@ export default function Feeds() {
             onClick={() => canAddMore ? setShowAddDialog(true) : null}
             disabled={!canAddMore}
             title={!canAddMore ? 'Upgrade to Premium to add more feeds' : ''}
-            className="bg-indigo-600 hover:bg-indigo-700 rounded-lg disabled:opacity-60"
+            className="bg-amber-400 hover:bg-amber-300 text-stone-900 rounded-lg disabled:opacity-60 font-bold"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add Feed
