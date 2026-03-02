@@ -31,8 +31,12 @@ Deno.serve(async (req) => {
       byCategory[cat].push(item);
     });
 
+    // Helper to pick top related articles for a set of items
+    const topArticles = (items, n = 5) =>
+      items.slice(0, n).map(i => ({ title: i.title, url: i.url }));
+
     // Generate overall brief
-    const allHeadlines = todayItems.slice(0, 40).map(i => `- ${i.title}`).join('\n');
+    const allHeadlines = todayItems.slice(0, 40).map(i => `[${i.title}]`).join('\n');
     const overallResult = await base44.integrations.Core.InvokeLLM({
       prompt: `You are a sharp news editor. Summarize today's top stories from these headlines into a concise 3-sentence "Today's Brief" for a busy professional. Be direct, informative, and highlight the most important themes.
 
@@ -73,7 +77,11 @@ Write 2-3 sentences max. No bullet points, no headers. Just flowing sentences ab
           }
         }
       });
-      categoryBriefs[cat] = { brief: res.brief, article_count: items.length };
+      categoryBriefs[cat] = {
+        brief: res.brief,
+        article_count: items.length,
+        related_articles: topArticles(items, 5),
+      };
     }));
 
     return Response.json({
@@ -83,6 +91,7 @@ Write 2-3 sentences max. No bullet points, no headers. Just flowing sentences ab
         article_count: todayItems.length,
         generated_at: new Date().toISOString(),
         category_briefs: categoryBriefs,
+        related_articles: topArticles(todayItems, 6),
       }
     });
   } catch (error) {
