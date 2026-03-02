@@ -178,10 +178,10 @@ export default function Dashboard() {
 
       {/* Feed error banner */}
       {errorFeeds.length > 0 && (
-        <div className="mb-4 flex items-center gap-3 p-3 bg-red-50 border border-red-100 rounded-lg text-sm text-red-700">
+        <div className="mb-4 flex items-center gap-3 p-3 bg-stone-900 border border-red-900 text-sm text-red-400">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
           <span>{errorFeeds.length} feed{errorFeeds.length > 1 ? 's are' : ' is'} experiencing errors.</span>
-          <Link to={createPageUrl('Feeds')} className="ml-auto font-medium underline">Fix now →</Link>
+          <Link to={createPageUrl('Feeds')} className="ml-auto font-medium underline text-amber-400">Fix now →</Link>
         </div>
       )}
 
