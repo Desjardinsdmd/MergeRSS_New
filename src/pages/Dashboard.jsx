@@ -157,7 +157,7 @@ export default function Dashboard() {
   const errorFeeds = feeds.filter(f => f.status === 'error');
 
   const stats = [
-    { name: 'Active Feeds', value: feeds.filter(f => f.status === 'active').length, icon: Rss, color: 'violet' },
+    { name: 'Active Feeds', value: feeds.length, icon: Rss, color: 'violet' },
     { name: 'Digests', value: digests.length, icon: FileText, color: 'indigo' },
     { name: 'Unread Items', value: unreadCount, icon: TrendingUp, color: 'emerald' },
     { name: 'Digest Adds', value: totalAdded, icon: Users, color: 'amber' },
