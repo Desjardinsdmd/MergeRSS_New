@@ -33,6 +33,8 @@ export default function Inbox() {
   const [user, setUser] = React.useState(null);
   const queryClient = useQueryClient();
 
+  const [showItems, setShowItems] = useState(false);
+
   React.useEffect(() => {
     base44.auth.me().then(setUser);
   }, []);
