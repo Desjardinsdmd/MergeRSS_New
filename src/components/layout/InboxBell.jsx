@@ -26,6 +26,8 @@ export default function InboxBell({ user }) {
     refetchInterval: 60000,
   });
 
+  const unread = deliveries.filter(d => !d.is_read).length;
+
   return (
     <Link
       to={createPageUrl('Inbox')}
