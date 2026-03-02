@@ -395,7 +395,7 @@ export default function Inbox() {
 
           {selectedDelivery && (
             <div className="space-y-4">
-              <div className="flex items-center gap-4 text-sm text-slate-500 pb-4 border-b flex-wrap">
+              <div className="flex items-center gap-4 text-sm text-stone-500 pb-4 border-b border-stone-700 flex-wrap">
                 <span className="flex items-center gap-1">
                   <Calendar className="w-4 h-4" />
                   {format(new Date(selectedDelivery.sent_at), 'MMMM d, yyyy h:mm a')}
