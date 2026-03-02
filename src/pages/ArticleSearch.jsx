@@ -88,13 +88,14 @@ export default function ArticleSearch() {
 
   return (
     <div className="p-6 lg:p-8 max-w-full mx-auto">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-stone-100 mb-1">Search Articles</h1>
-        <p className="text-stone-500">Find content across all your feeds</p>
-      </div>
+      <div className="max-w-6xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-stone-100 mb-1">Search Articles</h1>
+          <p className="text-stone-500">Find content across all your feeds</p>
+        </div>
 
-      {/* Search bar */}
-      <div className="flex gap-2 mb-4">
+        {/* Search bar */}
+        <div className="flex gap-2 mb-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-600" />
           <Input
@@ -191,17 +192,17 @@ export default function ArticleSearch() {
         </Card>
       )}
 
-      {/* Results count */}
-      {!isLoading && (
-        <p className="text-sm text-stone-500 mb-4">
-          {hasFilters
-            ? `${filtered.length} result${filtered.length !== 1 ? 's' : ''} found`
-            : `${allItems.length} articles total`}
-        </p>
-      )}
+       {/* Results count */}
+       {!isLoading && (
+         <p className="text-sm text-stone-500 mb-4">
+           {hasFilters
+             ? `${filtered.length} result${filtered.length !== 1 ? 's' : ''} found`
+             : `${allItems.length} articles total`}
+         </p>
+       )}
 
-      {/* Content */}
-      <div className="grid lg:grid-cols-2 gap-6">
+       {/* Content */}
+       <div className="grid lg:grid-cols-2 gap-6">
         {/* List */}
         <div>
           {isLoading ? (
@@ -309,6 +310,7 @@ export default function ArticleSearch() {
             Click an article to view details
           </div>
         )}
+        </div>
       </div>
     </div>
   );
