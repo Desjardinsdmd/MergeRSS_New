@@ -110,10 +110,10 @@ export default function AdminAnalytics() {
                 {digestAdds.map((d, i) => (
                   <div key={d.id} className="flex items-center justify-between py-1.5">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-xs text-slate-400 w-4">{i + 1}</span>
-                      <span className="text-sm text-slate-800 truncate">{d.name}</span>
+                      <span className="text-xs text-stone-500 w-4">{i + 1}</span>
+                      <span className="text-sm text-stone-300 truncate">{d.name}</span>
                     </div>
-                    <Badge className="bg-amber-100 text-amber-700 border-0 text-xs ml-2 flex-shrink-0">
+                    <Badge className="bg-amber-900/30 text-amber-400 border-0 text-xs ml-2 flex-shrink-0">
                       {d.added_count} adds
                     </Badge>
                   </div>
@@ -139,10 +139,10 @@ export default function AdminAnalytics() {
                 {topDirFeeds.map((f, i) => (
                   <div key={f.id} className="flex items-center justify-between py-1.5">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-xs text-slate-400 w-4">{i + 1}</span>
-                      <span className="text-sm text-slate-800 truncate">{f.name}</span>
+                      <span className="text-xs text-stone-500 w-4">{i + 1}</span>
+                      <span className="text-sm text-stone-300 truncate">{f.name}</span>
                     </div>
-                    <Badge className="bg-indigo-100 text-indigo-700 border-0 text-xs ml-2 flex-shrink-0">
+                    <Badge className="bg-amber-900/30 text-amber-400 border-0 text-xs ml-2 flex-shrink-0">
                       {f.added_count || 0} subs
                     </Badge>
                   </div>
