@@ -205,9 +205,10 @@ Write a well-organized, professional digest. Group related stories where appropr
                     const webhookUrl = digest.discord_webhook_url;
                     if (webhookUrl) {
                         const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                        const footerLink = `\n\n[📥 View full digest & article list in MergeRSS](${inboxUrl})`;
                         const header = `**📰 ${digest.name}**\n*${dateStr} • ${items.length} articles*\n\n`;
-                        const maxContent = 1900 - header.length;
-                        const discordMsg = header + content.slice(0, maxContent) + (content.length > maxContent ? '\n\n*...read full digest in your MergeRSS inbox*' : '');
+                        const maxContent = 1900 - header.length - footerLink.length;
+                        const discordMsg = header + content.slice(0, maxContent) + (content.length > maxContent ? '...' : '') + footerLink;
 
                         try {
                             const discordRes = await fetch(webhookUrl, {
