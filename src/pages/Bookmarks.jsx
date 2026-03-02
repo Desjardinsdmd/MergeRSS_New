@@ -77,12 +77,12 @@ export default function Bookmarks() {
       </div>
 
       {isLoading ? (
-        <div className="text-center py-16 text-slate-400">Loading...</div>
+        <div className="text-center py-16 text-stone-600">Loading...</div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-16">
-          <Bookmark className="w-12 h-12 text-slate-200 mx-auto mb-3" />
-          <p className="text-slate-500 font-medium">No bookmarks yet</p>
-          <p className="text-slate-400 text-sm mt-1">
+          <Bookmark className="w-12 h-12 text-stone-700 mx-auto mb-3" />
+          <p className="text-stone-400 font-medium">No bookmarks yet</p>
+          <p className="text-stone-600 text-sm mt-1">
             Tap the bookmark icon on any article to save it here.
           </p>
         </div>
