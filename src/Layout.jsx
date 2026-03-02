@@ -332,6 +332,7 @@ function LayoutContent({ children, currentPageName }) {
               <span className="font-bold text-slate-900 dark:text-white tracking-tight">MergeRSS</span>
             </div>
             <div className="flex items-center gap-1">
+              <BookmarkBell user={user} />
               <InboxBell user={user} />
               <Button
                 variant="ghost"
