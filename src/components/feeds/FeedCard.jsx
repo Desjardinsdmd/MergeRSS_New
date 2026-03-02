@@ -22,45 +22,45 @@ import {
 import { cn } from '@/lib/utils';
 
 const categoryColors = {
-  CRE: 'bg-blue-100 text-blue-700',
-  Markets: 'bg-green-100 text-green-700',
-  Tech: 'bg-purple-100 text-purple-700',
-  News: 'bg-orange-100 text-orange-700',
-  Finance: 'bg-emerald-100 text-emerald-700',
-  Crypto: 'bg-yellow-100 text-yellow-700',
-  AI: 'bg-pink-100 text-pink-700',
-  Other: 'bg-slate-100 text-slate-700',
+  CRE: 'bg-blue-950 text-blue-400',
+  Markets: 'bg-green-950 text-green-400',
+  Tech: 'bg-purple-950 text-purple-400',
+  News: 'bg-orange-950 text-orange-400',
+  Finance: 'bg-emerald-950 text-emerald-400',
+  Crypto: 'bg-yellow-950 text-yellow-400',
+  AI: 'bg-pink-950 text-pink-400',
+  Other: 'bg-stone-800 text-stone-300',
 };
 
 export default function FeedCard({ feed, onEdit, onDelete, onToggleStatus }) {
   return (
     <Card className={cn(
-      "border-slate-100 transition-all hover:shadow-md",
-      feed.status === 'error' && "border-red-200 bg-red-50/30"
+      "border-stone-800 bg-stone-900 transition-all hover:shadow-md",
+      feed.status === 'error' && "border-red-900 bg-red-950/30"
     )}>
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
           <div className={cn(
             "w-10 h-10 flex items-center justify-center flex-shrink-0",
-            feed.status === 'error' ? "bg-red-100" : "bg-[#171a20]"
+            feed.status === 'error' ? "bg-red-950" : "bg-stone-800"
           )}>
             <Rss className={cn(
               "w-5 h-5",
-              feed.status === 'error' ? "text-red-600" : "text-white"
+              feed.status === 'error' ? "text-red-400" : "text-amber-400"
             )} />
           </div>
           
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0 flex-1">
-                <h3 className="font-semibold text-slate-900 truncate">
+                <h3 className="font-semibold text-stone-200 truncate">
                   {feed.name}
                 </h3>
                 <a 
                   href={feed.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-slate-500 hover:text-violet-600 truncate block"
+                  className="text-xs text-stone-500 hover:text-amber-400 truncate block"
                 >
                   {feed.url}
                 </a>
@@ -117,9 +117,9 @@ export default function FeedCard({ feed, onEdit, onDelete, onToggleStatus }) {
               ))}
             </div>
 
-            <div className="flex items-center gap-4 mt-3 text-xs text-slate-500">
+            <div className="flex items-center gap-4 mt-3 text-xs text-stone-500">
               {feed.status === 'error' ? (
-                <span className="flex items-center gap-1 text-red-600">
+                <span className="flex items-center gap-1 text-red-400">
                   <AlertCircle className="w-3 h-3" />
                   Error fetching
                 </span>

@@ -34,25 +34,25 @@ export default function FeedCompactView({ feeds, selectedIds, onSelectionChange,
           checked={selectedIds.length === feeds.length && feeds.length > 0}
           onCheckedChange={handleSelectAll}
         />
-        <span className="text-sm text-slate-600">{selectedIds.length} selected</span>
+        <span className="text-sm text-stone-500">{selectedIds.length} selected</span>
       </div>
       {feeds.map((feed) => (
         <div
-          key={feed.id}
-          className="flex items-center gap-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition"
-        >
+           key={feed.id}
+           className="flex items-center gap-3 p-3 border border-stone-800 rounded-lg hover:bg-stone-800 transition bg-stone-900"
+         >
           <Checkbox
             checked={selectedIds.includes(feed.id)}
             onCheckedChange={(checked) => handleSelectOne(feed.id, checked)}
           />
           <div className="flex-1 min-w-0">
-            <p className="font-medium text-slate-900 truncate">{feed.name}</p>
-            <div className="flex items-center gap-2 mt-1">
-              <Badge variant={feed.status === 'active' ? 'default' : 'secondary'} className="text-xs">
-                {feed.status === 'active' ? 'Active' : 'Paused'}
-              </Badge>
-              <span className="text-xs text-slate-500">{feed.item_count || 0} items</span>
-            </div>
+            <p className="font-medium text-stone-200 truncate">{feed.name}</p>
+             <div className="flex items-center gap-2 mt-1">
+               <Badge variant={feed.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+                 {feed.status === 'active' ? 'Active' : 'Paused'}
+               </Badge>
+               <span className="text-xs text-stone-500">{feed.item_count || 0} items</span>
+             </div>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

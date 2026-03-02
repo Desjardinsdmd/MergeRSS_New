@@ -28,20 +28,20 @@ export default function FeedListView({ feeds, selectedIds, onSelectionChange, on
   };
 
   const categoryColors = {
-    CRE: 'bg-blue-50 text-blue-700',
-    Markets: 'bg-purple-50 text-purple-700',
-    Tech: 'bg-pink-50 text-pink-700',
-    News: 'bg-yellow-50 text-yellow-700',
-    Finance: 'bg-green-50 text-green-700',
-    Crypto: 'bg-orange-50 text-orange-700',
-    AI: 'bg-indigo-50 text-indigo-700',
-    Other: 'bg-slate-50 text-slate-700',
+    CRE: 'bg-blue-950 text-blue-400',
+    Markets: 'bg-purple-950 text-purple-400',
+    Tech: 'bg-pink-950 text-pink-400',
+    News: 'bg-yellow-950 text-yellow-400',
+    Finance: 'bg-green-950 text-green-400',
+    Crypto: 'bg-orange-950 text-orange-400',
+    AI: 'bg-indigo-950 text-indigo-400',
+    Other: 'bg-stone-800 text-stone-300',
   };
 
   return (
-    <div className="border border-slate-200 rounded-lg overflow-hidden">
+    <div className="border border-stone-800 rounded-lg overflow-hidden bg-stone-900">
       <table className="w-full">
-        <thead className="bg-slate-50 border-b border-slate-200">
+        <thead className="bg-stone-800 border-b border-stone-800">
           <tr>
             <th className="w-10 px-4 py-3">
               <Checkbox
@@ -49,16 +49,16 @@ export default function FeedListView({ feeds, selectedIds, onSelectionChange, on
                 onCheckedChange={handleSelectAll}
               />
             </th>
-            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Name</th>
-            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Category</th>
-            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Status</th>
-            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Items</th>
+            <th className="px-4 py-3 text-left text-sm font-semibold text-stone-200">Name</th>
+            <th className="px-4 py-3 text-left text-sm font-semibold text-stone-200">Category</th>
+            <th className="px-4 py-3 text-left text-sm font-semibold text-stone-200">Status</th>
+            <th className="px-4 py-3 text-left text-sm font-semibold text-stone-200">Items</th>
             <th className="w-10 px-4 py-3"></th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-200">
-          {feeds.map((feed) => (
-            <tr key={feed.id} className="hover:bg-slate-50 transition">
+        <tbody className="divide-y divide-stone-800">
+           {feeds.map((feed) => (
+             <tr key={feed.id} className="hover:bg-stone-800 transition">
               <td className="px-4 py-3">
                 <Checkbox
                   checked={selectedIds.includes(feed.id)}
@@ -67,15 +67,15 @@ export default function FeedListView({ feeds, selectedIds, onSelectionChange, on
               </td>
               <td className="px-4 py-3">
                 <div>
-                  <p className="font-medium text-slate-900">{feed.name}</p>
-                  <a
-                    href={feed.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-slate-500 hover:text-slate-700 truncate block max-w-xs"
-                  >
-                    {feed.url}
-                  </a>
+                  <p className="font-medium text-stone-200">{feed.name}</p>
+                   <a
+                     href={feed.url}
+                     target="_blank"
+                     rel="noopener noreferrer"
+                     className="text-xs text-stone-500 hover:text-stone-400 truncate block max-w-xs"
+                   >
+                     {feed.url}
+                   </a>
                 </div>
               </td>
               <td className="px-4 py-3">
@@ -86,7 +86,7 @@ export default function FeedListView({ feeds, selectedIds, onSelectionChange, on
                   {feed.status === 'active' ? 'Active' : 'Paused'}
                 </Badge>
               </td>
-              <td className="px-4 py-3 text-sm text-slate-600">
+              <td className="px-4 py-3 text-sm text-stone-500">
                 {feed.item_count || 0}
               </td>
               <td className="px-4 py-3">
