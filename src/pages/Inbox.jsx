@@ -434,10 +434,10 @@ export default function Inbox() {
               </div>
 
               {selectedDelivery.items?.length > 0 && (
-                <div className="border border-slate-200 rounded-lg overflow-hidden">
+                <div className="border border-stone-800 rounded-lg overflow-hidden">
                   <button
                     onClick={() => setShowItems(v => !v)}
-                    className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 hover:bg-slate-100 transition text-sm font-medium text-slate-700"
+                    className="w-full flex items-center justify-between px-4 py-3 bg-stone-800 hover:bg-stone-700 transition text-sm font-medium text-stone-300"
                   >
                     <span>📄 {selectedDelivery.items.length} articles in this digest</span>
                     {showItems ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
