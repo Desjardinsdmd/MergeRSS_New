@@ -30,6 +30,12 @@ import { cn } from '@/lib/utils';
 
 export default function DigestCard({ digest, onEdit, onDelete, onToggleStatus, onSendTest, onMakePublic, isSending }) {
   const [showComments, setShowComments] = useState(false);
+  const [ran, setRan] = useState(false);
+
+  const handleRunNow = async () => {
+    await onSendTest(digest);
+    setRan(true);
+  };
   const frequencyLabel = digest.frequency === 'daily' ? 'Daily' : 'Weekly';
   
   return (
