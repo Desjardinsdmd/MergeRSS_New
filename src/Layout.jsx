@@ -55,6 +55,22 @@ const adminNav = [
   { name: 'Analytics', href: 'AdminAnalytics', icon: BarChart3 },
 ];
 
+function BookmarkNavBadge({ user }) {
+  const { data: bookmarks = [] } = useQuery({
+    queryKey: ['bookmarks-unread', user?.email],
+    queryFn: () => base44.entities.Bookmark.filter({ created_by: user?.email, is_read: false }),
+    enabled: !!user,
+    refetchInterval: 60000,
+  });
+  const unread = bookmarks.length;
+  if (!unread) return null;
+  return (
+    <span className="min-w-[18px] h-[18px] bg-indigo-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 leading-none flex-shrink-0">
+      {unread > 99 ? '99+' : unread}
+    </span>
+  );
+}
+
 function InboxNavBadge({ user }) {
   const { data: digests = [] } = useQuery({
     queryKey: ['nav-digests', user?.email],
