@@ -8,12 +8,12 @@ import { base44 } from '@/api/base44Client';
 export default function BookmarkBell({ user }) {
   const { data: bookmarks = [] } = useQuery({
     queryKey: ['bookmarks-unread', user?.email],
-    queryFn: () => base44.entities.Bookmark.filter({ created_by: user?.email, is_read: false }),
+    queryFn: () => base44.entities.Bookmark.list('-created_date', 200),
     enabled: !!user,
     refetchInterval: 60000,
   });
 
-  const unread = bookmarks.length;
+  const unread = bookmarks.filter(b => !b.is_read).length;
 
   return (
     <Link
