@@ -369,7 +369,7 @@ export default function Inbox() {
                       {/* Download PDF button (visible on hover) */}
                       <button
                         onClick={e => { e.stopPropagation(); handleDownloadPdf(delivery); }}
-                        className="opacity-0 group-hover:opacity-100 mt-0.5 flex-shrink-0 p-1 text-slate-400 hover:text-indigo-600 transition"
+                        className="opacity-0 group-hover:opacity-100 mt-0.5 flex-shrink-0 p-1 text-stone-600 hover:text-amber-400 transition"
                         title="Download as PDF"
                       >
                         <Download className="w-4 h-4" />
