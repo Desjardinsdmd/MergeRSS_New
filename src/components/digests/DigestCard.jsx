@@ -164,12 +164,26 @@ export default function DigestCard({ digest, onEdit, onDelete, onToggleStatus, o
               </div>
             </div>
 
-            {/* Last sent */}
-            {digest.last_sent && (
-              <p className="text-xs text-slate-400 mt-2">
-                Last sent: {new Date(digest.last_sent).toLocaleString()}
-              </p>
-            )}
+            {/* Last sent + Run Now */}
+            <div className="flex items-center justify-between mt-2">
+              {digest.last_sent ? (
+                <p className="text-xs text-slate-400">
+                  Last sent: {new Date(digest.last_sent).toLocaleString()}
+                </p>
+              ) : <span />}
+              <button
+                onClick={handleRunNow}
+                disabled={isSending || ran}
+                className={cn(
+                  'flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md transition-colors',
+                  ran ? 'text-emerald-600 bg-emerald-50' : 'text-indigo-600 bg-indigo-50 hover:bg-indigo-100',
+                  (isSending || ran) && 'opacity-60 cursor-not-allowed'
+                )}
+              >
+                {isSending ? <Loader2 className="w-3 h-3 animate-spin" /> : ran ? <CheckCircle2 className="w-3 h-3" /> : <Zap className="w-3 h-3" />}
+                {isSending ? 'Running…' : ran ? 'Sent!' : 'Run Now'}
+              </button>
+            </div>
 
             {/* Toggle comments */}
             <button
