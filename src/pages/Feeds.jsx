@@ -146,11 +146,11 @@ export default function Feeds() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Feeds</h1>
-          <p className="text-slate-600">
+          <h1 className="text-2xl font-bold text-stone-100">Feeds</h1>
+          <p className="text-stone-500">
             Manage your RSS feed sources
             {!isPremium && (
-              <span className="text-sm text-slate-500 ml-2">
+              <span className="text-sm text-stone-600 ml-2">
                 ({feeds.length}/{maxFeeds} used)
               </span>
             )}
