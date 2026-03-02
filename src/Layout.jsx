@@ -50,6 +50,7 @@ const navigation = [
 const adminNav = [
   { name: 'System Health', href: 'AdminHealth', icon: Activity },
   { name: 'Import Feeds', href: 'AdminImport', icon: Globe },
+  { name: 'Analytics', href: 'AdminAnalytics', icon: BarChart3 },
 ];
 
 function InboxNavBadge({ user }) {
