@@ -238,75 +238,75 @@ export default function Dashboard() {
 
       {/* Article modal */}
       {expandedArticles && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <Card className="w-full max-w-2xl max-h-[90vh] flex flex-col border-slate-100">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-slate-100">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-2xl max-h-[90vh] flex flex-col bg-stone-900 border border-stone-800">
+            <div className="flex flex-row items-center justify-between p-4 pb-3 border-b border-stone-800 flex-shrink-0">
               <div className="flex items-center gap-2">
                 {expandedItem && (
-                  <button onClick={() => setExpandedItem(null)} className="text-slate-400 hover:text-slate-600 text-sm mr-1">
+                  <button onClick={() => setExpandedItem(null)} className="text-stone-500 hover:text-stone-200 text-sm mr-1">
                     ← Back
                   </button>
                 )}
-                <CardTitle className="text-lg font-semibold">
+                <span className="text-base font-semibold text-stone-100">
                   {expandedItem ? 'Article' : 'Latest Articles'}
-                </CardTitle>
+                </span>
                 {!expandedItem && unreadCount > 0 && (
-                  <Badge className="bg-indigo-100 text-indigo-700 text-xs">{unreadCount} unread</Badge>
+                  <span className="bg-amber-400 text-stone-900 text-xs font-bold px-2 py-0.5">{unreadCount} unread</span>
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <button onClick={() => setShowShortcuts(s => !s)} title="Keyboard shortcuts (?)" className="text-slate-400 hover:text-slate-600 p-1">
+                <button onClick={() => setShowShortcuts(s => !s)} title="Keyboard shortcuts (?)" className="text-stone-600 hover:text-stone-300 p-1">
                   <Keyboard className="w-4 h-4" />
                 </button>
-                <button onClick={() => { setExpandedArticles(false); setExpandedItem(null); }} className="text-slate-400 hover:text-slate-600">✕</button>
+                <button onClick={() => { setExpandedArticles(false); setExpandedItem(null); }} className="text-stone-600 hover:text-stone-200">✕</button>
               </div>
-            </CardHeader>
+            </div>
             {showShortcuts && (
-              <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 text-xs text-slate-500 flex flex-wrap gap-x-4 gap-y-1">
-                <span><kbd className="bg-white border border-slate-200 rounded px-1">j/↓</kbd> next</span>
-                <span><kbd className="bg-white border border-slate-200 rounded px-1">k/↑</kbd> prev</span>
-                <span><kbd className="bg-white border border-slate-200 rounded px-1">o/↵</kbd> open</span>
-                <span><kbd className="bg-white border border-slate-200 rounded px-1">Esc</kbd> back/close</span>
+              <div className="px-4 py-2 bg-stone-950 border-b border-stone-800 text-xs text-stone-500 flex flex-wrap gap-x-4 gap-y-1">
+                <span><kbd className="bg-stone-800 border border-stone-700 px-1">j/↓</kbd> next</span>
+                <span><kbd className="bg-stone-800 border border-stone-700 px-1">k/↑</kbd> prev</span>
+                <span><kbd className="bg-stone-800 border border-stone-700 px-1">o/↵</kbd> open</span>
+                <span><kbd className="bg-stone-800 border border-stone-700 px-1">Esc</kbd> back/close</span>
               </div>
             )}
-            <CardContent className="p-0 overflow-y-auto flex-1">
+            <div className="p-0 overflow-y-auto flex-1">
               {expandedItem ? (
                 <div className="p-5">
                   <a href={expandedItem.url} target="_blank" rel="noopener noreferrer" className="group">
-                    <h2 className="text-base font-semibold text-slate-900 group-hover:text-indigo-700 transition-colors mb-2 leading-snug">
+                    <h2 className="text-base font-semibold text-stone-100 group-hover:text-amber-400 transition-colors mb-2 leading-snug">
                       {expandedItem.title}
                     </h2>
                   </a>
-                  <div className="flex items-center gap-2 text-xs text-slate-500 mb-3">
+                  <div className="flex items-center gap-2 text-xs text-stone-500 mb-3">
                     <Clock className="w-3 h-3" />
                     {expandedItem.published_date && new Date(expandedItem.published_date).toLocaleString()}
-                    {expandedItem.category && <Badge variant="secondary" className="text-xs">{expandedItem.category}</Badge>}
+                    {expandedItem.category && <span className="bg-stone-800 text-stone-400 px-2 py-0.5 text-xs">{expandedItem.category}</span>}
                     {expandedItem.author && <span>by {expandedItem.author}</span>}
                   </div>
                   {expandedItem.description && (
-                    <p className="text-sm text-slate-600 leading-relaxed mb-3">{expandedItem.description}</p>
+                    <p className="text-sm text-stone-400 leading-relaxed mb-3">{expandedItem.description}</p>
                   )}
                   <ArticleSummarizeButton item={mergeItem(expandedItem)} onSummaryUpdate={(updated) => { handleSummaryUpdate(updated); setExpandedItem(updated); }} />
                   <RelatedArticles currentItem={expandedItem} allItems={allArticles} />
                 </div>
               ) : (
                 filteredArticles.length === 0 ? (
-                  <div className="p-6 text-center text-slate-500">No unread items. All caught up! 🎉</div>
+                  <div className="p-6 text-center text-stone-500">No unread items. All caught up! 🎉</div>
                 ) : (
-                  <div className="divide-y divide-slate-100">
+                  <div className="divide-y divide-stone-800">
                     {categories.length > 1 && (
-                      <div className="p-3 flex gap-1.5 flex-wrap border-b border-slate-100">
+                      <div className="p-3 flex gap-1.5 flex-wrap border-b border-stone-800">
                         {categories.map(cat => (
                           <button
                             key={cat}
                             onClick={() => setActiveCategory(cat)}
-                            className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors flex items-center gap-1 ${
-                              activeCategory === cat ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                            className={`text-xs px-2.5 py-1 font-medium transition-colors flex items-center gap-1 ${
+                              activeCategory === cat ? 'bg-amber-400 text-stone-900' : 'bg-stone-800 text-stone-400 hover:text-stone-200'
                             }`}
                           >
                             {cat}
                             {cat !== 'All' && unreadByCategory[cat] > 0 && (
-                              <span className={`text-xs rounded-full px-1 ${activeCategory === cat ? 'bg-white/20' : 'bg-indigo-100 text-indigo-700'}`}>
+                              <span className={`text-xs px-1 ${activeCategory === cat ? 'bg-stone-900/30' : 'bg-stone-700 text-stone-300'}`}>
                                 {unreadByCategory[cat]}
                               </span>
                             )}
@@ -320,22 +320,22 @@ export default function Dashboard() {
                       return (
                         <div
                           key={item.id}
-                          className={`p-4 hover:bg-slate-50 transition cursor-pointer group ${isFocused ? 'bg-indigo-50 ring-1 ring-inset ring-indigo-200' : ''}`}
+                          className={`p-4 hover:bg-stone-800/50 transition cursor-pointer group ${isFocused ? 'bg-stone-800 ring-1 ring-inset ring-amber-400/30' : ''}`}
                           onClick={() => setExpandedItem(merged)}
                         >
                           <div className="flex items-start gap-2">
                             <div className="flex-1 min-w-0">
-                              <p className="font-medium text-slate-900 mb-1 line-clamp-2">{item.title}</p>
-                              <div className="flex items-center gap-2 text-xs text-slate-500">
+                              <p className="font-medium text-stone-200 mb-1 line-clamp-2">{item.title}</p>
+                              <div className="flex items-center gap-2 text-xs text-stone-500">
                                 <Clock className="w-3 h-3" />
                                 {item.published_date && new Date(item.published_date).toLocaleDateString()}
-                                {item.category && <Badge variant="secondary" className="text-xs">{item.category}</Badge>}
+                                {item.category && <span className="bg-stone-800 text-stone-400 px-1.5 py-0.5">{item.category}</span>}
                               </div>
                             </div>
                             <button
                               onClick={(e) => markAsRead(item, e)}
                               title="Mark as read"
-                              className="opacity-0 group-hover:opacity-100 p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition flex-shrink-0"
+                              className="opacity-0 group-hover:opacity-100 p-1.5 text-stone-600 hover:text-amber-400 hover:bg-stone-800 transition flex-shrink-0"
                             >
                               <CheckCircle className="w-3.5 h-3.5" />
                             </button>
@@ -347,8 +347,8 @@ export default function Dashboard() {
                   </div>
                 )
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       )}
 
