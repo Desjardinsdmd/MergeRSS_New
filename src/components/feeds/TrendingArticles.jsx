@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { TrendingUp, ExternalLink, Clock } from 'lucide-react';
+import { TrendingUp, ExternalLink, Clock, ArrowRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
@@ -44,43 +44,42 @@ export default function TrendingArticles({ articles }) {
   if (trending.length === 0) return null;
 
   return (
-    <Card className="border-stone-800 bg-stone-900 mt-6">
-      <CardHeader className="flex flex-row items-center gap-2 pb-2">
-        <TrendingUp className="w-5 h-5 text-amber-400" />
-        <CardTitle className="text-lg font-semibold text-stone-200">Trending Now</CardTitle>
-      </CardHeader>
-      <CardContent className="p-0">
+    <div className="bg-stone-900 border border-stone-800">
+      <div className="flex flex-row items-center justify-between p-4 pb-2">
+        <div className="flex items-center gap-2">
+          <span className="text-base font-semibold text-stone-100 flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-amber-400" />
+            Trending Now
+          </span>
+        </div>
+      </div>
+      <div className="p-0">
         <div className="divide-y divide-stone-800">
-          {trending.map((item, idx) => (
+          {trending.map((item) => (
             <a
               key={item.id}
               href={item.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-start gap-3 p-4 hover:bg-stone-800 transition group"
+              className="flex items-start gap-2 p-4 hover:bg-stone-800/50 transition group"
             >
-              <span className="text-2xl font-black text-stone-500 w-6 text-center leading-none flex-shrink-0 mt-0.5 group-hover:text-amber-400 transition-colors">
-                {idx + 1}
-              </span>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-stone-200 line-clamp-1 group-hover:text-amber-400 transition-colors">
-                  {item.title}
-                </p>
-                <div className="flex items-center gap-2 mt-1 text-xs text-stone-500">
+                <p className="font-medium text-stone-200 mb-1 line-clamp-1">{item.title}</p>
+                <div className="flex items-center gap-2 text-xs text-stone-500">
                   <Clock className="w-3 h-3" />
-                  {item.published_date
-                    ? new Date(item.published_date).toLocaleDateString()
-                    : 'Unknown date'}
+                  {item.published_date && new Date(item.published_date).toLocaleDateString()}
                   {item.category && (
-                    <Badge variant="secondary" className="text-xs bg-stone-800 text-stone-400">{item.category}</Badge>
+                    <Badge className="bg-stone-800 text-stone-400 px-1.5 py-0.5 text-xs">{item.category}</Badge>
                   )}
                 </div>
               </div>
-              <ExternalLink className="w-3.5 h-3.5 text-stone-600 group-hover:text-amber-400 flex-shrink-0 mt-0.5 transition-colors" />
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <ExternalLink className="w-3.5 h-3.5 text-stone-600 group-hover:text-amber-400 transition-colors" />
+              </div>
             </a>
           ))}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
