@@ -168,7 +168,7 @@ export default function Digests() {
         </div>
       ) : (
         <>
-          <div className="flex justify-end gap-1 mb-6 border border-slate-200 rounded-lg p-1 bg-white w-fit">
+          <div className="flex justify-end gap-1 mb-6 border border-stone-800 rounded-lg p-1 bg-stone-900 w-fit">
             <Button
               variant={viewMode === 'grid' ? 'default' : 'ghost'}
               size="sm"
