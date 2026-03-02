@@ -112,11 +112,11 @@ export default function Digests() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Digests</h1>
-          <p className="text-slate-600">
+          <h1 className="text-2xl font-bold text-stone-100">Digests</h1>
+          <p className="text-stone-500">
             Create and manage your curated content digests
             {!isPremium && (
-              <span className="text-sm text-slate-500 ml-2">
+              <span className="text-sm text-stone-600 ml-2">
                 ({digests.length}/{maxDigests} used)
               </span>
             )}
@@ -126,7 +126,7 @@ export default function Digests() {
           onClick={() => setShowDialog(true)}
           disabled={!canAddMore}
           title={!canAddMore ? 'Upgrade to Premium to create more digests' : ''}
-          className="bg-indigo-600 hover:bg-indigo-700 rounded-lg disabled:opacity-60"
+          className="bg-amber-400 hover:bg-amber-300 text-stone-900 rounded-lg disabled:opacity-60 font-bold"
         >
           <Plus className="w-4 h-4 mr-2" />
           Create Digest
