@@ -106,7 +106,7 @@ function LayoutContent({ children, currentPageName }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const { theme, setTheme, mounted } = useTheme();
+  const { theme, setTheme } = { theme: 'dark', setTheme: () => {} };
 
   const publicPages = ['Landing', 'Pricing', 'Privacy', 'Terms'];
   const isPublicPage = publicPages.includes(currentPageName);
