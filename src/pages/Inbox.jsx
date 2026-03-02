@@ -301,13 +301,13 @@ export default function Inbox() {
                 <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
               </div>
             ) : filtered.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <InboxIcon className="w-6 h-6 text-slate-400" />
-                </div>
-                <h3 className="text-lg font-medium text-slate-900 mb-1">No digests here</h3>
-                <p className="text-slate-500 text-sm">Nothing in {selectedTag ? `#${selectedTag}` : selectedFolder} yet.</p>
-              </div>
+               <div className="text-center py-12">
+                 <div className="w-12 h-12 bg-stone-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                   <InboxIcon className="w-6 h-6 text-stone-600" />
+                 </div>
+                 <h3 className="text-lg font-medium text-stone-100 mb-1">No digests here</h3>
+                 <p className="text-stone-500 text-sm">Nothing in {selectedTag ? `#${selectedTag}` : selectedFolder} yet.</p>
+               </div>
             ) : (
               <div>
                 {filtered.map(delivery => {
