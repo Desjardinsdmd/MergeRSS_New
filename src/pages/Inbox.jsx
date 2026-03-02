@@ -322,18 +322,18 @@ export default function Inbox() {
                        )}
                      >
                       <button
-                        className="mt-0.5 flex-shrink-0 text-slate-300 hover:text-indigo-600 transition"
-                        onClick={e => { e.stopPropagation(); toggleSelect(delivery.id); }}
-                      >
-                        {isSelected
-                          ? <div className="w-4 h-4 bg-indigo-600 rounded flex items-center justify-center"><svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg></div>
-                          : <div className="w-4 h-4 border-2 border-slate-200 rounded group-hover:border-indigo-400 transition" />
-                        }
-                      </button>
+                         className="mt-0.5 flex-shrink-0 text-stone-600 hover:text-amber-400 transition"
+                         onClick={e => { e.stopPropagation(); toggleSelect(delivery.id); }}
+                       >
+                         {isSelected
+                           ? <div className="w-4 h-4 bg-amber-400 rounded flex items-center justify-center"><svg className="w-2.5 h-2.5 text-stone-900" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg></div>
+                           : <div className="w-4 h-4 border-2 border-stone-700 rounded group-hover:border-amber-400 transition" />
+                         }
+                       </button>
 
-                      <div className="mt-2 flex-shrink-0 w-2 h-2">
-                        {isUnread && <div className="w-2 h-2 rounded-full bg-indigo-600" />}
-                      </div>
+                       <div className="mt-2 flex-shrink-0 w-2 h-2">
+                         {isUnread && <div className="w-2 h-2 rounded-full bg-amber-400" />}
+                       </div>
 
                       <button
                         className="mt-0.5 flex-shrink-0"
