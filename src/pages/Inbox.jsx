@@ -315,12 +315,12 @@ export default function Inbox() {
                   const isSelected = selectedIds.includes(delivery.id);
                   return (
                     <div
-                      key={delivery.id}
-                      className={cn(
-                        'flex items-start gap-3 px-4 py-3.5 border-b border-slate-50 cursor-pointer hover:bg-slate-50 transition group',
-                        isSelected && 'bg-indigo-50 hover:bg-indigo-50'
-                      )}
-                    >
+                       key={delivery.id}
+                       className={cn(
+                         'flex items-start gap-3 px-4 py-3.5 border-b border-stone-800 cursor-pointer hover:bg-stone-800/50 transition group',
+                         isSelected && 'bg-stone-800 hover:bg-stone-800'
+                       )}
+                     >
                       <button
                         className="mt-0.5 flex-shrink-0 text-slate-300 hover:text-indigo-600 transition"
                         onClick={e => { e.stopPropagation(); toggleSelect(delivery.id); }}
