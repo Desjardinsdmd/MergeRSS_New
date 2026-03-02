@@ -17,6 +17,7 @@ import {
   ChevronRight,
   Crown,
   Activity,
+  BarChart3,
   Zap,
   Inbox,
   Users,
