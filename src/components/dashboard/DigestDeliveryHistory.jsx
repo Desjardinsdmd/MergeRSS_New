@@ -19,33 +19,31 @@ export default function DigestDeliveryHistory({ digests }) {
   const digestMap = Object.fromEntries(digests.map(d => [d.id, d.name]));
 
   return (
-    <Card className="border-slate-100">
-      <CardHeader className="pb-2 flex flex-row items-center justify-between">
-        <CardTitle className="text-sm font-semibold">Recent Deliveries</CardTitle>
-        <Link to={createPageUrl('Inbox')} className="text-xs text-indigo-600 hover:underline">Inbox →</Link>
-      </CardHeader>
-      <CardContent className="p-0">
-        <div className="divide-y divide-slate-100">
-          {deliveries.map(delivery => (
-            <div key={delivery.id} className="flex items-center gap-3 px-4 py-2.5">
-              <div className="p-1.5 bg-indigo-50 rounded-lg flex-shrink-0">
-                <FileText className="w-3 h-3 text-indigo-600" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-slate-800 truncate">
-                  {digestMap[delivery.digest_id] || 'Digest'}
-                </p>
-                <p className="text-xs text-slate-400">
-                  {delivery.item_count} articles • {delivery.sent_at ? new Date(delivery.sent_at).toLocaleDateString() : ''}
-                </p>
-              </div>
-              {!delivery.is_read && (
-                <Badge className="bg-indigo-100 text-indigo-700 text-xs flex-shrink-0">New</Badge>
-              )}
+    <div className="bg-stone-900 border border-stone-800">
+      <div className="pb-2 pt-4 px-4 flex flex-row items-center justify-between">
+        <span className="text-sm font-semibold text-stone-200">Recent Deliveries</span>
+        <Link to={createPageUrl('Inbox')} className="text-xs text-stone-500 hover:text-amber-400 transition-colors">Inbox →</Link>
+      </div>
+      <div className="divide-y divide-stone-800">
+        {deliveries.map(delivery => (
+          <div key={delivery.id} className="flex items-center gap-3 px-4 py-2.5">
+            <div className="p-1.5 bg-stone-800 flex-shrink-0">
+              <FileText className="w-3 h-3 text-amber-400" />
             </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-stone-300 truncate">
+                {digestMap[delivery.digest_id] || 'Digest'}
+              </p>
+              <p className="text-xs text-stone-600">
+                {delivery.item_count} articles • {delivery.sent_at ? new Date(delivery.sent_at).toLocaleDateString() : ''}
+              </p>
+            </div>
+            {!delivery.is_read && (
+              <span className="bg-amber-400 text-stone-900 text-xs font-bold px-1.5 py-0.5 flex-shrink-0">New</span>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
