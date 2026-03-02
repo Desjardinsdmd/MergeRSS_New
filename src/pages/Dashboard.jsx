@@ -219,23 +219,21 @@ export default function Dashboard() {
 
       {/* Empty state */}
       {feeds.length === 0 && (
-        <Card className="mb-8 border-dashed border-2 border-slate-200 bg-slate-50/50">
-          <CardContent className="p-8 text-center">
-            <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Rss className="w-6 h-6 text-indigo-600" />
-            </div>
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">Add your first feed</h3>
-            <p className="text-slate-600 mb-4 max-w-sm mx-auto">
-              Start by adding RSS feeds to aggregate content from your favorite sources
-            </p>
-            <Link to={createPageUrl('Feeds')}>
-              <Button className="bg-indigo-600 hover:bg-indigo-700 rounded-lg">
-                <Plus className="w-4 h-4 mr-2" />
-                Add Feed
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+        <div className="mb-8 border border-dashed border-stone-800 bg-stone-900/50 p-8 text-center">
+          <div className="w-12 h-12 bg-stone-800 flex items-center justify-center mx-auto mb-4">
+            <Rss className="w-6 h-6 text-amber-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-stone-100 mb-2">Add your first feed</h3>
+          <p className="text-stone-500 mb-4 max-w-sm mx-auto">
+            Start by adding RSS feeds to aggregate content from your favorite sources
+          </p>
+          <Link to={createPageUrl('Feeds')}>
+            <Button className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-bold">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Feed
+            </Button>
+          </Link>
+        </div>
       )}
 
       {/* Article modal */}
