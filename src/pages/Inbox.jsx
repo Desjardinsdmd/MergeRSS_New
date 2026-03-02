@@ -428,7 +428,7 @@ export default function Inbox() {
               )}
 
               <div className="prose prose-sm max-w-none">
-                <div className="whitespace-pre-wrap text-slate-700">
+                <div className="whitespace-pre-wrap text-stone-400">
                   {selectedDelivery.content || 'No content available for this digest.'}
                 </div>
               </div>
