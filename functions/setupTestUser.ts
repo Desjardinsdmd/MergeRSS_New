@@ -10,9 +10,17 @@ Deno.serve(async (req) => {
     }
 
     const testEmail = 'test@mergerss.com';
+    const testPassword = 'TestPassword123!';
     
     // Invite test user
     await base44.users.inviteUser(testEmail, 'user');
+    
+    // Send password reset email so they can set their password
+    await base44.integrations.Core.SendEmail({
+      to: testEmail,
+      subject: 'MergeRSS Test Account - Set Your Password',
+      body: `Your test account has been created.\n\nEmail: ${testEmail}\n\nClick here to set your password: ${new URL('/reset-password', new URL(req.url).origin).href}\n\nFor testing, you can use password: ${testPassword}`
+    });
 
     // Create sample feeds for the test user
     const feeds = await base44.asServiceRole.entities.Feed.bulkCreate([
