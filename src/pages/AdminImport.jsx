@@ -126,12 +126,14 @@ export default function AdminImport() {
     try {
       if (manualFeeds.length > 0) {
         await Promise.all(manualFeeds.map(feed =>
-          base44.entities.Feed.create({
+          base44.entities.DirectoryFeed.create({
             name: feed.name,
             url: feed.url,
             category: feed.category,
             tags: feed.tags,
-            is_public: true,
+            added_count: 0,
+            upvotes: 0,
+            downvotes: 0,
           })
         ));
       }
