@@ -57,30 +57,30 @@ export default function RssCrawler() {
   };
 
   return (
-    <Card className="border-indigo-100 bg-gradient-to-br from-indigo-50/50 to-white">
+    <Card className="border-amber-700/30 bg-gradient-to-br from-amber-900/20 to-stone-900">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-indigo-500" />
+        <CardTitle className="text-base flex items-center gap-2 text-stone-200">
+          <Sparkles className="w-4 h-4 text-amber-400" />
           AI-Powered RSS Discovery
         </CardTitle>
-        <CardDescription className="text-xs">
+        <CardDescription className="text-xs text-stone-500">
           Search the internet for popular RSS feeds on any topic and add them to the directory automatically
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Quick queries */}
-        <div>
-          <p className="text-xs font-medium text-slate-600 mb-2">Quick searches:</p>
-          <div className="flex flex-wrap gap-2">
-            {QUICK_QUERIES.map(q => (
-              <button
-                key={q.label}
-                onClick={() => {
-                  setQuery(q.query);
-                  setCategory(q.category);
-                }}
-                className="px-2.5 py-1 rounded-full border border-indigo-200 text-xs text-indigo-700 bg-white hover:bg-indigo-50 transition"
-              >
+         <div>
+           <p className="text-xs font-medium text-stone-500 mb-2">Quick searches:</p>
+           <div className="flex flex-wrap gap-2">
+             {QUICK_QUERIES.map(q => (
+               <button
+                 key={q.label}
+                 onClick={() => {
+                   setQuery(q.query);
+                   setCategory(q.category);
+                 }}
+                 className="px-2.5 py-1 rounded-full border border-amber-700/30 text-xs text-amber-300 bg-stone-800 hover:bg-stone-700 transition"
+               >
                 {q.label}
               </button>
             ))}
@@ -90,19 +90,19 @@ export default function RssCrawler() {
         {/* Input row */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="sm:col-span-2">
-            <Label className="text-xs">Search Topic</Label>
+            <Label className="text-xs text-stone-300">Search Topic</Label>
             <Input
               placeholder='e.g. "climate change science" or "day trading stocks"'
               value={query}
               onChange={e => setQuery(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && runSearch()}
-              className="mt-1 text-sm"
+              className="mt-1 text-sm rounded-lg bg-stone-800 border-stone-700 text-stone-100 placeholder-stone-600"
             />
           </div>
           <div>
-            <Label className="text-xs">Category</Label>
+            <Label className="text-xs text-stone-300">Category</Label>
             <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger className="mt-1 text-sm h-9">
+              <SelectTrigger className="mt-1 text-sm h-9 rounded-lg bg-stone-800 border-stone-700 text-stone-100">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -123,14 +123,14 @@ export default function RssCrawler() {
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Switch checked={dryRun} onCheckedChange={setDryRun} />
-            <span className="text-xs text-slate-600">
+            <span className="text-xs text-stone-500">
               {dryRun ? 'Dry run (preview only)' : 'Live (saves to directory)'}
             </span>
           </div>
           <Button
             onClick={() => runSearch()}
             disabled={loading || !query.trim()}
-            className="bg-indigo-600 hover:bg-indigo-700"
+            className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-semibold"
           >
             {loading
               ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Searching...</>
@@ -141,27 +141,27 @@ export default function RssCrawler() {
 
         {/* Results */}
         {results && (
-          <div className="border-t pt-4 space-y-3">
+          <div className="border-t border-stone-800 pt-4 space-y-3">
             {/* Summary */}
             <div className="flex flex-wrap gap-2 text-xs">
-              <Badge className="bg-indigo-100 text-indigo-700">
+              <Badge className="bg-amber-900/30 text-amber-400">
                 {results.discovered} discovered
               </Badge>
-              <Badge className="bg-green-100 text-green-700">
+              <Badge className="bg-green-900/30 text-green-400">
                 {results.validated} valid
               </Badge>
               {!dryRun && results.added > 0 && (
-                <Badge className="bg-emerald-100 text-emerald-700">
+                <Badge className="bg-emerald-900/30 text-emerald-400">
                   {results.added} added to directory
                 </Badge>
               )}
               {results.skipped > 0 && (
-                <Badge variant="outline">
+                <Badge variant="outline" className="border-stone-700 text-stone-400">
                   {results.skipped} duplicates skipped
                 </Badge>
               )}
               {results.failed > 0 && (
-                <Badge className="bg-red-100 text-red-700">
+                <Badge className="bg-red-900/30 text-red-400">
                   {results.failed} unreachable
                 </Badge>
               )}
@@ -170,16 +170,16 @@ export default function RssCrawler() {
             {/* Validated feeds */}
             {results.validated_feeds?.length > 0 && (
               <div>
-                <p className="text-xs font-semibold text-green-700 mb-2 flex items-center gap-1">
+                <p className="text-xs font-semibold text-green-400 mb-2 flex items-center gap-1">
                   <CheckCircle2 className="w-3.5 h-3.5" /> Valid feeds {dryRun ? '(not saved yet)' : '(saved!)'}
                 </p>
                 <div className="space-y-1.5 max-h-60 overflow-y-auto pr-1">
                   {results.validated_feeds.map((f, i) => (
-                    <div key={i} className="flex items-start justify-between px-3 py-2 bg-green-50 rounded-lg gap-2">
+                    <div key={i} className="flex items-start justify-between px-3 py-2 bg-green-900/20 rounded-lg gap-2">
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs font-medium text-slate-900">{f.name}</p>
-                        <p className="text-[10px] text-slate-500 truncate">{f.url}</p>
-                        {f.description && <p className="text-[10px] text-slate-400 mt-0.5 line-clamp-1">{f.description}</p>}
+                        <p className="text-xs font-medium text-stone-200">{f.name}</p>
+                        <p className="text-[10px] text-stone-500 truncate">{f.url}</p>
+                        {f.description && <p className="text-[10px] text-stone-600 mt-0.5 line-clamp-1">{f.description}</p>}
                       </div>
                       <div className="flex flex-wrap gap-1 flex-shrink-0">
                         {f.tags?.slice(0, 2).map(t => (
@@ -192,9 +192,8 @@ export default function RssCrawler() {
                 {dryRun && results.validated_feeds.length > 0 && (
                   <Button
                     onClick={() => runSearch(query, category)}
-                    variant="outline"
                     size="sm"
-                    className="mt-2 w-full text-xs border-green-300 text-green-700 hover:bg-green-50"
+                    className="mt-2 w-full text-xs bg-green-900/20 border border-green-700 text-green-400 hover:bg-green-900/30"
                     disabled={loading}
                   >
                     <Plus className="w-3.5 h-3.5 mr-1" />
@@ -207,14 +206,14 @@ export default function RssCrawler() {
             {/* Failed feeds */}
             {results.failed_feeds?.length > 0 && (
               <div>
-                <p className="text-xs font-semibold text-red-600 mb-2 flex items-center gap-1">
+                <p className="text-xs font-semibold text-red-400 mb-2 flex items-center gap-1">
                   <XCircle className="w-3.5 h-3.5" /> Unreachable (not added)
                 </p>
                 <div className="space-y-1 max-h-32 overflow-y-auto pr-1">
                   {results.failed_feeds.map((f, i) => (
-                    <div key={i} className="flex items-center justify-between px-3 py-1.5 bg-red-50 rounded-lg gap-2">
-                      <p className="text-xs text-slate-600 truncate">{f.name}</p>
-                      <span className="text-[10px] text-red-500 flex-shrink-0">{f.reason}</span>
+                    <div key={i} className="flex items-center justify-between px-3 py-1.5 bg-red-900/20 rounded-lg gap-2">
+                      <p className="text-xs text-stone-500 truncate">{f.name}</p>
+                      <span className="text-[10px] text-red-400 flex-shrink-0">{f.reason}</span>
                     </div>
                   ))}
                 </div>
