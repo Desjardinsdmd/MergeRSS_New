@@ -74,7 +74,7 @@ export default function Dashboard() {
 
   const { data: feeds = [] } = useQuery({
     queryKey: ['feeds', user?.email],
-    queryFn: () => base44.entities.Feed.filter({ created_by: user?.email }, '-created_date', 50),
+    queryFn: () => base44.entities.Feed.filter({ created_by: user?.email }, '-created_date', 200),
     enabled: !!user,
     staleTime: 0,
   });
