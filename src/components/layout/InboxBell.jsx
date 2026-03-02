@@ -16,15 +16,17 @@ export default function InboxBell({ user }) {
   const digestIds = digests.map(d => d.id);
 
   const { data: deliveries = [] } = useQuery({
-    queryKey: ['inboxCount', user?.email, digestIds.join(',')],
+    queryKey: ['deliveries', 'web', user?.email, digestIds.join(',')],
     queryFn: () => base44.entities.DigestDelivery.filter(
-      { digest_id: { $in: digestIds }, delivery_type: 'web', status: 'sent', is_read: false },
+      { digest_id: { $in: digestIds }, delivery_type: 'web', status: 'sent' },
       '-created_date',
-      100
+      200
     ),
     enabled: !!user && digestIds.length > 0,
     refetchInterval: 60000,
   });
+
+  const unread = deliveries.filter(d => !d.is_read).length;
 
   const unread = deliveries.length;
 
