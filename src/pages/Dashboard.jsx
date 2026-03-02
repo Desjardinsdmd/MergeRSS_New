@@ -355,31 +355,31 @@ export default function Dashboard() {
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Latest Articles - 2 cols */}
         <div className="lg:col-span-2">
-          <Card className="border-slate-100">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <div className="bg-stone-900 border border-stone-800">
+            <div className="flex flex-row items-center justify-between p-4 pb-2">
               <div className="flex items-center gap-2">
-                <CardTitle className="text-lg font-semibold">Latest Articles</CardTitle>
+                <span className="text-base font-semibold text-stone-100">Latest Articles</span>
                 {unreadCount > 0 && (
-                  <Badge className="bg-indigo-100 text-indigo-700 text-xs">{unreadCount} unread</Badge>
+                  <span className="bg-amber-400 text-stone-900 text-xs font-bold px-2 py-0.5">{unreadCount} unread</span>
                 )}
               </div>
-              <button onClick={() => setExpandedArticles(true)} className="text-sm text-violet-600 hover:underline flex items-center gap-1 cursor-pointer">
+              <button onClick={() => setExpandedArticles(true)} className="text-sm text-stone-500 hover:text-amber-400 flex items-center gap-1 cursor-pointer transition-colors">
                 View all <ArrowRight className="w-3 h-3" />
               </button>
-            </CardHeader>
+            </div>
             {categories.length > 1 && (
               <div className="px-4 pb-2 flex gap-1.5 flex-wrap">
                 {categories.map(cat => (
                   <button
                     key={cat}
                     onClick={() => setActiveCategory(cat)}
-                    className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors flex items-center gap-1 ${
-                      activeCategory === cat ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    className={`text-xs px-2.5 py-1 font-medium transition-colors flex items-center gap-1 ${
+                      activeCategory === cat ? 'bg-amber-400 text-stone-900' : 'bg-stone-800 text-stone-400 hover:text-stone-200'
                     }`}
                   >
                     {cat}
                     {cat !== 'All' && unreadByCategory[cat] > 0 && (
-                      <span className={`text-xs rounded-full px-1 ${activeCategory === cat ? 'bg-white/20' : 'bg-indigo-100 text-indigo-700'}`}>
+                      <span className={`text-xs px-1 ${activeCategory === cat ? 'bg-stone-900/30' : 'bg-stone-700 text-stone-300'}`}>
                         {unreadByCategory[cat]}
                       </span>
                     )}
@@ -387,27 +387,27 @@ export default function Dashboard() {
                 ))}
               </div>
             )}
-            <CardContent className="p-0">
+            <div className="p-0">
               {filteredArticles.length === 0 ? (
-                <div className="p-6 text-center text-slate-500">
+                <div className="p-6 text-center text-stone-500">
                   {allArticles.length === 0 ? 'No items yet. Add feeds to start aggregating content.' : 'All caught up! 🎉'}
                 </div>
               ) : (
-                <div className="divide-y divide-slate-100">
+                <div className="divide-y divide-stone-800">
                   {filteredArticles.slice(0, 5).map((item) => {
                     const merged = mergeItem(item);
                     return (
-                      <div key={item.id} className="p-4 hover:bg-slate-50 transition group">
+                      <div key={item.id} className="p-4 hover:bg-stone-800/50 transition group">
                         <div className="flex items-start gap-2">
                           <a href={item.url} target="_blank" rel="noopener noreferrer" className="block flex-1 min-w-0">
-                            <p className="font-medium text-slate-900 mb-1 line-clamp-1">{item.title}</p>
-                            <div className="flex items-center gap-2 text-xs text-slate-500">
+                            <p className="font-medium text-stone-200 mb-1 line-clamp-1">{item.title}</p>
+                            <div className="flex items-center gap-2 text-xs text-stone-500">
                               <Clock className="w-3 h-3" />
                               {item.published_date && (
                                 <>{new Date(item.published_date).toLocaleDateString()} at {new Date(item.published_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</>
                               )}
                               {item.category && activeCategory === 'All' && (
-                                <Badge variant="secondary" className="text-xs">{item.category}</Badge>
+                                <span className="bg-stone-800 text-stone-400 px-1.5 py-0.5 text-xs">{item.category}</span>
                               )}
                             </div>
                           </a>
@@ -415,7 +415,7 @@ export default function Dashboard() {
                             <button
                               onClick={(e) => markAsRead(item, e)}
                               title="Mark as read"
-                              className="opacity-0 group-hover:opacity-100 p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition"
+                              className="opacity-0 group-hover:opacity-100 p-1.5 text-stone-600 hover:text-amber-400 hover:bg-stone-800 transition"
                             >
                               <CheckCircle className="w-3.5 h-3.5" />
                             </button>
@@ -428,8 +428,8 @@ export default function Dashboard() {
                   })}
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
 
         {/* Right sidebar widgets */}
