@@ -348,22 +348,22 @@ export default function Inbox() {
 
                       <div className="flex-1 min-w-0" onClick={() => handleOpen(delivery)}>
                         <div className="flex items-center justify-between gap-2">
-                          <span className={cn('text-sm truncate', isUnread ? 'font-semibold text-slate-900' : 'font-medium text-slate-700')}>
-                            {getDigestName(delivery.digest_id)}
-                          </span>
-                          <span className="text-xs text-slate-400 flex-shrink-0">
-                            {delivery.sent_at && format(new Date(delivery.sent_at), 'MMM d')}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-xs text-slate-500 truncate">{delivery.item_count || 0} items</span>
-                          {(delivery.tags || []).map(tag => (
-                            <span key={tag} className="text-xs bg-slate-100 text-slate-500 rounded px-1.5 py-0.5">{tag}</span>
-                          ))}
-                          {delivery.folder && delivery.folder !== 'Inbox' && (
-                            <span className="text-xs bg-indigo-50 text-indigo-600 rounded px-1.5 py-0.5">{delivery.folder}</span>
-                          )}
-                        </div>
+                           <span className={cn('text-sm truncate', isUnread ? 'font-semibold text-stone-100' : 'font-medium text-stone-400')}>
+                             {getDigestName(delivery.digest_id)}
+                           </span>
+                           <span className="text-xs text-stone-600 flex-shrink-0">
+                             {delivery.sent_at && format(new Date(delivery.sent_at), 'MMM d')}
+                           </span>
+                         </div>
+                         <div className="flex items-center gap-2 mt-0.5">
+                           <span className="text-xs text-stone-600 truncate">{delivery.item_count || 0} items</span>
+                           {(delivery.tags || []).map(tag => (
+                             <span key={tag} className="text-xs bg-stone-800 text-stone-400 rounded px-1.5 py-0.5">{tag}</span>
+                           ))}
+                           {delivery.folder && delivery.folder !== 'Inbox' && (
+                             <span className="text-xs bg-stone-800 text-amber-400 rounded px-1.5 py-0.5">{delivery.folder}</span>
+                           )}
+                         </div>
                       </div>
 
                       {/* Download PDF button (visible on hover) */}
