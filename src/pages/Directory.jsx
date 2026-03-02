@@ -87,24 +87,24 @@ function DirectoryCard({ item, itemType, user, votes, onVote, onAdd, addedItems,
   };
   
   return (
-    <div className={cn("bg-white border rounded-xl p-4 flex gap-4 hover:shadow-sm transition", isSelected ? "border-indigo-300 bg-indigo-50" : "border-slate-100")}>
-      <button
-        onClick={() => onToggleSelect && onToggleSelect(item.id, itemType)}
-        className="flex-shrink-0 mt-0.5 text-slate-400 hover:text-indigo-600 transition"
-        title={isSelected ? 'Deselect' : 'Select'}
-      >
-        {isSelected ? <CheckCircle2 className="w-5 h-5 text-indigo-600" /> : <Circle className="w-5 h-5" />}
-      </button>
-      <VoteButtons item={item} itemType={itemType} user={user} votes={votes} onVote={onVote} />
+     <div className={cn("bg-stone-900 border rounded-xl p-4 flex gap-4 hover:shadow-sm transition", isSelected ? "border-amber-400 bg-stone-800" : "border-stone-800")}>
+       <button
+         onClick={() => onToggleSelect && onToggleSelect(item.id, itemType)}
+         className="flex-shrink-0 mt-0.5 text-stone-600 hover:text-amber-400 transition"
+         title={isSelected ? 'Deselect' : 'Select'}
+       >
+         {isSelected ? <CheckCircle2 className="w-5 h-5 text-amber-400" /> : <Circle className="w-5 h-5" />}
+       </button>
+       <VoteButtons item={item} itemType={itemType} user={user} votes={votes} onVote={onVote} />
 
-      <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center flex-shrink-0">
-              <Icon className="w-4 h-4 text-indigo-500" />
-            </div>
-            <div className="min-w-0">
-              <h3 className="font-semibold text-slate-900 text-sm leading-tight truncate">{item.name}</h3>
+       <div className="flex-1 min-w-0">
+         <div className="flex items-start justify-between gap-2">
+           <div className="flex items-center gap-2 min-w-0">
+             <div className="w-8 h-8 bg-stone-800 rounded-lg flex items-center justify-center flex-shrink-0">
+               <Icon className="w-4 h-4 text-amber-400" />
+             </div>
+             <div className="min-w-0">
+               <h3 className="font-semibold text-stone-100 text-sm leading-tight truncate">{item.name}</h3>
               {item.category && (
                 <Badge className={cn('text-[10px] mt-0.5', categoryColors[item.category] || categoryColors.Other)}>
                   {item.category}
@@ -113,11 +113,11 @@ function DirectoryCard({ item, itemType, user, votes, onVote, onAdd, addedItems,
             </div>
           </div>
           {isCreator && isAdded ? (
-            <Badge variant="outline" className="text-xs h-7 px-2.5 flex-shrink-0">
+            <Badge variant="outline" className="text-xs h-7 px-2.5 flex-shrink-0 border-stone-700 text-stone-400">
               Your {itemType}
             </Badge>
           ) : isAdded ? (
-            <Badge variant="outline" className="text-xs h-7 px-2.5 flex-shrink-0 bg-green-50 text-green-700 border-green-200">
+            <Badge variant="outline" className="text-xs h-7 px-2.5 flex-shrink-0 bg-emerald-900/30 text-emerald-400 border-emerald-700">
               ✓ Added
             </Badge>
           ) : (
@@ -125,7 +125,7 @@ function DirectoryCard({ item, itemType, user, votes, onVote, onAdd, addedItems,
               size="sm"
               onClick={handleAddClick}
               disabled={!user || adding}
-              className="bg-indigo-600 hover:bg-indigo-700 rounded-lg text-xs h-7 px-2.5 flex-shrink-0"
+              className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-semibold rounded-lg text-xs h-7 px-2.5 flex-shrink-0"
               title={user ? undefined : 'Sign in to add'}
             >
               {adding ? (
@@ -144,17 +144,17 @@ function DirectoryCard({ item, itemType, user, votes, onVote, onAdd, addedItems,
         </div>
 
         {(item.public_description || item.description) && (
-          <p className="text-xs text-slate-500 mt-2 line-clamp-2 leading-relaxed">
+          <p className="text-xs text-stone-500 mt-2 line-clamp-2 leading-relaxed">
             {item.public_description || item.description}
           </p>
         )}
 
-        <div className="flex items-center gap-3 mt-2 text-[10px] text-slate-400">
+        <div className="flex items-center gap-3 mt-2 text-[10px] text-stone-600">
           {item.frequency && (
             <span className="capitalize">{item.frequency}</span>
           )}
           {item.tags?.length > 0 && item.tags.slice(0, 3).map(tag => (
-            <span key={tag} className="bg-slate-50 px-1.5 py-0.5 rounded">#{tag}</span>
+            <span key={tag} className="bg-stone-800 px-1.5 py-0.5 rounded text-stone-500">#{tag}</span>
           ))}
           <span className="flex items-center gap-1 ml-auto">
             <Users className="w-3 h-3" />
@@ -396,45 +396,45 @@ export default function Directory() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Hero */}
-      <div className="bg-white border-b border-slate-100">
-        <div className="max-w-4xl mx-auto px-4 py-12 text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-50 rounded-full text-xs text-indigo-600 font-medium mb-4">
-            <Globe className="w-3.5 h-3.5" />
-            Public Directory
-          </div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-3">
-            Discover Feeds & Digests
-          </h1>
-          <p className="text-slate-500 max-w-xl mx-auto mb-8">
-            Browse community-shared RSS feeds and curated digests. Vote on your favorites and add them to your library in one click.
-          </p>
+     <div className="min-h-screen bg-[#0a0805]">
+       {/* Hero */}
+       <div className="bg-[#0d0a06] border-b border-stone-800">
+         <div className="max-w-4xl mx-auto px-4 py-12 text-center">
+           <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-400/20 rounded-full text-xs text-amber-400 font-medium mb-4">
+             <Globe className="w-3.5 h-3.5" />
+             Public Directory
+           </div>
+           <h1 className="text-3xl font-bold text-stone-100 mb-3">
+             Discover Feeds & Digests
+           </h1>
+           <p className="text-stone-500 max-w-xl mx-auto mb-8">
+             Browse community-shared RSS feeds and curated digests. Vote on your favorites and add them to your library in one click.
+           </p>
 
-          {/* Search */}
-          <div className="relative max-w-lg mx-auto">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <Input
-              placeholder="Search feeds and digests..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 h-11 rounded-xl border-slate-200 bg-white shadow-sm"
-            />
-          </div>
+           {/* Search */}
+           <div className="relative max-w-lg mx-auto">
+             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-600" />
+             <Input
+               placeholder="Search feeds and digests..."
+               value={search}
+               onChange={(e) => setSearch(e.target.value)}
+               className="pl-10 h-11 rounded-xl border-stone-800 bg-stone-900 text-stone-100 placeholder-stone-600 shadow-sm"
+             />
+           </div>
 
-          {!user && (
-            <p className="text-xs text-slate-400 mt-3">
-              <button
-                onClick={() => base44.auth.redirectToLogin(createPageUrl('Directory'))}
-                className="text-indigo-600 hover:underline"
-              >
-                Sign in
-              </button>
-              {' '}to vote and add feeds/digests to your library
-            </p>
-          )}
-        </div>
-      </div>
+           {!user && (
+             <p className="text-xs text-stone-500 mt-3">
+               <button
+                 onClick={() => base44.auth.redirectToLogin(createPageUrl('Directory'))}
+                 className="text-amber-400 hover:underline"
+               >
+                 Sign in
+               </button>
+               {' '}to vote and add feeds/digests to your library
+             </p>
+           )}
+         </div>
+       </div>
 
       {/* Filters */}
       <div className="max-w-4xl mx-auto px-4 py-4 flex flex-wrap gap-3 items-center">
@@ -446,8 +446,8 @@ export default function Directory() {
               className={cn(
                 'px-3 py-1 rounded-full text-xs font-medium transition',
                 category === cat
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-white border border-slate-200 text-slate-600 hover:border-indigo-300'
+                  ? 'bg-amber-400 text-stone-900'
+                  : 'bg-stone-900 border border-stone-800 text-stone-400 hover:border-stone-700 hover:text-stone-300'
               )}
             >
               {cat}
@@ -489,8 +489,8 @@ export default function Directory() {
 
       {/* Bulk Actions Bar */}
       {totalSelected > 0 && (
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3 bg-indigo-50 border-b border-indigo-200">
-          <span className="text-sm font-medium text-indigo-900">
+        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3 bg-stone-800 border-b border-stone-700">
+          <span className="text-sm font-medium text-stone-300">
             {totalSelected} item{totalSelected > 1 ? 's' : ''} selected
           </span>
           {selectedFeeds.length > 0 && (
@@ -499,7 +499,7 @@ export default function Directory() {
                 size="sm"
                 onClick={handleBulkAdd}
                 disabled={bulkAdding}
-                className="bg-indigo-600 hover:bg-indigo-700 text-xs"
+                className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-semibold text-xs"
               >
                 {bulkAdding ? (
                   <>
@@ -608,12 +608,12 @@ export default function Directory() {
 }
 
 function EmptyState({ search }) {
-  return (
-    <div className="text-center py-16">
-      <Globe className="w-10 h-10 text-slate-200 mx-auto mb-3" />
-      <p className="text-slate-500 text-sm">
-        {search ? `No results for "${search}"` : 'Nothing shared yet — be the first!'}
-      </p>
-    </div>
-  );
-}
+   return (
+     <div className="text-center py-16">
+       <Globe className="w-10 h-10 text-stone-700 mx-auto mb-3" />
+       <p className="text-stone-500 text-sm">
+         {search ? `No results for "${search}"` : 'Nothing shared yet — be the first!'}
+       </p>
+     </div>
+   );
+ }
