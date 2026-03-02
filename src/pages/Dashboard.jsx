@@ -18,6 +18,17 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+
+const categoryColors = {
+  CRE: 'bg-blue-950 text-blue-400',
+  Markets: 'bg-green-950 text-green-400',
+  Tech: 'bg-purple-950 text-purple-400',
+  News: 'bg-orange-950 text-orange-400',
+  Finance: 'bg-emerald-950 text-emerald-400',
+  Crypto: 'bg-yellow-950 text-yellow-400',
+  AI: 'bg-pink-950 text-pink-400',
+  Other: 'bg-stone-800 text-stone-300',
+};
 import ArticleSummarizeButton from '@/components/feeds/ArticleSummarizeButton';
 import TrendingArticles from '@/components/feeds/TrendingArticles';
 import RelatedArticles from '@/components/feeds/RelatedArticles';
