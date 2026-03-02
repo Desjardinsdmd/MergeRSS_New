@@ -135,12 +135,12 @@ export default function Digests() {
 
       {/* Free plan limit banner */}
       {!isPremium && digests.length >= maxDigests && (
-        <div className="mb-6 flex items-center justify-between gap-4 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-          <p className="text-sm text-amber-800 font-medium">
+        <div className="mb-6 flex items-center justify-between gap-4 bg-stone-900 border border-stone-800 rounded-xl px-4 py-3">
+          <p className="text-sm text-stone-400 font-medium">
             You've reached the 1-digest limit on the Free plan. Upgrade to Premium for unlimited digests.
           </p>
           <Link to={createPageUrl('Pricing')}>
-            <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 rounded-lg whitespace-nowrap">
+            <Button size="sm" className="bg-amber-400 hover:bg-amber-300 text-stone-900 rounded-lg whitespace-nowrap font-bold">
               Upgrade
             </Button>
           </Link>
