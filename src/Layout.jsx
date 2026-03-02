@@ -205,29 +205,29 @@ function LayoutContent({ children, currentPageName }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+    <div className="min-h-screen bg-[#0a0805]">
       {/* Mobile backdrop */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-50 w-60 bg-white dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800 flex flex-col transform transition-transform duration-200 ease-in-out lg:translate-x-0",
+        "fixed inset-y-0 left-0 z-50 w-60 bg-[#0d0a06] border-r border-stone-800 flex flex-col transform transition-transform duration-200 ease-in-out lg:translate-x-0",
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         {/* Logo */}
-        <div className="flex items-center justify-between h-16 px-5 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+        <div className="flex items-center justify-between h-16 px-5 border-b border-stone-800 flex-shrink-0">
           <Link to={createPageUrl('Dashboard')} className="flex items-center gap-2.5">
-            <div className="w-7 h-7 bg-indigo-600 rounded-lg flex items-center justify-center">
-              <Rss className="w-3.5 h-3.5 text-white" />
+            <div className="w-6 h-6 bg-amber-400 flex items-center justify-center">
+              <Rss className="w-3 h-3 text-stone-900" />
             </div>
-            <span className="font-bold text-slate-900 dark:text-white tracking-tight">MergeRSS</span>
+            <span className="font-bold text-stone-100 tracking-tight">MergeRSS</span>
           </Link>
-          <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-400">
+          <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-1 text-stone-600 hover:text-stone-300">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -242,13 +242,13 @@ function LayoutContent({ children, currentPageName }) {
                 key={item.name}
                 to={createPageUrl(item.href)}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                  "flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-400"
-                    : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
+                    ? "bg-stone-800 text-amber-400"
+                    : "text-stone-500 hover:bg-stone-900 hover:text-stone-200"
                 )}
               >
-                <item.icon className={cn("w-4 h-4 flex-shrink-0", isActive ? "text-indigo-600" : "text-slate-400")} />
+                <item.icon className={cn("w-4 h-4 flex-shrink-0", isActive ? "text-amber-400" : "text-stone-600")} />
                 <span className="flex-1">{item.name}</span>
                 {isInbox && <InboxNavBadge user={user} />}
                 {item.href === 'Bookmarks' && <BookmarkNavBadge user={user} />}
@@ -259,7 +259,7 @@ function LayoutContent({ children, currentPageName }) {
           {user?.role === 'admin' && (
             <>
               <div className="pt-5 pb-1 px-3">
-                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Admin</p>
+                <p className="text-[10px] font-semibold text-stone-700 uppercase tracking-widest">Admin</p>
               </div>
               {adminNav.map((item) => {
                 const isActive = currentPageName === item.href;
@@ -268,13 +268,13 @@ function LayoutContent({ children, currentPageName }) {
                     key={item.name}
                     to={createPageUrl(item.href)}
                     className={cn(
-                      "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                      "flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors",
                       isActive
-                        ? "bg-indigo-50 text-indigo-700"
-                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                        ? "bg-stone-800 text-amber-400"
+                        : "text-stone-500 hover:bg-stone-900 hover:text-stone-200"
                     )}
                   >
-                    <item.icon className={cn("w-4 h-4", isActive ? "text-indigo-600" : "text-slate-400")} />
+                    <item.icon className={cn("w-4 h-4", isActive ? "text-amber-400" : "text-stone-600")} />
                     {item.name}
                   </Link>
                 );
@@ -284,41 +284,27 @@ function LayoutContent({ children, currentPageName }) {
         </nav>
 
         {/* Bottom */}
-        <div className="p-3 border-t border-slate-100 dark:border-slate-800 flex-shrink-0">
+        <div className="p-3 border-t border-stone-800 flex-shrink-0">
           {user?.plan !== 'premium' && (
             <Link
               to={createPageUrl('Pricing')}
-              className="flex items-center gap-2.5 px-3 py-2.5 mb-2 rounded-lg bg-gradient-to-r from-indigo-600 to-indigo-700 text-white text-sm font-medium hover:from-indigo-700 hover:to-indigo-800 transition"
+              className="flex items-center gap-2.5 px-3 py-2.5 mb-3 bg-amber-400 text-stone-900 text-sm font-bold hover:bg-amber-300 transition-colors"
             >
               <Crown className="w-4 h-4" />
               <span>Upgrade to Premium</span>
-              <ChevronRight className="w-3.5 h-3.5 ml-auto opacity-70" />
+              <ChevronRight className="w-3.5 h-3.5 ml-auto" />
             </Link>
           )}
 
-          <div className="flex items-center justify-between px-3 py-2 mb-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="text-slate-600 dark:text-slate-400 h-8 w-8"
-            >
-              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </Button>
-            <span className="text-xs text-slate-400 dark:text-slate-500">
-              {theme === 'dark' ? 'Dark' : 'Light'}
-            </span>
-          </div>
-
           <div className="flex items-center gap-3 px-3 py-2">
-            <div className="w-8 h-8 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center text-sm font-semibold text-indigo-700 dark:text-indigo-300 flex-shrink-0">
+            <div className="w-8 h-8 bg-stone-800 border border-stone-700 flex items-center justify-center text-sm font-bold text-amber-400 flex-shrink-0">
               {user?.full_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-slate-900 dark:text-white truncate">{user?.full_name || 'User'}</p>
-              <p className="text-xs text-slate-400 dark:text-slate-500 truncate">{user?.email}</p>
+              <p className="text-sm font-medium text-stone-200 truncate">{user?.full_name || 'User'}</p>
+              <p className="text-xs text-stone-600 truncate">{user?.email}</p>
             </div>
-            <button onClick={handleLogout} className="p-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-400 transition flex-shrink-0">
+            <button onClick={handleLogout} className="p-1 text-stone-600 hover:text-stone-300 transition flex-shrink-0">
               <LogOut className="w-4 h-4" />
             </button>
           </div>
@@ -328,28 +314,20 @@ function LayoutContent({ children, currentPageName }) {
       {/* Main */}
       <div className="lg:pl-60">
         {/* Mobile header */}
-        <header className="lg:hidden sticky top-0 z-30 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
+        <header className="lg:hidden sticky top-0 z-30 bg-[#0d0a06] border-b border-stone-800">
           <div className="flex items-center justify-between h-14 px-4">
-            <button onClick={() => setSidebarOpen(true)} className="p-1.5 text-slate-600 dark:text-slate-400">
+            <button onClick={() => setSidebarOpen(true)} className="p-1.5 text-stone-500">
               <Menu className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-indigo-600 rounded-md flex items-center justify-center">
-                <Rss className="w-3 h-3 text-white" />
+              <div className="w-6 h-6 bg-amber-400 flex items-center justify-center">
+                <Rss className="w-3 h-3 text-stone-900" />
               </div>
-              <span className="font-bold text-slate-900 dark:text-white tracking-tight">MergeRSS</span>
+              <span className="font-bold text-stone-100 tracking-tight">MergeRSS</span>
             </div>
             <div className="flex items-center gap-1">
               <BookmarkBell user={user} />
               <InboxBell user={user} />
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                className="text-slate-600 dark:text-slate-400"
-              >
-                {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              </Button>
             </div>
           </div>
         </header>
