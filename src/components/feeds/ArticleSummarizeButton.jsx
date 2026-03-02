@@ -51,7 +51,7 @@ export default function ArticleSummarizeButton({ item, onSummaryUpdate, compact 
     <button
       onClick={handleSummarize}
       disabled={loading}
-      className="flex items-center gap-1 text-xs text-slate-400 hover:text-indigo-600 transition-colors mt-1.5 disabled:opacity-50"
+      className="flex items-center gap-1 text-xs text-stone-600 hover:text-amber-400 transition-colors mt-1.5 disabled:opacity-50"
     >
       {loading ? (
         <Loader2 className="w-3 h-3 animate-spin" />
