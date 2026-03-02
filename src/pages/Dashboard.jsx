@@ -452,8 +452,8 @@ export default function Dashboard() {
           <Link to={createPageUrl('Feeds')}>
             <Card className="border-slate-100 hover:border-violet-200 hover:shadow-md transition cursor-pointer h-full">
               <CardContent className="p-4 flex items-center gap-3">
-                <div className="p-2 bg-violet-50 rounded-lg"><Plus className="w-4 h-4 text-violet-600" /></div>
-                <span className="text-sm font-medium text-slate-700">Add Feed</span>
+                <div className="p-2 bg-violet-50 rounded-lg"><Rss className="w-4 h-4 text-violet-600" /></div>
+                <span className="text-sm font-medium text-slate-700">Manage Feeds</span>
               </CardContent>
             </Card>
           </Link>
@@ -461,23 +461,23 @@ export default function Dashboard() {
             <Card className="border-slate-100 hover:border-violet-200 hover:shadow-md transition cursor-pointer h-full">
               <CardContent className="p-4 flex items-center gap-3">
                 <div className="p-2 bg-indigo-50 rounded-lg"><FileText className="w-4 h-4 text-indigo-600" /></div>
-                <span className="text-sm font-medium text-slate-700">Create Digest</span>
+                <span className="text-sm font-medium text-slate-700">Manage Digests</span>
+              </CardContent>
+            </Card>
+          </Link>
+          <Link to={createPageUrl('Inbox')}>
+            <Card className="border-slate-100 hover:border-violet-200 hover:shadow-md transition cursor-pointer h-full">
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className="p-2 bg-emerald-50 rounded-lg"><Bell className="w-4 h-4 text-emerald-600" /></div>
+                <span className="text-sm font-medium text-slate-700">View Inbox</span>
               </CardContent>
             </Card>
           </Link>
           <Link to={createPageUrl('Integrations')}>
             <Card className="border-slate-100 hover:border-violet-200 hover:shadow-md transition cursor-pointer h-full">
               <CardContent className="p-4 flex items-center gap-3">
-                <div className="p-2 bg-emerald-50 rounded-lg"><Bell className="w-4 h-4 text-emerald-600" /></div>
-                <span className="text-sm font-medium text-slate-700">Connect Apps</span>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link to={createPageUrl('Settings')}>
-            <Card className="border-slate-100 hover:border-violet-200 hover:shadow-md transition cursor-pointer h-full">
-              <CardContent className="p-4 flex items-center gap-3">
                 <div className="p-2 bg-amber-50 rounded-lg"><TrendingUp className="w-4 h-4 text-amber-600" /></div>
-                <span className="text-sm font-medium text-slate-700">Settings</span>
+                <span className="text-sm font-medium text-slate-700">Connect Apps</span>
               </CardContent>
             </Card>
           </Link>

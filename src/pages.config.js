@@ -47,6 +47,7 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
+import AdminAnalytics from './pages/AdminAnalytics';
 import AdminHealth from './pages/AdminHealth';
 import AdminImport from './pages/AdminImport';
 import ArticleSearch from './pages/ArticleSearch';
@@ -65,11 +66,11 @@ import RssFeedGenerator from './pages/RssFeedGenerator';
 import Settings from './pages/Settings';
 import Team from './pages/Team';
 import Terms from './pages/Terms';
-import AdminAnalytics from './pages/AdminAnalytics';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "AdminAnalytics": AdminAnalytics,
     "AdminHealth": AdminHealth,
     "AdminImport": AdminImport,
     "ArticleSearch": ArticleSearch,
@@ -88,7 +89,6 @@ export const PAGES = {
     "Settings": Settings,
     "Team": Team,
     "Terms": Terms,
-    "AdminAnalytics": AdminAnalytics,
 }
 
 export const pagesConfig = {
