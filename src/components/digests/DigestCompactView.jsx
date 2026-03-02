@@ -44,31 +44,31 @@ export default function DigestCompactView({
           checked={selectedIds.length === digests.length && digests.length > 0}
           onCheckedChange={handleSelectAll}
         />
-        <span className="text-sm text-slate-600">{selectedIds.length} selected</span>
+        <span className="text-sm text-stone-500">{selectedIds.length} selected</span>
       </div>
       {digests.map((digest) => (
         <div
-          key={digest.id}
-          className="flex items-center gap-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition"
-        >
+           key={digest.id}
+           className="flex items-center gap-3 p-3 border border-stone-800 rounded-lg hover:bg-stone-800 transition bg-stone-900"
+         >
           <Checkbox
             checked={selectedIds.includes(digest.id)}
             onCheckedChange={(checked) => handleSelectOne(digest.id, checked)}
           />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <p className="font-medium text-slate-900 truncate">{digest.name}</p>
-              {digest.is_public && (
-                <Globe className="w-4 h-4 text-indigo-600 flex-shrink-0" />
-              )}
-            </div>
-            <div className="flex items-center gap-2 mt-1">
-              <Badge variant={digest.status === 'active' ? 'default' : 'secondary'} className="text-xs">
-                {digest.status === 'active' ? 'Active' : 'Paused'}
-              </Badge>
-              <span className="text-xs text-slate-500 capitalize">{digest.frequency}</span>
-              <span className="text-xs text-slate-500">{digest.added_count || 0} added</span>
-            </div>
+               <p className="font-medium text-stone-200 truncate">{digest.name}</p>
+               {digest.is_public && (
+                 <Globe className="w-4 h-4 text-amber-400 flex-shrink-0" />
+               )}
+             </div>
+             <div className="flex items-center gap-2 mt-1">
+               <Badge variant={digest.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+                 {digest.status === 'active' ? 'Active' : 'Paused'}
+               </Badge>
+               <span className="text-xs text-stone-500 capitalize">{digest.frequency}</span>
+               <span className="text-xs text-stone-500">{digest.added_count || 0} added</span>
+             </div>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

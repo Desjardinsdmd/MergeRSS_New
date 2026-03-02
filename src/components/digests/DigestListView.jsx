@@ -38,9 +38,9 @@ export default function DigestListView({
   };
 
   return (
-    <div className="border border-slate-200 rounded-lg overflow-hidden">
+    <div className="border border-stone-800 rounded-lg overflow-hidden bg-stone-900">
       <table className="w-full">
-        <thead className="bg-slate-50 border-b border-slate-200">
+        <thead className="bg-stone-800 border-b border-stone-800">
           <tr>
             <th className="w-10 px-4 py-3">
               <Checkbox
@@ -48,16 +48,16 @@ export default function DigestListView({
                 onCheckedChange={handleSelectAll}
               />
             </th>
-            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Name</th>
-            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Frequency</th>
-            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Status</th>
-            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Subscribers</th>
+            <th className="px-4 py-3 text-left text-sm font-semibold text-stone-200">Name</th>
+            <th className="px-4 py-3 text-left text-sm font-semibold text-stone-200">Frequency</th>
+            <th className="px-4 py-3 text-left text-sm font-semibold text-stone-200">Status</th>
+            <th className="px-4 py-3 text-left text-sm font-semibold text-stone-200">Subscribers</th>
             <th className="w-10 px-4 py-3"></th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-200">
-          {digests.map((digest) => (
-            <tr key={digest.id} className="hover:bg-slate-50 transition">
+        <tbody className="divide-y divide-stone-800">
+           {digests.map((digest) => (
+             <tr key={digest.id} className="hover:bg-stone-800 transition">
               <td className="px-4 py-3">
                 <Checkbox
                   checked={selectedIds.includes(digest.id)}
@@ -67,15 +67,15 @@ export default function DigestListView({
               <td className="px-4 py-3">
                 <div>
                   <div className="flex items-center gap-2">
-                    <p className="font-medium text-slate-900">{digest.name}</p>
-                    {digest.is_public && (
-                      <Globe className="w-4 h-4 text-indigo-600" />
-                    )}
-                  </div>
-                  <p className="text-xs text-slate-500">{digest.description}</p>
+                     <p className="font-medium text-stone-200">{digest.name}</p>
+                     {digest.is_public && (
+                       <Globe className="w-4 h-4 text-amber-400" />
+                     )}
+                   </div>
+                   <p className="text-xs text-stone-500">{digest.description}</p>
                 </div>
               </td>
-              <td className="px-4 py-3 text-sm text-slate-600 capitalize">
+              <td className="px-4 py-3 text-sm text-stone-500 capitalize">
                 {digest.frequency}
               </td>
               <td className="px-4 py-3">
@@ -83,7 +83,7 @@ export default function DigestListView({
                   {digest.status === 'active' ? 'Active' : 'Paused'}
                 </Badge>
               </td>
-              <td className="px-4 py-3 text-sm text-slate-600">
+              <td className="px-4 py-3 text-sm text-stone-500">
                 {digest.added_count || 0}
               </td>
               <td className="px-4 py-3">
