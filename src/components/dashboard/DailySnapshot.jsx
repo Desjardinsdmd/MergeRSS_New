@@ -59,6 +59,10 @@ export default function DailySnapshot() {
     ? snapshot.article_count
     : categoryBriefs[activeCategory]?.article_count;
 
+  const currentRelated = activeCategory === 'All'
+    ? (snapshot.related_articles || [])
+    : (categoryBriefs[activeCategory]?.related_articles || []);
+
   return (
     <div className="bg-gradient-to-r from-indigo-600 to-violet-600 rounded-2xl p-5 mb-6 text-white">
       {/* Category tabs */}
