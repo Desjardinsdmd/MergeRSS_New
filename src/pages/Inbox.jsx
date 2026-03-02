@@ -432,6 +432,34 @@ export default function Inbox() {
                   {selectedDelivery.content || 'No content available for this digest.'}
                 </div>
               </div>
+
+              {selectedDelivery.items?.length > 0 && (
+                <div className="border border-slate-200 rounded-lg overflow-hidden">
+                  <button
+                    onClick={() => setShowItems(v => !v)}
+                    className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 hover:bg-slate-100 transition text-sm font-medium text-slate-700"
+                  >
+                    <span>📄 {selectedDelivery.items.length} articles in this digest</span>
+                    {showItems ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </button>
+                  {showItems && (
+                    <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto">
+                      {selectedDelivery.items.map((item, i) => (
+                        <a
+                          key={i}
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-start gap-2 px-4 py-2.5 hover:bg-indigo-50 transition group"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-slate-400 group-hover:text-indigo-500" />
+                          <span className="text-sm text-slate-700 group-hover:text-indigo-700 line-clamp-2">{item.title}</span>
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </DialogContent>
