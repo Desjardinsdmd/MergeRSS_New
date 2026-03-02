@@ -82,8 +82,8 @@ export default function DigestCompactView({
                 Edit
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onSendTest(digest)} disabled={sendingTest === digest.id}>
-                <Send className="w-4 h-4 mr-2" />
-                Send Test
+                <Zap className="w-4 h-4 mr-2" />
+                Run Now
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onMakePublic(digest)}>
                 <Globe className="w-4 h-4 mr-2" />
