@@ -51,6 +51,37 @@ const adminNav = [
   { name: 'Import Feeds', href: 'AdminImport', icon: Globe },
 ];
 
+function InboxNavBadge({ user }) {
+  const { data: digests = [] } = useQuery({
+    queryKey: ['nav-digests', user?.email],
+    queryFn: () => base44.entities.Digest.filter({ created_by: user?.email }),
+    enabled: !!user,
+    staleTime: 60000,
+  });
+
+  const digestIds = digests.map(d => d.id);
+
+  const { data: deliveries = [] } = useQuery({
+    queryKey: ['nav-inboxCount', user?.email, digestIds.join(',')],
+    queryFn: () => base44.entities.DigestDelivery.filter(
+      { digest_id: { $in: digestIds }, delivery_type: 'web', status: 'sent', is_read: false },
+      '-created_date',
+      100
+    ),
+    enabled: !!user && digestIds.length > 0,
+    refetchInterval: 60000,
+  });
+
+  const unread = deliveries.length;
+  if (!unread) return null;
+
+  return (
+    <span className="min-w-[18px] h-[18px] bg-indigo-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 leading-none flex-shrink-0">
+      {unread > 99 ? '99+' : unread}
+    </span>
+  );
+}
+
 function LayoutContent({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
