@@ -62,7 +62,7 @@ function BookmarkNavBadge({ user }) {
     enabled: !!user,
     refetchInterval: 60000,
   });
-  const unread = bookmarks.length;
+  const unread = bookmarks.filter(b => !b.is_read).length;
   if (!unread) return null;
   return (
     <span className="min-w-[18px] h-[18px] bg-indigo-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 leading-none flex-shrink-0">
