@@ -40,10 +40,10 @@ const jobTypeIcons = {
 };
 
 const statusColors = {
-  running: 'bg-blue-100 text-blue-700',
-  completed: 'bg-green-100 text-green-700',
-  failed: 'bg-red-100 text-red-700',
-  scheduled: 'bg-amber-100 text-amber-700',
+  running: 'bg-blue-900/30 text-blue-400',
+  completed: 'bg-green-900/30 text-green-400',
+  failed: 'bg-red-900/30 text-red-400',
+  scheduled: 'bg-amber-900/30 text-amber-400',
 };
 
 export default function AdminHealth() {
@@ -148,8 +148,8 @@ export default function AdminHealth() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">System Health</h1>
-          <p className="text-slate-600">
+          <h1 className="text-2xl font-bold text-stone-100">System Health</h1>
+          <p className="text-stone-500">
             Monitor job status and system performance
           </p>
         </div>
@@ -162,24 +162,24 @@ export default function AdminHealth() {
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {stats.map((stat) => (
-          <Card key={stat.name} className="border-slate-100">
+          <Card key={stat.name} className="border-stone-800 bg-stone-900">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className={cn("p-2 rounded-lg", stat.bg)}>
                   <stat.icon className={cn("w-4 h-4", stat.color)} />
                 </div>
-              </div>
-              <p className="text-2xl font-bold text-slate-900">{stat.value}</p>
-              <p className="text-sm text-slate-500">{stat.name}</p>
+                </div>
+                <p className="text-2xl font-bold text-stone-100">{stat.value}</p>
+                <p className="text-sm text-stone-500">{stat.name}</p>
             </CardContent>
           </Card>
         ))}
       </div>
 
       {/* Feed Status */}
-      <Card className="border-slate-100 mb-6">
+      <Card className="border-stone-800 bg-stone-900 mb-6">
         <CardHeader>
-          <CardTitle className="text-lg">Feed Status</CardTitle>
+          <CardTitle className="text-lg text-stone-200">Feed Status</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
@@ -196,31 +196,31 @@ export default function AdminHealth() {
               <TableBody>
                 {feeds.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-slate-500 py-8">
+                    <TableCell colSpan={5} className="text-center text-stone-500 py-8">
                       No feeds configured
                     </TableCell>
                   </TableRow>
-                ) : (
+                  ) : (
                   feeds.map((feed) => (
                     <TableRow key={feed.id}>
-                      <TableCell className="font-medium">{feed.name}</TableCell>
+                      <TableCell className="font-medium text-stone-200">{feed.name}</TableCell>
                       <TableCell>
                         <Badge className={cn(
-                          feed.status === 'active' ? 'bg-green-100 text-green-700' :
-                          feed.status === 'error' ? 'bg-red-100 text-red-700' :
-                          'bg-slate-100 text-slate-700'
+                          feed.status === 'active' ? 'bg-green-900/30 text-green-400' :
+                          feed.status === 'error' ? 'bg-red-900/30 text-red-400' :
+                          'bg-stone-800 text-stone-400'
                         )}>
                           {feed.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-sm text-slate-500">
+                      <TableCell className="text-sm text-stone-500">
                         {feed.last_fetched 
                           ? format(new Date(feed.last_fetched), 'MMM d, h:mm a')
                           : 'Never'
                         }
                       </TableCell>
                       <TableCell>{feed.item_count || 0}</TableCell>
-                      <TableCell className="text-sm text-red-600 max-w-[200px] truncate">
+                      <TableCell className="text-sm text-red-400 max-w-[200px] truncate">
                         {feed.fetch_error || '-'}
                       </TableCell>
                     </TableRow>
@@ -233,14 +233,14 @@ export default function AdminHealth() {
       </Card>
 
       {/* Generated Feeds Admin */}
-      <Card className="border-slate-100 mb-6">
+      <Card className="border-stone-800 bg-stone-900 mb-6">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Wand2 className="w-4 h-4 text-indigo-500" />
+            <CardTitle className="text-lg flex items-center gap-2 text-stone-200">
+              <Wand2 className="w-4 h-4 text-amber-400" />
               Generated Feeds
             </CardTitle>
-            <Badge variant="secondary">{generatedFeeds.length} total</Badge>
+            <Badge variant="secondary" className="bg-stone-800 text-stone-400">{generatedFeeds.length} total</Badge>
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -260,36 +260,36 @@ export default function AdminHealth() {
               <TableBody>
                 {generatedFeeds.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-slate-500 py-8">No generated feeds yet</TableCell>
+                    <TableCell colSpan={7} className="text-center text-stone-500 py-8">No generated feeds yet</TableCell>
                   </TableRow>
                 ) : generatedFeeds.map((feed) => (
                   <TableRow key={feed.id} className={feed.is_disabled ? 'opacity-50' : ''}>
-                    <TableCell className="max-w-[220px] truncate text-sm">
-                      <a href={feed.source_url} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">
+                    <TableCell className="max-w-[220px] truncate text-sm text-stone-300">
+                      <a href={feed.source_url} target="_blank" rel="noopener noreferrer" className="text-amber-400 hover:underline">
                         {feed.source_url}
                       </a>
                     </TableCell>
                     <TableCell>
                       <Badge className={
                         feed.method === 'direct_rss' || feed.method === 'discovered_rss'
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-amber-100 text-amber-700'
+                          ? 'bg-green-900/30 text-green-400'
+                          : 'bg-amber-900/30 text-amber-400'
                       }>
                         {feed.method || 'scraped'}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-sm text-slate-500">{feed.created_by}</TableCell>
-                    <TableCell className="text-sm text-slate-500">
+                    <TableCell className="text-sm text-stone-500">{feed.created_by}</TableCell>
+                    <TableCell className="text-sm text-stone-500">
                       {feed.last_success ? format(new Date(feed.last_success), 'MMM d, h:mm a') : '—'}
                     </TableCell>
                     <TableCell>
                       {(feed.error_count || 0) > 0
-                        ? <Badge className="bg-red-100 text-red-700">{feed.error_count}</Badge>
-                        : <span className="text-slate-300">0</span>
+                        ? <Badge className="bg-red-900/30 text-red-400">{feed.error_count}</Badge>
+                        : <span className="text-stone-600">0</span>
                       }
                     </TableCell>
                     <TableCell>
-                      <Badge className={feed.is_disabled ? 'bg-slate-100 text-slate-500' : 'bg-green-100 text-green-700'}>
+                      <Badge className={feed.is_disabled ? 'bg-stone-800 text-stone-500' : 'bg-green-900/30 text-green-400'}>
                         {feed.is_disabled ? 'Disabled' : 'Active'}
                       </Badge>
                     </TableCell>
@@ -297,7 +297,7 @@ export default function AdminHealth() {
                       <Button
                         variant="ghost" size="sm"
                         onClick={() => toggleFeedDisabled(feed)}
-                        className={feed.is_disabled ? 'text-indigo-600 hover:text-indigo-700' : 'text-slate-400 hover:text-red-500'}
+                        className={feed.is_disabled ? 'text-amber-400 hover:text-amber-300' : 'text-stone-600 hover:text-red-400'}
                       >
                         <Ban className="w-3.5 h-3.5 mr-1" />
                         {feed.is_disabled ? 'Enable' : 'Disable'}
@@ -312,14 +312,14 @@ export default function AdminHealth() {
       </Card>
 
       {/* Job History */}
-      <Card className="border-slate-100">
+      <Card className="border-stone-800 bg-stone-900">
         <CardHeader>
-          <CardTitle className="text-lg">Job History</CardTitle>
+          <CardTitle className="text-lg text-stone-200">Job History</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-6 h-6 animate-spin text-violet-600" />
+              <Loader2 className="w-6 h-6 animate-spin text-amber-400" />
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -337,7 +337,7 @@ export default function AdminHealth() {
                 <TableBody>
                   {jobs.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center text-slate-500 py-8">
+                      <TableCell colSpan={6} className="text-center text-stone-500 py-8">
                         No jobs recorded yet
                       </TableCell>
                     </TableRow>
@@ -348,7 +348,7 @@ export default function AdminHealth() {
                         <TableRow key={job.id}>
                           <TableCell>
                             <div className="flex items-center gap-2">
-                              <Icon className="w-4 h-4 text-slate-400" />
+                              <Icon className="w-4 h-4 text-stone-600" />
                               <span className="capitalize">
                                 {job.job_type?.replace(/_/g, ' ')}
                               </span>
@@ -372,7 +372,7 @@ export default function AdminHealth() {
                             }
                           </TableCell>
                           <TableCell>{job.retry_count || 0}</TableCell>
-                          <TableCell className="text-sm text-red-600 max-w-[200px] truncate">
+                          <TableCell className="text-sm text-red-400 max-w-[200px] truncate">
                             {job.error_message || '-'}
                           </TableCell>
                         </TableRow>

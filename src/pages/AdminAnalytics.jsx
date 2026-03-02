@@ -39,7 +39,7 @@ export default function AdminAnalytics() {
   if (!user) return null;
   if (user.role !== 'admin') {
     return (
-      <div className="p-8 text-center text-slate-500">Access denied. Admin only.</div>
+      <div className="p-8 text-center text-stone-500">Access denied. Admin only.</div>
     );
   }
 
@@ -63,31 +63,31 @@ export default function AdminAnalytics() {
   ].filter(Boolean)).size;
 
   const stats = [
-    { name: 'Total Feeds', value: allFeeds.length, icon: Rss, color: 'bg-indigo-50 text-indigo-600' },
-    { name: 'Total Digests', value: allDigests.length, icon: FileText, color: 'bg-violet-50 text-violet-600' },
-    { name: 'Digest Adds (all-time)', value: totalAdded, icon: Users, color: 'bg-amber-50 text-amber-600' },
-    { name: 'Deliveries Sent', value: sentDeliveries, icon: TrendingUp, color: 'bg-emerald-50 text-emerald-600' },
-    { name: 'Unread Deliveries', value: unreadDeliveries, icon: TrendingUp, color: 'bg-red-50 text-red-600' },
-    { name: 'Unique Users', value: uniqueUsers, icon: Users, color: 'bg-sky-50 text-sky-600' },
+    { name: 'Total Feeds', value: allFeeds.length, icon: Rss, color: 'bg-amber-900/30 text-amber-400' },
+    { name: 'Total Digests', value: allDigests.length, icon: FileText, color: 'bg-blue-900/30 text-blue-400' },
+    { name: 'Digest Adds (all-time)', value: totalAdded, icon: Users, color: 'bg-green-900/30 text-green-400' },
+    { name: 'Deliveries Sent', value: sentDeliveries, icon: TrendingUp, color: 'bg-emerald-900/30 text-emerald-400' },
+    { name: 'Unread Deliveries', value: unreadDeliveries, icon: TrendingUp, color: 'bg-red-900/30 text-red-400' },
+    { name: 'Unique Users', value: uniqueUsers, icon: Users, color: 'bg-sky-900/30 text-sky-400' },
   ];
 
   return (
     <div className="p-6 lg:p-8 max-w-5xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Analytics</h1>
-        <p className="text-slate-500 text-sm mt-1">Platform-wide usage statistics</p>
+        <h1 className="text-2xl font-bold text-stone-100">Analytics</h1>
+        <p className="text-stone-500 text-sm mt-1">Platform-wide usage statistics</p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-        {stats.map(stat => (
-          <Card key={stat.name} className="border-slate-100">
-            <CardContent className="p-4">
-              <div className={`p-2 rounded-lg w-fit mb-3 ${stat.color}`}>
-                <stat.icon className="w-4 h-4" />
-              </div>
-              <p className="text-2xl font-bold text-slate-900">{stat.value}</p>
-              <p className="text-sm text-slate-500">{stat.name}</p>
+         {stats.map(stat => (
+           <Card key={stat.name} className="border-stone-800 bg-stone-900">
+             <CardContent className="p-4">
+               <div className={`p-2 rounded-lg w-fit mb-3 ${stat.color}`}>
+                 <stat.icon className="w-4 h-4" />
+               </div>
+               <p className="text-2xl font-bold text-stone-100">{stat.value}</p>
+               <p className="text-sm text-stone-500">{stat.name}</p>
             </CardContent>
           </Card>
         ))}
@@ -95,16 +95,16 @@ export default function AdminAnalytics() {
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Top digest adds */}
-        <Card className="border-slate-100">
+        <Card className="border-stone-800 bg-stone-900">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Star className="w-4 h-4 text-amber-500" />
+            <CardTitle className="text-base flex items-center gap-2 text-stone-200">
+              <Star className="w-4 h-4 text-amber-400" />
               Top Digests by Adds
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
             {digestAdds.length === 0 ? (
-              <p className="text-sm text-slate-400">No data yet</p>
+              <p className="text-sm text-stone-600">No data yet</p>
             ) : (
               <div className="space-y-2">
                 {digestAdds.map((d, i) => (
@@ -124,16 +124,16 @@ export default function AdminAnalytics() {
         </Card>
 
         {/* Top directory feeds */}
-        <Card className="border-slate-100">
+        <Card className="border-stone-800 bg-stone-900">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Rss className="w-4 h-4 text-indigo-500" />
+            <CardTitle className="text-base flex items-center gap-2 text-stone-200">
+              <Rss className="w-4 h-4 text-amber-400" />
               Top Directory Feeds by Subscribers
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
             {topDirFeeds.length === 0 ? (
-              <p className="text-sm text-slate-400">No data yet</p>
+              <p className="text-sm text-stone-600">No data yet</p>
             ) : (
               <div className="space-y-2">
                 {topDirFeeds.map((f, i) => (

@@ -30,34 +30,34 @@ function ResultRow({ result }) {
   const [expanded, setExpanded] = useState(false);
   const isError = !!result.error;
   return (
-    <div className="border border-slate-100 rounded-lg overflow-hidden">
+    <div className="border border-stone-800 bg-stone-900 rounded-lg overflow-hidden">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-slate-50 transition"
+        className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-stone-800 transition"
       >
         <div className="flex items-center gap-2 min-w-0">
           {isError
-            ? <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
-            : <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />}
-          <span className="text-sm text-slate-700 truncate">{result.source.split('/').pop()}</span>
+            ? <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+            : <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />}
+          <span className="text-sm text-stone-300 truncate">{result.source.split('/').pop()}</span>
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
           {!isError && (
             <>
-              <Badge variant="secondary" className="text-xs">{result.imported} imported</Badge>
-              {result.skipped > 0 && <Badge variant="outline" className="text-xs">{result.skipped} skipped</Badge>}
+              <Badge variant="secondary" className="text-xs bg-green-900/30 text-green-400">{result.imported} imported</Badge>
+              {result.skipped > 0 && <Badge variant="outline" className="text-xs border-stone-700 text-stone-400">{result.skipped} skipped</Badge>}
             </>
           )}
-          {isError && <span className="text-xs text-red-500">{result.error}</span>}
+          {isError && <span className="text-xs text-red-400">{result.error}</span>}
           {result.feeds?.length > 0 && (expanded ? <ChevronDown className="w-3.5 h-3.5 text-slate-400" /> : <ChevronRight className="w-3.5 h-3.5 text-slate-400" />)}
         </div>
       </button>
       {expanded && result.feeds?.length > 0 && (
-        <div className="border-t border-slate-100 max-h-48 overflow-y-auto">
+        <div className="border-t border-stone-800 max-h-48 overflow-y-auto">
           {result.feeds.map((f, i) => (
-            <div key={i} className="flex items-center justify-between px-4 py-2 text-xs border-b border-slate-50 last:border-0">
-              <span className="text-slate-700 font-medium truncate flex-1">{f.name}</span>
-              <Badge variant="secondary" className="text-[10px] ml-2 flex-shrink-0">{f.category}</Badge>
+            <div key={i} className="flex items-center justify-between px-4 py-2 text-xs border-b border-stone-800 last:border-0">
+              <span className="text-stone-300 font-medium truncate flex-1">{f.name}</span>
+              <Badge variant="secondary" className="text-[10px] ml-2 flex-shrink-0 bg-stone-800 text-stone-400">{f.category}</Badge>
             </div>
           ))}
         </div>
@@ -316,10 +316,10 @@ export default function AdminImport() {
   return (
     <div className="p-6 lg:p-8 max-w-4xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Import Feeds from OPML</h1>
-        <p className="text-slate-500 text-sm mt-1">
-          Populate the public directory from curated RSS indexes.
-          Source: <a href="https://github.com/plenaryapp/awesome-rss-feeds" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline inline-flex items-center gap-1">awesome-rss-feeds <ExternalLink className="w-3 h-3" /></a> (CC0 license)
+         <h1 className="text-2xl font-bold text-stone-100">Import Feeds from OPML</h1>
+         <p className="text-stone-500 text-sm mt-1">
+           Populate the public directory from curated RSS indexes.
+           Source: <a href="https://github.com/plenaryapp/awesome-rss-feeds" target="_blank" rel="noopener noreferrer" className="text-amber-400 hover:underline inline-flex items-center gap-1">awesome-rss-feeds <ExternalLink className="w-3 h-3" /></a> (CC0 license)
         </p>
       </div>
 
@@ -328,34 +328,34 @@ export default function AdminImport() {
         <RssCrawler />
 
         {/* Bulk Feed Upload */}
-        <Card className="border-slate-100">
+        <Card className="border-stone-800 bg-stone-900">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Bulk Add Feeds to Directory</CardTitle>
-            <CardDescription className="text-xs">Upload a CSV file with columns: name, url, category (optional), tags (optional, semicolon-separated)</CardDescription>
+            <CardTitle className="text-base text-stone-200">Bulk Add Feeds to Directory</CardTitle>
+            <CardDescription className="text-xs text-stone-500">Upload a CSV file with columns: name, url, category (optional), tags (optional, semicolon-separated)</CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
             {pendingCsvFile ? (
-              <div className="relative border-2 border-indigo-300 bg-indigo-50 rounded-lg px-4 py-5 flex flex-col items-center gap-3">
+              <div className="relative border-2 border-amber-700 bg-amber-900/20 rounded-lg px-4 py-5 flex flex-col items-center gap-3">
                 <button
                   onClick={cancelCsvUpload}
-                  className="absolute top-2 right-2 p-1 text-slate-400 hover:text-red-500 transition"
+                  className="absolute top-2 right-2 p-1 text-stone-600 hover:text-red-400 transition"
                   title="Remove file"
                 >
                   <X className="w-4 h-4" />
                 </button>
-                <div className="flex items-center gap-2 text-indigo-700">
+                <div className="flex items-center gap-2 text-amber-400">
                   <Upload className="w-4 h-4" />
                   <span className="text-sm font-medium truncate max-w-[240px]">{pendingCsvFile}</span>
                 </div>
-                <p className="text-xs text-slate-500">{pendingCsvFeeds.length} valid feed(s) found</p>
-                <Button onClick={confirmCsvUpload} className="bg-indigo-600 hover:bg-indigo-700 rounded-lg w-full text-sm">
+                <p className="text-xs text-stone-500">{pendingCsvFeeds.length} valid feed(s) found</p>
+                <Button onClick={confirmCsvUpload} className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-semibold rounded-lg w-full text-sm">
                   Confirm Upload
                 </Button>
               </div>
             ) : (
-              <label htmlFor="bulk-feeds-upload" className="flex flex-col items-center justify-center w-full px-4 py-6 border-2 border-dashed border-slate-200 rounded-lg hover:border-indigo-300 hover:bg-indigo-50 cursor-pointer transition">
-                <Upload className="w-5 h-5 text-slate-400 mb-2" />
-                <span className="text-sm text-slate-600">Click to upload CSV or drag and drop</span>
+              <label htmlFor="bulk-feeds-upload" className="flex flex-col items-center justify-center w-full px-4 py-6 border-2 border-dashed border-stone-700 rounded-lg hover:border-amber-700 hover:bg-amber-900/20 cursor-pointer transition">
+                <Upload className="w-5 h-5 text-stone-600 mb-2" />
+                <span className="text-sm text-stone-400">Click to upload CSV or drag and drop</span>
                 <input
                   ref={feedsUploadRef}
                   id="bulk-feeds-upload"
@@ -371,15 +371,15 @@ export default function AdminImport() {
         </Card>
 
         {/* Bulk Digest Upload */}
-        <Card className="border-slate-100">
+        <Card className="border-stone-800 bg-stone-900">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Bulk Add Digests to Directory</CardTitle>
-            <CardDescription className="text-xs">Upload a CSV file with columns: name, description (optional), categories (optional, semicolon-separated), tags (optional, semicolon-separated)</CardDescription>
+            <CardTitle className="text-base text-stone-200">Bulk Add Digests to Directory</CardTitle>
+            <CardDescription className="text-xs text-stone-500">Upload a CSV file with columns: name, description (optional), categories (optional, semicolon-separated), tags (optional, semicolon-separated)</CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
-            <label htmlFor="bulk-digests-upload" className="flex flex-col items-center justify-center w-full px-4 py-6 border-2 border-dashed border-slate-200 rounded-lg hover:border-indigo-300 hover:bg-indigo-50 cursor-pointer transition">
-              <Upload className="w-5 h-5 text-slate-400 mb-2" />
-              <span className="text-sm text-slate-600">Click to upload CSV or drag and drop</span>
+            <label htmlFor="bulk-digests-upload" className="flex flex-col items-center justify-center w-full px-4 py-6 border-2 border-dashed border-stone-700 rounded-lg hover:border-amber-700 hover:bg-amber-900/20 cursor-pointer transition">
+              <Upload className="w-5 h-5 text-stone-600 mb-2" />
+              <span className="text-sm text-stone-400">Click to upload CSV or drag and drop</span>
               <input
                 id="bulk-digests-upload"
                 type="file"
@@ -388,42 +388,42 @@ export default function AdminImport() {
                 className="hidden"
               />
             </label>
-            <p className="text-[10px] text-slate-500 mt-2">Example: DailyNews,News digest,Tech;AI,daily;news</p>
+            <p className="text-[10px] text-stone-600 mt-2">Example: DailyNews,News digest,Tech;AI,daily;news</p>
           </CardContent>
         </Card>
 
         {/* Manual Feed Entry */}
-        <Card className="border-slate-100">
+        <Card className="border-stone-800 bg-stone-900">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Add Feed to Directory</CardTitle>
-            <CardDescription className="text-xs">Manually add a single RSS feed to the public directory</CardDescription>
+            <CardTitle className="text-base text-stone-200">Add Feed to Directory</CardTitle>
+            <CardDescription className="text-xs text-stone-500">Manually add a single RSS feed to the public directory</CardDescription>
           </CardHeader>
           <CardContent className="pt-0 space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs">Feed Name</Label>
+                <Label className="text-xs text-stone-300">Feed Name</Label>
                 <Input
                   placeholder="e.g. TechCrunch"
                   value={manualFeed.name}
                   onChange={(e) => setManualFeed({ ...manualFeed, name: e.target.value })}
-                  className="mt-1 text-sm rounded-lg"
+                  className="mt-1 text-sm rounded-lg bg-stone-800 border-stone-700 text-stone-100 placeholder-stone-600"
                 />
               </div>
               <div>
-                <Label className="text-xs">Feed URL</Label>
+                <Label className="text-xs text-stone-300">Feed URL</Label>
                 <Input
                   placeholder="https://example.com/feed.xml"
                   value={manualFeed.url}
                   onChange={(e) => setManualFeed({ ...manualFeed, url: e.target.value })}
-                  className="mt-1 text-sm rounded-lg"
+                  className="mt-1 text-sm rounded-lg bg-stone-800 border-stone-700 text-stone-100 placeholder-stone-600"
                 />
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs">Category</Label>
+                <Label className="text-xs text-stone-300">Category</Label>
                 <Select value={manualFeed.category} onValueChange={(cat) => setManualFeed({ ...manualFeed, category: cat })}>
-                  <SelectTrigger className="mt-1 text-sm rounded-lg h-9">
+                  <SelectTrigger className="mt-1 text-sm rounded-lg h-9 bg-stone-800 border-stone-700 text-stone-100">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -439,12 +439,12 @@ export default function AdminImport() {
                 </Select>
               </div>
               <div>
-                <Label className="text-xs">Tags (comma-separated)</Label>
+                <Label className="text-xs text-stone-300">Tags (comma-separated)</Label>
                 <Input
                   placeholder="e.g. tech, startup"
                   value={manualFeed.tags}
                   onChange={(e) => setManualFeed({ ...manualFeed, tags: e.target.value })}
-                  className="mt-1 text-sm rounded-lg"
+                  className="mt-1 text-sm rounded-lg bg-stone-800 border-stone-700 text-stone-100 placeholder-stone-600"
                 />
               </div>
             </div>
@@ -452,24 +452,24 @@ export default function AdminImport() {
               onClick={addManualFeed}
               disabled={!manualFeed.name.trim() || !manualFeed.url.trim()}
               variant="outline"
-              className="rounded-lg w-full text-sm"
+              className="rounded-lg w-full text-sm border-stone-700 text-stone-400 hover:text-stone-200"
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Feed
             </Button>
 
             {manualFeeds.length > 0 && (
-              <div className="border-t pt-3 space-y-2">
-                <p className="text-xs font-medium text-slate-700">{manualFeeds.length} feed(s) to add:</p>
+              <div className="border-t border-stone-800 pt-3 space-y-2">
+                <p className="text-xs font-medium text-stone-400">{manualFeeds.length} feed(s) to add:</p>
                 {manualFeeds.map((f, i) => (
-                  <div key={i} className="flex items-center justify-between px-3 py-2 bg-slate-50 rounded-lg">
+                  <div key={i} className="flex items-center justify-between px-3 py-2 bg-stone-800 rounded-lg">
                     <div className="min-w-0">
-                      <p className="text-xs font-medium text-slate-900">{f.name}</p>
-                      <p className="text-[10px] text-slate-500 truncate">{f.url}</p>
+                      <p className="text-xs font-medium text-stone-200">{f.name}</p>
+                      <p className="text-[10px] text-stone-500 truncate">{f.url}</p>
                     </div>
                     <button
                       onClick={() => removeManualFeed(i)}
-                      className="ml-2 p-1 text-slate-400 hover:text-red-600 transition flex-shrink-0"
+                      className="ml-2 p-1 text-stone-600 hover:text-red-400 transition flex-shrink-0"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -481,49 +481,49 @@ export default function AdminImport() {
         </Card>
 
         {/* Manual Digest Entry */}
-        <Card className="border-slate-100">
+        <Card className="border-stone-800 bg-stone-900">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Add Digest to Directory</CardTitle>
-            <CardDescription className="text-xs">Manually add a single digest to the public directory</CardDescription>
+            <CardTitle className="text-base text-stone-200">Add Digest to Directory</CardTitle>
+            <CardDescription className="text-xs text-stone-500">Manually add a single digest to the public directory</CardDescription>
           </CardHeader>
           <CardContent className="pt-0 space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs">Digest Name</Label>
+                <Label className="text-xs text-stone-300">Digest Name</Label>
                 <Input
                   placeholder="e.g. Daily Tech News"
                   value={manualDigest.name}
                   onChange={(e) => setManualDigest({ ...manualDigest, name: e.target.value })}
-                  className="mt-1 text-sm rounded-lg"
+                  className="mt-1 text-sm rounded-lg bg-stone-800 border-stone-700 text-stone-100 placeholder-stone-600"
                 />
               </div>
               <div>
-                <Label className="text-xs">Description</Label>
+                <Label className="text-xs text-stone-300">Description</Label>
                 <Input
                   placeholder="Brief description"
                   value={manualDigest.description}
                   onChange={(e) => setManualDigest({ ...manualDigest, description: e.target.value })}
-                  className="mt-1 text-sm rounded-lg"
+                  className="mt-1 text-sm rounded-lg bg-stone-800 border-stone-700 text-stone-100 placeholder-stone-600"
                 />
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs">Categories (comma-separated)</Label>
+                <Label className="text-xs text-stone-300">Categories (comma-separated)</Label>
                 <Input
                   placeholder="e.g. Tech, AI"
                   value={manualDigest.categories}
                   onChange={(e) => setManualDigest({ ...manualDigest, categories: e.target.value })}
-                  className="mt-1 text-sm rounded-lg"
+                  className="mt-1 text-sm rounded-lg bg-stone-800 border-stone-700 text-stone-100 placeholder-stone-600"
                 />
               </div>
               <div>
-                <Label className="text-xs">Tags (comma-separated)</Label>
+                <Label className="text-xs text-stone-300">Tags (comma-separated)</Label>
                 <Input
                   placeholder="e.g. news, daily"
                   value={manualDigest.tags}
                   onChange={(e) => setManualDigest({ ...manualDigest, tags: e.target.value })}
-                  className="mt-1 text-sm rounded-lg"
+                  className="mt-1 text-sm rounded-lg bg-stone-800 border-stone-700 text-stone-100 placeholder-stone-600"
                 />
               </div>
             </div>
@@ -531,24 +531,24 @@ export default function AdminImport() {
               onClick={addManualDigest}
               disabled={!manualDigest.name.trim()}
               variant="outline"
-              className="rounded-lg w-full text-sm"
+              className="rounded-lg w-full text-sm border-stone-700 text-stone-400 hover:text-stone-200"
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Digest
             </Button>
 
             {manualDigests.length > 0 && (
-              <div className="border-t pt-3 space-y-2">
-                <p className="text-xs font-medium text-slate-700">{manualDigests.length} digest(es) to add:</p>
+              <div className="border-t border-stone-800 pt-3 space-y-2">
+                <p className="text-xs font-medium text-stone-400">{manualDigests.length} digest(es) to add:</p>
                 {manualDigests.map((d, i) => (
-                  <div key={i} className="flex items-center justify-between px-3 py-2 bg-slate-50 rounded-lg">
+                  <div key={i} className="flex items-center justify-between px-3 py-2 bg-stone-800 rounded-lg">
                     <div className="min-w-0">
-                      <p className="text-xs font-medium text-slate-900">{d.name}</p>
-                      {d.description && <p className="text-[10px] text-slate-500">{d.description}</p>}
+                      <p className="text-xs font-medium text-stone-200">{d.name}</p>
+                      {d.description && <p className="text-[10px] text-stone-500">{d.description}</p>}
                     </div>
                     <button
                       onClick={() => removeManualDigest(i)}
-                      className="ml-2 p-1 text-slate-400 hover:text-red-600 transition flex-shrink-0"
+                      className="ml-2 p-1 text-stone-600 hover:text-red-400 transition flex-shrink-0"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -561,12 +561,12 @@ export default function AdminImport() {
 
         {/* Submit all manual items */}
         {(manualFeeds.length > 0 || manualDigests.length > 0) && (
-          <Card className="border-indigo-200 bg-indigo-50">
+          <Card className="border-amber-700 bg-amber-900/20">
             <CardContent className="p-4">
               <Button
                 onClick={submitManualItems}
                 disabled={loading}
-                className="bg-indigo-600 hover:bg-indigo-700 rounded-lg w-full"
+                className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-semibold rounded-lg w-full"
               >
                 {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
                 Add {manualFeeds.length + manualDigests.length} Item(s) to Directory
@@ -576,17 +576,17 @@ export default function AdminImport() {
         )}
       
         {/* Dry run toggle */}
-        <Card className="border-slate-100">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-slate-900 text-sm">Dry Run Mode</p>
-                <p className="text-xs text-slate-500 mt-0.5">Preview what would be imported without saving anything</p>
+          <Card className="border-stone-800 bg-stone-900">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-stone-200 text-sm">Dry Run Mode</p>
+                  <p className="text-xs text-stone-500 mt-0.5">Preview what would be imported without saving anything</p>
               </div>
               <Switch checked={dryRun} onCheckedChange={setDryRun} />
             </div>
             {!dryRun && (
-              <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
+              <div className="mt-3 p-3 bg-amber-900/20 border border-amber-700 rounded-lg text-xs text-amber-300">
                 ⚠️ This will write feeds to the database and make them public in the directory.
               </div>
             )}
@@ -594,10 +594,10 @@ export default function AdminImport() {
         </Card>
 
         {/* Preset sources */}
-        <Card className="border-slate-100">
+        <Card className="border-stone-800 bg-stone-900">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Preset OPML Sources</CardTitle>
-            <CardDescription className="text-xs">Select categories to import from the awesome-rss-feeds index</CardDescription>
+            <CardTitle className="text-base text-stone-200">Preset OPML Sources</CardTitle>
+            <CardDescription className="text-xs text-stone-500">Select categories to import from the awesome-rss-feeds index</CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
@@ -607,8 +607,8 @@ export default function AdminImport() {
                   onClick={() => toggleSource(source.url)}
                   className={`text-left px-3 py-2 rounded-lg border text-sm transition ${
                     selectedSources.has(source.url)
-                      ? 'border-indigo-300 bg-indigo-50 text-indigo-700'
-                      : 'border-slate-200 text-slate-500 hover:border-slate-300'
+                      ? 'border-amber-700 bg-amber-900/20 text-amber-400'
+                      : 'border-stone-700 text-stone-500 hover:border-stone-600'
                   }`}
                 >
                   <div className="font-medium text-xs">{source.label}</div>
@@ -619,7 +619,7 @@ export default function AdminImport() {
             <Button
               onClick={() => runImport()}
               disabled={loading || selectedSources.size === 0}
-              className="bg-indigo-600 hover:bg-indigo-700 rounded-lg w-full"
+              className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-semibold rounded-lg w-full"
             >
               {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
               {dryRun ? 'Preview Import' : `Import ${selectedSources.size} Source${selectedSources.size !== 1 ? 's' : ''}`}
@@ -628,35 +628,35 @@ export default function AdminImport() {
         </Card>
 
         {/* Custom OPML URL */}
-        <Card className="border-slate-100">
+        <Card className="border-stone-800 bg-stone-900">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Custom OPML URL</CardTitle>
-            <CardDescription className="text-xs">Import from any publicly accessible OPML file</CardDescription>
+            <CardTitle className="text-base text-stone-200">Custom OPML URL</CardTitle>
+            <CardDescription className="text-xs text-stone-500">Import from any publicly accessible OPML file</CardDescription>
           </CardHeader>
           <CardContent className="pt-0 space-y-3">
             <div>
-              <Label className="text-xs">OPML URL</Label>
+              <Label className="text-xs text-stone-300">OPML URL</Label>
               <Input
                 placeholder="https://example.com/feeds.opml"
                 value={customUrl}
                 onChange={(e) => setCustomUrl(e.target.value)}
-                className="mt-1 text-sm rounded-lg"
+                className="mt-1 text-sm rounded-lg bg-stone-800 border-stone-700 text-stone-100 placeholder-stone-600"
               />
             </div>
             <div>
-              <Label className="text-xs">Tags (comma-separated)</Label>
+              <Label className="text-xs text-stone-300">Tags (comma-separated)</Label>
               <Input
                 placeholder="e.g. finance, investing, stocks"
                 value={customTags}
                 onChange={(e) => setCustomTags(e.target.value)}
-                className="mt-1 text-sm rounded-lg"
+                className="mt-1 text-sm rounded-lg bg-stone-800 border-stone-700 text-stone-100 placeholder-stone-600"
               />
             </div>
             <Button
               onClick={() => runImport(customUrl)}
               disabled={loading || !customUrl.trim()}
               variant="outline"
-              className="rounded-lg w-full"
+              className="rounded-lg w-full border-stone-700 text-stone-400 hover:text-stone-200"
             >
               {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
               {dryRun ? 'Preview Custom Import' : 'Import Custom OPML'}
@@ -666,13 +666,13 @@ export default function AdminImport() {
 
         {/* Results */}
         {results && (
-          <Card className="border-slate-100">
+          <Card className="border-stone-800 bg-stone-900">
             <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
+              <CardTitle className="text-base flex items-center gap-2 text-stone-200">
                 Results
-                <Badge className="bg-green-100 text-green-700 border-0 text-xs">{results.total_imported} feeds</Badge>
+                <Badge className="bg-green-900/30 text-green-400 border-0 text-xs">{results.total_imported} feeds</Badge>
                 {results.total_skipped > 0 && (
-                  <Badge variant="outline" className="text-xs">{results.total_skipped} skipped (duplicates)</Badge>
+                  <Badge variant="outline" className="text-xs border-stone-700 text-stone-400">{results.total_skipped} skipped (duplicates)</Badge>
                 )}
               </CardTitle>
             </CardHeader>
