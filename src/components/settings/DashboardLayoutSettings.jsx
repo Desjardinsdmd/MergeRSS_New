@@ -28,20 +28,20 @@ export default function DashboardLayoutSettings({ layout, onChange }) {
   };
 
   return (
-    <Card className="border-slate-100">
+    <Card className="border-stone-800 bg-stone-900">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <LayoutDashboard className="w-5 h-5 text-slate-400" />
+        <CardTitle className="flex items-center gap-2 text-lg text-stone-200">
+          <LayoutDashboard className="w-5 h-5 text-amber-400" />
           Dashboard Layout
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
-        <p className="text-sm text-slate-500 mb-3">Choose which widgets appear on your dashboard.</p>
+        <p className="text-sm text-stone-500 mb-3">Choose which widgets appear on your dashboard.</p>
         {DEFAULT_WIDGETS.map(widget => (
-          <div key={widget.id} className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
+          <div key={widget.id} className="flex items-center justify-between py-2 border-b border-stone-800 last:border-0">
             <div>
-              <p className="text-sm font-medium text-slate-800">{widget.label}</p>
-              <p className="text-xs text-slate-500">{widget.description}</p>
+              <p className="text-sm font-medium text-stone-200">{widget.label}</p>
+              <p className="text-xs text-stone-500">{widget.description}</p>
             </div>
             <Switch
               checked={getWidget(widget.id)}
