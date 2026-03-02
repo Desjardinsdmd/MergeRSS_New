@@ -110,11 +110,20 @@ export default function Inbox() {
 
   const handleOpen = async (delivery) => {
     setSelectedDelivery(delivery);
+    setShowItems(false);
     if (!delivery.is_read) {
       await base44.entities.DigestDelivery.update(delivery.id, { is_read: true });
       invalidate();
     }
   };
+
+  // Auto-open delivery from deep link
+  React.useEffect(() => {
+    if (autoOpenId && deliveries.length > 0) {
+      const d = deliveries.find(x => x.id === autoOpenId);
+      if (d) { handleOpen(d); setAutoOpenId(null); }
+    }
+  }, [autoOpenId, deliveries]);
 
   const handleMoveToFolder = async (folder) => {
     await updateDeliveries(selectedIds, { folder });
