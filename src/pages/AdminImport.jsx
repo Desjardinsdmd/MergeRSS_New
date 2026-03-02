@@ -217,11 +217,29 @@ export default function AdminImport() {
     reader.readAsText(file);
   };
 
-  const confirmCsvUpload = () => {
-    setManualFeeds([...manualFeeds, ...pendingCsvFeeds]);
-    toast.success(`Added ${pendingCsvFeeds.length} feed(s) from CSV`);
+  const confirmCsvUpload = async () => {
+    // Deduplicate against existing directory feeds
+    const existing = await base44.entities.DirectoryFeed.list('-created_date', 500);
+    const existingUrls = new Set(existing.map(f => f.url?.trim().toLowerCase()));
+
+    // Also deduplicate against feeds already staged in manualFeeds
+    const stagedUrls = new Set(manualFeeds.map(f => f.url?.trim().toLowerCase()));
+
+    const newFeeds = pendingCsvFeeds.filter(f => {
+      const normalized = f.url?.trim().toLowerCase();
+      return normalized && !existingUrls.has(normalized) && !stagedUrls.has(normalized);
+    });
+    const dupeCount = pendingCsvFeeds.length - newFeeds.length;
+
+    setManualFeeds([...manualFeeds, ...newFeeds]);
     setPendingCsvFile(null);
     setPendingCsvFeeds([]);
+
+    if (dupeCount > 0) {
+      toast.success(`Added ${newFeeds.length} feed(s) from CSV — ${dupeCount} duplicate(s) skipped`);
+    } else {
+      toast.success(`Added ${newFeeds.length} feed(s) from CSV`);
+    }
   };
 
   const cancelCsvUpload = () => {
