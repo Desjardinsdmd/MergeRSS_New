@@ -502,23 +502,38 @@ Deno.serve(async (req) => {
         let items = extractItems(html, pageUrl, item_limit);
 
         if (items.length === 0) {
-            // Only update if it's an existing feed — don't create a new record for a failed generation
+            // Diagnose WHY extraction failed for better UX (robots.txt check, SPA detection, etc.)
+            const isLikelySpa = html.includes('__NEXT_DATA__') || html.includes('window.__NUXT__') || html.includes('data-reactroot') || (html.match(/<a /gi) || []).length < 5;
+            const isLikelyPaywall = html.toLowerCase().includes('subscribe') && html.toLowerCase().includes('paywall');
+            const isLikelyRobotsBlocked = html.toLowerCase().includes('robot') && html.toLowerCase().includes('disallow');
+
+            let errorMsg = 'No article links could be extracted from this page.';
+            const suggestions = [];
+
+            if (isLikelySpa) {
+                errorMsg = 'This page appears to be a JavaScript-rendered app (React/Next.js/Vue). MergeRSS requires server-rendered HTML to extract articles.';
+                suggestions.push('Try the site\'s /feed, /rss, or /atom endpoint directly');
+                suggestions.push('Check if the site offers an official RSS/Atom link in its footer or header');
+            } else if (isLikelyPaywall) {
+                errorMsg = 'This page may be behind a paywall or login wall — no public article links were found.';
+                suggestions.push('Try the public blog or news index instead');
+                suggestions.push('Look for a free RSS endpoint on the site (e.g., /feed or /rss)');
+            } else {
+                suggestions.push('Try the blog or news index URL (e.g., /blog, /articles, /news)');
+                suggestions.push('Try appending /feed, /rss, or /atom to the domain root');
+                suggestions.push('JavaScript-heavy SPAs require a headless browser — not yet supported');
+            }
+            suggestions.push('You can add this URL directly as a "My Feed" and MergeRSS will poll it for changes');
+
+            // Only update if it's an existing feed — don't create a new record for a failed generation (don't count against quota)
             if (existingForUrl) {
                 await saveGeneratedFeed(base44, existingForUrl, {
                     source_url: pageUrl, title: title || pageUrl, is_native_feed: false,
-                    last_fetched: new Date().toISOString(), last_error: 'No items could be extracted',
+                    last_fetched: new Date().toISOString(), last_error: errorMsg,
                     error_count: (existingForUrl?.error_count || 0) + 1, refresh_frequency,
                 });
             }
-            return Response.json({
-                error: 'No article links could be extracted from this page.',
-                suggestions: [
-                    'Try the blog/news index URL (e.g., /blog, /articles, /news)',
-                    'Check if the domain has a /feed, /rss, or /atom endpoint',
-                    'JavaScript-heavy SPAs (React, Angular) require a headless browser — not yet supported',
-                    'Try adding the URL directly to "My Feeds" — MergeRSS will monitor it for new content',
-                ],
-            }, { status: 422 });
+            return Response.json({ error: errorMsg, suggestions }, { status: 422 });
         }
 
         // Apply UTM parameters
