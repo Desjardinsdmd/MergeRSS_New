@@ -429,14 +429,20 @@ export default function Integrations() {
 
             <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="webhook" className="text-stone-300">Webhook URL</Label>
+              <Label htmlFor="webhook" className="text-stone-300">Webhook URL <span className="text-amber-400" aria-hidden="true">*</span></Label>
               <Input
                 id="webhook"
                 value={discordWebhook}
-                onChange={(e) => setDiscordWebhook(e.target.value)}
-                placeholder="https://discord.com/api/webhooks/..."
-                className="bg-stone-800 border-stone-700 text-stone-100 placeholder-stone-600"
+                onChange={(e) => { setDiscordWebhook(e.target.value); setDiscordError(''); }}
+                placeholder="https://discord.com/api/webhooks/123456789/..."
+                aria-invalid={!!discordError}
+                aria-describedby={discordError ? 'discord-error' : 'discord-hint'}
+                className={cn("bg-stone-800 border-stone-700 text-stone-100 placeholder-stone-600", discordError && 'border-red-500')}
               />
+              {discordError
+                ? <p id="discord-error" role="alert" className="mt-1 text-xs text-red-400 flex items-center gap-1"><AlertCircle className="w-3 h-3" aria-hidden="true" />{discordError}</p>
+                : <p id="discord-hint" className="mt-1 text-xs text-stone-500">Paste the webhook URL from your Discord server settings → Integrations</p>
+              }
             </div>
 
             <div className="bg-stone-800 rounded-lg p-4 text-sm text-stone-400">
