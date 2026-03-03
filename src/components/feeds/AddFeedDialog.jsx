@@ -63,8 +63,19 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
     setTagInput('');
   }, [editFeed, open]);
 
+  const validate = () => {
+    const errs = {};
+    if (!formData.name.trim()) errs.name = 'Feed name is required';
+    if (!formData.url.trim()) errs.url = 'RSS URL is required';
+    else if (!formData.url.startsWith('http')) errs.url = 'URL must start with http:// or https://';
+    return errs;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const errs = validate();
+    if (Object.keys(errs).length) { setErrors(errs); return; }
+    setErrors({});
     setLoading(true);
 
     if (editFeed) {
