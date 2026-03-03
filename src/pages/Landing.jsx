@@ -85,7 +85,7 @@ function AnimatedStat({ value, label, delay = 0 }) {
   );
 }
 
-function PopularFeedsSection() {
+function PopularFeedsSection({ user }) {
   const [feeds, setFeeds] = useState([]);
   useEffect(() => {
     base44.entities.DirectoryFeed.list('-added_count', 8).then(setFeeds).catch(() => {});
