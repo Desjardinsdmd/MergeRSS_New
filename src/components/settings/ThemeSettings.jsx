@@ -35,16 +35,27 @@ export function applyAccentColor(colorId) {
 function applyHCOverrides(isHC) {
   const root = document.documentElement;
   if (isHC) {
-    root.style.setProperty('--background', '0 0% 0%');
-    root.style.setProperty('--foreground', '0 0% 100%');
-    root.style.setProperty('--border', '0 0% 50%');
-    root.style.setProperty('--muted-foreground', '0 0% 85%');
+    // Pure black/white for maximum contrast (WCAG AAA)
+    root.style.setProperty('--background', '0 0% 0%');         /* Pure black */
+    root.style.setProperty('--foreground', '0 0% 100%');       /* Pure white */
+    root.style.setProperty('--card', '0 0% 5%');               /* Near black for cards */
+    root.style.setProperty('--card-foreground', '0 0% 100%');
+    root.style.setProperty('--border', '0 0% 100%');           /* White borders */
+    root.style.setProperty('--muted', '0 0% 15%');
+    root.style.setProperty('--muted-foreground', '0 0% 100%'); /* White text on muted */
+    root.style.setProperty('--input', '0 0% 15%');
+    root.style.setProperty('--primary', '38 95% 54%');         /* Keep accent color */
   } else {
     // Remove inline overrides so CSS vars take back control
     root.style.removeProperty('--background');
     root.style.removeProperty('--foreground');
+    root.style.removeProperty('--card');
+    root.style.removeProperty('--card-foreground');
     root.style.removeProperty('--border');
+    root.style.removeProperty('--muted');
     root.style.removeProperty('--muted-foreground');
+    root.style.removeProperty('--input');
+    root.style.removeProperty('--primary');
   }
 }
 
