@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import {
   Sparkles, Loader2, Search, Rss, RefreshCw, ChevronRight,
-  Lightbulb, AlertCircle, TrendingUp, Star
+  Lightbulb, AlertCircle, TrendingUp, Star, Info, X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
