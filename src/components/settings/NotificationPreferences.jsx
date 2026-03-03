@@ -8,16 +8,24 @@ const CATEGORIES = ['CRE', 'Markets', 'Tech', 'News', 'Finance', 'Crypto', 'AI',
 
 function SwitchRow({ label, description, checked, onChange }) {
   return (
-    <div className="flex items-center justify-between">
-      <div>
+    <div className="flex items-center justify-between gap-4">
+      <div className="flex-1 min-w-0">
         <p className="font-medium text-stone-200 text-sm">{label}</p>
         {description && <p className="text-xs text-stone-500">{description}</p>}
       </div>
       <div className="flex items-center gap-2 flex-shrink-0">
-        <span className={`text-xs font-semibold w-6 ${checked ? 'text-emerald-400' : 'text-stone-600'}`}>
+        <span
+          aria-hidden="true"
+          className={`text-xs font-semibold min-w-[22px] text-right transition-colors ${checked ? 'text-emerald-400' : 'text-stone-600'}`}
+        >
           {checked ? 'On' : 'Off'}
         </span>
-        <Switch checked={checked} onCheckedChange={onChange} />
+        <Switch
+          checked={checked}
+          onCheckedChange={onChange}
+          aria-label={`${label}: ${checked ? 'on' : 'off'}`}
+          className={checked ? 'data-[state=checked]:bg-amber-400' : ''}
+        />
       </div>
     </div>
   );
