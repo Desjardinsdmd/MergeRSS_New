@@ -146,16 +146,25 @@ export default function ThemeSettings({ accentColor, onAccentChange, onAutoSave 
           {/* Live preview swatch */}
           <div className="mt-4 flex items-center gap-3">
             <div
-              className="h-8 px-4 flex items-center justify-center text-xs font-semibold rounded"
+              className="h-8 px-4 flex items-center justify-center text-xs font-semibold"
               style={{
                 backgroundColor: ACCENT_COLORS.find(c => c.id === accentColor)?.color || '#fbbf24',
                 color: '#0a0805',
               }}
             >
-              Button preview
+              Live preview
+            </div>
+            <div
+              className="h-8 px-4 flex items-center justify-center text-xs font-medium border"
+              style={{
+                color: ACCENT_COLORS.find(c => c.id === accentColor)?.color || '#fbbf24',
+                borderColor: ACCENT_COLORS.find(c => c.id === accentColor)?.color || '#fbbf24',
+              }}
+            >
+              Outline variant
             </div>
             <span className="text-xs text-stone-500">
-              Current: <span className="text-stone-300 font-medium">{ACCENT_COLORS.find(c => c.id === accentColor)?.label || 'Amber'}</span>
+              Active: <span className="text-stone-300 font-medium">{ACCENT_COLORS.find(c => c.id === accentColor)?.label || 'Amber'}</span>
             </span>
           </div>
         </div>
