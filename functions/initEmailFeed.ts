@@ -23,12 +23,39 @@ Deno.serve(async (req) => {
     const mailgunDomain = Deno.env.get('MAILGUN_DOMAIN');
     const uniqueEmail = `newsletter-${uniquePart}@${mailgunDomain}`;
 
+    // Create Mailgun route to forward emails to the webhook
+    const mailgunApiKey = Deno.env.get('MAILGUN_API_KEY');
+    const webhookUrl = `${Deno.env.get('BASE44_APP_URL')}/api/functions/mailgunWebhook`;
+    
+    const routeData = new FormData();
+    routeData.append('priority', '10');
+    routeData.append('description', `Newsletter feed for ${user.email}`);
+    routeData.append('expression', `match_recipient("${uniqueEmail}")`);
+    routeData.append('action', `forward("${webhookUrl}")`);
+    routeData.append('action', 'store(notify="yes")');
+
+    const routeResponse = await fetch(`https://api.mailgun.net/v3/${mailgunDomain}/routes`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${btoa(`api:${mailgunApiKey}`)}`
+      },
+      body: routeData
+    });
+
+    if (!routeResponse.ok) {
+      throw new Error(`Failed to create Mailgun route: ${routeResponse.statusText}`);
+    }
+
+    const routeData2 = await routeResponse.json();
+    const mailgunRouteId = routeData2.route?.id;
+
     // Create EmailFeed record
     const emailFeed = await base44.entities.EmailFeed.create({
       user_email: user.email,
       unique_email: uniqueEmail,
       is_active: true,
-      total_received: 0
+      total_received: 0,
+      mailgun_route_id: mailgunRouteId
     });
 
     return Response.json({ 
