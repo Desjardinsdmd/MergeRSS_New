@@ -92,6 +92,30 @@ export default function EmailFeeds() {
       </div>
 
       <div className="space-y-6">
+        {/* Multiple Email Feeds */}
+        {emailFeeds.length > 1 && (
+          <Card className="border-stone-700 bg-stone-800 border">
+            <CardHeader>
+              <CardTitle className="text-sm">Old Email Addresses</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {emailFeeds.map((feed) => (
+                <div key={feed.id} className="flex items-center justify-between p-3 bg-stone-900 border border-stone-700 rounded">
+                  <span className="text-sm text-stone-400 font-mono break-all">{feed.unique_email}</span>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => handleDeleteFeed(feed.id)}
+                    className="flex-shrink-0 ml-2"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
         {/* Email Address Card */}
         {!emailFeed ? (
           <Card className="border-stone-800 bg-stone-900">
