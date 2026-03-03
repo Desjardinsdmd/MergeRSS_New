@@ -54,7 +54,7 @@ export default function RelatedArticles({ currentItem, allItems }) {
           >
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-stone-200 line-clamp-2 group-hover:text-amber-400 transition-colors">
-                {item.title}
+                {decodeHtml(item.title)}
               </p>
               <div className="flex items-center gap-2 mt-0.5 text-xs text-stone-500">
                 <Clock className="w-3 h-3" />
