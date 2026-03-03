@@ -1,5 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
+let base44;
+
 // Parse email body and extract links/content
 function extractArticles(htmlContent, textContent) {
   const articles = [];
