@@ -177,6 +177,7 @@ function LayoutContent({ children, currentPageName }) {
                   </>
                 )}
               </div>
+              {/* Loading state placeholder to avoid flash */}
             </div>
           </div>
         </header>
