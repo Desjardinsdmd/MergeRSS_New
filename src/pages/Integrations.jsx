@@ -13,7 +13,8 @@ import {
   Loader2,
   Crown,
   AlertCircle,
-  Trash2
+  Trash2,
+  CheckCircle2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
