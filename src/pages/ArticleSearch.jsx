@@ -229,7 +229,7 @@ export default function ArticleSearch() {
                    >
                     <CardContent className="p-4">
                       <p className={`font-medium line-clamp-2 mb-1 text-sm ${isSelected ? 'text-amber-400' : 'text-stone-200'}`}>
-                        {item.title}
+                        {decodeHtml(item.title)}
                       </p>
                       <div className="flex flex-wrap items-center gap-2 text-xs text-stone-500">
                         <span className="flex items-center gap-1">
@@ -266,7 +266,7 @@ export default function ArticleSearch() {
               <CardHeader className="pb-2 border-b border-stone-800">
                 <div className="flex items-start justify-between gap-2">
                   <CardTitle className="text-base font-semibold text-stone-100 leading-snug">
-                    {selectedArticle.title}
+                    {decodeHtml(selectedArticle.title)}
                   </CardTitle>
                   <button onClick={() => setSelectedArticle(null)} className="text-stone-600 hover:text-stone-400 flex-shrink-0 mt-0.5">
                     <X className="w-4 h-4" />
@@ -285,7 +285,7 @@ export default function ArticleSearch() {
               </CardHeader>
               <CardContent className="pt-4">
                 {selectedArticle.description && (
-                  <p className="text-sm text-stone-400 leading-relaxed mb-3">{selectedArticle.description}</p>
+                  <p className="text-sm text-stone-400 leading-relaxed mb-3">{decodeHtml(selectedArticle.description)}</p>
                 )}
                 <a
                   href={selectedArticle.url}

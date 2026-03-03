@@ -114,7 +114,7 @@ export default function Bookmarks() {
                       onClick={() => !bookmark.is_read && markReadMutation.mutate(bookmark.id)}
                       className="font-medium text-stone-200 hover:text-amber-400 transition-colors text-sm leading-snug line-clamp-2 block mb-2"
                     >
-                      {bookmark.title}
+                      {decodeHtml(bookmark.title)}
                     </a>
                     {bookmark.published_date && (
                       <div className="flex items-center gap-1 text-xs text-stone-600">
