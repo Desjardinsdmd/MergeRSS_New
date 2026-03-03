@@ -32,33 +32,35 @@ export default function AdvancedOptions({ options, onChange }) {
                     {/* Frequency & Item Limit */}
                     <div className="grid sm:grid-cols-2 gap-4">
                         <div>
-                            <Label className="text-xs text-slate-600 mb-1 block">Update Frequency</Label>
+                            <Label htmlFor="frequency" className="text-xs text-slate-600 mb-1 block font-medium">How often to check for new content</Label>
                             <Select value={options.refresh_frequency} onValueChange={v => update('refresh_frequency', v)}>
-                                <SelectTrigger className="text-sm bg-white">
+                                <SelectTrigger id="frequency" className="text-sm bg-white" aria-label="Update frequency">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="5min">Every 5 minutes</SelectItem>
+                                    <SelectItem value="5min">Every 5 minutes (high frequency)</SelectItem>
                                     <SelectItem value="15min">Every 15 minutes</SelectItem>
-                                    <SelectItem value="1hour">Every hour</SelectItem>
+                                    <SelectItem value="1hour">Every hour (recommended)</SelectItem>
                                     <SelectItem value="6hours">Every 6 hours</SelectItem>
-                                    <SelectItem value="daily">Daily</SelectItem>
+                                    <SelectItem value="daily">Once daily</SelectItem>
                                 </SelectContent>
                             </Select>
+                            <p className="text-xs text-slate-400 mt-1">More frequent = fresher content but more API calls</p>
                         </div>
                         <div>
-                            <Label className="text-xs text-slate-600 mb-1 block">Item Limit</Label>
+                            <Label htmlFor="item-limit" className="text-xs text-slate-600 mb-1 block font-medium">Maximum articles to include</Label>
                             <Select value={String(options.item_limit)} onValueChange={v => update('item_limit', Number(v))}>
-                                <SelectTrigger className="text-sm bg-white">
+                                <SelectTrigger id="item-limit" className="text-sm bg-white" aria-label="Item limit">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="10">10 items</SelectItem>
-                                    <SelectItem value="25">25 items</SelectItem>
-                                    <SelectItem value="50">50 items</SelectItem>
-                                    <SelectItem value="100">100 items</SelectItem>
+                                    <SelectItem value="10">10 items (quick read)</SelectItem>
+                                    <SelectItem value="25">25 items (balanced, recommended)</SelectItem>
+                                    <SelectItem value="50">50 items (comprehensive)</SelectItem>
+                                    <SelectItem value="100">100 items (full feed)</SelectItem>
                                 </SelectContent>
                             </Select>
+                            <p className="text-xs text-slate-400 mt-1">Limits the number of articles in your feed</p>
                         </div>
                     </div>
 
@@ -77,18 +79,21 @@ export default function AdvancedOptions({ options, onChange }) {
                     </div>
 
                     {/* UTM Parameters */}
-                    <div>
-                        <Label className="text-xs text-slate-600 mb-1 block">UTM Parameters (optional)</Label>
-                        <Input
-                            className="text-sm bg-white"
-                            placeholder="utm_source=mergerss&utm_medium=rss&utm_campaign=feed"
-                            value={options.utm_params}
-                            onChange={e => update('utm_params', e.target.value)}
-                        />
-                        <p className="text-xs text-slate-400 mt-1">
-                            Appended to all article links in the generated feed
-                        </p>
-                    </div>
+                     <div>
+                         <Label htmlFor="utm-params" className="text-xs text-slate-600 mb-1 block font-medium">UTM parameters (optional)</Label>
+                         <Input
+                             id="utm-params"
+                             className="text-sm bg-white"
+                             placeholder="utm_source=mergerss&utm_medium=rss&utm_campaign=feed"
+                             value={options.utm_params}
+                             onChange={e => update('utm_params', e.target.value)}
+                             aria-label="UTM parameters for tracking"
+                             title="Add Google Analytics tracking parameters to article links"
+                         />
+                         <p className="text-xs text-slate-400 mt-1">
+                             Automatically added to all article links. Use for Google Analytics tracking. Format: <code className="bg-slate-200 px-1 rounded text-slate-700">key1=value1&key2=value2</code>
+                         </p>
+                     </div>
                 </div>
             )}
         </div>

@@ -186,24 +186,24 @@ export default function Settings() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label className="text-stone-400">Timezone</Label>
-              <Select
-                value={formData.timezone}
-                onValueChange={(v) => setFormData({ ...formData, timezone: v })}
-              >
-                <SelectTrigger className="w-full sm:w-72 bg-stone-800 border-stone-700 text-stone-100">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-stone-800 border-stone-700">
-                  {TIMEZONES.map((tz) => (
-                    <SelectItem key={tz} value={tz} className="text-stone-100">{tz}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-stone-500 mt-1">
-                Used for scheduling digest deliveries
-              </p>
-            </div>
+               <Label htmlFor="settings-tz" className="text-stone-400 font-medium">Your timezone</Label>
+               <Select
+                 value={formData.timezone}
+                 onValueChange={(v) => setFormData({ ...formData, timezone: v })}
+               >
+                 <SelectTrigger id="settings-tz" className="w-full sm:w-72 bg-stone-800 border-stone-700 text-stone-100 mt-1.5" aria-label="Select your timezone">
+                   <SelectValue />
+                 </SelectTrigger>
+                 <SelectContent className="bg-stone-800 border-stone-700">
+                   {TIMEZONES.map((tz) => (
+                     <SelectItem key={tz} value={tz} className="text-stone-100">{tz.replace('_', ' ')}</SelectItem>
+                   ))}
+                 </SelectContent>
+               </Select>
+               <p className="text-xs text-stone-500 mt-1.5">
+                 Affects all digest delivery times and date-based features throughout the app
+               </p>
+             </div>
           </CardContent>
         </Card>
 

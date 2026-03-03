@@ -240,18 +240,21 @@ function StepSchedule({ formData, setFormData }) {
 
       <div className="flex flex-col gap-4">
         <div>
-          <Label className="text-stone-300">Time</Label>
+          <Label htmlFor="digest-time" className="text-stone-300">What time to send</Label>
           <Input
+            id="digest-time"
             type="time"
             value={formData.schedule_time}
             onChange={(e) => setFormData({ ...formData, schedule_time: e.target.value })}
             className="mt-1.5"
+            aria-label="Select time for digest delivery"
           />
+          <p className="text-xs text-stone-500 mt-1.5">The digest will be generated and sent at this time daily</p>
         </div>
         <div>
-          <Label className="text-stone-300">Timezone</Label>
+          <Label htmlFor="digest-tz" className="text-stone-300">Your timezone</Label>
           <Select value={formData.timezone} onValueChange={(v) => setFormData({ ...formData, timezone: v })}>
-            <SelectTrigger className="mt-1.5">
+            <SelectTrigger id="digest-tz" className="mt-1.5" aria-label="Select timezone for digest scheduling">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -260,6 +263,7 @@ function StepSchedule({ formData, setFormData }) {
               ))}
             </SelectContent>
           </Select>
+          <p className="text-xs text-stone-500 mt-1.5">Digests will be generated at the scheduled time in this timezone</p>
         </div>
       </div>
 
@@ -353,13 +357,20 @@ function StepDelivery({ formData, setFormData, isPremium, slackIntegration, disc
 
       {formData.delivery_discord && isPremium && !discordIntegration && (
         <div className="mt-2">
-          <Label className="text-stone-300">Discord Webhook URL</Label>
+          <Label htmlFor="discord-webhook" className="text-stone-300">Discord Webhook URL <span className="text-stone-600 font-normal">(required)</span></Label>
           <Input
-            placeholder="https://discord.com/api/webhooks/..."
+            id="discord-webhook"
+            type="url"
+            placeholder="https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_TOKEN"
             value={formData.discord_webhook_url}
             onChange={(e) => setFormData({ ...formData, discord_webhook_url: e.target.value })}
             className="mt-1.5"
+            aria-label="Discord webhook URL for posting digests"
+            aria-describedby="discord-hint"
           />
+          <p id="discord-hint" className="text-xs text-stone-500 mt-2">
+            Create a webhook in your Discord server: Server Settings → Integrations → Webhooks → New Webhook. Copy the full URL here.
+          </p>
         </div>
       )}
 
@@ -378,15 +389,23 @@ function StepDelivery({ formData, setFormData, isPremium, slackIntegration, disc
           />
         </div>
         {formData.is_public && (
-          <div className="mt-3">
-            <Input
-              value={formData.public_description}
-              onChange={(e) => setFormData({ ...formData, public_description: e.target.value })}
-              placeholder="What makes this digest valuable?"
-              className="text-sm"
-            />
-          </div>
-        )}
+            <div className="mt-3">
+              <Label htmlFor="public-desc" className="text-stone-300 text-sm mb-1 block">Directory description <span className="text-stone-600 font-normal">(50 chars)</span></Label>
+              <Input
+                id="public-desc"
+                value={formData.public_description}
+                onChange={(e) => setFormData({ ...formData, public_description: e.target.value.slice(0, 50) })}
+                placeholder="e.g., Daily tech news curated for developers"
+                className="text-sm"
+                maxLength={50}
+                aria-label="Short description shown in public directory"
+                aria-describedby="desc-hint"
+              />
+              <p id="desc-hint" className="text-xs text-stone-500 mt-1">
+                {formData.public_description.length}/50 characters. Shown to other users browsing the directory.
+              </p>
+            </div>
+          )}
       </div>
     </div>
   );
