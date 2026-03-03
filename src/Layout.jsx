@@ -271,9 +271,9 @@ function LayoutContent({ children, currentPageName }) {
                     to={createPageUrl(item.href)}
                     aria-current={isActive ? 'page' : undefined}
                     className={cn(
-                      "flex items-center gap-3 px-3 py-2 text-sm font-medium transition-all duration-150 rounded-md group",
+                      "flex items-center gap-3 px-3 py-2 text-sm font-medium transition-all duration-150 rounded-md group focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-1 focus-visible:ring-offset-stone-800",
                       isActive
-                        ? "bg-stone-800 text-amber-400"
+                        ? "bg-stone-800 text-[hsl(var(--primary))]"
                         : "text-stone-400 hover:bg-stone-900 hover:text-stone-100"
                     )}
                   >
