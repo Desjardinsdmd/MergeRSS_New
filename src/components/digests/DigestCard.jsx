@@ -61,11 +61,11 @@ export default function DigestCard({ digest, onEdit, onDelete, onToggleStatus, o
               </div>
 
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <MoreVertical className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
+                 <DropdownMenuTrigger asChild>
+                   <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Digest options menu" title="More options">
+                     <MoreVertical className="w-4 h-4" aria-hidden="true" />
+                   </Button>
+                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                    <DropdownMenuItem onClick={() => onEdit(digest)}>
                      <Pencil className="w-4 h-4 mr-2" />
@@ -113,20 +113,20 @@ export default function DigestCard({ digest, onEdit, onDelete, onToggleStatus, o
             </div>
 
             {/* Categories */}
-            {digest.categories?.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-2">
-                {digest.categories.slice(0, 3).map((cat) => (
-                  <Badge key={cat} variant="secondary" className="text-xs">
-                    {cat}
-                  </Badge>
-                ))}
-                {digest.categories.length > 3 && (
-                  <Badge variant="secondary" className="text-xs">
-                    +{digest.categories.length - 3}
-                  </Badge>
-                )}
-              </div>
-            )}
+             {digest.categories?.length > 0 && (
+               <div className="flex flex-wrap gap-1 mt-2" role="list" aria-label="Digest categories">
+                 {digest.categories.slice(0, 3).map((cat, idx) => (
+                   <Badge key={`${cat}-${idx}`} variant="secondary" className="text-xs" role="listitem">
+                     {cat}
+                   </Badge>
+                 ))}
+                 {digest.categories.length > 3 && (
+                   <Badge variant="secondary" className="text-xs" role="listitem" title={`Plus ${digest.categories.length - 3} more categories`}>
+                     +{digest.categories.length - 3}
+                   </Badge>
+                 )}
+               </div>
+             )}
 
             {/* Schedule & Delivery */}
             <div className="flex flex-wrap items-center gap-3 mt-3 text-xs text-stone-500">
@@ -188,11 +188,13 @@ export default function DigestCard({ digest, onEdit, onDelete, onToggleStatus, o
             {/* Toggle comments */}
             <button
               onClick={() => setShowComments(!showComments)}
-              className="flex items-center gap-1 mt-3 text-xs text-stone-500 hover:text-amber-400 transition"
+              className="flex items-center gap-1 mt-3 text-xs text-stone-500 hover:text-amber-400 transition focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-stone-900 rounded px-1"
+              aria-expanded={showComments}
+              aria-label={`${showComments ? 'Hide' : 'Show'} discussion comments`}
             >
-              <MessageCircle className="w-3 h-3" />
+              <MessageCircle className="w-3 h-3" aria-hidden="true" />
               Discussion
-              <ChevronDown className={cn("w-3 h-3 transition-transform", showComments && "rotate-180")} />
+              <ChevronDown className={cn("w-3 h-3 transition-transform", showComments && "rotate-180")} aria-hidden="true" />
             </button>
           </div>
         </div>
