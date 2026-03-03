@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
+import { decodeHtml } from '@/components/utils/htmlUtils';
 import { useQuery } from '@tanstack/react-query';
 import { Search, X, Clock, ExternalLink, Filter, CalendarRange, User, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
