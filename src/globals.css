@@ -154,7 +154,19 @@ a[class*="bg-amber-400"] {
 
 /* Subtle transition for all interactive elements */
 button, a, [role="button"] {
-  transition: opacity 0.15s ease, background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition: opacity 0.15s ease, background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Primary CTA button micro-interaction */
+button.bg-amber-400:hover,
+a.bg-amber-400:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(251, 191, 36, 0.25);
+}
+button.bg-amber-400:active,
+a.bg-amber-400:active {
+  transform: translateY(0);
+  box-shadow: none;
 }
 
 /* ─── Card text contrast boost ───────────────────────────────────────────── */
