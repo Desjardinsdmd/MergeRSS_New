@@ -459,8 +459,9 @@ export default function DigestWizard({ open, onOpenChange, onSuccess }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg bg-[#0d0a06] border-stone-800 [&_input]:bg-stone-800 [&_input]:text-stone-100 [&_input]:border-stone-700 [&_input]:placeholder:text-stone-500 [&_textarea]:bg-stone-800 [&_textarea]:text-stone-100 [&_textarea]:border-stone-700 [&_textarea]:placeholder:text-stone-500">
-        <div className="p-2">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col bg-[#0d0a06] border-stone-800 [&_input]:bg-stone-800 [&_input]:text-stone-100 [&_input]:border-stone-700 [&_input]:placeholder:text-stone-500 [&_textarea]:bg-stone-800 [&_textarea]:text-stone-100 [&_textarea]:border-stone-700 [&_textarea]:placeholder:text-stone-500">
+        <div className="p-2 flex flex-col flex-1 min-h-0">
+          <StepIndicator currentStep={step} />
           <StepIndicator currentStep={step} />
 
           <div>
