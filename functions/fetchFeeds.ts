@@ -5,6 +5,32 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+/** Decode common HTML entities from feed text so titles and snippets display correctly */
+function decodeHtml(str) {
+    if (!str || typeof str !== 'string') return str;
+    return str
+        .replace(/&#x([0-9a-fA-F]+);/gi, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
+        .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/&apos;/g, "'")
+        .replace(/&ndash;/g, '–')
+        .replace(/&mdash;/g, '—')
+        .replace(/&lsquo;/g, '\u2018')
+        .replace(/&rsquo;/g, '\u2019')
+        .replace(/&ldquo;/g, '\u201C')
+        .replace(/&rdquo;/g, '\u201D')
+        .replace(/&hellip;/g, '…')
+        .replace(/&copy;/g, '©')
+        .replace(/&reg;/g, '®')
+        .replace(/&trade;/g, '™')
+        .replace(/&bull;/g, '•')
+        .replace(/&amp;/g, '&');
+}
+
 async function parseFeed(url) {
     const response = await fetch(url, {
         headers: {
