@@ -225,19 +225,14 @@ export default function Landing() {
       </section>
 
       {/* Social proof strip */}
-      <section className="border-y border-stone-800 py-6 bg-[#0d0a06]">
+      <section className="border-y border-stone-800 py-8 bg-[#0d0a06]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-12 text-center">
-            <div className="flex items-center gap-2">
-              {[...Array(5)].map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />)}
-              <span className="text-sm text-stone-500 ml-1">5/5 from early users</span>
-            </div>
-            <span className="hidden sm:block text-stone-800">|</span>
-            <p className="text-[11px] font-medium text-stone-600 uppercase tracking-[0.18em]">
-              Works with any RSS · Atom · Newsletter feed
-            </p>
-            <span className="hidden sm:block text-stone-800">|</span>
-            <p className="text-sm text-stone-500">Set up in under 5 minutes</p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-10 sm:gap-16 text-center">
+            <AnimatedStat value={500} label="Active users" delay={0} />
+            <span className="hidden sm:block w-px h-10 bg-stone-800" />
+            <AnimatedStat value={12000} label="Articles curated daily" delay={80} />
+            <span className="hidden sm:block w-px h-10 bg-stone-800" />
+            <AnimatedStat value={3500} label="Digests delivered" delay={160} />
           </div>
         </div>
       </section>
