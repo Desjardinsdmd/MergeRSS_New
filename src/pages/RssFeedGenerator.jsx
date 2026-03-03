@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
     Rss, Globe, Wand2, AlertCircle, Info, Trash2, RefreshCw, Loader2,
 } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -47,6 +48,7 @@ export default function RssFeedGenerator() {
         include_full_content: false,
         utm_params: '',
     });
+    const [deletingFeedId, setDeletingFeedId] = useState(null);
 
     const progressStep = useProgressSim(loading);
 
@@ -101,6 +103,7 @@ export default function RssFeedGenerator() {
         await base44.entities.GeneratedFeed.delete(feedId);
         refetchMyFeeds();
         toast.success('Feed removed');
+        setDeletingFeedId(null);
     };
 
     const handleRegenerate = (feed) => {
@@ -122,12 +125,6 @@ export default function RssFeedGenerator() {
             if (form) form.dispatchEvent(new Event('submit', { bubbles: true }));
         }, 100);
         window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
-    const handleDeleteError = async (feedId) => {
-        await base44.entities.GeneratedFeed.delete(feedId);
-        refetchMyFeeds();
-        toast.success('Error feed removed');
     };
 
     return (
@@ -330,37 +327,28 @@ export default function RssFeedGenerator() {
                                                      <RefreshCw className="w-3.5 h-3.5" />
                                                  </Button>
                                              )}
-                                             {hasFailed ? (
+                                             <Button
+                                                 variant="ghost" size="icon"
+                                                 className={cn(
+                                                     "h-8 w-8",
+                                                     hasFailed ? "text-red-600 hover:text-red-400" : "text-stone-600 hover:text-red-400"
+                                                 )}
+                                                 title={hasFailed ? "Remove error feed" : "Delete"}
+                                                 onClick={() => setDeletingFeedId(feed.id)}
+                                                 aria-label={hasFailed ? "Remove error feed" : "Delete feed"}
+                                             >
+                                                 <Trash2 className="w-3.5 h-3.5" />
+                                             </Button>
+                                             {!hasFailed && (
                                                  <Button
                                                      variant="ghost" size="icon"
-                                                     className="h-8 w-8 text-red-600 hover:text-red-400"
-                                                     title="Remove error feed"
-                                                     onClick={() => handleDeleteError(feed.id)}
-                                                     aria-label="Remove error feed"
+                                                     className="h-8 w-8 text-stone-600 hover:text-[hsl(var(--primary))]"
+                                                     title="Regenerate"
+                                                     onClick={() => handleRegenerate(feed)}
+                                                     aria-label="Regenerate feed"
                                                  >
-                                                     <Trash2 className="w-3.5 h-3.5" />
+                                                     <RefreshCw className="w-3.5 h-3.5" />
                                                  </Button>
-                                             ) : (
-                                                 <>
-                                                     <Button
-                                                         variant="ghost" size="icon"
-                                                         className="h-8 w-8 text-stone-600 hover:text-[hsl(var(--primary))]"
-                                                         title="Regenerate"
-                                                         onClick={() => handleRegenerate(feed)}
-                                                         aria-label="Regenerate feed"
-                                                     >
-                                                         <RefreshCw className="w-3.5 h-3.5" />
-                                                     </Button>
-                                                     <Button
-                                                         variant="ghost" size="icon"
-                                                         className="h-8 w-8 text-stone-600 hover:text-red-400"
-                                                         title="Delete"
-                                                         onClick={() => handleDelete(feed.id)}
-                                                         aria-label="Delete feed"
-                                                     >
-                                                         <Trash2 className="w-3.5 h-3.5" />
-                                                     </Button>
-                                                 </>
                                              )}
                                          </div>
                                      </div>
@@ -384,6 +372,27 @@ export default function RssFeedGenerator() {
                 prefillUrl={result?.feed_url}
                 prefillName={result?.title}
             />
-        </div>
-    );
-}
+
+            {/* Delete Confirmation */}
+            <AlertDialog open={!!deletingFeedId} onOpenChange={(open) => !open && setDeletingFeedId(null)}>
+                <AlertDialogContent className="bg-stone-900 border-stone-800">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="text-stone-100">Delete Feed</AlertDialogTitle>
+                        <AlertDialogDescription className="text-stone-400">
+                            This will permanently remove this feed from your generated feeds. This action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className="flex gap-3 justify-end">
+                        <AlertDialogCancel className="border-stone-700 text-stone-200 hover:bg-stone-800">Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => deletingFeedId && handleDelete(deletingFeedId)}
+                            className="bg-red-900 hover:bg-red-800 text-red-100"
+                        >
+                            Delete
+                        </AlertDialogAction>
+                    </div>
+                </AlertDialogContent>
+            </AlertDialog>
+            </div>
+            );
+            }
