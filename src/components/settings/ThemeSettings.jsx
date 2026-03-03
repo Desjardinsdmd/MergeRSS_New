@@ -24,8 +24,10 @@ export const ACCENT_COLORS = [
 export function applyAccentColor(colorId) {
   const c = ACCENT_COLORS.find(c => c.id === colorId);
   if (c) {
+    document.documentElement.style.setProperty('--accent-primary', c.hsl);
     document.documentElement.style.setProperty('--primary', c.hsl);
     document.documentElement.style.setProperty('--ring', c.hsl);
+    localStorage.setItem('theme-accent', colorId);
   }
 }
 
