@@ -249,8 +249,8 @@ function LayoutContent({ children, currentPageName }) {
               >
                 <item.icon className={cn(
                   "w-4 h-4 flex-shrink-0 transition-transform duration-150 group-hover:scale-110",
-                  isActive ? "text-amber-400" : "text-stone-500"
-                )} aria-hidden="true" />
+                  isActive ? "text-[hsl(var(--primary))]" : "text-stone-500"
+                )} title={item.name} aria-hidden="true" />
                 <span className="flex-1">{item.name}</span>
                 {isInbox && <InboxNavBadge user={user} />}
                 {item.href === 'Bookmarks' && <BookmarkNavBadge user={user} />}
