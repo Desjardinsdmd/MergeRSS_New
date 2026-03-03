@@ -291,7 +291,7 @@ function LayoutContent({ children, currentPageName }) {
           {user?.plan !== 'premium' && (
             <Link
               to={createPageUrl('Pricing')}
-              className="flex items-center gap-2.5 px-3 py-2.5 mb-3 bg-amber-400 text-stone-900 text-sm font-bold hover:bg-amber-300 transition-colors"
+              className="flex items-center gap-2.5 px-3 py-2.5 mb-3 bg-[hsl(var(--primary))] text-stone-900 text-sm font-bold hover:opacity-90 transition-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-800 focus-visible:ring-[hsl(var(--primary))]"
             >
               <Crown className="w-4 h-4" />
               <span>Upgrade to Premium</span>
