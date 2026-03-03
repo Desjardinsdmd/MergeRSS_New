@@ -107,9 +107,9 @@ export default function ThemeSettings({ accentColor, onAccentChange, onAutoSave 
                   )}
                 >
                   <div className={cn('w-10 h-10 rounded-md border-2 flex items-center justify-center', t.preview)}>
-                    <Icon className={cn('w-5 h-5', isActive ? 'text-amber-400' : 'text-stone-400')} />
+                    <Icon className={cn('w-5 h-5', isActive ? 'text-[hsl(var(--primary))]' : 'text-stone-400')} />
                   </div>
-                  <span className={cn('text-xs font-medium', isActive ? 'text-amber-400' : 'text-stone-500')}>
+                  <span className={cn('text-xs font-medium', isActive ? 'text-[hsl(var(--primary))]' : 'text-stone-500')}>
                     {t.label}
                   </span>
                 </button>
