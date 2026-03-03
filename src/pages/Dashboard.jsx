@@ -230,6 +230,15 @@ export default function Dashboard() {
         ))}
       </div>
 
+      {/* Contextual tips */}
+      {feeds.length > 0 && (
+        <ContextualTips
+          feedCount={feeds.length}
+          digestCount={digests.length}
+          hasSlack={false}
+        />
+      )}
+
       {/* Empty state */}
       {feeds.length === 0 && (
         <div className="mb-8 border border-dashed border-stone-800 bg-stone-900/50 p-8 text-center">
