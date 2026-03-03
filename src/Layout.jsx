@@ -112,6 +112,19 @@ function LayoutContent({ children, currentPageName }) {
   const publicPages = ['Landing', 'Pricing', 'Privacy', 'Terms'];
   const isPublicPage = publicPages.includes(currentPageName);
 
+  // Initialize Google Analytics
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = 'https://www.googletagmanager.com/gtag/js?id=G-KKX3RWJ7EY';
+    document.head.appendChild(script);
+    
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){window.dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-KKX3RWJ7EY');
+  }, []);
+
   useEffect(() => {
     const loadUser = async () => {
       try {
