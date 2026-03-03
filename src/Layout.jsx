@@ -303,8 +303,8 @@ function LayoutContent({ children, currentPageName }) {
               <p className="text-sm font-medium text-stone-200 truncate">{user?.full_name || 'User'}</p>
               <p className="text-xs text-stone-400 truncate">{user?.email}</p>
             </div>
-            <button onClick={handleLogout} className="p-1 text-stone-600 hover:text-stone-300 transition flex-shrink-0">
-              <LogOut className="w-4 h-4" />
+            <button onClick={handleLogout} aria-label="Sign out" className="p-1 text-stone-600 hover:text-stone-300 transition flex-shrink-0">
+              <LogOut className="w-4 h-4" aria-hidden="true" />
             </button>
           </div>
         </div>
