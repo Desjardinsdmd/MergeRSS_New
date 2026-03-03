@@ -13,9 +13,11 @@
     --popover: 22 14% 9%;
     --popover-foreground: 36 30% 93%;
 
-    /* Brand amber */
-    --primary: 38 95% 54%;            /* amber-400 #fbbf24 */
-    --primary-foreground: 22 16% 5%;  /* near-black on amber */
+    /* Brand accent (dynamic, defaults to amber) */
+    --accent-primary: 38 95% 54%;     /* amber-400 #fbbf24 */
+    --accent-primary-foreground: 22 16% 5%;  /* near-black on accent */
+    --primary: var(--accent-primary);
+    --primary-foreground: var(--accent-primary-foreground);
 
     /* Surface layers */
     --secondary: 22 12% 13%;          /* stone-800 equivalent */
