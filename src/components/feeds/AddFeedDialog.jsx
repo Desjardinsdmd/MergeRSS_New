@@ -107,9 +107,13 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
     }
 
     setLoading(false);
-    onSuccess();
-    onOpenChange(false);
-    setFormData({ name: '', url: '', category: 'Other', tags: [], is_public: false, public_description: '' });
+    setSuccess(true);
+    setTimeout(() => {
+      setSuccess(false);
+      onSuccess();
+      onOpenChange(false);
+      setFormData({ name: '', url: '', category: 'Other', tags: [], is_public: false, public_description: '' });
+    }, 1200);
   };
 
   const addTag = () => {
