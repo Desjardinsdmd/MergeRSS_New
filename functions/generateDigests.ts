@@ -176,7 +176,9 @@ Write a well-organized, professional digest. Group related stories where appropr
                     const slackInt = slackIntegrations[0];
                     if (slackInt?.webhook_url) {
                         const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                        const slackMsg = `*📰 ${digest.name}*\n_${dateStr} • ${items.length} articles_\n\n${content.slice(0, 2600)}${content.length > 2600 ? '...' : ''}\n\n<${inboxUrl}|📥 View full digest & article list in MergeRSS>`;
+                        // Convert markdown links [text](url) to Slack format <url|text>
+                        const slackContent = content.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<$2|$1>');
+                        const slackMsg = `*📰 ${digest.name}*\n_${dateStr} • ${items.length} articles_\n\n${slackContent.slice(0, 2600)}${slackContent.length > 2600 ? '...' : ''}\n\n<${inboxUrl}|📥 View full digest & article list in MergeRSS>`;
 
                         const slackRes = await fetch(slackInt.webhook_url, {
                             method: 'POST',
