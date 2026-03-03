@@ -79,8 +79,15 @@ export default function ThemeSettings({ accentColor, onAccentChange, onAutoSave 
     }
   }, [theme]);
 
-  const handleThemeChange = async (id) => {
+  const handleThemeChange = (id) => {
     setTheme(id);
+    // Apply HC overrides immediately for live preview
+    if (id === 'hc-dark') {
+      document.documentElement.classList.add('dark');
+      applyHCOverrides(true);
+    } else {
+      applyHCOverrides(false);
+    }
     // Auto-save theme immediately
     if (onAutoSave) onAutoSave(id);
   };

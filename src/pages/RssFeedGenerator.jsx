@@ -111,12 +111,25 @@ export default function RssFeedGenerator() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
+    const handleRetry = (feed) => {
+        setUrl(feed.source_url);
+        setResult(null);
+        setError(null);
+        setFeedType('auto');
+        // Trigger generation automatically
+        setTimeout(() => {
+            const form = document.querySelector('form');
+            if (form) form.dispatchEvent(new Event('submit', { bubbles: true }));
+        }, 100);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
     return (
         <div className="p-6 lg:p-8 max-w-3xl mx-auto">
             {/* Header */}
             <div className="mb-8">
                 <div className="flex items-center gap-3 mb-2">
-                    <div className="w-9 h-9 bg-amber-400 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <div className="w-9 h-9 bg-[hsl(var(--primary))] rounded-lg flex items-center justify-center flex-shrink-0">
                         <Rss className="w-5 h-5 text-stone-900" />
                     </div>
                     <h1 className="text-2xl font-bold text-stone-100">RSS Feed Generator</h1>
@@ -159,7 +172,7 @@ export default function RssFeedGenerator() {
                             <Button
                                 type="submit"
                                 disabled={loading || !url.trim()}
-                                className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-semibold gap-2 flex-shrink-0"
+                                className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold gap-2 flex-shrink-0"
                             >
                                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
                                 {loading ? 'Generating…' : 'Generate Feed'}
@@ -280,10 +293,10 @@ export default function RssFeedGenerator() {
                                                  variant="ghost" size="icon"
                                                  className={cn(
                                                      "h-8 w-8",
-                                                     hasFailed ? "text-orange-600 hover:text-orange-400" : "text-stone-600 hover:text-amber-400"
+                                                     hasFailed ? "text-orange-600 hover:text-orange-400" : "text-stone-600 hover:text-[hsl(var(--primary))]"
                                                  )}
-                                                 title={hasFailed ? "Retry" : "Regenerate"}
-                                                 onClick={() => handleRegenerate(feed)}
+                                                 title={hasFailed ? "Retry generation" : "Regenerate"}
+                                                 onClick={() => hasFailed ? handleRetry(feed) : handleRegenerate(feed)}
                                              >
                                                  <RefreshCw className="w-3.5 h-3.5" />
                                              </Button>
