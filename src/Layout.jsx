@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { applyAccentColor } from '@/components/settings/ThemeSettings';
 import { Toaster } from 'sonner';
 
 const navigation = [
