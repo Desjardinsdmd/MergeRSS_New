@@ -240,8 +240,10 @@ function LayoutContent({ children, currentPageName }) {
                 key={item.name}
                 to={createPageUrl(item.href)}
                 aria-current={isActive ? 'page' : undefined}
+                aria-label={item.name}
+                title={item.name}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2 text-sm font-medium transition-all duration-150 rounded-md group focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-1 focus-visible:ring-offset-stone-800",
+                  "flex items-center gap-3 px-3 py-2 text-sm font-medium transition-all duration-150 rounded-md group focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0a06]",
                   isActive
                     ? "bg-stone-800 text-[hsl(var(--primary))]"
                     : "text-stone-400 hover:bg-stone-900 hover:text-stone-100"
@@ -250,7 +252,7 @@ function LayoutContent({ children, currentPageName }) {
                 <item.icon className={cn(
                   "w-4 h-4 flex-shrink-0 transition-transform duration-150 group-hover:scale-110",
                   isActive ? "text-[hsl(var(--primary))]" : "text-stone-500"
-                )} title={item.name} aria-hidden="true" />
+                )} aria-hidden="true" />
                 <span className="flex-1">{item.name}</span>
                 {isInbox && <InboxNavBadge user={user} />}
                 {item.href === 'Bookmarks' && <BookmarkNavBadge user={user} />}
@@ -270,14 +272,16 @@ function LayoutContent({ children, currentPageName }) {
                     key={item.name}
                     to={createPageUrl(item.href)}
                     aria-current={isActive ? 'page' : undefined}
+                    aria-label={item.name}
+                    title={item.name}
                     className={cn(
-                      "flex items-center gap-3 px-3 py-2 text-sm font-medium transition-all duration-150 rounded-md group focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-1 focus-visible:ring-offset-stone-800",
+                      "flex items-center gap-3 px-3 py-2 text-sm font-medium transition-all duration-150 rounded-md group focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0a06]",
                       isActive
                         ? "bg-stone-800 text-[hsl(var(--primary))]"
                         : "text-stone-400 hover:bg-stone-900 hover:text-stone-100"
                     )}
                   >
-                    <item.icon className={cn("w-4 h-4 transition-transform duration-150 group-hover:scale-110", isActive ? "text-[hsl(var(--primary))]" : "text-stone-500")} title={item.name} aria-hidden="true" />
+                    <item.icon className={cn("w-4 h-4 transition-transform duration-150 group-hover:scale-110", isActive ? "text-[hsl(var(--primary))]" : "text-stone-500")} aria-hidden="true" />
                     {item.name}
                   </Link>
                 );
@@ -291,25 +295,26 @@ function LayoutContent({ children, currentPageName }) {
           {user?.plan !== 'premium' && (
             <Link
               to={createPageUrl('Pricing')}
-              className="flex items-center gap-2.5 px-3 py-2.5 mb-3 bg-[hsl(var(--primary))] text-stone-900 text-sm font-bold hover:opacity-90 transition-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-800 focus-visible:ring-[hsl(var(--primary))]"
+              aria-label="Upgrade to Premium"
+              className="flex items-center gap-2.5 px-3 py-2.5 mb-3 bg-[hsl(var(--primary))] text-stone-900 text-sm font-bold hover:opacity-90 transition-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0a06] focus-visible:ring-[hsl(var(--primary))]"
             >
-              <Crown className="w-4 h-4" />
+              <Crown className="w-4 h-4" aria-hidden="true" />
               <span>Upgrade to Premium</span>
-              <ChevronRight className="w-3.5 h-3.5 ml-auto" />
+              <ChevronRight className="w-3.5 h-3.5 ml-auto" aria-hidden="true" />
             </Link>
           )}
 
           <div className="flex items-center gap-3 px-3 py-2">
-            <div className="w-8 h-8 bg-stone-800 border border-stone-700 flex items-center justify-center text-sm font-bold text-[hsl(var(--primary))] flex-shrink-0">
-              {user?.full_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase()}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-stone-200 truncate">{user?.full_name || 'User'}</p>
-              <p className="text-xs text-stone-400 truncate">{user?.email}</p>
-            </div>
-            <button onClick={handleLogout} aria-label="Sign out" className="p-1 text-stone-600 hover:text-stone-300 transition flex-shrink-0">
-              <LogOut className="w-4 h-4" aria-hidden="true" />
-            </button>
+          <div className="w-8 h-8 bg-stone-800 border border-stone-700 flex items-center justify-center text-sm font-bold text-[hsl(var(--primary))] flex-shrink-0" aria-hidden="true">
+            {user?.full_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase()}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-stone-200 truncate">{user?.full_name || 'User'}</p>
+            <p className="text-xs text-stone-400 truncate">{user?.email}</p>
+          </div>
+          <button onClick={handleLogout} aria-label="Sign out" title="Sign out" className="p-1 text-stone-600 hover:text-stone-300 transition flex-shrink-0 focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0a06] rounded">
+            <LogOut className="w-4 h-4" aria-hidden="true" />
+          </button>
           </div>
         </div>
       </aside>
