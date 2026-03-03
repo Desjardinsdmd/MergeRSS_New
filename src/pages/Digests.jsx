@@ -79,15 +79,7 @@ export default function Digests() {
   const handleSendTest = async (digest) => {
     setSendingTest(digest.id);
     try {
-      if (digest.delivery_discord) {
-        await base44.functions.invoke('sendDiscordTest', { digest_name: digest.name });
-      }
-      if (digest.delivery_email) {
-        await base44.functions.invoke('generateDigests', { digest_id: digest.id, force: true });
-      }
-      if (!digest.delivery_discord && !digest.delivery_email) {
-        await base44.functions.invoke('generateDigests', { digest_id: digest.id, force: true });
-      }
+      await base44.functions.invoke('generateDigests', { digest_id: digest.id, force: true });
       queryClient.invalidateQueries({ queryKey: ['digests'] });
       toast.success('Sent!');
     } catch (error) {
