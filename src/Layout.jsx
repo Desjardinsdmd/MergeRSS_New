@@ -30,6 +30,7 @@ import { cn } from '@/lib/utils';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { applyAccentColor } from '@/components/settings/ThemeSettings';
 import { Toaster } from 'sonner';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const navigation = [
   { name: 'Dashboard', href: 'Dashboard', icon: LayoutDashboard },
@@ -233,31 +234,38 @@ function LayoutContent({ children, currentPageName }) {
         {/* Nav */}
         <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
           {navigation.map((item) => {
-            const isActive = currentPageName === item.href;
-            const isInbox = item.href === 'Inbox';
-            return (
-              <Link
-                key={item.name}
-                to={createPageUrl(item.href)}
-                aria-current={isActive ? 'page' : undefined}
-                aria-label={item.name}
-                title={item.name}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2 text-sm font-medium transition-all duration-150 rounded-md group focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0a06]",
-                  isActive
-                    ? "bg-stone-800 text-[hsl(var(--primary))]"
-                    : "text-stone-400 hover:bg-stone-900 hover:text-stone-100"
-                )}
-              >
-                <item.icon className={cn(
-                  "w-4 h-4 flex-shrink-0 transition-transform duration-150 group-hover:scale-110",
-                  isActive ? "text-[hsl(var(--primary))]" : "text-stone-500"
-                )} aria-hidden="true" />
-                <span className="flex-1">{item.name}</span>
-                {isInbox && <InboxNavBadge user={user} />}
-                {item.href === 'Bookmarks' && <BookmarkNavBadge user={user} />}
-              </Link>
-            );
+          const isActive = currentPageName === item.href;
+          const isInbox = item.href === 'Inbox';
+          return (
+            <TooltipProvider key={item.name}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link
+                    to={createPageUrl(item.href)}
+                    aria-current={isActive ? 'page' : undefined}
+                    aria-label={item.name}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2 text-sm font-medium transition-all duration-150 rounded-md group focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0a06]",
+                      isActive
+                        ? "bg-stone-800 text-[hsl(var(--primary))]"
+                        : "text-stone-400 hover:bg-stone-900 hover:text-stone-100"
+                    )}
+                  >
+                    <item.icon className={cn(
+                      "w-4 h-4 flex-shrink-0 transition-transform duration-150 group-hover:scale-110",
+                      isActive ? "text-[hsl(var(--primary))]" : "text-stone-500"
+                    )} aria-hidden="true" />
+                    <span className="flex-1">{item.name}</span>
+                    {isInbox && <InboxNavBadge user={user} />}
+                    {item.href === 'Bookmarks' && <BookmarkNavBadge user={user} />}
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right" className="bg-stone-950 border border-stone-700 text-stone-100 text-xs">
+                  {item.name}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          );
           })}
 
           {user?.role === 'admin' && (
@@ -268,22 +276,29 @@ function LayoutContent({ children, currentPageName }) {
               {adminNav.map((item) => {
                 const isActive = currentPageName === item.href;
                 return (
-                  <Link
-                    key={item.name}
-                    to={createPageUrl(item.href)}
-                    aria-current={isActive ? 'page' : undefined}
-                    aria-label={item.name}
-                    title={item.name}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2 text-sm font-medium transition-all duration-150 rounded-md group focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0a06]",
-                      isActive
-                        ? "bg-stone-800 text-[hsl(var(--primary))]"
-                        : "text-stone-400 hover:bg-stone-900 hover:text-stone-100"
-                    )}
-                  >
-                    <item.icon className={cn("w-4 h-4 transition-transform duration-150 group-hover:scale-110", isActive ? "text-[hsl(var(--primary))]" : "text-stone-500")} aria-hidden="true" />
-                    {item.name}
-                  </Link>
+                  <TooltipProvider key={item.name}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Link
+                          to={createPageUrl(item.href)}
+                          aria-current={isActive ? 'page' : undefined}
+                          aria-label={item.name}
+                          className={cn(
+                            "flex items-center gap-3 px-3 py-2 text-sm font-medium transition-all duration-150 rounded-md group focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0a06]",
+                            isActive
+                              ? "bg-stone-800 text-[hsl(var(--primary))]"
+                              : "text-stone-400 hover:bg-stone-900 hover:text-stone-100"
+                          )}
+                        >
+                          <item.icon className={cn("w-4 h-4 transition-transform duration-150 group-hover:scale-110", isActive ? "text-[hsl(var(--primary))]" : "text-stone-500")} aria-hidden="true" />
+                          {item.name}
+                        </Link>
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="bg-stone-950 border border-stone-700 text-stone-100 text-xs">
+                        {item.name}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 );
               })}
             </>
