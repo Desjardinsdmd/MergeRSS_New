@@ -233,12 +233,12 @@ export default function Settings() {
         <DashboardLayoutSettings layout={dashboardLayout} onChange={setDashboardLayout} />
 
         {/* Save preferences button */}
-        <div className="flex justify-end">
-          <Button onClick={handleSavePreferences} disabled={loading} className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-semibold rounded-lg">
-            {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            Save Preferences
-          </Button>
-        </div>
+         <div className="flex justify-end">
+           <Button onClick={handleSavePreferences} disabled={loading} className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold rounded-lg transition-opacity">
+             {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+             Save Other Preferences
+           </Button>
+         </div>
 
         {/* Subscription Section */}
         <Card className="border-stone-800 bg-stone-900">
