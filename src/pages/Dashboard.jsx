@@ -174,9 +174,9 @@ export default function Dashboard() {
   ];
 
   const colorClasses = {
-    violet: 'bg-stone-800 text-amber-400',
-    indigo: 'bg-stone-800 text-amber-400',
-    emerald: 'bg-stone-800 text-amber-400',
+    violet: 'bg-stone-800 text-[hsl(var(--primary))]',
+    indigo: 'bg-stone-800 text-[hsl(var(--primary))]',
+    emerald: 'bg-stone-800 text-[hsl(var(--primary))]',
   };
 
   return (
@@ -194,7 +194,7 @@ export default function Dashboard() {
         <div className="mb-4 flex items-center gap-3 p-3 bg-stone-900 border border-red-900 text-sm text-red-400">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
           <span>{errorFeeds.length} feed{errorFeeds.length > 1 ? 's are' : ' is'} experiencing errors.</span>
-          <Link to={createPageUrl('Feeds')} className="ml-auto font-medium underline text-amber-400">Fix now →</Link>
+          <Link to={createPageUrl('Feeds')} className="ml-auto font-medium underline text-[hsl(var(--primary))] hover:opacity-80 transition-opacity">Fix now →</Link>
         </div>
       )}
 
@@ -250,7 +250,7 @@ export default function Dashboard() {
             Start by adding RSS feeds to aggregate content from your favorite sources
           </p>
           <Link to={createPageUrl('Feeds')}>
-            <Button className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-bold">
+            <Button className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-bold transition-opacity">
               <Plus className="w-4 h-4 mr-2" />
               Add Feed
             </Button>
@@ -273,7 +273,7 @@ export default function Dashboard() {
                   {expandedItem ? 'Article' : 'Latest Articles'}
                 </span>
                 {!expandedItem && unreadCount > 0 && (
-                  <span className="bg-amber-400 text-stone-900 text-xs font-bold px-2 py-0.5">{unreadCount} unread</span>
+                  <span className="bg-[hsl(var(--primary))] text-stone-900 text-xs font-bold px-2 py-0.5">{unreadCount} unread</span>
                 )}
               </div>
               <div className="flex items-center gap-2">
@@ -295,7 +295,7 @@ export default function Dashboard() {
               {expandedItem ? (
                 <div className="p-5">
                   <a href={expandedItem.url} target="_blank" rel="noopener noreferrer" className="group">
-                    <h2 className="text-base font-semibold text-stone-100 group-hover:text-amber-400 transition-colors mb-2 leading-snug">
+                    <h2 className="text-base font-semibold text-stone-100 group-hover:text-[hsl(var(--primary))] transition-colors mb-2 leading-snug">
                       {expandedItem.title}
                     </h2>
                   </a>
@@ -342,7 +342,7 @@ export default function Dashboard() {
                       return (
                         <div
                           key={item.id}
-                          className={`p-4 hover:bg-stone-800/50 transition cursor-pointer group ${isFocused ? 'bg-stone-800 ring-1 ring-inset ring-amber-400/30' : ''}`}
+                          className={`p-4 hover:bg-stone-800/50 transition cursor-pointer group ${isFocused ? 'bg-stone-800 ring-1 ring-inset ring-[hsl(var(--primary))]/30' : ''}`}
                           onClick={() => setExpandedItem(merged)}
                         >
                           <div className="flex items-start gap-2">
@@ -357,7 +357,7 @@ export default function Dashboard() {
                             <button
                               onClick={(e) => markAsRead(item, e)}
                               title="Mark as read"
-                              className="opacity-0 group-hover:opacity-100 p-1.5 text-stone-600 hover:text-amber-400 hover:bg-stone-800 transition flex-shrink-0"
+                              className="opacity-0 group-hover:opacity-100 p-1.5 text-stone-600 hover:text-[hsl(var(--primary))] hover:bg-stone-800 transition flex-shrink-0"
                             >
                               <CheckCircle className="w-3.5 h-3.5" />
                             </button>
@@ -383,10 +383,10 @@ export default function Dashboard() {
               <div className="flex items-center gap-2">
                 <span className="text-base font-semibold text-stone-100">Latest Articles</span>
                 {unreadCount > 0 && (
-                  <span className="bg-amber-400 text-stone-900 text-xs font-bold px-2 py-0.5">{unreadCount} unread</span>
+                  <span className="bg-[hsl(var(--primary))] text-stone-900 text-xs font-bold px-2 py-0.5">{unreadCount} unread</span>
                 )}
               </div>
-              <button onClick={() => setExpandedArticles(true)} className="text-sm text-stone-500 hover:text-amber-400 flex items-center gap-1 cursor-pointer transition-colors">
+              <button onClick={() => setExpandedArticles(true)} className="text-sm text-stone-500 hover:text-[hsl(var(--primary))] flex items-center gap-1 cursor-pointer transition-colors">
                 View all <ArrowRight className="w-3 h-3" />
               </button>
             </div>
@@ -438,7 +438,7 @@ export default function Dashboard() {
                             <button
                               onClick={(e) => markAsRead(item, e)}
                               title="Mark as read"
-                              className="opacity-0 group-hover:opacity-100 p-1.5 text-stone-600 hover:text-amber-400 hover:bg-stone-800 transition"
+                              className="opacity-0 group-hover:opacity-100 p-1.5 text-stone-600 hover:text-[hsl(var(--primary))] hover:bg-stone-800 transition"
                             >
                               <CheckCircle className="w-3.5 h-3.5" />
                             </button>
@@ -483,7 +483,7 @@ export default function Dashboard() {
           ].map(({ href, icon: Icon, label }) => (
             <Link key={href} to={createPageUrl(href)}>
               <div className="bg-stone-900 border border-stone-800 hover:border-stone-700 hover:bg-stone-800 transition cursor-pointer p-4 flex items-center gap-3 h-full">
-                <div className="p-2 bg-stone-800"><Icon className="w-4 h-4 text-amber-400" /></div>
+                <div className="p-2 bg-stone-800"><Icon className="w-4 h-4 text-[hsl(var(--primary))]" /></div>
                 <span className="text-sm font-medium text-stone-400">{label}</span>
               </div>
             </Link>
