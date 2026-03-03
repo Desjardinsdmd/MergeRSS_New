@@ -350,8 +350,8 @@ export default function Inbox() {
                       <div className="flex-1 min-w-0" onClick={() => handleOpen(delivery)}>
                         <div className="flex items-center justify-between gap-2">
                            <span className={cn('text-sm truncate', isUnread ? 'font-semibold text-stone-100' : 'font-medium text-stone-400')}>
-                             {getDigestName(delivery.digest_id)}
-                           </span>
+                              {decodeHtml(getDigestName(delivery.digest_id))}
+                            </span>
                            <span className="text-xs text-stone-600 flex-shrink-0">
                              {delivery.sent_at && format(new Date(delivery.sent_at), 'MMM d')}
                            </span>
@@ -454,7 +454,7 @@ export default function Inbox() {
                           className="flex items-start gap-2 px-4 py-2.5 hover:bg-stone-700 transition group"
                         >
                           <ExternalLink className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-stone-600 group-hover:text-amber-400" />
-                          <span className="text-sm text-stone-400 group-hover:text-amber-400 line-clamp-2">{item.title}</span>
+                          <span className="text-sm text-stone-400 group-hover:text-amber-400 line-clamp-2">{decodeHtml(item.title)}</span>
                         </a>
                       ))}
                     </div>
