@@ -462,9 +462,7 @@ export default function DigestWizard({ open, onOpenChange, onSuccess }) {
       <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col bg-[#0d0a06] border-stone-800 [&_input]:bg-stone-800 [&_input]:text-stone-100 [&_input]:border-stone-700 [&_input]:placeholder:text-stone-500 [&_textarea]:bg-stone-800 [&_textarea]:text-stone-100 [&_textarea]:border-stone-700 [&_textarea]:placeholder:text-stone-500">
         <div className="p-2 flex flex-col flex-1 min-h-0">
           <StepIndicator currentStep={step} />
-          <StepIndicator currentStep={step} />
-
-          <div>
+          <div className="flex-1 overflow-y-auto min-h-0">
             {step === 'basics' && <StepBasics formData={formData} setFormData={setFormData} />}
             {step === 'content' && <StepContent formData={formData} setFormData={setFormData} feeds={feeds} />}
             {step === 'schedule' && <StepSchedule formData={formData} setFormData={setFormData} />}
@@ -479,7 +477,7 @@ export default function DigestWizard({ open, onOpenChange, onSuccess }) {
             )}
           </div>
 
-          <div className="flex items-center justify-between mt-8 pt-4 border-t border-stone-800">
+          <div className="flex items-center justify-between mt-6 pt-4 border-t border-stone-800 flex-shrink-0">
             <Button
               type="button"
               variant="ghost"
