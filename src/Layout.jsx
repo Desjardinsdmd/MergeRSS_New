@@ -323,7 +323,7 @@ function LayoutContent({ children, currentPageName }) {
               <Menu className="w-5 h-5" aria-hidden="true" />
             </button>
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-amber-400 flex items-center justify-center">
+              <div className="w-6 h-6 bg-[hsl(var(--primary))] flex items-center justify-center">
                 <Rss className="w-3 h-3 text-stone-900" />
               </div>
               <span className="font-bold text-stone-100 tracking-tight">MergeRSS</span>
