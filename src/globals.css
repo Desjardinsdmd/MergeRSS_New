@@ -161,13 +161,22 @@ button, a, [role="button"] {
 /* stone-400 on stone-900 ≈ 6.5:1 — comfortably above WCAG AA */
 .card-body { color: hsl(36 20% 72%); }  /* stone-400 equivalent */
 
-/* Smooth animations */
+/* ─── Micro-animations ───────────────────────────────────────────────────── */
 .animate-in {
   animation: animateIn 0.2s ease-out;
 }
 @keyframes animateIn {
   from { opacity: 0; transform: translateY(-4px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* Hover lift for clickable cards */
+.card-hover {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.card-hover:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 }
 
 /* Line clamp utilities */
