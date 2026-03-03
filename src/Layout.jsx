@@ -137,7 +137,7 @@ function LayoutContent({ children, currentPageName }) {
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               <Link to={createPageUrl('Landing')} className="flex items-center gap-2.5">
-                <div className="w-7 h-7 bg-amber-400 flex items-center justify-center">
+                <div className="w-7 h-7 bg-[hsl(var(--primary))] flex items-center justify-center">
                   <Rss className="w-3.5 h-3.5 text-stone-900" />
                 </div>
                 <span className="font-bold text-stone-100 tracking-tight">MergeRSS</span>
