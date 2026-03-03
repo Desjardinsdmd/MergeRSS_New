@@ -1,25 +1,27 @@
 import React, { useEffect } from 'react';
 import { useTheme } from 'next-themes';
-import { Palette, Sun, Moon, Monitor } from 'lucide-react';
+import { Palette, Sun, Moon, Monitor, Contrast } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 const THEMES = [
-  { id: 'light', label: 'Light', icon: Sun, preview: 'bg-stone-900 border-stone-800' },
-  { id: 'dark', label: 'Dark', icon: Moon, preview: 'bg-stone-900 border-stone-700' },
-  { id: 'system', label: 'System', icon: Monitor, preview: 'bg-gradient-to-br from-stone-900 to-stone-800 border-stone-700' },
+  { id: 'dark',    label: 'Dark',    icon: Moon,     preview: 'bg-stone-900 border-stone-700' },
+  { id: 'light',   label: 'Light',   icon: Sun,      preview: 'bg-stone-100 border-stone-300' },
+  { id: 'system',  label: 'System',  icon: Monitor,  preview: 'bg-gradient-to-br from-stone-900 to-stone-200 border-stone-500' },
+  { id: 'hc-dark', label: 'High Contrast', icon: Contrast, preview: 'bg-black border-white' },
 ];
 
-const ACCENT_COLORS = [
-  { id: 'amber', label: 'Amber', color: '#d97706', hsl: '32 97% 44%' },
-  { id: 'indigo', label: 'Indigo', color: '#4f46e5', hsl: '245 82% 60%' },
-  { id: 'violet', label: 'Violet', color: '#7c3aed', hsl: '262 73% 56%' },
-  { id: 'blue', label: 'Blue', color: '#2563eb', hsl: '219 85% 54%' },
-  { id: 'emerald', label: 'Emerald', color: '#059669', hsl: '161 93% 30%' },
-  { id: 'rose', label: 'Rose', color: '#e11d48', hsl: '347 87% 50%' },
+export const ACCENT_COLORS = [
+  { id: 'amber',   label: 'Amber',   color: '#fbbf24', hsl: '38 95% 54%' },
+  { id: 'indigo',  label: 'Indigo',  color: '#6366f1', hsl: '239 84% 67%' },
+  { id: 'violet',  label: 'Violet',  color: '#8b5cf6', hsl: '263 70% 64%' },
+  { id: 'blue',    label: 'Blue',    color: '#3b82f6', hsl: '217 91% 60%' },
+  { id: 'emerald', label: 'Emerald', color: '#10b981', hsl: '160 84% 39%' },
+  { id: 'rose',    label: 'Rose',    color: '#f43f5e', hsl: '350 89% 60%' },
 ];
 
-function applyAccentColor(colorId) {
+/** Applies accent color CSS variables to :root immediately */
+export function applyAccentColor(colorId) {
   const c = ACCENT_COLORS.find(c => c.id === colorId);
   if (c) {
     document.documentElement.style.setProperty('--primary', c.hsl);
@@ -27,13 +29,44 @@ function applyAccentColor(colorId) {
   }
 }
 
+/** Applies high-contrast overrides when hc-dark is active */
+function applyHCOverrides(isHC) {
+  const root = document.documentElement;
+  if (isHC) {
+    root.style.setProperty('--background', '0 0% 0%');
+    root.style.setProperty('--foreground', '0 0% 100%');
+    root.style.setProperty('--border', '0 0% 50%');
+    root.style.setProperty('--muted-foreground', '0 0% 85%');
+  } else {
+    // Remove inline overrides so CSS vars take back control
+    root.style.removeProperty('--background');
+    root.style.removeProperty('--foreground');
+    root.style.removeProperty('--border');
+    root.style.removeProperty('--muted-foreground');
+  }
+}
+
 export default function ThemeSettings({ accentColor, onAccentChange }) {
   const { theme, setTheme } = useTheme();
 
-  // Apply saved accent color on mount
+  // Apply saved accent on mount and whenever it changes
   useEffect(() => {
     if (accentColor) applyAccentColor(accentColor);
   }, [accentColor]);
+
+  // Apply HC overrides whenever theme changes
+  useEffect(() => {
+    if (theme === 'hc-dark') {
+      document.documentElement.classList.add('dark');
+      applyHCOverrides(true);
+    } else {
+      applyHCOverrides(false);
+    }
+  }, [theme]);
+
+  const handleThemeChange = (id) => {
+    setTheme(id);
+  };
 
   const handleAccentChange = (colorId) => {
     onAccentChange(colorId);
@@ -44,33 +77,35 @@ export default function ThemeSettings({ accentColor, onAccentChange }) {
     <Card className="border-stone-800 bg-stone-900">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg text-stone-200">
-          <Palette className="w-5 h-5 text-amber-400" />
+          <Palette className="w-5 h-5 text-amber-400" aria-hidden="true" />
           Appearance
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Theme mode */}
+
+        {/* ── Color Mode ─────────────────────────────────────────────────── */}
         <div>
-          <p className="text-sm font-medium text-stone-200 mb-3">Color Mode</p>
-          <div className="grid grid-cols-3 gap-3">
+          <p className="text-sm font-semibold text-stone-300 mb-3">Color Mode</p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {THEMES.map(t => {
               const Icon = t.icon;
               const isActive = theme === t.id;
               return (
                 <button
                   key={t.id}
-                  onClick={() => setTheme(t.id)}
+                  onClick={() => handleThemeChange(t.id)}
+                  aria-pressed={isActive}
                   className={cn(
-                    'flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all',
+                    'flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all duration-150 focus-visible:ring-2 focus-visible:ring-amber-400',
                     isActive
-                      ? 'border-amber-400 bg-amber-950 dark:bg-amber-950'
-                      : 'border-stone-700 hover:border-stone-600 dark:border-stone-700'
+                      ? 'border-amber-400 bg-amber-950/40'
+                      : 'border-stone-700 hover:border-stone-500'
                   )}
                 >
-                  <div className={cn('w-10 h-10 rounded-lg border flex items-center justify-center', t.preview)}>
-                    <Icon className={cn('w-5 h-5', t.id === 'dark' ? 'text-amber-400' : 'text-stone-300')} />
+                  <div className={cn('w-10 h-10 rounded-md border-2 flex items-center justify-center', t.preview)}>
+                    <Icon className={cn('w-5 h-5', isActive ? 'text-amber-400' : 'text-stone-400')} />
                   </div>
-                  <span className={cn('text-xs font-medium', isActive ? 'text-amber-400 dark:text-amber-400' : 'text-stone-500 dark:text-stone-400')}>
+                  <span className={cn('text-xs font-medium', isActive ? 'text-amber-400' : 'text-stone-500')}>
                     {t.label}
                   </span>
                 </button>
@@ -79,29 +114,50 @@ export default function ThemeSettings({ accentColor, onAccentChange }) {
           </div>
         </div>
 
-        {/* Accent color */}
+        {/* ── Accent Color ────────────────────────────────────────────────── */}
         <div>
-          <p className="text-sm font-medium text-stone-200 mb-3">Accent Color</p>
-          <div className="flex gap-3 flex-wrap">
-            {ACCENT_COLORS.map(c => (
-              <button
-                key={c.id}
-                onClick={() => handleAccentChange(c.id)}
-                title={c.label}
-                className={cn(
-                  'w-9 h-9 rounded-full border-2 transition-all flex items-center justify-center',
-                  accentColor === c.id ? 'border-white scale-110 shadow-md' : 'border-transparent hover:scale-105 hover:border-stone-500'
-                )}
-                style={{ backgroundColor: c.color }}
-              >
-                {accentColor === c.id && (
-                  <span className="w-2.5 h-2.5 rounded-full bg-white/80 block" />
-                )}
-              </button>
-            ))}
+          <p className="text-sm font-semibold text-stone-300 mb-1">Accent Color</p>
+          <p className="text-xs text-stone-500 mb-3">Applied to buttons, links and highlights throughout the app.</p>
+          <div className="flex gap-3 flex-wrap" role="radiogroup" aria-label="Accent color">
+            {ACCENT_COLORS.map(c => {
+              const isActive = accentColor === c.id;
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => handleAccentChange(c.id)}
+                  role="radio"
+                  aria-checked={isActive}
+                  aria-label={c.label}
+                  title={c.label}
+                  className={cn(
+                    'w-9 h-9 rounded-full border-2 transition-all duration-150 flex items-center justify-center focus-visible:ring-2 focus-visible:ring-white',
+                    isActive ? 'border-white scale-110 shadow-lg' : 'border-transparent hover:scale-105 hover:border-stone-400'
+                  )}
+                  style={{ backgroundColor: c.color }}
+                >
+                  {isActive && <span className="w-2.5 h-2.5 rounded-full bg-white/90 block" />}
+                </button>
+              );
+            })}
           </div>
-          <p className="text-xs text-stone-500 mt-2">Updates the accent color throughout the app.</p>
+
+          {/* Live preview swatch */}
+          <div className="mt-4 flex items-center gap-3">
+            <div
+              className="h-8 px-4 flex items-center justify-center text-xs font-semibold rounded"
+              style={{
+                backgroundColor: ACCENT_COLORS.find(c => c.id === accentColor)?.color || '#fbbf24',
+                color: '#0a0805',
+              }}
+            >
+              Button preview
+            </div>
+            <span className="text-xs text-stone-500">
+              Current: <span className="text-stone-300 font-medium">{ACCENT_COLORS.find(c => c.id === accentColor)?.label || 'Amber'}</span>
+            </span>
+          </div>
         </div>
+
       </CardContent>
     </Card>
   );
