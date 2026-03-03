@@ -63,6 +63,15 @@ export default function EmailFeeds() {
     }
   };
 
+  const handleDeleteFeed = async (feedId) => {
+    try {
+      await base44.entities.EmailFeed.delete(feedId);
+      toast.success('Email feed deleted');
+    } catch (error) {
+      toast.error('Failed to delete email feed');
+    }
+  };
+
   if (loading) {
     return (
       <div className="p-6 lg:p-8 flex items-center justify-center min-h-screen">
