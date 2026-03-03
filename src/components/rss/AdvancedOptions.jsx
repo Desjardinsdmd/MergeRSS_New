@@ -12,18 +12,20 @@ export default function AdvancedOptions({ options, onChange }) {
     const update = (key, value) => onChange(prev => ({ ...prev, [key]: value }));
 
     return (
-        <div className={cn("border rounded-lg overflow-hidden transition-colors", open ? "border-slate-200" : "border-slate-100")}>
-            <button
-                type="button"
-                onClick={() => setOpen(v => !v)}
-                className="w-full flex items-center justify-between px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 transition-colors"
-            >
-                <span className="font-medium">Advanced Options</span>
-                {open
-                    ? <ChevronUp className="w-4 h-4 text-slate-400" />
-                    : <ChevronDown className="w-4 h-4 text-slate-400" />
-                }
-            </button>
+         <div className={cn("border rounded-lg overflow-hidden transition-colors", open ? "border-slate-200" : "border-slate-100")}>
+             <button
+                 type="button"
+                 onClick={() => setOpen(v => !v)}
+                 className="w-full flex items-center justify-between px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-inset"
+                 aria-expanded={open}
+                 aria-label={`${open ? 'Hide' : 'Show'} advanced options`}
+             >
+                 <span className="font-medium">Advanced Options</span>
+                 {open
+                     ? <ChevronUp className="w-4 h-4 text-slate-400" aria-hidden="true" />
+                     : <ChevronDown className="w-4 h-4 text-slate-400" aria-hidden="true" />
+                 }
+             </button>
 
             {open && (
                 <div className="border-t border-slate-100 px-4 py-4 space-y-5 bg-slate-50/40">
@@ -63,12 +65,14 @@ export default function AdvancedOptions({ options, onChange }) {
                     {/* Include full content */}
                     <div className="flex items-center justify-between py-1">
                         <div>
-                            <p className="text-sm font-medium text-slate-700">Include full content</p>
+                            <p className="text-sm font-medium text-slate-700" id="full-content-label">Include full content</p>
                             <p className="text-xs text-slate-400">Fetch full article body where available</p>
                         </div>
                         <Switch
                             checked={options.include_full_content}
                             onCheckedChange={v => update('include_full_content', v)}
+                            aria-labelledby="full-content-label"
+                            aria-label="Include full article content in feed"
                         />
                     </div>
 

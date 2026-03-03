@@ -177,42 +177,56 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
           </div>
 
           <div>
-            <Label>Category</Label>
+            <Label htmlFor="category">Category</Label>
             <Select
               value={formData.category}
               onValueChange={(value) => setFormData({ ...formData, category: value })}
             >
-              <SelectTrigger>
+              <SelectTrigger id="category" aria-label="Select feed category">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {CATEGORIES.map((cat) => (
-                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                  <SelectItem key={`${cat}-option`} value={cat}>{cat}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
           <div>
-            <Label>Tags</Label>
+            <Label htmlFor="tags">Tags</Label>
             <div className="flex gap-2 mb-2">
               <Input
+                id="tags"
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 placeholder="Add tag..."
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+                aria-label="Add a new tag"
               />
-              <Button type="button" variant="outline" onClick={addTag}>
-                <Plus className="w-4 h-4" />
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={addTag}
+                aria-label="Add tag button"
+                title="Add tag"
+              >
+                <Plus className="w-4 h-4" aria-hidden="true" />
               </Button>
             </div>
             {formData.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2" role="list" aria-label="Added tags">
                 {formData.tags.map((tag) => (
-                  <Badge key={tag} variant="secondary" className="gap-1">
+                  <Badge key={`${tag}-badge`} variant="secondary" className="gap-1" role="listitem">
                     {tag}
-                    <button type="button" onClick={() => removeTag(tag)}>
-                      <X className="w-3 h-3" />
+                    <button 
+                      type="button" 
+                      onClick={() => removeTag(tag)}
+                      className="hover:opacity-70 transition focus-visible:ring-1 focus-visible:ring-stone-400 rounded px-0.5"
+                      aria-label={`Remove tag ${tag}`}
+                      title={`Remove ${tag}`}
+                    >
+                      <X className="w-3 h-3" aria-hidden="true" />
                     </button>
                   </Badge>
                 ))}

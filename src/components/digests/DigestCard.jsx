@@ -175,10 +175,11 @@ export default function DigestCard({ digest, onEdit, onDelete, onToggleStatus, o
                 onClick={handleRunNow}
                 disabled={isSending || ran}
                 className={cn(
-                  'flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md transition-colors',
+                  'flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md transition-colors focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-stone-900',
                   ran ? 'text-emerald-400 bg-emerald-950' : 'text-stone-900 bg-amber-400 hover:bg-amber-300',
                   (isSending || ran) && 'opacity-60 cursor-not-allowed'
                 )}
+                aria-label={isSending ? 'Running digest' : ran ? 'Digest sent successfully' : 'Run digest now'}
               >
                 {isSending ? <Loader2 className="w-3 h-3 animate-spin" /> : ran ? <CheckCircle2 className="w-3 h-3" /> : <Zap className="w-3 h-3" />}
                 {isSending ? 'Running…' : ran ? 'Sent!' : 'Run Now'}
