@@ -279,7 +279,7 @@ export default function Landing() {
         </div>
       </section>
 
-      <PopularFeedsSection />
+      <PopularFeedsSection user={user} />
 
       {/* Integrations */}
       <section className="py-28 bg-[#0d0a06] border-t border-stone-800">
