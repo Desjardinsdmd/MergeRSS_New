@@ -191,7 +191,7 @@ function StepContent({ formData, setFormData, feeds }) {
       {feeds.length > 0 && (
         <div>
           <Label className="text-stone-300 mb-2 block">Specific Feeds <span className="text-stone-600 font-normal">(optional)</span></Label>
-          <div className="max-h-40 overflow-y-auto border border-stone-700 rounded-lg divide-y divide-stone-800">
+          <div className="border border-stone-700 rounded-lg divide-y divide-stone-800">
             {feeds.map((feed) => (
               <label key={feed.id} className="flex items-center gap-3 px-3 py-2 hover:bg-stone-800 cursor-pointer">
                 <Checkbox
