@@ -117,13 +117,13 @@ export default function Digests() {
           </p>
         </div>
         <Button
-          onClick={() => setShowDialog(true)}
-          disabled={!canAddMore}
-          title={!canAddMore ? 'Upgrade to Premium to create more digests' : ''}
-          className="bg-amber-400 hover:bg-amber-300 text-stone-900 rounded-lg disabled:opacity-60 font-bold"
+        onClick={() => setShowWizard(true)}
+        disabled={!canAddMore}
+        title={!canAddMore ? 'Upgrade to Premium to create more digests' : ''}
+        className="bg-amber-400 hover:bg-amber-300 text-stone-900 rounded-lg disabled:opacity-60 font-bold"
         >
-          <Plus className="w-4 h-4 mr-2" />
-          Create Digest
+        <Plus className="w-4 h-4 mr-2" />
+        Create Digest
         </Button>
       </div>
 
