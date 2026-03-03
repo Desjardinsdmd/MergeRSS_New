@@ -101,35 +101,37 @@ export default function ThemeSettings({ accentColor, onAccentChange, onAutoSave 
       <CardContent className="space-y-6">
 
         {/* ── Color Mode ─────────────────────────────────────────────────── */}
-        <div>
-          <p className="text-sm font-semibold text-stone-300 mb-3">Color Mode</p>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {THEMES.map(t => {
-              const Icon = t.icon;
-              const isActive = theme === t.id;
-              return (
-                <button
-                  key={t.id}
-                  onClick={() => handleThemeChange(t.id)}
-                  aria-pressed={isActive}
-                  className={cn(
-                    'flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all duration-150 focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))]',
-                    isActive
-                      ? 'border-[hsl(var(--primary))] bg-[hsl(var(--primary))/0.1]'
-                      : 'border-stone-700 hover:border-stone-500'
-                  )}
-                >
-                  <div className={cn('w-10 h-10 rounded-md border-2 flex items-center justify-center', t.preview)}>
-                    <Icon className={cn('w-5 h-5', isActive ? 'text-[hsl(var(--primary))]' : 'text-stone-400')} />
-                  </div>
-                  <span className={cn('text-xs font-medium', isActive ? 'text-[hsl(var(--primary))]' : 'text-stone-500')}>
-                    {t.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+         <div>
+           <p className="text-sm font-semibold text-stone-300 mb-3">Color Mode</p>
+           <p className="text-xs text-stone-500 mb-3">Changes apply instantly</p>
+           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+             {THEMES.map(t => {
+               const Icon = t.icon;
+               const isActive = theme === t.id;
+               return (
+                 <button
+                   key={t.id}
+                   onClick={() => handleThemeChange(t.id)}
+                   aria-pressed={isActive}
+                   title={`Switch to ${t.label} mode`}
+                   className={cn(
+                     'flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] group',
+                     isActive
+                       ? 'border-[hsl(var(--primary))] bg-[hsl(var(--primary))/0.1] scale-105'
+                       : 'border-stone-700 hover:border-stone-500 hover:scale-100'
+                   )}
+                 >
+                   <div className={cn('w-10 h-10 rounded-md border-2 flex items-center justify-center transition-transform group-hover:scale-110', t.preview)}>
+                     <Icon className={cn('w-5 h-5 transition-colors', isActive ? 'text-[hsl(var(--primary))]' : 'text-stone-400')} />
+                   </div>
+                   <span className={cn('text-xs font-medium transition-colors', isActive ? 'text-[hsl(var(--primary))]' : 'text-stone-500')}>
+                     {t.label}
+                   </span>
+                 </button>
+               );
+             })}
+           </div>
+         </div>
 
         {/* ── Accent Color ────────────────────────────────────────────────── */}
         <div>
