@@ -453,8 +453,11 @@ export default function DigestWizard({ open, onOpenChange, onSuccess }) {
     await base44.entities.Digest.create(data);
     base44.analytics.track({ eventName: 'digest_created', properties: { frequency: data.frequency } });
     setLoading(false);
-    onSuccess();
-    onOpenChange(false);
+    setStep('success');
+    setTimeout(() => {
+      onSuccess();
+      onOpenChange(false);
+    }, 1500);
   };
 
   return (
