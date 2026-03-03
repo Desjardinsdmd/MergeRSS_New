@@ -170,7 +170,7 @@ export default function Landing() {
             className="inline-flex items-center gap-2 px-3 py-1.5 border border-amber-800/40 rounded-full text-xs font-medium text-amber-500/80 mb-10"
             style={{ animation: 'fadeSlideDown 0.6s ease forwards' }}
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--primary))] animate-pulse" />
             AI-powered RSS aggregation — now live
           </div>
 
