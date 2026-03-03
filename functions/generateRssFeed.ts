@@ -502,11 +502,14 @@ Deno.serve(async (req) => {
         let items = extractItems(html, pageUrl, item_limit);
 
         if (items.length === 0) {
-            await saveGeneratedFeed(base44, existingForUrl, {
-                source_url: pageUrl, title: title || pageUrl, is_native_feed: false,
-                last_fetched: new Date().toISOString(), last_error: 'No items could be extracted',
-                error_count: (existingForUrl?.error_count || 0) + 1, refresh_frequency,
-            });
+            // Only update if it's an existing feed — don't create a new record for a failed generation
+            if (existingForUrl) {
+                await saveGeneratedFeed(base44, existingForUrl, {
+                    source_url: pageUrl, title: title || pageUrl, is_native_feed: false,
+                    last_fetched: new Date().toISOString(), last_error: 'No items could be extracted',
+                    error_count: (existingForUrl?.error_count || 0) + 1, refresh_frequency,
+                });
+            }
             return Response.json({
                 error: 'No article links could be extracted from this page.',
                 suggestions: [
