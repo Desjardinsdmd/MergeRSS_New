@@ -301,7 +301,7 @@ function LayoutContent({ children, currentPageName }) {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-stone-200 truncate">{user?.full_name || 'User'}</p>
-              <p className="text-xs text-stone-600 truncate">{user?.email}</p>
+              <p className="text-xs text-stone-400 truncate">{user?.email}</p>
             </div>
             <button onClick={handleLogout} className="p-1 text-stone-600 hover:text-stone-300 transition flex-shrink-0">
               <LogOut className="w-4 h-4" />
