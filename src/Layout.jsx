@@ -112,12 +112,12 @@ function LayoutContent({ children, currentPageName }) {
   useEffect(() => {
     const loadUser = async () => {
       try {
-        // Only try to load user if they might be authenticated
-        // For public pages, skip authentication check to avoid login prompts
         const userData = await base44.auth.me();
         setUser(userData);
+        // Restore accent color preference on every page load
+        if (userData?.accent_color) applyAccentColor(userData.accent_color);
       } catch (e) {
-        // not authenticated or error - that's ok for public pages
+        // not authenticated — ok for public pages
       } finally {
         setLoading(false);
       }
