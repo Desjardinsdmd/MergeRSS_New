@@ -134,28 +134,46 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
           <DialogTitle>{editFeed ? 'Edit Feed' : 'Add New Feed'}</DialogTitle>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+          {success && (
+            <div role="status" aria-live="polite" className="flex items-center gap-2 px-3 py-2.5 bg-emerald-900/40 border border-emerald-700 text-emerald-300 text-sm font-medium rounded-none">
+              <CheckCircle2 className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+              {editFeed ? 'Feed updated successfully!' : 'Feed added successfully!'}
+            </div>
+          )}
+
           <div>
-            <Label htmlFor="name">Feed Name</Label>
+            <Label htmlFor="name">Feed Name <span className="text-amber-400" aria-hidden="true">*</span></Label>
             <Input
               id="name"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) => { setFormData({ ...formData, name: e.target.value }); setErrors(prev => ({ ...prev, name: '' })); }}
               placeholder="e.g., TechCrunch"
-              required
+              aria-required="true"
+              aria-invalid={!!errors.name}
+              aria-describedby={errors.name ? 'name-error' : undefined}
+              className={cn(errors.name && 'border-red-500 focus-visible:ring-red-500')}
             />
+            {errors.name && <p id="name-error" role="alert" className="mt-1 text-xs text-red-400 flex items-center gap-1"><AlertCircle className="w-3 h-3" aria-hidden="true" />{errors.name}</p>}
           </div>
 
           <div>
-            <Label htmlFor="url">RSS URL</Label>
+            <Label htmlFor="url">RSS URL <span className="text-amber-400" aria-hidden="true">*</span></Label>
             <Input
               id="url"
               type="url"
               value={formData.url}
-              onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-              placeholder="https://example.com/feed.xml"
-              required
+              onChange={(e) => { setFormData({ ...formData, url: e.target.value }); setErrors(prev => ({ ...prev, url: '' })); }}
+              placeholder="e.g., https://techcrunch.com/feed/"
+              aria-required="true"
+              aria-invalid={!!errors.url}
+              aria-describedby={errors.url ? 'url-error' : 'url-hint'}
+              className={cn(errors.url && 'border-red-500 focus-visible:ring-red-500')}
             />
+            {errors.url
+              ? <p id="url-error" role="alert" className="mt-1 text-xs text-red-400 flex items-center gap-1"><AlertCircle className="w-3 h-3" aria-hidden="true" />{errors.url}</p>
+              : <p id="url-hint" className="mt-1 text-xs text-stone-500">Paste a direct RSS/Atom feed URL, e.g. <code className="text-stone-400">https://example.com/feed.xml</code></p>
+            }
           </div>
 
           <div>
