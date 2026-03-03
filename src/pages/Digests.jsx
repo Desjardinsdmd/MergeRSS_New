@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus, FileText, Loader2, Send, Grid3x3, List, Trash2 } from 'lucide-react';
+import { Plus, FileText, Loader2, Send, Grid3x3, List, Trash2, Info, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
