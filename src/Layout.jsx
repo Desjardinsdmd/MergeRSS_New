@@ -265,14 +265,15 @@ function LayoutContent({ children, currentPageName }) {
                   <Link
                     key={item.name}
                     to={createPageUrl(item.href)}
+                    aria-current={isActive ? 'page' : undefined}
                     className={cn(
-                      "flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors",
+                      "flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors rounded-md",
                       isActive
                         ? "bg-stone-800 text-amber-400"
-                        : "text-stone-500 hover:bg-stone-900 hover:text-stone-200"
+                        : "text-stone-400 hover:bg-stone-900 hover:text-stone-100"
                     )}
                   >
-                    <item.icon className={cn("w-4 h-4", isActive ? "text-amber-400" : "text-stone-600")} />
+                    <item.icon className={cn("w-4 h-4", isActive ? "text-amber-400" : "text-stone-500")} aria-hidden="true" />
                     {item.name}
                   </Link>
                 );
