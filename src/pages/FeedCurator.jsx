@@ -27,10 +27,10 @@ function AICuratorOnboarding() {
   });
   if (dismissed) return null;
   return (
-    <div className="mb-6 p-4 border border-amber-400/30 bg-amber-400/5 flex items-start gap-3 relative">
-      <Info className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" aria-hidden="true" />
+    <div className="mb-6 p-4 border border-[hsl(var(--primary))]/30 bg-[hsl(var(--primary))]/5 flex items-start gap-3 relative">
+      <Info className="w-4 h-4 text-[hsl(var(--primary))] mt-0.5 flex-shrink-0" aria-hidden="true" />
       <div className="flex-1">
-        <p className="text-sm font-semibold text-amber-400 mb-1">How AI Curator works</p>
+        <p className="text-sm font-semibold text-[hsl(var(--primary))] mb-1">How AI Curator works</p>
         <p className="text-xs text-stone-400 leading-relaxed">
           Type any topic (e.g., "crypto market news" or "Canadian CRE") and the AI will search the web for the best RSS feeds, 
           validate each one is live, and let you add them to your library in one click. No feed URL hunting required.
@@ -143,12 +143,25 @@ export default function FeedCurator() {
     }
   };
 
+  const [userFeeds, setUserFeeds] = useState(null);
+
+  useEffect(() => {
+    const loadUserFeeds = async () => {
+      try {
+        const user = await base44.auth.me();
+        const feeds = await base44.entities.Feed.filter({ created_by: user?.email });
+        setUserFeeds(feeds.length);
+      } catch (e) {}
+    };
+    loadUserFeeds();
+  }, []);
+
   return (
     <div className="p-6 lg:p-8 max-w-4xl mx-auto">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 bg-amber-400 rounded-xl flex items-center justify-center">
+          <div className="w-10 h-10 bg-[hsl(var(--primary))] rounded-xl flex items-center justify-center">
             <Sparkles className="w-5 h-5 text-stone-900" />
           </div>
           <div>
@@ -186,12 +199,12 @@ export default function FeedCurator() {
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 placeholder="e.g. Canadian real estate, AI startup news, crypto market..."
-                className="flex-1 h-11 rounded-xl border-stone-700 bg-stone-800 text-stone-100 placeholder-stone-600 focus-visible:ring-amber-400"
+                className="flex-1 h-11 rounded-xl border-stone-700 bg-stone-800 text-stone-100 placeholder-stone-600 focus-visible:ring-[hsl(var(--primary))]"
               />
               <Button
                 onClick={() => handleSearch()}
                 disabled={!query.trim() || loading}
-                className="h-11 px-5 bg-amber-400 hover:bg-amber-300 text-stone-900 rounded-xl font-medium"
+                className="h-11 px-5 bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 rounded-xl font-medium"
               >
                 {loading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -209,7 +222,7 @@ export default function FeedCurator() {
                   <button
                     key={q}
                     onClick={() => { setQuery(q); handleSearch(q); }}
-                    className="text-xs px-3 py-1.5 border border-stone-700 rounded-full text-stone-400 hover:border-amber-400 hover:text-amber-400 hover:bg-stone-800 transition"
+                    className="text-xs px-3 py-1.5 border border-stone-700 rounded-full text-stone-400 hover:border-[hsl(var(--primary))] hover:text-[hsl(var(--primary))] hover:bg-stone-800 transition"
                   >
                     {q}
                   </button>
@@ -224,7 +237,7 @@ export default function FeedCurator() {
                     <button
                       key={cat}
                       onClick={() => { setQuery(`More ${cat} feeds`); handleSearch(`More ${cat} RSS feeds and news sources`); }}
-                      className="text-xs px-3 py-1.5 border border-amber-400/50 rounded-full text-amber-400 bg-stone-800 hover:bg-stone-700 transition"
+                      className="text-xs px-3 py-1.5 border border-[hsl(var(--primary))]/50 rounded-full text-[hsl(var(--primary))] bg-stone-800 hover:bg-stone-700 transition"
                     >
                       More {cat} feeds
                     </button>
@@ -237,7 +250,7 @@ export default function FeedCurator() {
           {loading && (
             <div className="flex flex-col items-center justify-center py-16">
               <div className="w-12 h-12 bg-stone-800 rounded-2xl flex items-center justify-center mb-4">
-                <Loader2 className="w-6 h-6 text-amber-400 animate-spin" />
+                <Loader2 className="w-6 h-6 text-[hsl(var(--primary))] animate-spin" />
               </div>
               <p className="text-stone-200 font-medium">Searching and testing relevant feeds...</p>
               <p className="text-stone-500 text-sm mt-1">AI is scanning the web and validating RSS sources</p>
@@ -263,7 +276,7 @@ export default function FeedCurator() {
                     <RefreshCw className="w-3 h-3" /> Refresh
                   </Button>
                   {suggestions.some(f => !addedFeeds.has(f.url)) && (
-                    <Button size="sm" onClick={handleAddAll} className="text-xs rounded-lg bg-amber-400 hover:bg-amber-300 text-stone-900 gap-1.5 font-semibold">
+                    <Button size="sm" onClick={handleAddAll} className="text-xs rounded-lg bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 gap-1.5 font-semibold">
                       <Rss className="w-3 h-3" />
                       Add All ({suggestions.filter(f => !addedFeeds.has(f.url)).length})
                     </Button>
@@ -298,12 +311,33 @@ export default function FeedCurator() {
           {!loading && suggestions.length === 0 && !error && (
             <div className="text-center py-16">
               <div className="w-16 h-16 bg-stone-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Sparkles className="w-8 h-8 text-amber-400" />
+                <Sparkles className="w-8 h-8 text-[hsl(var(--primary))]" />
               </div>
-              <h3 className="font-semibold text-stone-200 mb-1">Discover new feeds</h3>
+              <h3 className="font-semibold text-stone-200 mb-1">
+                {userFeeds === 0 ? 'Get started with AI Curator' : 'Discover new feeds'}
+              </h3>
               <p className="text-stone-500 text-sm max-w-xs mx-auto">
-                Search for any topic and our AI will find the best RSS sources for you
+                {userFeeds === 0 
+                  ? 'Use AI Curator to find and add RSS feeds based on topics you care about. Try searching for "Canadian real estate" or "AI news" above.'
+                  : 'Search for any topic and our AI will find the best RSS sources for you'
+                }
               </p>
+              {userFeeds === 0 && (
+                <div className="mt-6 flex flex-col items-center gap-3">
+                  <p className="text-xs text-stone-600">Popular starting topics:</p>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {EXAMPLE_QUERIES.slice(0, 3).map((q) => (
+                      <button
+                        key={q}
+                        onClick={() => { setQuery(q); handleSearch(q); }}
+                        className="text-xs px-4 py-2 border border-[hsl(var(--primary))]/30 rounded-lg text-[hsl(var(--primary))] bg-[hsl(var(--primary))]/5 hover:bg-[hsl(var(--primary))]/10 transition"
+                      >
+                        {q}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </TabsContent>

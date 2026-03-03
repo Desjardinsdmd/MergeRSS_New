@@ -63,6 +63,29 @@
     --ring: 38 95% 54%;
   }
 
+  /* High-contrast dark mode — WCAG AAA contrast (7:1+) */
+  .hc-dark {
+    --background: 0 0% 0%;                /* #000000 – pure black */
+    --foreground: 0 0% 100%;              /* #ffffff – pure white (21:1) */
+    --card: 0 0% 8%;                      /* #141414 */
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 38 100% 50%;               /* Brighter accent for HC */
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 15%;                /* Darker grays for contrast */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 20%;
+    --muted-foreground: 0 0% 90%;         /* 9:1 contrast */
+    --accent: 0 0% 25%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 100% 50%;            /* Brighter red */
+    --destructive-foreground: 0 0% 0%;
+    --border: 0 0% 100%;                  /* White borders */
+    --input: 0 0% 20%;
+    --ring: 38 100% 50%;
+  }
+
   /* Light mode — WCAG AA contrast ratios (4.5:1+) */
   .light {
     --background: 36 20% 98%;           /* #f5f1ed – warm off-white */
