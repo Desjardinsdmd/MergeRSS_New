@@ -494,35 +494,37 @@ export default function DigestWizard({ open, onOpenChange, onSuccess }) {
             )}
           </div>
 
-          <div className="flex items-center justify-between px-6 py-4 border-t border-stone-800 flex-shrink-0">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={isFirst ? () => onOpenChange(false) : handleBack}
-              className="text-stone-400 hover:text-stone-200"
-            >
-              {isFirst ? 'Cancel' : <><ChevronLeft className="w-4 h-4 mr-1" /> Back</>}
-            </Button>
+          {step !== 'success' && (
+            <div className="flex items-center justify-between px-6 py-4 border-t border-stone-800 flex-shrink-0">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={isFirst ? () => onOpenChange(false) : handleBack}
+                className="text-stone-400 hover:text-stone-200"
+              >
+                {isFirst ? 'Cancel' : <><ChevronLeft className="w-4 h-4 mr-1" /> Back</>}
+              </Button>
 
-            {isLast ? (
-              <Button
-                onClick={handleSubmit}
-                disabled={loading}
-                className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-bold px-6"
-              >
-                {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                Create Digest
-              </Button>
-            ) : (
-              <Button
-                onClick={handleNext}
-                disabled={!canNext()}
-                className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-bold px-6"
-              >
-                Next <ChevronRight className="w-4 h-4 ml-1" />
-              </Button>
-            )}
-          </div>
+              {isLast ? (
+                <Button
+                  onClick={handleSubmit}
+                  disabled={loading}
+                  className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-bold px-6"
+                >
+                  {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  Create Digest
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleNext}
+                  disabled={!canNext()}
+                  className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-bold px-6"
+                >
+                  Next <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
