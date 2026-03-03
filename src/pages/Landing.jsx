@@ -118,9 +118,19 @@ function PopularFeedsSection() {
 }
 
 export default function Landing() {
+  const [user, setUser] = React.useState(null);
+
+  React.useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
+  }, []);
+
   const handleCTA = (location) => {
     base44.analytics.track({ eventName: 'cta_clicked', properties: { location, label: 'get_started_free' } });
-    base44.auth.redirectToLogin(createPageUrl('Dashboard'));
+    if (user) {
+      window.location.href = createPageUrl('Dashboard');
+    } else {
+      base44.auth.redirectToLogin(createPageUrl('Dashboard'));
+    }
   };
 
   return (
