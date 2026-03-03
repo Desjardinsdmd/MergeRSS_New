@@ -87,7 +87,7 @@ export default function Pricing() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-stone-900 border border-stone-800 rounded-full text-xs font-medium text-amber-400 mb-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-stone-900 border border-stone-800 rounded-full text-xs font-medium text-[hsl(var(--primary))] mb-6">
             <Zap className="w-3 h-3" />
             Simple, transparent pricing
           </div>
@@ -105,16 +105,16 @@ export default function Pricing() {
             <div
               key={plan.name}
               className={cn(
-                "relative border p-8 transition-all",
-                plan.popular
-                  ? "border-amber-400/30 bg-stone-900 shadow-lg shadow-amber-400/10"
-                  : "border-stone-800 bg-stone-900/50 hover:border-stone-700"
+               "relative border p-8 transition-all",
+               plan.popular
+                 ? "border-[hsl(var(--primary))]/30 bg-stone-900 shadow-lg shadow-[hsl(var(--primary))]/10"
+                 : "border-stone-800 bg-stone-900/50 hover:border-stone-700"
               )}
             >
               {plan.popular && (
                 <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                  <span className="px-4 py-1 bg-amber-400 text-stone-900 text-xs font-semibold rounded-full tracking-wide">
-                    MOST POPULAR
+                  <span className="px-4 py-1 bg-[hsl(var(--primary))] text-stone-900 text-xs font-semibold rounded-full tracking-wide">
+                   MOST POPULAR
                   </span>
                 </div>
               )}
@@ -135,7 +135,7 @@ export default function Pricing() {
                 {plan.features.map((feature, idx) => (
                   <li key={idx} className="flex items-center gap-3 text-sm">
                     {feature.included ? (
-                      <Check className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                      <Check className="w-4 h-4 text-[hsl(var(--primary))] flex-shrink-0" />
                     ) : (
                       <X className="w-4 h-4 text-stone-700 flex-shrink-0" />
                     )}
@@ -152,7 +152,7 @@ export default function Pricing() {
                 className={cn(
                   "w-full h-11 font-semibold",
                   plan.popular
-                    ? "bg-amber-400 hover:bg-amber-300 text-stone-900"
+                    ? "bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900"
                     : "bg-stone-800 hover:bg-stone-700 text-stone-100"
                 )}
               >
@@ -165,7 +165,7 @@ export default function Pricing() {
               </Button>
 
               {user?.plan === plan.name.toLowerCase() && (
-                <p className="text-center text-sm text-amber-400 font-medium mt-3">✓ Your current plan</p>
+                <p className="text-center text-sm text-[hsl(var(--primary))] font-medium mt-3">✓ Your current plan</p>
               )}
             </div>
           ))}
@@ -175,7 +175,7 @@ export default function Pricing() {
         <div className="mt-16 text-center">
           <p className="text-stone-500 text-sm">
             Need a custom plan?{' '}
-            <a href="mailto:support@mergerss.com" className="text-amber-400 hover:text-amber-300 font-medium">
+            <a href="mailto:support@mergerss.com" className="text-[hsl(var(--primary))] hover:opacity-80 font-medium transition-opacity">
               Contact us
             </a>
           </p>
