@@ -31,20 +31,21 @@ export function applyAccentColor(colorId) {
   }
 }
 
-/** Applies high-contrast overrides when hc-dark is active */
+/** Applies high-contrast overrides when hc-dark is active (WCAG AAA ≥7:1 contrast) */
 function applyHCOverrides(isHC) {
   const root = document.documentElement;
   if (isHC) {
-    // Pure black/white for maximum contrast (WCAG AAA)
-    root.style.setProperty('--background', '0 0% 0%');         /* Pure black */
-    root.style.setProperty('--foreground', '0 0% 100%');       /* Pure white */
-    root.style.setProperty('--card', '0 0% 5%');               /* Near black for cards */
+    // WCAG AAA contrast ratios
+    root.style.setProperty('--background', '0 0% 0%');          /* #000000 – pure black */
+    root.style.setProperty('--foreground', '0 0% 100%');        /* #ffffff – pure white (21:1 contrast) */
+    root.style.setProperty('--card', '0 0% 8%');                /* #141414 – near black for cards */
     root.style.setProperty('--card-foreground', '0 0% 100%');
-    root.style.setProperty('--border', '0 0% 100%');           /* White borders */
-    root.style.setProperty('--muted', '0 0% 15%');
-    root.style.setProperty('--muted-foreground', '0 0% 100%'); /* White text on muted */
-    root.style.setProperty('--input', '0 0% 15%');
-    root.style.setProperty('--primary', '38 95% 54%');         /* Keep accent color */
+    root.style.setProperty('--border', '0 0% 100%');            /* White borders for visibility */
+    root.style.setProperty('--muted', '0 0% 12%');
+    root.style.setProperty('--muted-foreground', '0 0% 85%');   /* Lighter text (8:1 on muted) */
+    root.style.setProperty('--input', '0 0% 20%');              /* Lighter input for visibility */
+    root.style.setProperty('--destructive', '0 100% 45%');      /* Brighter red for visibility */
+    root.style.setProperty('--ring', '38 95% 54%');             /* Maintain accent for focus */
   } else {
     // Remove inline overrides so CSS vars take back control
     root.style.removeProperty('--background');
@@ -55,7 +56,8 @@ function applyHCOverrides(isHC) {
     root.style.removeProperty('--muted');
     root.style.removeProperty('--muted-foreground');
     root.style.removeProperty('--input');
-    root.style.removeProperty('--primary');
+    root.style.removeProperty('--destructive');
+    root.style.removeProperty('--ring');
   }
 }
 
@@ -113,16 +115,17 @@ export default function ThemeSettings({ accentColor, onAccentChange, onAutoSave 
                    key={t.id}
                    onClick={() => handleThemeChange(t.id)}
                    aria-pressed={isActive}
+                   aria-label={`${t.label} theme`}
                    title={`Switch to ${t.label} mode`}
                    className={cn(
-                     'flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] group',
+                     'flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-stone-900 group',
                      isActive
                        ? 'border-[hsl(var(--primary))] bg-[hsl(var(--primary))/0.1] scale-105'
                        : 'border-stone-700 hover:border-stone-500 hover:scale-100'
                    )}
                  >
                    <div className={cn('w-10 h-10 rounded-md border-2 flex items-center justify-center transition-transform group-hover:scale-110', t.preview)}>
-                     <Icon className={cn('w-5 h-5 transition-colors', isActive ? 'text-[hsl(var(--primary))]' : 'text-stone-400')} />
+                     <Icon className={cn('w-5 h-5 transition-colors', isActive ? 'text-[hsl(var(--primary))]' : 'text-stone-400')} aria-hidden="true" />
                    </div>
                    <span className={cn('text-xs font-medium transition-colors', isActive ? 'text-[hsl(var(--primary))]' : 'text-stone-500')}>
                      {t.label}
@@ -146,15 +149,15 @@ export default function ThemeSettings({ accentColor, onAccentChange, onAutoSave 
                   onClick={() => handleAccentChange(c.id)}
                   role="radio"
                   aria-checked={isActive}
-                  aria-label={c.label}
+                  aria-label={`${c.label} accent color`}
                   title={c.label}
                   className={cn(
-                    'w-9 h-9 rounded-full border-2 transition-all duration-150 flex items-center justify-center focus-visible:ring-2 focus-visible:ring-white',
+                    'w-9 h-9 rounded-full border-2 transition-all duration-150 flex items-center justify-center focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-stone-900',
                     isActive ? 'border-white scale-110 shadow-lg' : 'border-transparent hover:scale-105 hover:border-stone-400'
                   )}
                   style={{ backgroundColor: c.color }}
                 >
-                  {isActive && <span className="w-2.5 h-2.5 rounded-full bg-white/90 block" />}
+                  {isActive && <span className="w-2.5 h-2.5 rounded-full bg-white/90 block" aria-hidden="true" />}
                 </button>
               );
             })}
