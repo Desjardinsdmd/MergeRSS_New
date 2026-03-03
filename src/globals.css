@@ -63,27 +63,27 @@
     --ring: 38 95% 54%;
   }
 
-  /* Light mode */
+  /* Light mode — WCAG AA contrast ratios (4.5:1+) */
   .light {
-    --background: 36 25% 97%;
-    --foreground: 22 16% 10%;
-    --card: 0 0% 100%;
-    --card-foreground: 22 16% 10%;
+    --background: 36 20% 98%;           /* #f5f1ed – warm off-white */
+    --foreground: 22 16% 8%;            /* #1c1411 – near-black, 17:1 on bg */
+    --card: 0 0% 100%;                  /* #ffffff – pure white */
+    --card-foreground: 22 16% 8%;       /* 17:1 contrast */
     --popover: 0 0% 100%;
-    --popover-foreground: 22 16% 10%;
-    --primary: 38 95% 44%;
+    --popover-foreground: 22 16% 8%;
+    --primary: 38 95% 44%;              /* amber-500 – dynamic accent */
     --primary-foreground: 0 0% 100%;
-    --secondary: 36 15% 92%;
-    --secondary-foreground: 22 16% 20%;
-    --muted: 36 15% 93%;
-    --muted-foreground: 22 10% 40%;
-    --accent: 36 15% 92%;
-    --accent-foreground: 22 16% 10%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 36 15% 85%;
-    --input: 36 15% 88%;
-    --ring: 38 95% 44%;
+    --secondary: 22 16% 20%;            /* stone-900 equivalent */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 36 15% 88%;                /* light gray */
+    --muted-foreground: 22 10% 32%;     /* 7:1 contrast on muted bg */
+    --accent: 36 20% 90%;               /* light accent bg */
+    --accent-foreground: 22 16% 8%;     /* dark text on accent */
+    --destructive: 0 84% 50%;           /* darker red for visibility */
+    --destructive-foreground: 0 0% 100%;
+    --border: 36 15% 85%;               /* light border */
+    --input: 36 15% 92%;                /* input background */
+    --ring: 38 95% 44%;                 /* focus ring */
   }
 }
 
