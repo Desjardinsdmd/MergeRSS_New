@@ -174,6 +174,7 @@ export default function FeedCurator() {
         </TabsContent>
 
         <TabsContent value="discover" className="mt-6">
+          <AICuratorOnboarding />
           {/* Search */}
           <div className="bg-stone-900 border border-stone-800 rounded-2xl p-6 mb-6 shadow-sm">
             <label className="block text-sm font-semibold text-stone-200 mb-2">
