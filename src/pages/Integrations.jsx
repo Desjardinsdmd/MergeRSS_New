@@ -372,14 +372,20 @@ export default function Integrations() {
 
             <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="slackWebhook" className="text-stone-300">Incoming Webhook URL</Label>
+              <Label htmlFor="slackWebhook" className="text-stone-300">Incoming Webhook URL <span className="text-amber-400" aria-hidden="true">*</span></Label>
               <Input
                 id="slackWebhook"
                 value={slackWebhook}
-                onChange={(e) => setSlackWebhook(e.target.value)}
-                placeholder="https://hooks.slack.com/services/..."
-                className="mt-1 bg-stone-800 border-stone-700 text-stone-100 placeholder-stone-600"
+                onChange={(e) => { setSlackWebhook(e.target.value); setSlackError(''); }}
+                placeholder="https://hooks.slack.com/services/T.../B.../..."
+                aria-invalid={!!slackError}
+                aria-describedby={slackError ? 'slack-error' : 'slack-hint'}
+                className={cn("mt-1 bg-stone-800 border-stone-700 text-stone-100 placeholder-stone-600", slackError && 'border-red-500')}
               />
+              {slackError
+                ? <p id="slack-error" role="alert" className="mt-1 text-xs text-red-400 flex items-center gap-1"><AlertCircle className="w-3 h-3" aria-hidden="true" />{slackError}</p>
+                : <p id="slack-hint" className="mt-1 text-xs text-stone-500">Paste the full webhook URL from your Slack app settings</p>
+              }
             </div>
             <div className="bg-stone-800 rounded-lg p-4 text-sm text-stone-400">
               <p className="font-medium text-stone-300 mb-2">How to get a webhook:</p>
