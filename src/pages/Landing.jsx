@@ -141,9 +141,10 @@ function PopularFeedsSection() {
 
 export default function Landing() {
   const [user, setUser] = React.useState(null);
+  const [userLoaded, setUserLoaded] = React.useState(false);
 
   React.useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
+    base44.auth.me().then(u => { setUser(u); setUserLoaded(true); }).catch(() => setUserLoaded(true));
   }, []);
 
   const handleCTA = (location) => {
