@@ -90,9 +90,10 @@ export default function Integrations() {
   const handleConnectSlack = async () => {
     if (!isPremium || !slackWebhook) return;
     if (!slackWebhook.includes('hooks.slack.com')) {
-      toast.error('Invalid Slack webhook URL');
+      setSlackError('URL must be a valid Slack webhook (hooks.slack.com/…)');
       return;
     }
+    setSlackError('');
     setLoading(true);
 
     try {
