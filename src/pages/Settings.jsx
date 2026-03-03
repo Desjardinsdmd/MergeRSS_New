@@ -211,9 +211,18 @@ export default function Settings() {
         <ThemeSettings
           accentColor={accentColor}
           onAccentChange={setAccentColor}
-          onAutoSave={async (colorId) => {
-            await base44.auth.updateMe({ accent_color: colorId });
-            toast.success('Accent color saved');
+          onAutoSave={async (value) => {
+            try {
+              // Determine if it's a theme change or accent color change
+              const isThemeChange = ['dark', 'light', 'system', 'hc-dark'].includes(value);
+              if (isThemeChange) {
+                await base44.auth.updateMe({ theme: value });
+              } else {
+                await base44.auth.updateMe({ accent_color: value });
+              }
+            } catch (error) {
+              toast.error('Failed to save');
+            }
           }}
         />
 
