@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import InboxFolderSidebar from '@/components/inbox/InboxFolderSidebar';
+import { decodeHtml } from '@/components/utils/htmlUtils';
 import InboxToolbar from '@/components/inbox/InboxToolbar';
 import { jsPDF } from 'jspdf';
 
