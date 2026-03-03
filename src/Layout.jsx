@@ -315,8 +315,8 @@ function LayoutContent({ children, currentPageName }) {
         {/* Mobile header */}
         <header className="lg:hidden sticky top-0 z-30 bg-[#0d0a06] border-b border-stone-800">
           <div className="flex items-center justify-between h-14 px-4">
-            <button onClick={() => setSidebarOpen(true)} className="p-1.5 text-stone-500">
-              <Menu className="w-5 h-5" />
+            <button onClick={() => setSidebarOpen(true)} aria-label="Open navigation menu" className="p-1.5 text-stone-500">
+              <Menu className="w-5 h-5" aria-hidden="true" />
             </button>
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 bg-amber-400 flex items-center justify-center">
