@@ -168,6 +168,7 @@ function DirectoryCard({ item, itemType, user, votes, onVote, onAdd, addedItems,
 
 export default function Directory() {
   const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('All');
   const [sortBy, setSortBy] = useState('top');
@@ -180,6 +181,7 @@ export default function Directory() {
   useEffect(() => {
     base44.auth.isAuthenticated().then(async (auth) => {
       if (auth) setUser(await base44.auth.me());
+      setAuthLoading(false);
     });
   }, []);
 
@@ -422,7 +424,7 @@ export default function Directory() {
              />
            </div>
 
-           {!user && (
+           {!authLoading && !user && (
              <p className="text-xs text-stone-500 mt-3">
                <button
                  onClick={() => base44.auth.redirectToLogin(createPageUrl('Directory'))}

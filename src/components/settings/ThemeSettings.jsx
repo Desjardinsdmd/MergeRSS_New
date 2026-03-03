@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useTheme } from 'next-themes';
 import { Palette, Sun, Moon, Monitor } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,16 +11,34 @@ const THEMES = [
 ];
 
 const ACCENT_COLORS = [
-  { id: 'indigo', label: 'Indigo', color: '#4f46e5' },
-  { id: 'violet', label: 'Violet', color: '#7c3aed' },
-  { id: 'blue', label: 'Blue', color: '#2563eb' },
-  { id: 'emerald', label: 'Emerald', color: '#059669' },
-  { id: 'rose', label: 'Rose', color: '#e11d48' },
-  { id: 'amber', label: 'Amber', color: '#d97706' },
+  { id: 'amber', label: 'Amber', color: '#d97706', hsl: '32 97% 44%' },
+  { id: 'indigo', label: 'Indigo', color: '#4f46e5', hsl: '245 82% 60%' },
+  { id: 'violet', label: 'Violet', color: '#7c3aed', hsl: '262 73% 56%' },
+  { id: 'blue', label: 'Blue', color: '#2563eb', hsl: '219 85% 54%' },
+  { id: 'emerald', label: 'Emerald', color: '#059669', hsl: '161 93% 30%' },
+  { id: 'rose', label: 'Rose', color: '#e11d48', hsl: '347 87% 50%' },
 ];
+
+function applyAccentColor(colorId) {
+  const c = ACCENT_COLORS.find(c => c.id === colorId);
+  if (c) {
+    document.documentElement.style.setProperty('--primary', c.hsl);
+    document.documentElement.style.setProperty('--ring', c.hsl);
+  }
+}
 
 export default function ThemeSettings({ accentColor, onAccentChange }) {
   const { theme, setTheme } = useTheme();
+
+  // Apply saved accent color on mount
+  useEffect(() => {
+    if (accentColor) applyAccentColor(accentColor);
+  }, [accentColor]);
+
+  const handleAccentChange = (colorId) => {
+    onAccentChange(colorId);
+    applyAccentColor(colorId);
+  };
 
   return (
     <Card className="border-stone-800 bg-stone-900">
@@ -64,21 +82,25 @@ export default function ThemeSettings({ accentColor, onAccentChange }) {
         {/* Accent color */}
         <div>
           <p className="text-sm font-medium text-stone-200 mb-3">Accent Color</p>
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-3 flex-wrap">
             {ACCENT_COLORS.map(c => (
               <button
                 key={c.id}
-                onClick={() => onAccentChange(c.id)}
+                onClick={() => handleAccentChange(c.id)}
                 title={c.label}
                 className={cn(
-                  'w-8 h-8 rounded-full border-2 transition-all',
-                  accentColor === c.id ? 'border-stone-400 scale-110' : 'border-transparent hover:scale-105'
+                  'w-9 h-9 rounded-full border-2 transition-all flex items-center justify-center',
+                  accentColor === c.id ? 'border-white scale-110 shadow-md' : 'border-transparent hover:scale-105 hover:border-stone-500'
                 )}
                 style={{ backgroundColor: c.color }}
-              />
+              >
+                {accentColor === c.id && (
+                  <span className="w-2.5 h-2.5 rounded-full bg-white/80 block" />
+                )}
+              </button>
             ))}
           </div>
-          <p className="text-xs text-stone-500 mt-2">Accent color customization coming soon — currently applies to highlights.</p>
+          <p className="text-xs text-stone-500 mt-2">Updates the accent color throughout the app.</p>
         </div>
       </CardContent>
     </Card>
