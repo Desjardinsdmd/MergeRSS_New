@@ -104,6 +104,7 @@ function LayoutContent({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [themeTransitioning, setThemeTransitioning] = useState(false);
   const navigate = useNavigate();
   const { theme, setTheme } = { theme: 'dark', setTheme: () => {} };
 
@@ -128,6 +129,12 @@ function LayoutContent({ children, currentPageName }) {
 
   const handleLogout = async () => {
     await base44.auth.logout();
+  };
+
+  const handleThemeChange = (newTheme) => {
+    setThemeTransitioning(true);
+    setTheme(newTheme);
+    setTimeout(() => setThemeTransitioning(false), 300);
   };
 
   // Public pages layout
@@ -204,22 +211,30 @@ function LayoutContent({ children, currentPageName }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0805]">
+    <div className={cn(
+      "min-h-screen transition-colors duration-300",
+      "dark:bg-[#0a0805]",
+      "light:bg-stone-50"
+    )}>
       {/* Mobile backdrop */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+          className={cn(
+            "fixed inset-0 z-40 backdrop-blur-sm lg:hidden transition-colors duration-300",
+            "dark:bg-black/60",
+            "light:bg-black/30"
+          )}
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-50 w-60 bg-[#0d0a06] border-r border-stone-800 flex flex-col transform transition-transform duration-200 ease-in-out lg:translate-x-0",
+        "fixed inset-y-0 left-0 z-50 w-60 bg-[hsl(var(--card))] border-r border-stone-800 dark:border-stone-800 light:border-stone-300 flex flex-col transform transition-transform duration-200 ease-in-out lg:translate-x-0",
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         {/* Logo */}
-        <div className="flex items-center justify-between h-16 px-5 border-b border-stone-800 flex-shrink-0">
+        <div className="flex items-center justify-between h-16 px-5 border-b border-stone-800 dark:border-stone-800 light:border-stone-300 flex-shrink-0">
           <Link to={createPageUrl('Dashboard')} className="flex items-center gap-2.5">
             <div className="w-6 h-6 bg-[hsl(var(--primary))] flex items-center justify-center">
               <Rss className="w-3 h-3 text-stone-900" />
@@ -355,7 +370,11 @@ function LayoutContent({ children, currentPageName }) {
       {/* Main */}
       <div className="lg:pl-60">
         {/* Mobile header */}
-        <header className="lg:hidden sticky top-0 z-30 bg-[#0d0a06] border-b border-stone-800">
+        <header className={cn(
+          "lg:hidden sticky top-0 z-30 border-b transition-colors duration-300",
+          "dark:bg-[#0d0a06] dark:border-stone-800",
+          "light:bg-stone-50 light:border-stone-200"
+        )}>
           <div className="flex items-center justify-between h-14 px-4">
             <button onClick={() => setSidebarOpen(true)} aria-label="Open navigation menu" className="p-1.5 text-stone-500">
               <Menu className="w-5 h-5" aria-hidden="true" />

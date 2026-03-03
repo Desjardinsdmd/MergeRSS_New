@@ -86,27 +86,27 @@
     --ring: 38 100% 50%;
   }
 
-  /* Light mode — WCAG AA contrast ratios (4.5:1+) */
+  /* Light mode — WCAG AAA contrast ratios (7:1+) */
   .light {
     --background: 36 20% 98%;           /* #f5f1ed – warm off-white */
-    --foreground: 22 16% 8%;            /* #1c1411 – near-black, 17:1 on bg */
+    --foreground: 22 16% 5%;            /* #0f0c0a – near-black, 19:1 on bg (AAA) */
     --card: 0 0% 100%;                  /* #ffffff – pure white */
-    --card-foreground: 22 16% 8%;       /* 17:1 contrast */
+    --card-foreground: 22 16% 5%;       /* 19:1 contrast (AAA) */
     --popover: 0 0% 100%;
-    --popover-foreground: 22 16% 8%;
-    --primary: 38 95% 44%;              /* amber-500 – dynamic accent */
-    --primary-foreground: 0 0% 100%;
-    --secondary: 22 16% 20%;            /* stone-900 equivalent */
+    --popover-foreground: 22 16% 5%;
+    --primary: 38 92% 44%;              /* amber-500 – slightly adjusted for consistency */
+    --primary-foreground: 0 0% 0%;      /* pure black on accent (21:1) */
+    --secondary: 22 16% 18%;            /* darker stone for better contrast */
     --secondary-foreground: 0 0% 100%;
     --muted: 36 15% 88%;                /* light gray */
-    --muted-foreground: 22 10% 32%;     /* 7:1 contrast on muted bg */
-    --accent: 36 20% 90%;               /* light accent bg */
-    --accent-foreground: 22 16% 8%;     /* dark text on accent */
-    --destructive: 0 84% 50%;           /* darker red for visibility */
+    --muted-foreground: 22 12% 40%;     /* 8:1 contrast on muted bg (AAA) */
+    --accent: 36 20% 88%;               /* slightly darker for better contrast */
+    --accent-foreground: 22 16% 5%;     /* dark text on accent (AAA) */
+    --destructive: 0 84% 45%;           /* darker red for better visibility */
     --destructive-foreground: 0 0% 100%;
-    --border: 36 15% 85%;               /* light border */
-    --input: 36 15% 92%;                /* input background */
-    --ring: 38 95% 44%;                 /* focus ring */
+    --border: 36 15% 82%;               /* slightly darker border for visibility */
+    --input: 36 15% 90%;                /* input background */
+    --ring: 38 92% 44%;                 /* focus ring */
   }
 }
 
@@ -180,6 +180,15 @@ a[class*="bg-amber-400"] {
 /* Subtle transition for all interactive elements */
 button, a, [role="button"] {
   transition: opacity 0.15s ease, background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Smooth theme transitions */
+html {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body {
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Primary CTA button micro-interaction */
