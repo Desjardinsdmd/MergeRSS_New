@@ -468,17 +468,29 @@ export default function DigestWizard({ open, onOpenChange, onSuccess }) {
             <StepIndicator currentStep={step} />
           </div>
           <div className="flex-1 overflow-y-auto px-6 min-h-0">
-            {step === 'basics' && <StepBasics formData={formData} setFormData={setFormData} />}
-            {step === 'content' && <StepContent formData={formData} setFormData={setFormData} feeds={feeds} />}
-            {step === 'schedule' && <StepSchedule formData={formData} setFormData={setFormData} />}
-            {step === 'delivery' && (
-              <StepDelivery
-                formData={formData}
-                setFormData={setFormData}
-                isPremium={isPremium}
-                slackIntegration={slackIntegration}
-                discordIntegration={discordIntegration}
-              />
+            {step === 'success' ? (
+              <div className="flex flex-col items-center justify-center py-12 gap-4">
+                <div className="w-16 h-16 bg-emerald-900/40 border-2 border-emerald-500 flex items-center justify-center">
+                  <Check className="w-8 h-8 text-emerald-400" />
+                </div>
+                <p className="text-lg font-bold text-stone-100">Digest Created!</p>
+                <p className="text-sm text-stone-500 text-center">Your digest has been saved and will run on schedule.</p>
+              </div>
+            ) : (
+              <>
+                {step === 'basics' && <StepBasics formData={formData} setFormData={setFormData} />}
+                {step === 'content' && <StepContent formData={formData} setFormData={setFormData} feeds={feeds} />}
+                {step === 'schedule' && <StepSchedule formData={formData} setFormData={setFormData} />}
+                {step === 'delivery' && (
+                  <StepDelivery
+                    formData={formData}
+                    setFormData={setFormData}
+                    isPremium={isPremium}
+                    slackIntegration={slackIntegration}
+                    discordIntegration={discordIntegration}
+                  />
+                )}
+              </>
             )}
           </div>
 
