@@ -100,9 +100,9 @@ export default function ThemeSettings({ accentColor, onAccentChange, onAutoSave 
                   onClick={() => handleThemeChange(t.id)}
                   aria-pressed={isActive}
                   className={cn(
-                    'flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all duration-150 focus-visible:ring-2 focus-visible:ring-amber-400',
+                    'flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all duration-150 focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))]',
                     isActive
-                      ? 'border-amber-400 bg-amber-950/40'
+                      ? 'border-[hsl(var(--primary))] bg-[hsl(var(--primary))/0.1]'
                       : 'border-stone-700 hover:border-stone-500'
                   )}
                 >
