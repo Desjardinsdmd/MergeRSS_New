@@ -37,6 +37,7 @@ Deno.serve(async (req) => {
   }
 
   try {
+    base44 = createClientFromRequest(req);
     const formData = await req.formData();
     const recipient = formData.get('recipient');
     const sender = formData.get('sender');
