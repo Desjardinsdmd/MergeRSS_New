@@ -41,6 +41,7 @@ import BookmarkButton from '@/components/dashboard/BookmarkButton';
 import FeedHealthWidget from '@/components/dashboard/FeedHealthWidget';
 import DigestQuickActions from '@/components/dashboard/DigestQuickActions';
 import DigestDeliveryHistory from '@/components/dashboard/DigestDeliveryHistory';
+import ContextualTips from '@/components/dashboard/ContextualTips';
 
 export default function Dashboard() {
   const queryClient = useQueryClient();
