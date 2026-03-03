@@ -238,7 +238,7 @@ function StepSchedule({ formData, setFormData }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="flex flex-col gap-4">
         <div>
           <Label className="text-stone-300">Time</Label>
           <Input
