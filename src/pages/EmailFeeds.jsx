@@ -92,16 +92,19 @@ export default function EmailFeeds() {
       </div>
 
       <div className="space-y-6">
-        {/* Multiple Email Feeds */}
-        {emailFeeds.length > 1 && (
+        {/* All Email Feeds */}
+        {emailFeeds.length > 0 && (
           <Card className="border-stone-700 bg-stone-800 border">
             <CardHeader>
-              <CardTitle className="text-sm">Old Email Addresses</CardTitle>
+              <CardTitle className="text-sm">Email Addresses</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               {emailFeeds.map((feed) => (
                 <div key={feed.id} className="flex items-center justify-between p-3 bg-stone-900 border border-stone-700 rounded">
-                  <span className="text-sm text-stone-400 font-mono break-all">{feed.unique_email}</span>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm text-stone-400 font-mono break-all">{feed.unique_email}</span>
+                    {!feed.is_active && <span className="ml-2 text-xs text-stone-500">(inactive)</span>}
+                  </div>
                   <Button
                     size="sm"
                     variant="destructive"
