@@ -463,7 +463,7 @@ export default function DigestWizard({ open, onOpenChange, onSuccess }) {
         <div className="p-2">
           <StepIndicator currentStep={step} />
 
-          <div className="min-h-[300px]">
+          <div>
             {step === 'basics' && <StepBasics formData={formData} setFormData={setFormData} />}
             {step === 'content' && <StepContent formData={formData} setFormData={setFormData} feeds={feeds} />}
             {step === 'schedule' && <StepSchedule formData={formData} setFormData={setFormData} />}
