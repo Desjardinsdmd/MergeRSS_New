@@ -170,7 +170,7 @@ function LayoutContent({ children, currentPageName }) {
                     </button>
                     <button
                       onClick={() => base44.auth.redirectToLogin(createPageUrl('Dashboard'))}
-                      className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-bold px-5 py-2 text-sm transition-colors"
+                      className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-bold px-5 py-2 text-sm transition-all"
                     >
                       Get started
                     </button>
