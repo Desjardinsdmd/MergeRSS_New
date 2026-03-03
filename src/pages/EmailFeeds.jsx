@@ -19,11 +19,13 @@ export default function EmailFeeds() {
     base44.auth.me().then(setUser).finally(() => setLoading(false));
   }, []);
 
-  const { data: emailFeed } = useQuery({
-    queryKey: ['email-feed', user?.email],
-    queryFn: () => user ? base44.entities.EmailFeed.filter({ user_email: user.email }).then(feeds => feeds[0]) : null,
+  const { data: emailFeeds = [] } = useQuery({
+    queryKey: ['email-feeds', user?.email],
+    queryFn: () => user ? base44.entities.EmailFeed.filter({ user_email: user.email }) : [],
     enabled: !!user,
   });
+
+  const emailFeed = emailFeeds.find(f => f.is_active) || emailFeeds[0];
 
   const { data: subscriptions = [] } = useQuery({
     queryKey: ['newsletter-subscriptions', emailFeed?.id],
