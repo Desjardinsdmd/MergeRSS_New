@@ -320,16 +320,34 @@ function LayoutContent({ children, currentPageName }) {
           )}
 
           <div className="flex items-center gap-3 px-3 py-2">
-          <div className="w-8 h-8 bg-stone-800 border border-stone-700 flex items-center justify-center text-sm font-bold text-[hsl(var(--primary))] flex-shrink-0" aria-hidden="true">
-            {user?.full_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase()}
-          </div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="w-8 h-8 bg-stone-800 border border-stone-700 flex items-center justify-center text-sm font-bold text-[hsl(var(--primary))] flex-shrink-0 rounded cursor-help">
+                  {user?.full_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase()}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="bg-stone-950 border border-stone-700 text-stone-100 text-xs">
+                {user?.full_name || 'User'}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-stone-200 truncate">{user?.full_name || 'User'}</p>
             <p className="text-xs text-stone-400 truncate">{user?.email}</p>
           </div>
-          <button onClick={handleLogout} aria-label="Sign out" title="Sign out" className="p-1 text-stone-600 hover:text-stone-300 transition flex-shrink-0 focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0a06] rounded">
-            <LogOut className="w-4 h-4" aria-hidden="true" />
-          </button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button onClick={handleLogout} aria-label="Sign out" className="p-1 text-stone-600 hover:text-stone-300 transition flex-shrink-0 focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0a06] rounded">
+                  <LogOut className="w-4 h-4" aria-hidden="true" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="bg-stone-950 border border-stone-700 text-stone-100 text-xs">
+                Sign out
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           </div>
         </div>
       </aside>
