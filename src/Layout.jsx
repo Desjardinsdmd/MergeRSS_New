@@ -241,13 +241,16 @@ function LayoutContent({ children, currentPageName }) {
                 to={createPageUrl(item.href)}
                 aria-current={isActive ? 'page' : undefined}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors rounded-md",
+                  "flex items-center gap-3 px-3 py-2 text-sm font-medium transition-all duration-150 rounded-md group",
                   isActive
                     ? "bg-stone-800 text-amber-400"
                     : "text-stone-400 hover:bg-stone-900 hover:text-stone-100"
                 )}
               >
-                <item.icon className={cn("w-4 h-4 flex-shrink-0", isActive ? "text-amber-400" : "text-stone-500")} aria-hidden="true" />
+                <item.icon className={cn(
+                  "w-4 h-4 flex-shrink-0 transition-transform duration-150 group-hover:scale-110",
+                  isActive ? "text-amber-400" : "text-stone-500"
+                )} aria-hidden="true" />
                 <span className="flex-1">{item.name}</span>
                 {isInbox && <InboxNavBadge user={user} />}
                 {item.href === 'Bookmarks' && <BookmarkNavBadge user={user} />}
