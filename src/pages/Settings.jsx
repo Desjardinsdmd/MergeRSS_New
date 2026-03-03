@@ -51,7 +51,7 @@ export default function Settings() {
   });
   const [notifPrefs, setNotifPrefs] = useState({});
   const [dashboardLayout, setDashboardLayout] = useState({});
-  const [accentColor, setAccentColor] = useState('indigo');
+  const [accentColor, setAccentColor] = useState('amber');
 
   useEffect(() => {
     const loadUser = async () => {
