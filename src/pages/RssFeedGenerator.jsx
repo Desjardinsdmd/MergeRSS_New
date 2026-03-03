@@ -107,6 +107,7 @@ export default function RssFeedGenerator() {
         setUrl(feed.source_url);
         setResult(null);
         setError(null);
+        setFeedType('auto');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
@@ -233,63 +234,76 @@ export default function RssFeedGenerator() {
             )}
 
             {/* My Generated Feeds */}
-            {myFeeds.length > 0 && (
-                <div className="mt-8">
-                    <h2 className="text-base font-semibold text-stone-200 mb-3">
-                        Your Generated Feeds
-                        <span className="ml-2 text-xs text-stone-500 font-normal">
-                            {myFeeds.length} / 20 used
-                        </span>
-                    </h2>
-                    <div className="space-y-2">
-                        {myFeeds.map(feed => (
-                            <Card key={feed.id} className={cn("border-stone-800 bg-stone-900", feed.is_disabled && "opacity-50")}>
-                                <CardContent className="p-4">
-                                    <div className="flex items-start justify-between gap-3">
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex flex-wrap items-center gap-2 mb-1">
-                                                <p className="text-sm font-medium text-stone-200 truncate">
-                                                    {feed.title || feed.source_url}
-                                                </p>
-                                                {feed.is_native_feed
-                                                    ? <Badge className="bg-green-900/30 text-green-400 border-0 text-xs">Live RSS</Badge>
-                                                    : <Badge className="bg-amber-900/30 text-amber-400 border-0 text-xs">Scraped</Badge>
-                                                }
-                                                {feed.is_disabled && <Badge className="bg-stone-800 text-stone-500 border-0 text-xs">Disabled</Badge>}
-                                                {feed.error_count > 2 && <Badge className="bg-red-900/30 text-red-400 border-0 text-xs">{feed.error_count} errors</Badge>}
-                                            </div>
-                                            <p className="text-xs text-stone-600 truncate">{feed.source_url}</p>
-                                            {feed.last_success && (
-                                                <p className="text-xs text-stone-600 mt-0.5">
-                                                    Last success: {format(new Date(feed.last_success), 'MMM d, h:mm a')}
-                                                </p>
-                                            )}
-                                        </div>
-                                        <div className="flex items-center gap-1 flex-shrink-0">
-                                            <Button
-                                                variant="ghost" size="icon"
-                                                className="h-8 w-8 text-stone-600 hover:text-amber-400"
-                                                title="Regenerate"
-                                                onClick={() => handleRegenerate(feed)}
-                                            >
-                                                <RefreshCw className="w-3.5 h-3.5" />
-                                            </Button>
-                                            <Button
-                                                variant="ghost" size="icon"
-                                                className="h-8 w-8 text-stone-600 hover:text-red-400"
-                                                title="Delete"
-                                                onClick={() => handleDelete(feed.id)}
-                                            >
-                                                <Trash2 className="w-3.5 h-3.5" />
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        ))}
-                    </div>
-                </div>
-            )}
+             {myFeeds.length > 0 && (
+                 <div className="mt-8">
+                     <h2 className="text-base font-semibold text-stone-200 mb-3">
+                         Your Generated Feeds
+                         <span className="ml-2 text-xs text-stone-500 font-normal">
+                             {myFeeds.filter(f => !f.last_error).length} active / {myFeeds.length} total
+                         </span>
+                     </h2>
+                     <div className="space-y-2">
+                         {myFeeds.map(feed => {
+                             const hasFailed = feed.last_error || feed.is_disabled;
+                             return (
+                             <Card key={feed.id} className={cn(
+                                 "border-stone-800 bg-stone-900 transition-opacity",
+                                 hasFailed && "border-red-900/50 bg-red-950/30"
+                             )}>
+                                 <CardContent className="p-4">
+                                     <div className="flex items-start justify-between gap-3">
+                                         <div className="flex-1 min-w-0">
+                                             <div className="flex flex-wrap items-center gap-2 mb-1">
+                                                 <p className={cn("text-sm font-medium truncate", hasFailed ? "text-red-400" : "text-stone-200")}>
+                                                     {feed.title || feed.source_url}
+                                                 </p>
+                                                 {feed.is_native_feed
+                                                     ? <Badge className="bg-green-900/30 text-green-400 border-0 text-xs">Live RSS</Badge>
+                                                     : <Badge className="bg-amber-900/30 text-amber-400 border-0 text-xs">Scraped</Badge>
+                                                 }
+                                                 {feed.last_error && <Badge className="bg-red-900/30 text-red-400 border-0 text-xs">Error</Badge>}
+                                                 {feed.is_disabled && <Badge className="bg-stone-800 text-stone-500 border-0 text-xs">Disabled</Badge>}
+                                             </div>
+                                             <p className="text-xs text-stone-600 truncate">{feed.source_url}</p>
+                                             {feed.last_error ? (
+                                                 <p className="text-xs text-red-400 mt-1.5 leading-relaxed">
+                                                     <strong>Error:</strong> {feed.last_error}
+                                                 </p>
+                                             ) : feed.last_success ? (
+                                                 <p className="text-xs text-stone-600 mt-0.5">
+                                                     Last success: {format(new Date(feed.last_success), 'MMM d, h:mm a')}
+                                                 </p>
+                                             ) : null}
+                                         </div>
+                                         <div className="flex items-center gap-1 flex-shrink-0">
+                                             <Button
+                                                 variant="ghost" size="icon"
+                                                 className={cn(
+                                                     "h-8 w-8",
+                                                     hasFailed ? "text-orange-600 hover:text-orange-400" : "text-stone-600 hover:text-amber-400"
+                                                 )}
+                                                 title={hasFailed ? "Retry" : "Regenerate"}
+                                                 onClick={() => handleRegenerate(feed)}
+                                             >
+                                                 <RefreshCw className="w-3.5 h-3.5" />
+                                             </Button>
+                                             <Button
+                                                 variant="ghost" size="icon"
+                                                 className="h-8 w-8 text-stone-600 hover:text-red-400"
+                                                 title="Delete"
+                                                 onClick={() => handleDelete(feed.id)}
+                                             >
+                                                 <Trash2 className="w-3.5 h-3.5" />
+                                             </Button>
+                                         </div>
+                                     </div>
+                                 </CardContent>
+                             </Card>
+                         );
+                         })}
+                     </div>
+                 </div>
+             )}
 
             {/* Add Feed dialog */}
             <AddFeedDialog
