@@ -337,7 +337,7 @@ export default function Dashboard() {
                         >
                           <div className="flex items-start gap-2">
                             <div className="flex-1 min-w-0">
-                              <p className="font-medium text-stone-200 mb-1 line-clamp-2">{item.title}</p>
+                              <p className="font-medium text-stone-200 mb-1 line-clamp-2">{decodeHtml(item.title)}</p>
                               <div className="flex items-center gap-2 text-xs text-stone-500">
                                 <Clock className="w-3 h-3" />
                                 {item.published_date && new Date(item.published_date).toLocaleDateString()}
@@ -413,7 +413,7 @@ export default function Dashboard() {
                       <div key={item.id} className="p-4 hover:bg-stone-800/50 transition group">
                         <div className="flex items-start gap-2">
                           <a href={item.url} target="_blank" rel="noopener noreferrer" className="block flex-1 min-w-0">
-                            <p className="font-medium text-stone-200 mb-1 line-clamp-1">{item.title}</p>
+                            <p className="font-medium text-stone-200 mb-1 line-clamp-1">{decodeHtml(item.title)}</p>
                             <div className="flex items-center gap-2 text-xs text-stone-500">
                               <Clock className="w-3 h-3" />
                               {item.published_date && (
