@@ -183,7 +183,7 @@ Write a well-organized, professional digest. Group related stories where appropr
                         const slackRes = await fetch(slackInt.webhook_url, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ text: slackMsg }),
+                            body: JSON.stringify({ text: slackMsg, mrkdwn: true }),
                         });
 
                         await base44.asServiceRole.entities.DigestDelivery.create({
