@@ -300,7 +300,7 @@ function LayoutContent({ children, currentPageName }) {
           )}
 
           <div className="flex items-center gap-3 px-3 py-2">
-            <div className="w-8 h-8 bg-stone-800 border border-stone-700 flex items-center justify-center text-sm font-bold text-amber-400 flex-shrink-0">
+            <div className="w-8 h-8 bg-stone-800 border border-stone-700 flex items-center justify-center text-sm font-bold text-[hsl(var(--primary))] flex-shrink-0">
               {user?.full_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
