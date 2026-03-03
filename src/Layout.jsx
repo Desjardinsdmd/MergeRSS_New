@@ -224,8 +224,8 @@ function LayoutContent({ children, currentPageName }) {
             </div>
             <span className="font-bold text-stone-100 tracking-tight">MergeRSS</span>
           </Link>
-          <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-1 text-stone-600 hover:text-stone-300">
-            <X className="w-5 h-5" />
+          <button onClick={() => setSidebarOpen(false)} aria-label="Close navigation menu" className="lg:hidden p-1 text-stone-600 hover:text-stone-300">
+            <X className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
 
