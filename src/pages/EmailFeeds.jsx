@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +14,7 @@ export default function EmailFeeds() {
   const [initializing, setInitializing] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showEmail, setShowEmail] = useState(false);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     base44.auth.me().then(setUser).finally(() => setLoading(false));
@@ -39,6 +40,7 @@ export default function EmailFeeds() {
       const { data } = await base44.functions.invoke('initEmailFeed');
       if (data.success) {
         toast.success('Email feed created! Share your unique address with newsletters.');
+        queryClient.invalidateQueries({ queryKey: ['email-feeds', user?.email] });
       }
     } catch (error) {
       toast.error('Failed to create email feed');
@@ -58,6 +60,7 @@ export default function EmailFeeds() {
     try {
       await base44.entities.NewsletterSubscription.update(subscriptionId, { is_active: false });
       toast.success('Unsubscribed from newsletter');
+      queryClient.invalidateQueries({ queryKey: ['newsletter-subscriptions', emailFeed?.id] });
     } catch (error) {
       toast.error('Failed to unsubscribe');
     }
@@ -67,6 +70,7 @@ export default function EmailFeeds() {
     try {
       await base44.entities.EmailFeed.delete(feedId);
       toast.success('Email feed deleted');
+      queryClient.invalidateQueries({ queryKey: ['email-feeds', user?.email] });
     } catch (error) {
       toast.error('Failed to delete email feed');
     }
