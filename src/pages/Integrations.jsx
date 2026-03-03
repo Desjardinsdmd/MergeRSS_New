@@ -117,15 +117,14 @@ export default function Integrations() {
 
   const handleConnectDiscord = async () => {
     if (!isPremium || !discordWebhook) return;
+    if (!discordWebhook.includes('api/webhooks/')) {
+      setDiscordError('URL must be a valid Discord webhook (discord.com/api/webhooks/…)');
+      return;
+    }
+    setDiscordError('');
     setLoading(true);
 
     try {
-      // Validate webhook URL format
-      if (!discordWebhook.includes('api/webhooks/')) {
-        toast.error('Invalid Discord webhook URL');
-        setLoading(false);
-        return;
-      }
 
       await base44.entities.Integration.create({
         type: 'discord',
