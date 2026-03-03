@@ -64,7 +64,7 @@ export default function Settings() {
       });
       setNotifPrefs(userData.notification_prefs || {});
       setDashboardLayout(userData.dashboard_layout || {});
-      setAccentColor(userData.accent_color || 'indigo');
+      setAccentColor(userData.accent_color || 'amber');
     };
     loadUser();
   }, []);
