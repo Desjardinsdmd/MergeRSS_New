@@ -250,7 +250,14 @@ export default function Digests() {
         </>
       )}
 
-      {/* Create/Edit Dialog */}
+      {/* Create Wizard */}
+      <DigestWizard
+        open={showWizard}
+        onOpenChange={setShowWizard}
+        onSuccess={() => queryClient.invalidateQueries({ queryKey: ['digests'] })}
+      />
+
+      {/* Edit Dialog */}
       <DigestDialog
         open={showDialog}
         onOpenChange={(open) => {
