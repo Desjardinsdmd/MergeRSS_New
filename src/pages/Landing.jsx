@@ -126,7 +126,7 @@ function PopularFeedsSection() {
           </div>
           <div className="mt-10">
             <button
-              onClick={() => base44.auth.redirectToLogin(createPageUrl('Directory'))}
+              onClick={() => user ? (window.location.href = createPageUrl('Directory')) : base44.auth.redirectToLogin(createPageUrl('Directory'))}
               className="inline-flex items-center gap-2 text-sm text-stone-400 hover:text-amber-400 transition-colors"
             >
               Browse all feeds in the directory
