@@ -143,6 +143,24 @@ html { font-size: 100%; }
 /* High-contrast mode helpers */
 .hc-dark-ring { outline: 2px solid #fff; outline-offset: 2px; }
 
+/* ─── Consistent Button Styles ───────────────────────────────────────────── */
+/* Ensure primary buttons always have enough contrast */
+.btn-primary,
+button[class*="bg-amber-400"],
+a[class*="bg-amber-400"] {
+  color: #0a0805 !important;
+  font-weight: 600;
+}
+
+/* Subtle transition for all interactive elements */
+button, a, [role="button"] {
+  transition: opacity 0.15s ease, background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+/* ─── Card text contrast boost ───────────────────────────────────────────── */
+/* stone-400 on stone-900 ≈ 6.5:1 — comfortably above WCAG AA */
+.card-body { color: hsl(36 20% 72%); }  /* stone-400 equivalent */
+
 /* Smooth animations */
 .animate-in {
   animation: animateIn 0.2s ease-out;
