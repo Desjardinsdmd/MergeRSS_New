@@ -459,10 +459,12 @@ export default function DigestWizard({ open, onOpenChange, onSuccess }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col bg-[#0d0a06] border-stone-800 [&_input]:bg-stone-800 [&_input]:text-stone-100 [&_input]:border-stone-700 [&_input]:placeholder:text-stone-500 [&_textarea]:bg-stone-800 [&_textarea]:text-stone-100 [&_textarea]:border-stone-700 [&_textarea]:placeholder:text-stone-500">
-        <div className="p-2 flex flex-col flex-1 min-h-0">
-          <StepIndicator currentStep={step} />
-          <div className="flex-1 overflow-y-auto min-h-0">
+      <DialogContent className="sm:max-w-lg p-0 gap-0 bg-[#0d0a06] border-stone-800 overflow-hidden [&_input]:bg-stone-800 [&_input]:text-stone-100 [&_input]:border-stone-700 [&_input]:placeholder:text-stone-500 [&_textarea]:bg-stone-800 [&_textarea]:text-stone-100 [&_textarea]:border-stone-700 [&_textarea]:placeholder:text-stone-500">
+        <div className="flex flex-col max-h-[85vh]">
+          <div className="p-6 pb-4 flex-shrink-0">
+            <StepIndicator currentStep={step} />
+          </div>
+          <div className="flex-1 overflow-y-auto px-6 min-h-0">
             {step === 'basics' && <StepBasics formData={formData} setFormData={setFormData} />}
             {step === 'content' && <StepContent formData={formData} setFormData={setFormData} feeds={feeds} />}
             {step === 'schedule' && <StepSchedule formData={formData} setFormData={setFormData} />}
