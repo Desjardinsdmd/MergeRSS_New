@@ -77,20 +77,25 @@ export default function NotificationPreferences({ prefs, onChange }) {
           <p className="font-medium text-stone-200 text-sm mb-1">Notify by Category</p>
           <p className="text-xs text-stone-500 mb-3">Only show inbox badges for categories you care about.</p>
           <div className="grid grid-cols-2 gap-2">
-            {CATEGORIES.map(cat => (
-              <div key={cat} className="flex items-center justify-between py-1.5 px-3 bg-stone-800 rounded-lg">
-                <span className="text-sm text-stone-300">{cat}</span>
-                <div className="flex items-center gap-1.5">
-                  <span className={`text-xs font-semibold w-6 ${getCategory(cat) ? 'text-emerald-400' : 'text-stone-600'}`}>
-                    {getCategory(cat) ? 'On' : 'Off'}
-                  </span>
-                  <Switch
-                    checked={getCategory(cat)}
-                    onCheckedChange={v => setCategory(cat, v)}
-                  />
+            {CATEGORIES.map(cat => {
+              const on = getCategory(cat);
+              return (
+                <div key={cat} className="flex items-center justify-between py-1.5 px-3 bg-stone-800 rounded-lg">
+                  <span className="text-sm text-stone-300">{cat}</span>
+                  <div className="flex items-center gap-1.5">
+                    <span aria-hidden="true" className={`text-xs font-semibold min-w-[22px] text-right transition-colors ${on ? 'text-emerald-400' : 'text-stone-600'}`}>
+                      {on ? 'On' : 'Off'}
+                    </span>
+                    <Switch
+                      checked={on}
+                      onCheckedChange={v => setCategory(cat, v)}
+                      aria-label={`${cat} notifications: ${on ? 'on' : 'off'}`}
+                      className={on ? 'data-[state=checked]:bg-amber-400' : ''}
+                    />
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </CardContent>
