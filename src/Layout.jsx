@@ -277,7 +277,7 @@ function LayoutContent({ children, currentPageName }) {
                         : "text-stone-400 hover:bg-stone-900 hover:text-stone-100"
                     )}
                   >
-                    <item.icon className={cn("w-4 h-4 transition-transform duration-150 group-hover:scale-110", isActive ? "text-amber-400" : "text-stone-500")} aria-hidden="true" />
+                    <item.icon className={cn("w-4 h-4 transition-transform duration-150 group-hover:scale-110", isActive ? "text-[hsl(var(--primary))]" : "text-stone-500")} title={item.name} aria-hidden="true" />
                     {item.name}
                   </Link>
                 );
