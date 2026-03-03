@@ -81,8 +81,8 @@ export default function ThemeSettings({ accentColor, onAccentChange, onAutoSave 
     <Card className="border-stone-800 bg-stone-900">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg text-stone-200">
-          <Palette className="w-5 h-5 text-amber-400" aria-hidden="true" />
-          Appearance
+         <Palette className="w-5 h-5 text-[hsl(var(--primary))]" aria-hidden="true" />
+         Appearance
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
