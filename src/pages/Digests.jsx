@@ -155,7 +155,7 @@ export default function Digests() {
           <p className="text-stone-500 mb-4">
             Create your first digest to start receiving curated content
           </p>
-          <Button onClick={() => setShowDialog(true)} className="bg-amber-400 hover:bg-amber-300 text-stone-900 rounded-lg font-bold">
+          <Button onClick={() => setShowWizard(true)} className="bg-amber-400 hover:bg-amber-300 text-stone-900 rounded-lg font-bold">
             <Plus className="w-4 h-4 mr-2" />
             Create Digest
           </Button>
