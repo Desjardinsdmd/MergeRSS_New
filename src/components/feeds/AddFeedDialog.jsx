@@ -26,6 +26,8 @@ const CATEGORIES = ['CRE', 'Markets', 'Tech', 'News', 'Finance', 'Crypto', 'AI',
 
 export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed = null, prefillUrl = '', prefillName = '' }) {
    const [loading, setLoading] = useState(false);
+   const [success, setSuccess] = useState(false);
+   const [errors, setErrors] = useState({});
    const [formData, setFormData] = useState({
      name: editFeed?.name || prefillName || '',
      url: editFeed?.url || prefillUrl || '',
