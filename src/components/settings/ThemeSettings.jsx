@@ -77,8 +77,10 @@ export default function ThemeSettings({ accentColor, onAccentChange, onAutoSave 
     }
   }, [theme]);
 
-  const handleThemeChange = (id) => {
+  const handleThemeChange = async (id) => {
     setTheme(id);
+    // Auto-save theme immediately
+    if (onAutoSave) onAutoSave(id);
   };
 
   const handleAccentChange = (colorId) => {
