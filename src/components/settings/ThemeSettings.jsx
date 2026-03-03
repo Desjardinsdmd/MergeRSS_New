@@ -46,7 +46,7 @@ function applyHCOverrides(isHC) {
   }
 }
 
-export default function ThemeSettings({ accentColor, onAccentChange }) {
+export default function ThemeSettings({ accentColor, onAccentChange, onAutoSave }) {
   const { theme, setTheme } = useTheme();
 
   // Apply saved accent on mount and whenever it changes
@@ -71,6 +71,8 @@ export default function ThemeSettings({ accentColor, onAccentChange }) {
   const handleAccentChange = (colorId) => {
     onAccentChange(colorId);
     applyAccentColor(colorId);
+    // Auto-save immediately so the user sees instant feedback
+    if (onAutoSave) onAutoSave(colorId);
   };
 
   return (
