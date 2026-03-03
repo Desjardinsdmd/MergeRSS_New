@@ -25,6 +25,7 @@ import DigestCompactView from '@/components/digests/DigestCompactView';
 export default function Digests() {
   const [user, setUser] = useState(null);
   const [showDialog, setShowDialog] = useState(false);
+  const [showWizard, setShowWizard] = useState(false);
   const [editDigest, setEditDigest] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [sendingTest, setSendingTest] = useState(null);
