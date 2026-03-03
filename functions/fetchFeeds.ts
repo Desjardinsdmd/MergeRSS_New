@@ -70,11 +70,11 @@ async function parseFeed(url) {
         const channel = parsed.rss.channel;
         const items = Array.isArray(channel.item) ? channel.item : (channel.item ? [channel.item] : []);
         return items.map(item => ({
-            title: item.title || 'Untitled',
+            title: decodeHtml(item.title) || 'Untitled',
             url: item.link || (typeof item.guid === 'string' ? item.guid : item.guid?.['#text']) || '',
-            description: item.description || '',
-            content: item['content:encoded'] || item.description || '',
-            author: item.author || item['dc:creator'] || '',
+            description: decodeHtml(item.description) || '',
+            content: decodeHtml(item['content:encoded'] || item.description) || '',
+            author: decodeHtml(item.author || item['dc:creator']) || '',
             published_date: item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString(),
             guid: typeof item.guid === 'string' ? item.guid : (item.guid?.['#text'] || item.link || ''),
         }));
