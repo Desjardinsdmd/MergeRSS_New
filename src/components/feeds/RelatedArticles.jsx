@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { ExternalLink, Clock } from 'lucide-react';
+import { decodeHtml } from '@/components/utils/htmlUtils';
 import { Badge } from '@/components/ui/badge';
 
 function extractKeywords(text = '') {

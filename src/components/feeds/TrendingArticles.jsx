@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { TrendingUp, ExternalLink, Clock, ArrowRight } from 'lucide-react';
+import { decodeHtml } from '@/components/utils/htmlUtils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
