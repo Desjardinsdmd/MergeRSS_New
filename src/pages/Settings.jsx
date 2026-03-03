@@ -208,7 +208,14 @@ export default function Settings() {
         </Card>
 
         {/* Appearance */}
-        <ThemeSettings accentColor={accentColor} onAccentChange={setAccentColor} />
+        <ThemeSettings
+          accentColor={accentColor}
+          onAccentChange={setAccentColor}
+          onAutoSave={async (colorId) => {
+            await base44.auth.updateMe({ accent_color: colorId });
+            toast.success('Accent color saved');
+          }}
+        />
 
         {/* Notifications */}
         <NotificationPreferences prefs={notifPrefs} onChange={setNotifPrefs} />
