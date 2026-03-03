@@ -21,6 +21,32 @@ const EXAMPLE_QUERIES = [
   'Global multifamily housing market trends',
 ];
 
+function AICuratorOnboarding() {
+  const [dismissed, setDismissed] = useState(() => {
+    return localStorage.getItem('aiCuratorOnboardingDismissed') === '1';
+  });
+  if (dismissed) return null;
+  return (
+    <div className="mb-6 p-4 border border-amber-400/30 bg-amber-400/5 flex items-start gap-3 relative">
+      <Info className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" aria-hidden="true" />
+      <div className="flex-1">
+        <p className="text-sm font-semibold text-amber-400 mb-1">How AI Curator works</p>
+        <p className="text-xs text-stone-400 leading-relaxed">
+          Type any topic (e.g., "crypto market news" or "Canadian CRE") and the AI will search the web for the best RSS feeds, 
+          validate each one is live, and let you add them to your library in one click. No feed URL hunting required.
+        </p>
+      </div>
+      <button
+        onClick={() => { setDismissed(true); localStorage.setItem('aiCuratorOnboardingDismissed', '1'); }}
+        className="p-1 text-stone-600 hover:text-stone-300 transition flex-shrink-0"
+        aria-label="Dismiss tip"
+      >
+        <X className="w-3.5 h-3.5" />
+      </button>
+    </div>
+  );
+}
+
 export default function FeedCurator() {
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
