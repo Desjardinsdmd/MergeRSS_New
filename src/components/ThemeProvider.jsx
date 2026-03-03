@@ -11,7 +11,7 @@ export function ThemeProvider({ children }) {
   if (!mounted) return children;
 
   return (
-    <NextThemesProvider attribute="class" defaultTheme="light" enableSystem storageKey="theme">
+    <NextThemesProvider attribute="class" defaultTheme="dark" enableSystem storageKey="mergerss-theme">
       {children}
     </NextThemesProvider>
   );
