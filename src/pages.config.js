@@ -55,6 +55,7 @@ import Bookmarks from './pages/Bookmarks';
 import Dashboard from './pages/Dashboard';
 import Digests from './pages/Digests';
 import Directory from './pages/Directory';
+import EmailFeeds from './pages/EmailFeeds';
 import FeedCurator from './pages/FeedCurator';
 import Feeds from './pages/Feeds';
 import Inbox from './pages/Inbox';
@@ -66,7 +67,6 @@ import RssFeedGenerator from './pages/RssFeedGenerator';
 import Settings from './pages/Settings';
 import Team from './pages/Team';
 import Terms from './pages/Terms';
-import EmailFeeds from './pages/EmailFeeds';
 import __Layout from './Layout.jsx';
 
 
@@ -79,6 +79,7 @@ export const PAGES = {
     "Dashboard": Dashboard,
     "Digests": Digests,
     "Directory": Directory,
+    "EmailFeeds": EmailFeeds,
     "FeedCurator": FeedCurator,
     "Feeds": Feeds,
     "Inbox": Inbox,
@@ -90,7 +91,6 @@ export const PAGES = {
     "Settings": Settings,
     "Team": Team,
     "Terms": Terms,
-    "EmailFeeds": EmailFeeds,
 }
 
 export const pagesConfig = {
