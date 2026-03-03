@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import DigestDialog from '@/components/digests/DigestDialog';
+import DigestWizard from '@/components/digests/DigestWizard';
 import DigestCard from '@/components/digests/DigestCard';
 import DigestListView from '@/components/digests/DigestListView';
 import DigestCompactView from '@/components/digests/DigestCompactView';
