@@ -63,6 +63,28 @@ const testimonials = [
   { quote: "Set it up in 5 minutes. Now I never miss a market update. The Slack integration is seamless.", author: 'Priya M.', role: 'Fintech Founder' },
 ];
 
+function AnimatedStat({ value, label, delay = 0 }) {
+  const [ref, visible] = useFadeIn();
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    if (!visible) return;
+    let start = 0;
+    const step = Math.ceil(value / 40);
+    const timer = setInterval(() => {
+      start += step;
+      if (start >= value) { setCount(value); clearInterval(timer); }
+      else setCount(start);
+    }, 30);
+    return () => clearInterval(timer);
+  }, [visible, value]);
+  return (
+    <div ref={ref} style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(20px)', transition: `all 0.6s ease ${delay}ms` }} className="text-center">
+      <p className="text-4xl font-black text-amber-400 tabular-nums">{count.toLocaleString()}+</p>
+      <p className="text-sm text-stone-500 mt-1">{label}</p>
+    </div>
+  );
+}
+
 function PopularFeedsSection() {
   const [feeds, setFeeds] = useState([]);
   useEffect(() => {
