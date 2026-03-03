@@ -124,6 +124,12 @@ export default function RssFeedGenerator() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
+    const handleDeleteError = async (feedId) => {
+        await base44.entities.GeneratedFeed.delete(feedId);
+        refetchMyFeeds();
+        toast.success('Error feed removed');
+    };
+
     return (
         <div className="p-6 lg:p-8 max-w-3xl mx-auto">
             {/* Header */}
@@ -202,36 +208,60 @@ export default function RssFeedGenerator() {
             )}
 
             {/* Error State */}
-            {error && !loading && (
-                <div className="mb-5 space-y-3">
-                    {error.is_social ? (
-                        <SocialGuidance
-                            error={error.message}
-                            guidance={error.guidance}
-                            platform={error.social_platform}
-                        />
-                    ) : (
-                        <div className="p-4 bg-red-900/20 border border-red-700 rounded-xl">
-                            <div className="flex items-start gap-3">
-                                <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
-                                <div className="space-y-2">
-                                    <p className="text-sm font-medium text-red-400">{error.message}</p>
-                                    {error.suggestions?.length > 0 && (
-                                        <ul className="text-xs text-red-400 space-y-1">
-                                            {error.suggestions.map((s, i) => (
-                                                <li key={i} className="flex items-start gap-1.5">
-                                                    <span className="text-red-400 flex-shrink-0">→</span>
-                                                    {s}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            )}
+             {error && !loading && (
+                 <div className="mb-5 space-y-3">
+                     {error.is_social ? (
+                         <SocialGuidance
+                             error={error.message}
+                             guidance={error.guidance}
+                             platform={error.social_platform}
+                         />
+                     ) : (
+                         <div className="p-4 bg-red-900/20 border border-red-700 rounded-xl">
+                             <div className="flex items-start gap-3">
+                                 <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                                 <div className="space-y-3 flex-1">
+                                     <div>
+                                         <p className="text-sm font-medium text-red-400">{error.message}</p>
+                                         <p className="text-xs text-red-300 mt-1">This generation does not count toward your quota.</p>
+                                     </div>
+                                     {error.suggestions?.length > 0 && (
+                                         <div>
+                                             <p className="text-xs text-red-300 font-medium mb-1">Suggestions:</p>
+                                             <ul className="text-xs text-red-400 space-y-1">
+                                                 {error.suggestions.map((s, i) => (
+                                                     <li key={i} className="flex items-start gap-1.5">
+                                                         <span className="text-red-400 flex-shrink-0">→</span>
+                                                         {s}
+                                                     </li>
+                                                 ))}
+                                             </ul>
+                                         </div>
+                                     )}
+                                     <div className="flex gap-2 pt-2">
+                                         <Button
+                                             size="sm"
+                                             onClick={() => handleGenerate()}
+                                             className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-medium text-xs gap-1.5"
+                                         >
+                                             <RefreshCw className="w-3 h-3" />
+                                             Retry
+                                         </Button>
+                                         <Button
+                                             size="sm"
+                                             variant="outline"
+                                             className="text-xs"
+                                             onClick={() => setError(null)}
+                                         >
+                                             Dismiss
+                                         </Button>
+                                     </div>
+                                 </div>
+                             </div>
+                         </div>
+                     )}
+                 </div>
+             )}
 
             {/* Result */}
             {result && !loading && (
@@ -289,25 +319,49 @@ export default function RssFeedGenerator() {
                                              ) : null}
                                          </div>
                                          <div className="flex items-center gap-1 flex-shrink-0">
-                                             <Button
-                                                 variant="ghost" size="icon"
-                                                 className={cn(
-                                                     "h-8 w-8",
-                                                     hasFailed ? "text-orange-600 hover:text-orange-400" : "text-stone-600 hover:text-[hsl(var(--primary))]"
-                                                 )}
-                                                 title={hasFailed ? "Retry generation" : "Regenerate"}
-                                                 onClick={() => hasFailed ? handleRetry(feed) : handleRegenerate(feed)}
-                                             >
-                                                 <RefreshCw className="w-3.5 h-3.5" />
-                                             </Button>
-                                             <Button
-                                                 variant="ghost" size="icon"
-                                                 className="h-8 w-8 text-stone-600 hover:text-red-400"
-                                                 title="Delete"
-                                                 onClick={() => handleDelete(feed.id)}
-                                             >
-                                                 <Trash2 className="w-3.5 h-3.5" />
-                                             </Button>
+                                             {hasFailed && (
+                                                 <Button
+                                                     variant="ghost" size="icon"
+                                                     className="h-8 w-8 text-orange-600 hover:text-orange-400"
+                                                     title="Retry generation"
+                                                     onClick={() => handleRetry(feed)}
+                                                     aria-label="Retry feed generation"
+                                                 >
+                                                     <RefreshCw className="w-3.5 h-3.5" />
+                                                 </Button>
+                                             )}
+                                             {hasFailed ? (
+                                                 <Button
+                                                     variant="ghost" size="icon"
+                                                     className="h-8 w-8 text-red-600 hover:text-red-400"
+                                                     title="Remove error feed"
+                                                     onClick={() => handleDeleteError(feed.id)}
+                                                     aria-label="Remove error feed"
+                                                 >
+                                                     <Trash2 className="w-3.5 h-3.5" />
+                                                 </Button>
+                                             ) : (
+                                                 <>
+                                                     <Button
+                                                         variant="ghost" size="icon"
+                                                         className="h-8 w-8 text-stone-600 hover:text-[hsl(var(--primary))]"
+                                                         title="Regenerate"
+                                                         onClick={() => handleRegenerate(feed)}
+                                                         aria-label="Regenerate feed"
+                                                     >
+                                                         <RefreshCw className="w-3.5 h-3.5" />
+                                                     </Button>
+                                                     <Button
+                                                         variant="ghost" size="icon"
+                                                         className="h-8 w-8 text-stone-600 hover:text-red-400"
+                                                         title="Delete"
+                                                         onClick={() => handleDelete(feed.id)}
+                                                         aria-label="Delete feed"
+                                                     >
+                                                         <Trash2 className="w-3.5 h-3.5" />
+                                                     </Button>
+                                                 </>
+                                             )}
                                          </div>
                                      </div>
                                  </CardContent>
