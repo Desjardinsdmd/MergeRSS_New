@@ -87,11 +87,11 @@ async function parseFeed(url) {
             const links = Array.isArray(entry.link) ? entry.link : (entry.link ? [entry.link] : []);
             const link = links.find(l => l['@_rel'] === 'alternate' || !l['@_rel'])?.['@_href'] || links[0]?.['@_href'] || '';
             return {
-                title: typeof entry.title === 'string' ? entry.title : (entry.title?.['#text'] || 'Untitled'),
+                title: decodeHtml(typeof entry.title === 'string' ? entry.title : (entry.title?.['#text'] || 'Untitled')),
                 url: link,
-                description: typeof entry.summary === 'string' ? entry.summary : (entry.summary?.['#text'] || ''),
-                content: typeof entry.content === 'string' ? entry.content : (entry.content?.['#text'] || ''),
-                author: entry.author?.name || '',
+                description: decodeHtml(typeof entry.summary === 'string' ? entry.summary : (entry.summary?.['#text'] || '')),
+                content: decodeHtml(typeof entry.content === 'string' ? entry.content : (entry.content?.['#text'] || '')),
+                author: decodeHtml(entry.author?.name || ''),
                 published_date: entry.updated || entry.published ? new Date(entry.updated || entry.published).toISOString() : new Date().toISOString(),
                 guid: entry.id || link,
             };
