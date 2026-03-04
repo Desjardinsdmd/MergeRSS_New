@@ -214,6 +214,19 @@ Deno.serve(async (req) => {
                     }
                 }
 
+                const MAX_CACHED_XML = 180000;
+                if (newXml && newXml.length > MAX_CACHED_XML) {
+                    const truncated = newXml.slice(0, MAX_CACHED_XML);
+                    const lastItem = truncated.lastIndexOf('</item>');
+                    const lastEntry = truncated.lastIndexOf('</entry>');
+                    const cutoff = Math.max(lastItem, lastEntry);
+                    if (cutoff > 0) {
+                        const base_ = truncated.slice(0, cutoff + (lastItem > lastEntry ? 7 : 8));
+                        newXml = base_ + '\n  </channel>\n</rss>';
+                    } else {
+                        newXml = truncated;
+                    }
+                }
                 if (newXml) {
                     await base44.asServiceRole.entities.GeneratedFeed.update(feed.id, {
                         cached_xml: newXml,
