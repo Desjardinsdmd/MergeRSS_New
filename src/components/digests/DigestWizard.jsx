@@ -486,7 +486,7 @@ export default function DigestWizard({ open, onOpenChange, onSuccess }) {
           <div className="px-4 sm:px-6 pt-5 pb-4 flex-shrink-0">
             <StepIndicator currentStep={step} />
           </div>
-          <div className="flex-1 overflow-y-auto px-4 sm:px-6 min-h-0">
+          <div className="flex-1 overflow-y-auto px-4 sm:px-6 pb-4 min-h-0">
             {step === 'success' ? (
               <div className="flex flex-col items-center justify-center py-12 gap-4">
                 <div className="w-16 h-16 bg-emerald-900/40 border-2 border-emerald-500 flex items-center justify-center">
