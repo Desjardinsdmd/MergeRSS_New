@@ -10,7 +10,7 @@ export default function InboxToolbar({ selectedIds, allIds, onSelectAll, onDesel
   const someSelected = selectedIds.length > 0;
 
   return (
-    <div className="flex items-center gap-2 py-2 px-1 border-b border-slate-100 bg-white sticky top-0 z-10">
+    <div className="flex items-center gap-2 py-2 px-1 border-b border-stone-800 bg-stone-900 sticky top-0 z-10 flex-wrap">
       <button
         onClick={allSelected ? onDeselectAll : onSelectAll}
         className="text-slate-400 hover:text-slate-700 transition p-1"

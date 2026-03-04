@@ -265,20 +265,57 @@ export default function Inbox() {
         <p className="text-stone-500">Your AI-generated digests, delivered to your web inbox</p>
       </div>
 
+      {/* Mobile folder selector */}
+      <div className="lg:hidden mb-4 flex gap-2 overflow-x-auto pb-1">
+        {['Inbox', 'Starred', ...customFolders].map(folder => (
+          <button
+            key={folder}
+            onClick={() => { setSelectedFolder(folder); setSelectedTag(null); }}
+            className={cn(
+              'flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors',
+              selectedFolder === folder && !selectedTag
+                ? 'bg-amber-400 text-stone-900'
+                : 'bg-stone-800 text-stone-400 hover:text-stone-200'
+            )}
+          >
+            {folder}
+            {(unreadCounts?.[folder] || 0) > 0 && (
+              <span className="ml-1.5 text-xs">({unreadCounts[folder]})</span>
+            )}
+          </button>
+        ))}
+        {allTags.map(tag => (
+          <button
+            key={tag}
+            onClick={() => { setSelectedTag(tag); setSelectedFolder(null); }}
+            className={cn(
+              'flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors',
+              selectedTag === tag
+                ? 'bg-amber-400 text-stone-900'
+                : 'bg-stone-800 text-stone-400 hover:text-stone-200'
+            )}
+          >
+            #{tag}
+          </button>
+        ))}
+      </div>
+
       <div className="flex gap-6">
-        <InboxFolderSidebar
-          folders={customFolders}
-          tags={allTags}
-          selectedFolder={selectedFolder}
-          selectedTag={selectedTag}
-          onSelectFolder={setSelectedFolder}
-          onSelectTag={setSelectedTag}
-          unreadCounts={unreadCounts}
-          onCreateFolder={handleCreateFolder}
-          onDeleteFolder={handleDeleteFolder}
-          onCreateTag={handleCreateTag}
-          onDeleteTag={handleDeleteTag}
-        />
+        <div className="hidden lg:block">
+          <InboxFolderSidebar
+            folders={customFolders}
+            tags={allTags}
+            selectedFolder={selectedFolder}
+            selectedTag={selectedTag}
+            onSelectFolder={setSelectedFolder}
+            onSelectTag={setSelectedTag}
+            unreadCounts={unreadCounts}
+            onCreateFolder={handleCreateFolder}
+            onDeleteFolder={handleDeleteFolder}
+            onCreateTag={handleCreateTag}
+            onDeleteTag={handleDeleteTag}
+          />
+        </div>
 
         <div className="flex-1 min-w-0">
           <div className="bg-stone-900 border border-stone-800 rounded-xl overflow-hidden">
