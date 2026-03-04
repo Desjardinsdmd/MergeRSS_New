@@ -17,16 +17,17 @@ Deno.serve(async (req) => {
     const cutoff48h = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
     const cutoff7d  = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-    const allItems = await base44.entities.FeedItem.list('-published_date', 200);
-    let todayItems = allItems.filter(item =>
-      feedIds.includes(item.feed_id) && item.published_date >= cutoff48h
+    // Fetch items scoped to the user's feeds directly — avoids being crowded out by other feeds
+    const allItems = await base44.entities.FeedItem.filter(
+      { feed_id: { $in: feedIds } },
+      '-published_date',
+      500
     );
+    let todayItems = allItems.filter(item => item.published_date >= cutoff48h);
 
     // Widen window if not enough articles
     if (todayItems.length < 3) {
-      todayItems = allItems.filter(item =>
-        feedIds.includes(item.feed_id) && item.published_date >= cutoff7d
-      );
+      todayItems = allItems.filter(item => item.published_date >= cutoff7d);
     }
 
     if (todayItems.length === 0) {
