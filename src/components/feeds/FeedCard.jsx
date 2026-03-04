@@ -149,5 +149,6 @@ export default function FeedCard({ feed, onEdit, onDelete, onToggleStatus }) {
     </Card>
 
     <FeedAlertsDialog feed={feed} open={showAlerts} onOpenChange={setShowAlerts} />
+    </>
   );
 }
