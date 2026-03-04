@@ -116,9 +116,9 @@ Deno.serve(async (req) => {
                     }
                 }
 
-                // Sort by date, take top items
+                // Sort by date, take top items — cap at 20 to stay within CPU limits
                 items.sort((a, b) => new Date(b.published_date || b.created_date) - new Date(a.published_date || a.created_date));
-                const topItems = items.slice(0, 30);
+                const topItems = items.slice(0, 20);
 
                 const lengthGuide = {
                     short: '3-5 concise bullet points highlighting the top stories',
