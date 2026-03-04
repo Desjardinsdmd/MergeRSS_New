@@ -29,16 +29,37 @@ Deno.serve(async (req) => {
     const TARGET_TOTAL = 200;
     const perCategoryTarget = Math.ceil(TARGET_TOTAL / categories.length);
 
-    // First pass: fetch up to perCategoryTarget items per category, capped at 20 per feed
+    // First pass: fetch up to perCategoryTarget items per category, split evenly across feeds
     const perCategoryItems = {};
     await Promise.all(categories.map(async (cat) => {
       const feeds = feedsByCategory[cat];
       const perFeedLimit = Math.max(5, Math.ceil(perCategoryTarget / feeds.length));
       const feedResults = await Promise.all(
-        feeds.map(f => base44.entities.FeedItem.filter({ feed_id: f.id }, '-published_date', Math.min(perFeedLimit, 20)))
+        feeds.map(f => base44.entities.FeedItem.filter({ feed_id: f.id }, '-published_date', perFeedLimit))
       );
       perCategoryItems[cat] = feedResults.flat();
     }));
+
+    // Second pass: redistribute spare budget from underfull categories to others
+    const spare = categories.reduce((acc, cat) => {
+      const shortfall = perCategoryTarget - perCategoryItems[cat].length;
+      return acc + Math.max(0, shortfall);
+    }, 0);
+
+    if (spare > 0) {
+      const richCats = categories.filter(c => perCategoryItems[c].length >= perCategoryTarget);
+      if (richCats.length > 0) {
+        const bonusPerCat = Math.ceil(spare / richCats.length);
+        await Promise.all(richCats.map(async (cat) => {
+          const feeds = feedsByCategory[cat];
+          const newLimit = Math.ceil((perCategoryTarget + bonusPerCat) / feeds.length);
+          const feedResults = await Promise.all(
+            feeds.map(f => base44.entities.FeedItem.filter({ feed_id: f.id }, '-published_date', newLimit))
+          );
+          perCategoryItems[cat] = feedResults.flat();
+        }));
+      }
+    }
 
     // Second pass: redistribute spare budget from underfull categories to others
     const counts = Object.fromEntries(categories.map(c => [c, perCategoryItems[c].length]));

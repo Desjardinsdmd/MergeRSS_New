@@ -22,7 +22,7 @@ import { Loader2, X, Plus, Globe, AlertCircle, CheckCircle2 } from 'lucide-react
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 
-const CATEGORIES = ['CRE', 'Markets', 'Tech', 'News', 'Finance', 'Crypto', 'AI', 'Other'];
+const DEFAULT_CATEGORIES = ['CRE', 'Markets', 'Tech', 'News', 'Finance', 'Crypto', 'AI', 'Other'];
 
 export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed = null, prefillUrl = '', prefillName = '' }) {
    const [loading, setLoading] = useState(false);
