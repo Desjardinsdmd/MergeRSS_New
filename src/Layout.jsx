@@ -393,7 +393,7 @@ function LayoutContent({ children, currentPageName }) {
           "dark:bg-[#0d0a06] dark:border-stone-800",
           "light:bg-stone-50 light:border-stone-200"
         )}>
-          <div className="flex items-center justify-end h-14 px-8 gap-3">
+          <div className="flex items-center justify-end h-16 px-8 gap-3">
             <button
               onClick={() => setReportDialogOpen(true)}
               title="Report a problem"
