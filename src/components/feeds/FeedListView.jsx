@@ -39,8 +39,8 @@ export default function FeedListView({ feeds, selectedIds, onSelectionChange, on
   };
 
   return (
-    <div className="border border-stone-800 rounded-lg overflow-hidden bg-stone-900">
-      <table className="w-full">
+    <div className="border border-stone-800 rounded-lg overflow-x-auto bg-stone-900">
+      <table className="w-full min-w-[600px]">
         <thead className="bg-stone-800 border-b border-stone-800">
           <tr>
             <th className="w-10 px-4 py-3">

@@ -42,7 +42,12 @@ export default function Feeds() {
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [fetching, setFetching] = useState(false);
   const [showBulkImport, setShowBulkImport] = useState(false);
-  const [viewMode, setViewMode] = useState('grid'); // grid, list, compact
+  const [viewMode, setViewMode] = useState(() => {
+    const saved = localStorage.getItem('feedsViewMode');
+    // On mobile default to compact; otherwise use saved or grid
+    if (!saved) return window.innerWidth < 640 ? 'compact' : 'grid';
+    return saved;
+  }); // grid, list, compact
   const [selectedFeeds, setSelectedFeeds] = useState([]);
   const [deletingBulk, setDeletingBulk] = useState(false);
   const [bulkDeleteMode, setBulkDeleteMode] = useState(false);
@@ -56,11 +61,7 @@ export default function Feeds() {
     };
     loadUser();
     
-    // Restore saved view mode preference
-    const savedViewMode = localStorage.getItem('feedsViewMode');
-    if (savedViewMode) {
-      setViewMode(savedViewMode);
-    }
+    // View mode is initialized in useState already
   }, []);
 
   // Save view mode preference whenever it changes
