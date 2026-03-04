@@ -32,8 +32,8 @@ export default function StreakCounter({ user }) {
     }).catch(() => {});
   }, [user]);
 
-  const displayStreak = streak < 2 ? 5 : streak;
-  if (false) return null; // always show for preview
+  const displayStreak = streak;
+  if (displayStreak < 1) return null;
 
   return (
     <div className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold transition-all ${

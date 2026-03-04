@@ -67,8 +67,9 @@ export default function Team() {
   }, []);
 
   const { data: members = [], isLoading } = useQuery({
-    queryKey: ['team-members'],
-    queryFn: () => base44.entities.TeamMember.list('-created_date'),
+    queryKey: ['team-members', user?.email],
+    queryFn: () => base44.entities.TeamMember.filter({ invited_by: user?.email }, '-created_date'),
+    enabled: !!user,
   });
 
   const isAdmin = user?.role === 'admin';

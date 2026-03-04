@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { decodeHtml } from '@/components/utils/htmlUtils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -22,20 +22,26 @@ const categoryColors = {
 export default function Bookmarks() {
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState('all');
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    base44.auth.me().then(setUser);
+  }, []);
 
   const { data: bookmarks = [], isLoading } = useQuery({
-    queryKey: ['bookmarks'],
-    queryFn: () => base44.entities.Bookmark.list('-created_date', 50),
+    queryKey: ['bookmarks', user?.email],
+    queryFn: () => base44.entities.Bookmark.filter({ created_by: user?.email }, '-created_date', 200),
+    enabled: !!user,
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.Bookmark.delete(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['bookmarks'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['bookmarks', user?.email] }),
   });
 
   const markReadMutation = useMutation({
     mutationFn: (id) => base44.entities.Bookmark.update(id, { is_read: true }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['bookmarks'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['bookmarks', user?.email] }),
   });
 
   const filtered = filter === 'unread'
