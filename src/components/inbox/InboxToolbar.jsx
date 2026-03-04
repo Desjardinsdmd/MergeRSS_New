@@ -21,8 +21,57 @@ export default function InboxToolbar({ selectedIds, allIds, onSelectAll, onDesel
 
       {someSelected && (
         <>
-          <span className="text-xs text-slate-500 font-medium">{selectedIds.length} selected</span>
-          <div className="flex items-center gap-1 ml-1">
+          <span className="text-xs text-slate-500 font-medium whitespace-nowrap">{selectedIds.length} selected</span>
+
+          {/* Mobile: collapse all actions into one dropdown */}
+          <div className="flex sm:hidden ml-1">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="ghost" className="h-7 text-xs gap-1">
+                  Actions <ChevronDown className="w-3 h-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem onClick={onMarkRead} className="text-sm gap-2">
+                  <MailOpen className="w-3.5 h-3.5" /> Mark read
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onMarkUnread} className="text-sm gap-2">
+                  <Mail className="w-3.5 h-3.5" /> Mark unread
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onFavorite} className="text-sm gap-2">
+                  <Star className="w-3.5 h-3.5" /> Star
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onUnfavorite} className="text-sm gap-2">
+                  <StarOff className="w-3.5 h-3.5" /> Unstar
+                </DropdownMenuItem>
+                {['Inbox', ...folders].length > 0 && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel className="text-xs">Move to folder</DropdownMenuLabel>
+                    {['Inbox', ...folders].map(f => (
+                      <DropdownMenuItem key={f} onClick={() => onMoveToFolder(f)} className="text-sm gap-2">
+                        <FolderInput className="w-3.5 h-3.5" /> {f}
+                      </DropdownMenuItem>
+                    ))}
+                  </>
+                )}
+                {tags.length > 0 && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel className="text-xs">Apply tag</DropdownMenuLabel>
+                    {tags.map(t => (
+                      <DropdownMenuItem key={t} onClick={() => onAddTag(t)} className="text-sm gap-2">
+                        <Tag className="w-3.5 h-3.5" /> {t}
+                      </DropdownMenuItem>
+                    ))}
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Desktop: show all buttons inline */}
+          <div className="hidden sm:flex items-center gap-1 ml-1">
             <Button size="sm" variant="ghost" className="h-7 text-xs gap-1" onClick={onMarkRead}>
               <MailOpen className="w-3.5 h-3.5" /> Mark read
             </Button>
@@ -35,8 +84,6 @@ export default function InboxToolbar({ selectedIds, allIds, onSelectAll, onDesel
             <Button size="sm" variant="ghost" className="h-7 text-xs gap-1" onClick={onUnfavorite}>
               <StarOff className="w-3.5 h-3.5" /> Unstar
             </Button>
-
-            {/* Move to folder */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button size="sm" variant="ghost" className="h-7 text-xs gap-1">
@@ -47,14 +94,10 @@ export default function InboxToolbar({ selectedIds, allIds, onSelectAll, onDesel
                 <DropdownMenuLabel className="text-xs">Move to folder</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {['Inbox', ...folders].map(f => (
-                  <DropdownMenuItem key={f} onClick={() => onMoveToFolder(f)} className="text-sm">
-                    {f}
-                  </DropdownMenuItem>
+                  <DropdownMenuItem key={f} onClick={() => onMoveToFolder(f)} className="text-sm">{f}</DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
-
-            {/* Add tag */}
             {tags.length > 0 && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -66,9 +109,7 @@ export default function InboxToolbar({ selectedIds, allIds, onSelectAll, onDesel
                   <DropdownMenuLabel className="text-xs">Apply tag</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   {tags.map(t => (
-                    <DropdownMenuItem key={t} onClick={() => onAddTag(t)} className="text-sm">
-                      {t}
-                    </DropdownMenuItem>
+                    <DropdownMenuItem key={t} onClick={() => onAddTag(t)} className="text-sm">{t}</DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
