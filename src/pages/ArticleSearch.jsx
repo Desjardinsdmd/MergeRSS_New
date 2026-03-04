@@ -38,6 +38,14 @@ export default function ArticleSearch() {
     base44.auth.me().then(setUser);
   }, []);
 
+  // Debounce keyword into searchQuery to avoid re-fetching on every keystroke
+  const debounceRef = useRef(null);
+  useEffect(() => {
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => setSearchQuery(keyword), 400);
+    return () => clearTimeout(debounceRef.current);
+  }, [keyword]);
+
   const [searchQuery, setSearchQuery] = useState('');
 
   const { data: allItems = [], isLoading, isFetching } = useQuery({
