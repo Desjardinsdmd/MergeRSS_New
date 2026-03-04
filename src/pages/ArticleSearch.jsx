@@ -38,10 +38,27 @@ export default function ArticleSearch() {
     base44.auth.me().then(setUser);
   }, []);
 
-  const { data: allItems = [], isLoading } = useQuery({
-    queryKey: ['allFeedItems'],
-    queryFn: () => base44.entities.FeedItem.list('-published_date', 1000),
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const { data: allItems = [], isLoading, isFetching } = useQuery({
+    queryKey: ['allFeedItems', searchQuery, author, selectedCategory, dateFrom, dateTo],
+    queryFn: async () => {
+      const filters = {};
+      if (selectedCategory) filters.category = selectedCategory;
+      if (author.trim()) filters.author = { $regex: author.trim(), $options: 'i' };
+      if (dateFrom || dateTo) {
+        filters.published_date = {};
+        if (dateFrom) filters.published_date.$gte = new Date(dateFrom).toISOString();
+        if (dateTo) {
+          const toEnd = new Date(dateTo);
+          toEnd.setHours(23, 59, 59, 999);
+          filters.published_date.$lte = toEnd.toISOString();
+        }
+      }
+      return base44.entities.FeedItem.filter(filters, '-published_date', 200);
+    },
     enabled: !!user,
+    staleTime: 30000,
   });
 
   const mergeItem = (item) => ({
