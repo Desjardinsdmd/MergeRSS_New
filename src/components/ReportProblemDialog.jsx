@@ -33,7 +33,7 @@ export default function ReportProblemDialog({ open, onOpenChange, user }) {
         status: 'open',
       });
 
-      toast.success('Thank you for reporting! We'll look into it.');
+      toast.success("Thank you for reporting! We'll look into it.");
       setTitle('');
       setDescription('');
       onOpenChange(false);
