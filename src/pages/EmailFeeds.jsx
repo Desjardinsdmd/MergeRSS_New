@@ -88,10 +88,13 @@ export default function EmailFeeds() {
     <div className="p-6 lg:p-8 max-w-4xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-stone-100 flex items-center gap-2">
-          <Mail className="w-8 h-8 text-amber-400" />
-          Email Feeds
-        </h1>
+        <div className="flex items-center gap-3 flex-wrap">
+          <h1 className="text-3xl font-bold text-stone-100 flex items-center gap-2">
+            <Mail className="w-8 h-8 text-amber-400" />
+            Email Feeds
+          </h1>
+          <Badge className="bg-amber-400/20 text-amber-400 border border-amber-400/40 text-xs font-semibold uppercase tracking-wide">Coming Soon</Badge>
+        </div>
         <p className="text-stone-500 mt-2">Subscribe to newsletters using your unique email address. Articles are automatically added to your feeds.</p>
       </div>
 
