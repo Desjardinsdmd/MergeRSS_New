@@ -40,7 +40,7 @@ export default function ArticleSearch() {
 
   const { data: allItems = [], isLoading } = useQuery({
     queryKey: ['allFeedItems'],
-    queryFn: () => base44.entities.FeedItem.list('-published_date', 200),
+    queryFn: () => base44.entities.FeedItem.list('-published_date', 1000),
     enabled: !!user,
   });
 
