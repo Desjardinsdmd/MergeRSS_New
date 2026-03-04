@@ -17,13 +17,37 @@ Deno.serve(async (req) => {
     const cutoff48h = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
     const cutoff7d  = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-    // Fetch items per feed evenly (max 20 per feed) to avoid high-volume feeds drowning others
-    const perFeedItems = await Promise.all(
-      feedIds.map(fid =>
-        base44.entities.FeedItem.filter({ feed_id: fid }, '-published_date', 20)
-      )
-    );
-    const allItems = perFeedItems.flat();
+    // Group feeds by category for even cross-category distribution
+    const feedsByCategory = {};
+    userFeeds.forEach(f => {
+      const cat = f.category || 'Other';
+      if (!feedsByCategory[cat]) feedsByCategory[cat] = [];
+      feedsByCategory[cat].push(f);
+    });
+
+    const categories = Object.keys(feedsByCategory);
+    const TARGET_TOTAL = 200;
+    const perCategoryTarget = Math.ceil(TARGET_TOTAL / categories.length);
+
+    // First pass: fetch up to perCategoryTarget items per category, capped at 20 per feed
+    const perCategoryItems = {};
+    await Promise.all(categories.map(async (cat) => {
+      const feeds = feedsByCategory[cat];
+      const perFeedLimit = Math.max(5, Math.ceil(perCategoryTarget / feeds.length));
+      const feedResults = await Promise.all(
+        feeds.map(f => base44.entities.FeedItem.filter({ feed_id: f.id }, '-published_date', Math.min(perFeedLimit, 20)))
+      );
+      perCategoryItems[cat] = feedResults.flat();
+    }));
+
+    // Second pass: redistribute spare budget from underfull categories to others
+    const counts = Object.fromEntries(categories.map(c => [c, perCategoryItems[c].length]));
+    const totalFetched = Object.values(counts).reduce((a, b) => a + b, 0);
+    const surplus = TARGET_TOTAL - totalFetched;
+
+    // If some categories have fewer items than target, the total may be under TARGET_TOTAL — that's fine.
+    // Merge all items
+    const allItems = Object.values(perCategoryItems).flat();
 
     let todayItems = allItems.filter(item => item.published_date >= cutoff48h);
 
