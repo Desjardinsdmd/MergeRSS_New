@@ -335,8 +335,24 @@ ${itemsXml}
 // ============================================================
 // Entity persistence helper
 // ============================================================
+const MAX_CACHED_XML_BYTES = 180000; // stay safely under 200KB entity field limit
+
 async function saveGeneratedFeed(base44, existing, data) {
     try {
+        // Truncate cached_xml if it exceeds the entity field size limit
+        if (data.cached_xml && data.cached_xml.length > MAX_CACHED_XML_BYTES) {
+            // Trim to last complete <item> before the limit, then close the feed
+            const truncated = data.cached_xml.slice(0, MAX_CACHED_XML_BYTES);
+            const lastItem = truncated.lastIndexOf('</item>');
+            const lastEntry = truncated.lastIndexOf('</entry>');
+            const cutoff = Math.max(lastItem, lastEntry);
+            if (cutoff > 0) {
+                const base = truncated.slice(0, cutoff + (lastItem > lastEntry ? 7 : 8));
+                data.cached_xml = base + '\n  </channel>\n</rss>';
+            } else {
+                data.cached_xml = truncated;
+            }
+        }
         if (existing) {
             await base44.entities.GeneratedFeed.update(existing.id, data);
         } else {
