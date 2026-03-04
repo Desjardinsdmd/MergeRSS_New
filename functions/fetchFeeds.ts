@@ -224,6 +224,8 @@ async function fetchFeedsWithThrottling(feeds, base44, batchSize = 5, delayBetwe
     return results;
 }
 
+const MAX_CONSECUTIVE_ERRORS = 5;
+
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
