@@ -28,6 +28,7 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
    const [loading, setLoading] = useState(false);
    const [success, setSuccess] = useState(false);
    const [errors, setErrors] = useState({});
+   const [customCategoryInput, setCustomCategoryInput] = useState('');
    const [formData, setFormData] = useState({
      name: editFeed?.name || prefillName || '',
      url: editFeed?.url || prefillUrl || '',
