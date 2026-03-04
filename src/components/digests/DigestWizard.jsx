@@ -481,8 +481,8 @@ export default function DigestWizard({ open, onOpenChange, onSuccess }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full max-w-lg mx-auto p-0 gap-0 bg-[#0d0a06] border-stone-800 overflow-hidden [&_input]:bg-stone-800 [&_input]:text-stone-100 [&_input]:border-stone-700 [&_input]:placeholder:text-stone-500 [&_textarea]:bg-stone-800 [&_textarea]:text-stone-100 [&_textarea]:border-stone-700 [&_textarea]:placeholder:text-stone-500">
-        <div className="flex flex-col max-h-[90vh]">
+      <DialogContent className="w-[calc(100vw-2rem)] sm:w-full max-w-lg mx-auto p-0 gap-0 bg-[#0d0a06] border-stone-800 overflow-hidden [&_input]:bg-stone-800 [&_input]:text-stone-100 [&_input]:border-stone-700 [&_input]:placeholder:text-stone-500 [&_textarea]:bg-stone-800 [&_textarea]:text-stone-100 [&_textarea]:border-stone-700 [&_textarea]:placeholder:text-stone-500">
+        <div className="flex flex-col h-[85vh] max-h-[600px]">
           <div className="px-4 sm:px-6 pt-5 pb-4 flex-shrink-0">
             <StepIndicator currentStep={step} />
           </div>
