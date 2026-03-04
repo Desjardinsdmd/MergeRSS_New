@@ -38,8 +38,8 @@ export default function StreakCounter({ user }) {
   return (
     <div className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold transition-all ${
       isNew
-        ? 'bg-amber-400 text-stone-900 animate-pulse'
-        : 'bg-stone-800 text-amber-400'
+        ? 'bg-[hsl(var(--primary))] text-stone-900 animate-pulse'
+        : 'bg-stone-800 text-[hsl(var(--primary))]'
     }`}>
       <Flame className="w-4 h-4" />
       <span>{displayStreak}-day streak</span>

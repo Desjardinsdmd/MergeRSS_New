@@ -41,7 +41,7 @@ export default function InboxFolderSidebar({ folders, tags, selectedFolder, sele
             className={cn(
               'w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
               selectedFolder === name && !selectedTag
-                ? 'bg-stone-800 text-amber-400'
+                ? 'bg-stone-800 text-[hsl(var(--primary))]'
                 : 'text-stone-500 hover:bg-stone-800 hover:text-stone-200'
             )}
           >
@@ -50,7 +50,7 @@ export default function InboxFolderSidebar({ folders, tags, selectedFolder, sele
               {name}
             </span>
             {(unreadCounts?.[name] || 0) > 0 && (
-              <span className="text-xs bg-amber-400 text-stone-900 rounded-full px-1.5 py-0.5 leading-none font-medium">
+              <span className="text-xs bg-[hsl(var(--primary))] text-stone-900 rounded-full px-1.5 py-0.5 leading-none font-medium">
                 {unreadCounts[name]}
               </span>
             )}
@@ -62,7 +62,7 @@ export default function InboxFolderSidebar({ folders, tags, selectedFolder, sele
       <div className="mb-2">
         <div className="flex items-center justify-between px-2 mb-1">
           <p className="text-[10px] font-semibold text-stone-600 uppercase tracking-widest">My Folders</p>
-          <button onClick={() => setShowNewFolder(true)} className="text-stone-600 hover:text-amber-400 transition">
+          <button onClick={() => setShowNewFolder(true)} className="text-stone-600 hover:text-[hsl(var(--primary))] transition">
             <Plus className="w-3 h-3" />
           </button>
         </div>
@@ -89,7 +89,7 @@ export default function InboxFolderSidebar({ folders, tags, selectedFolder, sele
             className={cn(
               'w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors group',
               selectedFolder === folder && !selectedTag
-                ? 'bg-stone-800 text-amber-400'
+                ? 'bg-stone-800 text-[hsl(var(--primary))]'
                 : 'text-stone-500 hover:bg-stone-800 hover:text-stone-200'
             )}
           >
@@ -99,7 +99,7 @@ export default function InboxFolderSidebar({ folders, tags, selectedFolder, sele
             </span>
             <span className="flex items-center gap-1">
               {(unreadCounts?.[folder] || 0) > 0 && (
-                <span className="text-xs bg-amber-400 text-stone-900 rounded-full px-1.5 py-0.5 leading-none font-medium">
+                <span className="text-xs bg-[hsl(var(--primary))] text-stone-900 rounded-full px-1.5 py-0.5 leading-none font-medium">
                   {unreadCounts[folder]}
                 </span>
               )}
@@ -118,7 +118,7 @@ export default function InboxFolderSidebar({ folders, tags, selectedFolder, sele
       <div>
         <div className="flex items-center justify-between px-2 mb-1">
           <p className="text-[10px] font-semibold text-stone-600 uppercase tracking-widest">Tags</p>
-          <button onClick={() => setShowNewTag(true)} className="text-stone-600 hover:text-amber-400 transition">
+          <button onClick={() => setShowNewTag(true)} className="text-stone-600 hover:text-[hsl(var(--primary))] transition">
             <Plus className="w-3 h-3" />
           </button>
         </div>
@@ -145,7 +145,7 @@ export default function InboxFolderSidebar({ folders, tags, selectedFolder, sele
             className={cn(
               'w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors group',
               selectedTag === tag
-                ? 'bg-stone-800 text-amber-400'
+                ? 'bg-stone-800 text-[hsl(var(--primary))]'
                 : 'text-stone-500 hover:bg-stone-800 hover:text-stone-200'
             )}
           >

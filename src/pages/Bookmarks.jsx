@@ -9,14 +9,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import ArticleSummarizeButton from '@/components/feeds/ArticleSummarizeButton';
 
 const categoryColors = {
-  CRE: 'bg-orange-100 text-orange-700',
-  Markets: 'bg-blue-100 text-blue-700',
-  Tech: 'bg-purple-100 text-purple-700',
-  News: 'bg-slate-100 text-slate-700',
-  Finance: 'bg-green-100 text-green-700',
-  Crypto: 'bg-yellow-100 text-yellow-700',
-  AI: 'bg-indigo-100 text-indigo-700',
-  Other: 'bg-gray-100 text-gray-700',
+  CRE: 'bg-stone-800 text-[hsl(var(--primary))]',
+  Markets: 'bg-stone-800 text-[hsl(var(--primary))]',
+  Tech: 'bg-stone-800 text-[hsl(var(--primary))]',
+  News: 'bg-stone-800 text-[hsl(var(--primary))]',
+  Finance: 'bg-stone-800 text-[hsl(var(--primary))]',
+  Crypto: 'bg-stone-800 text-[hsl(var(--primary))]',
+  AI: 'bg-stone-800 text-[hsl(var(--primary))]',
+  Other: 'bg-stone-800 text-stone-400',
 };
 
 export default function Bookmarks() {
@@ -50,7 +50,7 @@ export default function Bookmarks() {
     <div className="p-6 lg:p-8 max-w-3xl mx-auto">
       <div className="mb-8 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-amber-400 rounded-xl flex items-center justify-center">
+          <div className="w-10 h-10 bg-[hsl(var(--primary))] rounded-xl flex items-center justify-center">
             <Bookmark className="w-5 h-5 text-stone-900" />
           </div>
           <div>
@@ -68,7 +68,7 @@ export default function Bookmarks() {
             onClick={() => setFilter(f)}
             className={`text-sm px-4 py-1.5 rounded-full font-medium capitalize transition-colors ${
               filter === f
-                ? 'bg-amber-400 text-stone-900'
+                ? 'bg-[hsl(var(--primary))] text-stone-900'
                 : 'bg-stone-800 text-stone-400 hover:bg-stone-700'
             }`}
           >

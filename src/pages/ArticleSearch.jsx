@@ -126,11 +126,11 @@ export default function ArticleSearch() {
         <Button
           variant="outline"
           onClick={() => setShowFilters(v => !v)}
-          className={showFilters ? 'border-amber-400 text-amber-400' : 'border-stone-700 text-stone-400'}
+          className={showFilters ? 'border-[hsl(var(--primary))] text-[hsl(var(--primary))]' : 'border-stone-700 text-stone-400'}
         >
           <Filter className="w-4 h-4 mr-1.5" />
           Filters
-          {hasFilters && !keyword && <span className="ml-1 w-2 h-2 rounded-full bg-amber-400 inline-block" />}
+          {hasFilters && !keyword && <span className="ml-1 w-2 h-2 rounded-full bg-[hsl(var(--primary))] inline-block" />}
         </Button>
         {hasFilters && (
            <Button variant="ghost" onClick={clearAll} className="text-stone-500 hover:text-stone-400">

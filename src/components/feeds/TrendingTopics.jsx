@@ -5,14 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
 const categoryColors = {
-  CRE: 'bg-stone-800 text-amber-400',
-  Markets: 'bg-stone-800 text-amber-400',
-  Tech: 'bg-stone-800 text-amber-400',
-  News: 'bg-stone-800 text-amber-400',
-  Finance: 'bg-stone-800 text-amber-400',
-  Crypto: 'bg-stone-800 text-amber-400',
-  AI: 'bg-stone-800 text-amber-400',
-  Other: 'bg-stone-800 text-amber-400',
+  CRE: 'bg-stone-800 text-[hsl(var(--primary))]',
+  Markets: 'bg-stone-800 text-[hsl(var(--primary))]',
+  Tech: 'bg-stone-800 text-[hsl(var(--primary))]',
+  News: 'bg-stone-800 text-[hsl(var(--primary))]',
+  Finance: 'bg-stone-800 text-[hsl(var(--primary))]',
+  Crypto: 'bg-stone-800 text-[hsl(var(--primary))]',
+  AI: 'bg-stone-800 text-[hsl(var(--primary))]',
+  Other: 'bg-stone-800 text-[hsl(var(--primary))]',
 };
 
 export default function TrendingTopics() {
@@ -39,13 +39,13 @@ export default function TrendingTopics() {
     return (
       <div className="text-center py-16">
         <div className="w-16 h-16 bg-stone-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <TrendingUp className="w-8 h-8 text-amber-400" />
+          <TrendingUp className="w-8 h-8 text-[hsl(var(--primary))]" />
         </div>
         <h3 className="font-semibold text-stone-200 mb-1">Discover trending topics</h3>
         <p className="text-stone-500 text-sm max-w-xs mx-auto mb-6">
           AI will analyze the last 48 hours of your feeds and surface what's trending right now.
         </p>
-        <Button onClick={load} className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-semibold">
+        <Button onClick={load} className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold">
           {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <TrendingUp className="w-4 h-4 mr-2" />}
           Analyze Trending Topics
         </Button>
@@ -66,7 +66,7 @@ export default function TrendingTopics() {
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-16">
-          <Loader2 className="w-8 h-8 text-amber-400 animate-spin mb-3" />
+          <Loader2 className="w-8 h-8 text-[hsl(var(--primary))] animate-spin mb-3" />
           <p className="text-stone-500 text-sm">Analyzing your feeds for trends...</p>
         </div>
       ) : topics.length === 0 ? (

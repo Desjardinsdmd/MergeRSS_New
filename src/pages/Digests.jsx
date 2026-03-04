@@ -120,7 +120,7 @@ export default function Digests() {
         onClick={() => setShowWizard(true)}
         disabled={!canAddMore}
         title={!canAddMore ? 'Upgrade to Premium to create more digests' : ''}
-        className="bg-amber-400 hover:bg-amber-300 text-stone-900 rounded-lg disabled:opacity-60 font-bold"
+        className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 rounded-lg disabled:opacity-60 font-bold"
         >
         <Plus className="w-4 h-4 mr-2" />
         Create Digest
@@ -134,7 +134,7 @@ export default function Digests() {
             You've reached the 1-digest limit on the Free plan. Upgrade to Premium for unlimited digests.
           </p>
           <Link to={createPageUrl('Pricing')}>
-            <Button size="sm" className="bg-amber-400 hover:bg-amber-300 text-stone-900 rounded-lg whitespace-nowrap font-bold">
+            <Button size="sm" className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 rounded-lg whitespace-nowrap font-bold">
               Upgrade
             </Button>
           </Link>
@@ -180,7 +180,7 @@ export default function Digests() {
           <p className="text-stone-500 mb-4">
             Create your first digest to start receiving curated content
           </p>
-          <Button onClick={() => setShowWizard(true)} className="bg-amber-400 hover:bg-amber-300 text-stone-900 rounded-lg font-bold">
+          <Button onClick={() => setShowWizard(true)} className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 rounded-lg font-bold">
             <Plus className="w-4 h-4 mr-2" />
             Create Digest
           </Button>

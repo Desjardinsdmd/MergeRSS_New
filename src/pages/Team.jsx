@@ -26,13 +26,13 @@ const ROLE_META = {
 admin: {
   label: 'Admin',
   icon: Crown,
-  color: 'bg-amber-900/30 text-amber-400 border-amber-700',
+  color: 'bg-[hsl(var(--primary))]/20 text-[hsl(var(--primary))] border-[hsl(var(--primary))]/50',
   description: 'Full access: manage feeds, digests, team, and settings',
 },
 editor: {
   label: 'Editor',
   icon: Edit3,
-  color: 'bg-stone-800 text-amber-400 border-stone-700',
+  color: 'bg-stone-800 text-[hsl(var(--primary))] border-stone-700',
   description: 'Can add/edit feeds and digests, cannot manage team',
 },
 viewer: {
@@ -121,7 +121,7 @@ export default function Team() {
         {isAdmin && (
           <Button
             onClick={() => setShowInvite(true)}
-            className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-semibold rounded-lg"
+            className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold rounded-lg"
           >
             <Plus className="w-4 h-4 mr-2" />
             Invite Member
@@ -157,12 +157,12 @@ export default function Team() {
         <CardContent className="p-0">
           {isLoading ? (
             <div className="flex items-center justify-center py-10">
-              <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+              <Loader2 className="w-5 h-5 animate-spin text-stone-400" />
             </div>
           ) : members.length === 0 ? (
             <div className="text-center py-12 px-6">
-              <Users className="w-10 h-10 text-slate-200 mx-auto mb-3" />
-              <p className="text-slate-500 text-sm">No team members yet.</p>
+              <Users className="w-10 h-10 text-stone-600 mx-auto mb-3" />
+              <p className="text-stone-500 text-sm">No team members yet.</p>
               {isAdmin && (
                 <Button
                   onClick={() => setShowInvite(true)}
@@ -179,7 +179,7 @@ export default function Team() {
               {/* Current user row */}
               <div className="flex items-start sm:items-center justify-between px-4 sm:px-6 py-3.5 gap-2">
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 flex-shrink-0 bg-amber-900/30 rounded-full flex items-center justify-center text-xs font-bold text-amber-400">
+                    <div className="w-8 h-8 flex-shrink-0 bg-[hsl(var(--primary))]/20 rounded-full flex items-center justify-center text-xs font-bold text-[hsl(var(--primary))]">
                     {user?.full_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase()}
                   </div>
                   <div>
@@ -210,7 +210,7 @@ export default function Team() {
                   <div className="flex items-center gap-2">
                     <RoleBadge role={member.role} />
                     {member.status === 'pending' && (
-                    <Badge variant="outline" className="text-xs text-amber-400 border-amber-700">Pending</Badge>
+                    <Badge variant="outline" className="text-xs text-[hsl(var(--primary))] border-[hsl(var(--primary))]/50">Pending</Badge>
                     )}
                     {isAdmin && (
                       <DropdownMenu>
@@ -291,7 +291,7 @@ export default function Team() {
             <Button
               onClick={handleInvite}
               disabled={!inviteEmail.trim() || inviting}
-              className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-semibold rounded-lg"
+              className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold rounded-lg"
             >
               {inviting ? <Loader2 className="w-4 h-4 animate-spin" /> : (
                 <><Mail className="w-4 h-4 mr-2" />Send Invite</>

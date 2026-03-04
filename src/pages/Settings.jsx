@@ -126,7 +126,7 @@ export default function Settings() {
         <Card className="border-stone-800 bg-stone-900">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-lg text-stone-100">
-              <User className="w-5 h-5 text-amber-400" />
+              <User className="w-5 h-5 text-[hsl(var(--primary))]" />
               Profile
             </CardTitle>
             {!editingProfile && (
@@ -180,7 +180,7 @@ export default function Settings() {
         <Card className="border-stone-800 bg-stone-900">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg text-stone-100">
-              <Globe className="w-5 h-5 text-amber-400" />
+              <Globe className="w-5 h-5 text-[hsl(var(--primary))]" />
               Preferences
             </CardTitle>
           </CardHeader>
@@ -244,7 +244,7 @@ export default function Settings() {
         <Card className="border-stone-800 bg-stone-900">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg text-stone-100">
-              <CreditCard className="w-5 h-5 text-amber-400" />
+              <CreditCard className="w-5 h-5 text-[hsl(var(--primary))]" />
               Subscription
             </CardTitle>
           </CardHeader>
@@ -254,7 +254,7 @@ export default function Settings() {
                 <div className={`w-10 h-10 flex-shrink-0 flex items-center justify-center ${
                   isPremium ? 'bg-amber-400' : 'bg-stone-800'
                 }`}>
-                  <Crown className={`w-5 h-5 ${isPremium ? 'text-stone-900' : 'text-stone-600'}`} />
+                  <Crown className={`w-5 h-5 ${isPremium ? 'text-stone-900' : 'text-stone-500'}`} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
@@ -262,7 +262,7 @@ export default function Settings() {
                       {isPremium ? 'Premium' : 'Free'} Plan
                     </p>
                     {isPremium && (
-                      <Badge className="bg-amber-400 text-stone-900 font-semibold">Active</Badge>
+                      <Badge className="bg-[hsl(var(--primary))] text-stone-900 font-semibold">Active</Badge>
                     )}
                   </div>
                   <p className="text-sm text-stone-500">
@@ -288,7 +288,7 @@ export default function Settings() {
                 </Button>
               ) : (
                 <Link to={createPageUrl('Pricing')} className="w-full sm:w-auto">
-                  <Button className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-semibold rounded-lg w-full sm:w-auto">
+                  <Button className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold rounded-lg w-full sm:w-auto">
                     Upgrade
                   </Button>
                 </Link>
@@ -301,7 +301,7 @@ export default function Settings() {
         <Card className="border-stone-800 bg-stone-900">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg text-stone-100">
-              <PlayCircle className="w-5 h-5 text-amber-400" />
+              <PlayCircle className="w-5 h-5 text-[hsl(var(--primary))]" />
               Help & Onboarding
             </CardTitle>
           </CardHeader>
@@ -338,7 +338,7 @@ export default function Settings() {
           <Button 
             onClick={handleSave} 
             disabled={loading || !editingProfile}
-            className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-semibold rounded-lg"
+            className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold rounded-lg"
           >
             {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
             Save Changes

@@ -85,29 +85,29 @@ export default function AdminHealth() {
       value: activeFeeds,
       total: feeds.length,
       icon: Rss,
-      color: 'text-violet-600',
-      bg: 'bg-violet-100',
+      color: 'text-[hsl(var(--primary))]',
+      bg: 'bg-[hsl(var(--primary))]/20',
     },
     {
       name: 'Jobs Completed',
       value: completedJobs,
       icon: CheckCircle,
-      color: 'text-green-600',
-      bg: 'bg-green-100',
+      color: 'text-green-400',
+      bg: 'bg-green-900/30',
     },
     {
       name: 'Jobs Failed',
       value: failedJobs,
       icon: XCircle,
-      color: 'text-red-600',
-      bg: 'bg-red-100',
+      color: 'text-red-400',
+      bg: 'bg-red-900/30',
     },
     {
       name: 'Running Now',
       value: runningJobs,
       icon: Activity,
-      color: 'text-blue-600',
-      bg: 'bg-blue-100',
+      color: 'text-blue-400',
+      bg: 'bg-blue-900/30',
     },
   ];
 
@@ -359,17 +359,17 @@ export default function AdminHealth() {
                               {job.status}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-sm text-slate-500">
-                            {job.started_at 
-                              ? format(new Date(job.started_at), 'MMM d, h:mm:ss a')
-                              : '-'
-                            }
+                          <TableCell className="text-sm text-stone-500">
+                           {job.started_at 
+                             ? format(new Date(job.started_at), 'MMM d, h:mm:ss a')
+                             : '-'
+                           }
                           </TableCell>
-                          <TableCell className="text-sm text-slate-500">
-                            {job.completed_at 
-                              ? format(new Date(job.completed_at), 'MMM d, h:mm:ss a')
-                              : '-'
-                            }
+                          <TableCell className="text-sm text-stone-500">
+                           {job.completed_at 
+                             ? format(new Date(job.completed_at), 'MMM d, h:mm:ss a')
+                             : '-'
+                           }
                           </TableCell>
                           <TableCell>{job.retry_count || 0}</TableCell>
                           <TableCell className="text-sm text-red-400 max-w-[200px] truncate">

@@ -20,14 +20,14 @@ import { cn } from '@/lib/utils';
 const CATEGORIES = ['All', 'CRE', 'Markets', 'Tech', 'News', 'Finance', 'Crypto', 'AI', 'Other'];
 
 const categoryColors = {
-  CRE: 'bg-blue-100 text-blue-700',
-  Markets: 'bg-green-100 text-green-700',
-  Tech: 'bg-purple-100 text-purple-700',
-  News: 'bg-orange-100 text-orange-700',
-  Finance: 'bg-emerald-100 text-emerald-700',
-  Crypto: 'bg-yellow-100 text-yellow-700',
-  AI: 'bg-pink-100 text-pink-700',
-  Other: 'bg-slate-100 text-slate-700',
+  CRE: 'bg-stone-800 text-[hsl(var(--primary))]',
+  Markets: 'bg-stone-800 text-[hsl(var(--primary))]',
+  Tech: 'bg-stone-800 text-[hsl(var(--primary))]',
+  News: 'bg-stone-800 text-[hsl(var(--primary))]',
+  Finance: 'bg-stone-800 text-[hsl(var(--primary))]',
+  Crypto: 'bg-stone-800 text-[hsl(var(--primary))]',
+  AI: 'bg-stone-800 text-[hsl(var(--primary))]',
+  Other: 'bg-stone-800 text-stone-400',
 };
 
 function VoteButtons({ item, itemType, user, votes, onVote }) {
@@ -42,8 +42,8 @@ function VoteButtons({ item, itemType, user, votes, onVote }) {
         className={cn(
           'p-1 rounded transition',
           myVote?.vote === 'up'
-            ? 'text-indigo-600'
-            : 'text-slate-300 hover:text-indigo-500',
+            ? 'text-[hsl(var(--primary))]'
+            : 'text-stone-400 hover:text-[hsl(var(--primary))]',
           !user && 'opacity-40 cursor-not-allowed'
         )}
         title={user ? 'Upvote' : 'Sign in to vote'}
@@ -52,7 +52,7 @@ function VoteButtons({ item, itemType, user, votes, onVote }) {
       </button>
       <span className={cn(
         'text-xs font-bold leading-none',
-        score > 0 ? 'text-indigo-600' : score < 0 ? 'text-red-500' : 'text-slate-400'
+        score > 0 ? 'text-[hsl(var(--primary))]' : score < 0 ? 'text-red-500' : 'text-stone-400'
       )}>
         {score}
       </span>
@@ -63,7 +63,7 @@ function VoteButtons({ item, itemType, user, votes, onVote }) {
           'p-1 rounded transition',
           myVote?.vote === 'down'
             ? 'text-red-500'
-            : 'text-slate-300 hover:text-red-400',
+            : 'text-stone-400 hover:text-red-400',
           !user && 'opacity-40 cursor-not-allowed'
         )}
         title={user ? 'Downvote' : 'Sign in to vote'}
@@ -125,7 +125,7 @@ function DirectoryCard({ item, itemType, user, votes, onVote, onAdd, addedItems,
               size="sm"
               onClick={handleAddClick}
               disabled={!user || adding}
-              className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-semibold rounded-lg text-xs h-7 px-2.5 flex-shrink-0"
+              className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold rounded-lg text-xs h-7 px-2.5 flex-shrink-0"
               title={user ? undefined : 'Sign in to add'}
             >
               {adding ? (
@@ -402,7 +402,7 @@ export default function Directory() {
        {/* Hero */}
        <div className="bg-[#0d0a06] border-b border-stone-800">
          <div className="max-w-4xl mx-auto px-4 py-12 text-center">
-           <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-400/20 rounded-full text-xs text-amber-400 font-medium mb-4">
+           <div className="inline-flex items-center gap-2 px-3 py-1 bg-[hsl(var(--primary))]/20 rounded-full text-xs text-[hsl(var(--primary))] font-medium mb-4">
              <Globe className="w-3.5 h-3.5" />
              Public Directory
            </div>
@@ -448,7 +448,7 @@ export default function Directory() {
               className={cn(
                 'px-3 py-1 rounded-full text-xs font-medium transition',
                 category === cat
-                  ? 'bg-amber-400 text-stone-900'
+                  ? 'bg-[hsl(var(--primary))] text-stone-900'
                   : 'bg-stone-900 border border-stone-800 text-stone-400 hover:border-stone-700 hover:text-stone-300'
               )}
             >
@@ -471,7 +471,7 @@ export default function Directory() {
               size="sm"
               variant="outline"
               onClick={handleDeselectAll}
-              className="text-xs h-8 text-slate-500"
+              className="text-xs h-8 text-stone-400"
             >
               Deselect All
             </Button>
@@ -501,7 +501,7 @@ export default function Directory() {
                 size="sm"
                 onClick={handleBulkAdd}
                 disabled={bulkAdding}
-                className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-semibold text-xs"
+                className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold text-xs"
               >
                 {bulkAdding ? (
                   <>

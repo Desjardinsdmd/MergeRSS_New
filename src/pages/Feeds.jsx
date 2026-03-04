@@ -177,7 +177,7 @@ export default function Feeds() {
             onClick={() => canAddMore ? setShowAddDialog(true) : null}
             disabled={!canAddMore}
             title={!canAddMore ? 'Upgrade to Premium to add more feeds' : ''}
-            className="bg-amber-400 hover:bg-amber-300 text-stone-900 rounded-lg disabled:opacity-60 font-bold"
+            className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 rounded-lg disabled:opacity-60 font-bold"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add Feed
@@ -192,7 +192,7 @@ export default function Feeds() {
             You've reached the 5-feed limit on the Free plan. Upgrade to Premium for unlimited feeds.
           </p>
           <Link to={createPageUrl('Pricing')}>
-            <Button size="sm" className="bg-amber-400 hover:bg-amber-300 text-stone-900 rounded-lg whitespace-nowrap font-bold">
+            <Button size="sm" className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 rounded-lg whitespace-nowrap font-bold">
               Upgrade
             </Button>
           </Link>
@@ -269,7 +269,7 @@ export default function Feeds() {
             }
           </p>
           {feeds.length === 0 && (
-            <Button onClick={() => setShowAddDialog(true)} className="bg-amber-400 hover:bg-amber-300 text-stone-900 rounded-lg font-bold">
+            <Button onClick={() => setShowAddDialog(true)} className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 rounded-lg font-bold">
               <Plus className="w-4 h-4 mr-2" />
               Add Feed
             </Button>
