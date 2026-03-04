@@ -40,11 +40,14 @@ function extractMeta(html, pageUrl) {
     };
 }
 
+const ARTICLE_URL_RE = /\/(article|post|blog|news|story|newsletter|\d{4}\/\d{2})\//i;
+
 function extractItems(html, baseUrl, itemLimit = 25) {
     const base = new URL(baseUrl);
     const items = [], seen = new Set();
     const limit = Math.min(Number(itemLimit) || 25, 100);
 
+    // Strategy 1: Semantic <article> blocks
     const articleRe = /<article[^>]*>([\s\S]*?)<\/article>/gi;
     let am;
     while ((am = articleRe.exec(html)) !== null && items.length < limit) {
@@ -66,10 +69,47 @@ function extractItems(html, baseUrl, itemLimit = 25) {
         items.push({ title, url: href, description: '', pubDate });
     }
 
+    // Strategy 2: Heading-wrapped links (e.g. <h1><a href="...">title</a></h1>)
+    if (items.length < 5) {
+        const headingRe = /<h[123][^>]*>\s*(<a[^>]+href=["']([^"'#][^"']*?)["'][^>]*>([\s\S]*?)<\/a>)\s*<\/h[123]>/gi;
+        let hm;
+        while ((hm = headingRe.exec(html)) !== null && items.length < limit) {
+            let href = hm[2].trim();
+            const rawTitle = decodeHtml(hm[3]);
+            if (!rawTitle || rawTitle.length < 8) continue;
+            try {
+                href = new URL(href, base).href;
+                if (new URL(href).hostname !== base.hostname) continue;
+            } catch { continue; }
+            if (seen.has(href)) continue;
+            seen.add(href);
+            // Look for date near the heading
+            const surroundStart = Math.max(0, hm.index - 200);
+            const surroundEnd = Math.min(html.length, hm.index + hm[0].length + 400);
+            const surround = html.slice(surroundStart, surroundEnd);
+            const dateM = surround.match(/\b(\d{2}\/\d{2}\/\d{4}|\d{4}-\d{2}-\d{2}|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* \d{1,2},? \d{4})\b/i);
+            let pubDate = '';
+            if (dateM) {
+                // Handle MM/DD/YYYY format specifically
+                const raw = dateM[1];
+                if (/^\d{2}\/\d{2}\/\d{4}$/.test(raw)) {
+                    const [mm, dd, yyyy] = raw.split('/');
+                    try { pubDate = new Date(`${yyyy}-${mm}-${dd}`).toUTCString(); } catch {}
+                } else {
+                    try { pubDate = new Date(raw).toUTCString(); } catch {}
+                }
+                if (pubDate === 'Invalid Date') pubDate = '';
+            }
+            items.push({ title: rawTitle.slice(0, 200), url: href, description: '', pubDate });
+        }
+    }
+
+    // Strategy 3: Scored link extraction
     if (items.length < 5) {
         const linkRe = /<a\s[^>]*href=["']([^"'#?][^"']*?)["'][^>]*>([\s\S]*?)<\/a>/gi;
         let lm;
-        while ((lm = linkRe.exec(html)) !== null && items.length < limit) {
+        const candidates = [];
+        while ((lm = linkRe.exec(html)) !== null && candidates.length < 400) {
             let href = lm[1].trim();
             const text = decodeHtml(lm[2]);
             if (!text || text.length < 15 || text.length > 280) continue;
@@ -77,9 +117,14 @@ function extractItems(html, baseUrl, itemLimit = 25) {
                 const abs = new URL(href, base).href;
                 if (new URL(abs).hostname !== base.hostname || seen.has(abs)) continue;
                 seen.add(abs);
-                items.push({ title: text.slice(0, 200), url: abs, description: '', pubDate: '' });
+                const isArticle = ARTICLE_URL_RE.test(abs);
+                const wordCount = text.split(/\s+/).length;
+                const score = (isArticle ? 3 : 0) + (wordCount > 5 ? 1 : 0);
+                candidates.push({ title: text.slice(0, 200), url: abs, description: '', pubDate: '', score });
             } catch {}
         }
+        candidates.sort((a, b) => b.score - a.score);
+        items.push(...candidates.slice(0, limit - items.length).map(({ score, ...rest }) => rest));
     }
     return items.slice(0, limit);
 }
