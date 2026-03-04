@@ -100,10 +100,27 @@ export default function Dashboard() {
   const feedIds = feeds.map(f => f.id);
 
   const { data: feedItems = [] } = useQuery({
-    queryKey: ['feedItems', feedIds.join(',')],
+    queryKey: ['feedItems', feedIds.join(','), feeds.map(f=>f.category).join(',')],
     queryFn: async () => {
       if (!feedIds.length) return [];
-      return base44.entities.FeedItem.filter({ feed_id: { $in: feedIds } }, '-published_date', 50);
+      // Group feed IDs by category for balanced fetching
+      const catMap = {};
+      feeds.forEach(f => {
+        if (!catMap[f.category]) catMap[f.category] = [];
+        catMap[f.category].push(f.id);
+      });
+      const cats = Object.keys(catMap);
+      const perCatLimit = Math.max(5, Math.ceil(50 / cats.length));
+      const results = await Promise.all(
+        cats.map(cat =>
+          base44.entities.FeedItem.filter({ feed_id: { $in: catMap[cat] } }, '-published_date', perCatLimit)
+        )
+      );
+      // Merge, dedupe, sort by date
+      const seen = new Set();
+      return results.flat()
+        .filter(item => { if (seen.has(item.id)) return false; seen.add(item.id); return true; })
+        .sort((a, b) => new Date(b.published_date) - new Date(a.published_date));
     },
     enabled: !!user && feedIds.length > 0,
   });
