@@ -180,7 +180,7 @@ function discoverFeedUrls(html, pageUrl) {
 // ============================================================
 // HTML Item Extraction
 // ============================================================
-const ARTICLE_URL_RE = /\/(article|post|blog|news|story|\d{4}\/\d{2})\//i;
+const ARTICLE_URL_RE = /\/(article|post|blog|news|story|newsletter|\d{4}\/\d{2})\//i;
 
 function extractItems(html, baseUrl, itemLimit = 25) {
     const base = new URL(baseUrl);
@@ -225,7 +225,37 @@ function extractItems(html, baseUrl, itemLimit = 25) {
         items.push({ title, url: href, description, pubDate, author });
     }
 
-    // --- Strategy 2: Scored link extraction ---
+    // --- Strategy 2: Heading-wrapped links (e.g. <h1><a href="...">title</a></h1>) ---
+    // Great for newsletter/archive index pages like RENX
+    if (items.length < 5) {
+        const headingRe = /<h[123][^>]*>\s*(<a[^>]+href=["']([^"'#][^"']*?)["'][^>]*>([\s\S]*?)<\/a>)\s*<\/h[123]>/gi;
+        let hm;
+        while ((hm = headingRe.exec(html)) !== null && items.length < limit) {
+            let href = hm[2].trim();
+            const rawTitle = decodeHtml(hm[3]);
+            if (!rawTitle || rawTitle.length < 8) continue;
+            try {
+                href = new URL(href, base).href;
+                if (new URL(href).hostname !== base.hostname) continue;
+            } catch { continue; }
+            if (seen.has(href)) continue;
+            seen.add(href);
+
+            // Look for a sibling <strong>Published:...</strong> or date-like text near this heading
+            const surroundStart = Math.max(0, hm.index - 200);
+            const surroundEnd = Math.min(html.length, hm.index + hm[0].length + 400);
+            const surround = html.slice(surroundStart, surroundEnd);
+            const dateM = surround.match(/\b(\d{2}\/\d{2}\/\d{4}|\d{4}-\d{2}-\d{2}|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* \d{1,2},? \d{4})\b/i);
+            let pubDate = '';
+            if (dateM) {
+                try { pubDate = new Date(dateM[1]).toUTCString(); } catch {}
+            }
+
+            items.push({ title: rawTitle.slice(0, 200), url: href, description: '', pubDate, author: '' });
+        }
+    }
+
+    // --- Strategy 3: Scored link extraction ---
     if (items.length < 5) {
         const linkRe = /<a\s[^>]*href=["']([^"'#?][^"']*?)["'][^>]*>([\s\S]*?)<\/a>/gi;
         let lm;
