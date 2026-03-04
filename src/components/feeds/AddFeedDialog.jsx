@@ -143,7 +143,7 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
           )}
 
           <div>
-            <Label htmlFor="name">Feed Name <span className="text-amber-400" aria-hidden="true">*</span></Label>
+            <Label htmlFor="name">Feed Name <span className="text-[hsl(var(--primary))]" aria-hidden="true">*</span></Label>
             <Input
               id="name"
               value={formData.name}
@@ -158,7 +158,7 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
           </div>
 
           <div>
-            <Label htmlFor="url">RSS URL <span className="text-amber-400" aria-hidden="true">*</span></Label>
+            <Label htmlFor="url">RSS URL <span className="text-[hsl(var(--primary))]" aria-hidden="true">*</span></Label>
             <Input
               id="url"
               type="url"
@@ -239,7 +239,7 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
             <div className="border border-stone-800 rounded-xl p-4 space-y-3 bg-stone-800">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Globe className="w-4 h-4 text-amber-400" />
+                  <Globe className="w-4 h-4 text-[hsl(var(--primary))]" />
                   <div>
                     <p className="text-sm font-medium text-stone-200">Share to Public Directory</p>
                     <p className="text-xs text-stone-500">
@@ -273,7 +273,7 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading} className="bg-amber-400 hover:bg-amber-300 text-stone-900 rounded-sm">
+            <Button type="submit" disabled={loading} className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 rounded-sm">
               {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               {editFeed ? 'Save Changes' : 'Add Feed'}
             </Button>

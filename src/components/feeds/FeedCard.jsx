@@ -50,7 +50,7 @@ export default function FeedCard({ feed, onEdit, onDelete, onToggleStatus }) {
           )}>
             <Rss className={cn(
               "w-5 h-5",
-              feed.status === 'error' ? "text-red-400" : "text-amber-400"
+              feed.status === 'error' ? "text-red-400" : "text-[hsl(var(--primary))]"
             )} />
           </div>
           
@@ -64,7 +64,7 @@ export default function FeedCard({ feed, onEdit, onDelete, onToggleStatus }) {
                   href={feed.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-stone-500 hover:text-amber-400 truncate block"
+                  className="text-xs text-stone-500 hover:text-[hsl(var(--primary))] truncate block"
                 >
                   {feed.url}
                 </a>

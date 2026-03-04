@@ -24,7 +24,7 @@ function SwitchRow({ label, description, checked, onChange }) {
           checked={checked}
           onCheckedChange={onChange}
           aria-label={`${label}: ${checked ? 'on' : 'off'}`}
-          className={checked ? 'data-[state=checked]:bg-amber-400' : ''}
+          className={checked ? 'data-[state=checked]:bg-[hsl(var(--primary))]' : ''}
         />
       </div>
     </div>
@@ -46,7 +46,7 @@ export default function NotificationPreferences({ prefs, onChange }) {
     <Card className="border-stone-800 bg-stone-900">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg text-stone-200">
-          <Bell className="w-5 h-5 text-amber-400" />
+          <Bell className="w-5 h-5 text-[hsl(var(--primary))]" />
           Notification Preferences
         </CardTitle>
       </CardHeader>
@@ -90,7 +90,7 @@ export default function NotificationPreferences({ prefs, onChange }) {
                       checked={on}
                       onCheckedChange={v => setCategory(cat, v)}
                       aria-label={`${cat} notifications: ${on ? 'on' : 'off'}`}
-                      className={on ? 'data-[state=checked]:bg-amber-400' : ''}
+                      className={on ? 'data-[state=checked]:bg-[hsl(var(--primary))]' : ''}
                     />
                   </div>
                 </div>

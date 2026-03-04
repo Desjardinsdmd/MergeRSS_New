@@ -57,13 +57,13 @@ export default function RecommendedFeeds() {
     return (
       <div className="text-center py-16">
         <div className="w-16 h-16 bg-stone-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <Sparkles className="w-8 h-8 text-amber-400" />
+          <Sparkles className="w-8 h-8 text-[hsl(var(--primary))]" />
         </div>
         <h3 className="font-semibold text-stone-200 mb-1">Personalized feed recommendations</h3>
         <p className="text-stone-500 text-sm max-w-xs mx-auto mb-6">
           AI will analyze your current subscriptions and suggest feeds you'd likely enjoy.
         </p>
-        <Button onClick={load} className="bg-amber-400 hover:bg-amber-300 text-stone-900">
+        <Button onClick={load} className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900">
           {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Sparkles className="w-4 h-4 mr-2" />}
           Get Recommendations
         </Button>
@@ -82,7 +82,7 @@ export default function RecommendedFeeds() {
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-16">
-          <Loader2 className="w-8 h-8 text-amber-400 animate-spin mb-3" />
+          <Loader2 className="w-8 h-8 text-[hsl(var(--primary))] animate-spin mb-3" />
           <p className="text-stone-500 text-sm">Analyzing your interests...</p>
         </div>
       ) : recommendations.length === 0 ? (
@@ -90,9 +90,9 @@ export default function RecommendedFeeds() {
       ) : (
         <div className="grid gap-3">
           {recommendations.map((feed) => (
-            <div key={feed.id} className="bg-stone-900 border border-stone-800 rounded-xl p-5 hover:border-amber-400 hover:shadow-sm transition-all flex items-start gap-4">
+            <div key={feed.id} className="bg-stone-900 border border-stone-800 rounded-xl p-5 hover:border-[hsl(var(--primary))] hover:shadow-sm transition-all flex items-start gap-4">
               <div className="w-9 h-9 bg-stone-800 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Rss className="w-4 h-4 text-amber-400" />
+                <Rss className="w-4 h-4 text-[hsl(var(--primary))]" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
@@ -104,7 +104,7 @@ export default function RecommendedFeeds() {
                   )}
                 </div>
                 {feed.reason && (
-                  <p className="text-xs text-amber-400 font-medium mb-1">✦ {feed.reason}</p>
+                  <p className="text-xs text-[hsl(var(--primary))] font-medium mb-1">✦ {feed.reason}</p>
                 )}
                 {feed.description && (
                   <p className="text-xs text-stone-400 leading-relaxed line-clamp-2">{feed.description}</p>
@@ -118,7 +118,7 @@ export default function RecommendedFeeds() {
                 variant={added.has(feed.id) ? 'outline' : 'default'}
                 onClick={() => !added.has(feed.id) && handleAdd(feed)}
                 disabled={adding === feed.id || added.has(feed.id)}
-                className={`flex-shrink-0 rounded-lg text-xs ${added.has(feed.id) ? 'border-emerald-700 text-emerald-400' : 'bg-amber-400 hover:bg-amber-300 text-stone-900'}`}
+                className={`flex-shrink-0 rounded-lg text-xs ${added.has(feed.id) ? 'border-emerald-700 text-emerald-400' : 'bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900'}`}
               >
                 {adding === feed.id ? (
                   <Loader2 className="w-3 h-3 animate-spin" />

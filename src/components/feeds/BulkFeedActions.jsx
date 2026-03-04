@@ -161,7 +161,7 @@ export default function BulkFeedActions({ selectedIds, feeds, action: externalAc
           )}
 
           {action === 'directory' && (
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-stone-400">
               These feeds will be added to the public directory so other users can discover and add them.
             </p>
           )}
@@ -182,7 +182,7 @@ export default function BulkFeedActions({ selectedIds, feeds, action: externalAc
               handleCopyToDirectory
             }
             disabled={loading}
-            className="bg-indigo-600 hover:bg-indigo-700"
+            className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900"
           >
             {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
             {action === 'tag' && 'Add Tag'}

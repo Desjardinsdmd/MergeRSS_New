@@ -176,7 +176,7 @@ export default function DigestCard({ digest, onEdit, onDelete, onToggleStatus, o
                 disabled={isSending || ran}
                 className={cn(
                   'flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md transition-colors focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-stone-900',
-                  ran ? 'text-emerald-400 bg-emerald-950' : 'text-stone-900 bg-amber-400 hover:bg-amber-300',
+                  ran ? 'text-emerald-400 bg-emerald-950' : 'text-stone-900 bg-[hsl(var(--primary))] hover:opacity-90',
                   (isSending || ran) && 'opacity-60 cursor-not-allowed'
                 )}
                 aria-label={isSending ? 'Running digest' : ran ? 'Digest sent successfully' : 'Run digest now'}
@@ -189,7 +189,7 @@ export default function DigestCard({ digest, onEdit, onDelete, onToggleStatus, o
             {/* Toggle comments */}
             <button
               onClick={() => setShowComments(!showComments)}
-              className="flex items-center gap-1 mt-3 text-xs text-stone-500 hover:text-amber-400 transition focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-stone-900 rounded px-1"
+              className="flex items-center gap-1 mt-3 text-xs text-stone-500 hover:text-[hsl(var(--primary))] transition focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-stone-900 rounded px-1"
               aria-expanded={showComments}
               aria-label={`${showComments ? 'Hide' : 'Show'} discussion comments`}
             >

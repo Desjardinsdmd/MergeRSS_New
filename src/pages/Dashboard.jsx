@@ -243,7 +243,7 @@ export default function Dashboard() {
       {feeds.length === 0 && (
         <div className="mb-8 border border-dashed border-stone-800 bg-stone-900/50 p-8 text-center">
           <div className="w-12 h-12 bg-stone-800 flex items-center justify-center mx-auto mb-4">
-            <Rss className="w-6 h-6 text-amber-400" />
+            <Rss className="w-6 h-6 text-[hsl(var(--primary))]" />
           </div>
           <h3 className="text-lg font-semibold text-stone-100 mb-2">Add your first feed</h3>
           <p className="text-stone-500 mb-4 max-w-sm mx-auto">

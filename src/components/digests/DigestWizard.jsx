@@ -63,19 +63,19 @@ function StepIndicator({ currentStep }) {
             <div className="flex flex-col items-center gap-1.5">
               <div className={cn(
                 "w-9 h-9 flex items-center justify-center border-2 transition-all",
-                isCompleted ? "bg-amber-400 border-amber-400" : isActive ? "border-amber-400 bg-transparent" : "border-stone-700 bg-transparent"
+                isCompleted ? "bg-[hsl(var(--primary))] border-[hsl(var(--primary))]" : isActive ? "border-[hsl(var(--primary))] bg-transparent" : "border-stone-700 bg-transparent"
               )}>
                 {isCompleted
                   ? <Check className="w-4 h-4 text-stone-900" />
-                  : <Icon className={cn("w-4 h-4", isActive ? "text-amber-400" : "text-stone-600")} />
+                  : <Icon className={cn("w-4 h-4", isActive ? "text-[hsl(var(--primary))]" : "text-stone-600")} />
                 }
               </div>
-              <span className={cn("text-xs font-medium hidden sm:block", isActive ? "text-amber-400" : isCompleted ? "text-stone-400" : "text-stone-600")}>
+              <span className={cn("text-xs font-medium hidden sm:block", isActive ? "text-[hsl(var(--primary))]" : isCompleted ? "text-stone-400" : "text-stone-600")}>
                 {step.label}
               </span>
             </div>
             {idx < STEPS.length - 1 && (
-              <div className={cn("flex-1 h-px mx-2 mt-[-12px]", idx < stepIdx ? "bg-amber-400" : "bg-stone-800")} />
+              <div className={cn("flex-1 h-px mx-2 mt-[-12px]", idx < stepIdx ? "bg-[hsl(var(--primary))]" : "bg-stone-800")} />
             )}
           </React.Fragment>
         );
@@ -92,7 +92,7 @@ function StepBasics({ formData, setFormData }) {
         <p className="text-sm text-stone-500">Give it a descriptive name so you can identify it easily.</p>
       </div>
       <div>
-        <Label htmlFor="name" className="text-stone-300">Digest Name <span className="text-amber-400">*</span></Label>
+        <Label htmlFor="name" className="text-stone-300">Digest Name <span className="text-[hsl(var(--primary))]">*</span></Label>
         <Input
           id="name"
           value={formData.name}
@@ -128,11 +128,11 @@ function StepBasics({ formData, setFormData }) {
               className={cn(
                 "p-3 border text-left transition-all",
                 formData.output_length === opt.value
-                  ? "border-amber-400 bg-amber-400/10"
+                  ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10"
                   : "border-stone-700 hover:border-stone-600"
               )}
             >
-              <p className={cn("text-sm font-semibold", formData.output_length === opt.value ? "text-amber-400" : "text-stone-300")}>{opt.label}</p>
+              <p className={cn("text-sm font-semibold", formData.output_length === opt.value ? "text-[hsl(var(--primary))]" : "text-stone-300")}>{opt.label}</p>
               <p className="text-xs text-stone-500 mt-0.5">{opt.desc}</p>
             </button>
           ))}
@@ -175,7 +175,7 @@ function StepContent({ formData, setFormData, feeds }) {
               className={cn(
                 "px-3 py-1.5 text-sm font-medium border transition-all",
                 formData.categories.includes(cat)
-                  ? "border-amber-400 bg-amber-400/10 text-amber-400"
+                ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]"
                   : "border-stone-700 text-stone-400 hover:border-stone-500 hover:text-stone-300"
               )}
             >
@@ -228,7 +228,7 @@ function StepSchedule({ formData, setFormData }) {
               className={cn(
                 "p-3 border text-center capitalize transition-all",
                 formData.frequency === freq
-                  ? "border-amber-400 bg-amber-400/10 text-amber-400 font-semibold"
+                ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))] font-semibold"
                   : "border-stone-700 text-stone-400 hover:border-stone-600"
               )}
             >
@@ -279,7 +279,7 @@ function StepSchedule({ formData, setFormData }) {
                 className={cn(
                   "px-3 py-1.5 text-sm border transition-all",
                   formData.schedule_day_of_week === i
-                    ? "border-amber-400 bg-amber-400/10 text-amber-400 font-semibold"
+                    ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))] font-semibold"
                     : "border-stone-700 text-stone-400 hover:border-stone-600"
                 )}
               >
@@ -335,7 +335,7 @@ function StepDelivery({ formData, setFormData, isPremium, slackIntegration, disc
               className={cn(
                 "flex items-center gap-4 p-4 border rounded-none transition-all",
                 locked ? "opacity-50 cursor-not-allowed border-stone-800" :
-                checked ? "border-amber-400 bg-amber-400/5 cursor-pointer" : "border-stone-700 hover:border-stone-600 cursor-pointer"
+                checked ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/5 cursor-pointer" : "border-stone-700 hover:border-stone-600 cursor-pointer"
               )}
             >
               <Switch
@@ -346,7 +346,7 @@ function StepDelivery({ formData, setFormData, isPremium, slackIntegration, disc
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <p className="text-sm font-semibold text-stone-200">{label}</p>
-                  {locked && <Badge variant="outline" className="text-xs gap-1 border-amber-400/50 text-amber-400"><Crown className="w-3 h-3" /> Premium</Badge>}
+                  {locked && <Badge variant="outline" className="text-xs gap-1 border-[hsl(var(--primary))]/50 text-[hsl(var(--primary))]"><Crown className="w-3 h-3" /> Premium</Badge>}
                 </div>
                 <p className="text-xs text-stone-500 mt-0.5">{desc}</p>
               </div>
@@ -377,7 +377,7 @@ function StepDelivery({ formData, setFormData, isPremium, slackIntegration, disc
       <div className="border border-stone-800 rounded-none p-4 mt-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Globe className="w-4 h-4 text-amber-400" />
+            <Globe className="w-4 h-4 text-[hsl(var(--primary))]" />
             <div>
               <p className="text-sm font-semibold text-stone-200">Share to Public Directory</p>
               <p className="text-xs text-stone-500">Let others discover and add this digest</p>
@@ -528,7 +528,7 @@ export default function DigestWizard({ open, onOpenChange, onSuccess }) {
                 <Button
                   onClick={handleSubmit}
                   disabled={loading}
-                  className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-bold px-6"
+                  className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-bold px-6"
                 >
                   {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   Create Digest
@@ -537,7 +537,7 @@ export default function DigestWizard({ open, onOpenChange, onSuccess }) {
                 <Button
                   onClick={handleNext}
                   disabled={!canNext()}
-                  className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-bold px-6"
+                  className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-bold px-6"
                 >
                   Next <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>

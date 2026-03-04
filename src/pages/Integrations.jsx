@@ -202,8 +202,8 @@ export default function Integrations() {
 
       {/* Premium Notice */}
       {!isPremium && (
-        <div className="mb-6 p-4 rounded-xl bg-amber-900/20 border border-amber-700 flex items-center gap-4">
-          <div className="w-10 h-10 bg-amber-400 rounded-lg flex items-center justify-center flex-shrink-0">
+        <div className="mb-6 p-4 rounded-xl bg-[hsl(var(--primary))]/10 border border-[hsl(var(--primary))]/40 flex items-center gap-4">
+          <div className="w-10 h-10 bg-[hsl(var(--primary))] rounded-lg flex items-center justify-center flex-shrink-0">
             <Crown className="w-5 h-5 text-stone-900" />
           </div>
           <div className="flex-1">
@@ -211,7 +211,7 @@ export default function Integrations() {
             <p className="text-sm text-stone-500">Unlock Slack and Discord integrations</p>
           </div>
           <Link to={createPageUrl('Pricing')}>
-            <Button className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-semibold rounded-lg text-sm">
+            <Button className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold rounded-lg text-sm">
               Upgrade
             </Button>
           </Link>
@@ -372,7 +372,7 @@ export default function Integrations() {
 
             <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="slackWebhook" className="text-stone-300">Incoming Webhook URL <span className="text-amber-400" aria-hidden="true">*</span></Label>
+              <Label htmlFor="slackWebhook" className="text-stone-300">Incoming Webhook URL <span className="text-[hsl(var(--primary))]" aria-hidden="true">*</span></Label>
               <Input
                 id="slackWebhook"
                 value={slackWebhook}
@@ -390,7 +390,7 @@ export default function Integrations() {
             <div className="bg-stone-800 rounded-lg p-4 text-sm text-stone-400">
               <p className="font-medium text-stone-300 mb-2">How to get a webhook:</p>
               <ol className="space-y-1 list-decimal list-inside">
-                <li>Go to <a href="https://api.slack.com/apps" target="_blank" rel="noreferrer" className="text-amber-400 underline">api.slack.com/apps</a></li>
+                <li>Go to <a href="https://api.slack.com/apps" target="_blank" rel="noreferrer" className="text-[hsl(var(--primary))] underline">api.slack.com/apps</a></li>
                 <li>Create an app → Incoming Webhooks</li>
                 <li>Enable and add a new webhook to your channel</li>
                 <li>Copy the webhook URL and paste it above</li>
@@ -405,7 +405,7 @@ export default function Integrations() {
             <Button
               onClick={handleConnectSlack}
               disabled={loading || !slackWebhook}
-              className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-semibold"
+              className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold"
             >
               {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Connect Slack
@@ -429,7 +429,7 @@ export default function Integrations() {
 
             <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="webhook" className="text-stone-300">Webhook URL <span className="text-amber-400" aria-hidden="true">*</span></Label>
+              <Label htmlFor="webhook" className="text-stone-300">Webhook URL <span className="text-[hsl(var(--primary))]" aria-hidden="true">*</span></Label>
               <Input
                 id="webhook"
                 value={discordWebhook}
@@ -462,7 +462,7 @@ export default function Integrations() {
             <Button
               onClick={handleConnectDiscord}
               disabled={loading || !discordWebhook}
-              className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-semibold"
+              className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold"
             >
               {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Connect Discord

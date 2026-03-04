@@ -12,13 +12,13 @@ export default function DigestQuickActions({ digests }) {
     <div className="bg-stone-900 border border-stone-800">
       <div className="pb-2 pt-4 px-4 flex flex-row items-center justify-between">
         <span className="text-sm font-semibold text-stone-200">Your Digests</span>
-        <Link to={createPageUrl('Digests')} className="text-xs text-stone-500 hover:text-amber-400 transition-colors">Manage →</Link>
+        <Link to={createPageUrl('Digests')} className="text-xs text-stone-500 hover:text-[hsl(var(--primary))] transition-colors">Manage →</Link>
       </div>
       <div className="divide-y divide-stone-800">
         {digests.slice(0, 5).map(digest => (
           <div key={digest.id} className="flex items-center gap-3 px-4 py-2.5">
             {digest.status === 'active'
-              ? <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+              ? <CheckCircle2 className="w-3.5 h-3.5 text-[hsl(var(--primary))] flex-shrink-0" />
               : <PauseCircle className="w-3.5 h-3.5 text-stone-700 flex-shrink-0" />
             }
             <div className="min-w-0 flex-1">

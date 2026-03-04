@@ -39,7 +39,7 @@ export default function DailySnapshot() {
   if (loading) {
     return (
       <div className="bg-stone-900 border border-stone-800 p-5 mb-6 text-stone-200 flex items-center gap-3">
-        <Loader2 className="w-5 h-5 animate-spin flex-shrink-0 text-amber-400" />
+        <Loader2 className="w-5 h-5 animate-spin flex-shrink-0 text-[hsl(var(--primary))]" />
         <p className="text-sm text-stone-400">Generating today's brief...</p>
       </div>
     );
@@ -72,19 +72,19 @@ export default function DailySnapshot() {
             onClick={() => setActiveCategory('All')}
             className={`text-xs px-3 py-1 font-medium transition-all ${
               activeCategory === 'All'
-                ? 'bg-amber-400 text-stone-900'
+                ? 'bg-[hsl(var(--primary))] text-stone-900'
                 : 'bg-stone-800 text-stone-400 hover:text-stone-200'
-            }`}
-          >
-            All
-          </button>
-          {availableCategories.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`text-xs px-3 py-1 font-medium transition-all ${
+                }`}
+                >
+                All
+                </button>
+                {availableCategories.map(cat => (
+                <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`text-xs px-3 py-1 font-medium transition-all ${
                 activeCategory === cat
-                  ? 'bg-amber-400 text-stone-900'
+                ? 'bg-[hsl(var(--primary))] text-stone-900'
                   : 'bg-stone-800 text-stone-400 hover:text-stone-200'
               }`}
             >
@@ -97,7 +97,7 @@ export default function DailySnapshot() {
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 flex-shrink-0 text-amber-400" />
+          <Sparkles className="w-4 h-4 flex-shrink-0 text-[hsl(var(--primary))]" />
           <span className="text-sm font-semibold tracking-wide uppercase text-stone-300">
             {activeCategory === 'All' ? "Today's Brief" : `${activeCategory} Brief`}
           </span>

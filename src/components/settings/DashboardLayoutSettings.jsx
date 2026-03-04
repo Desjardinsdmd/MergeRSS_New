@@ -31,7 +31,7 @@ export default function DashboardLayoutSettings({ layout, onChange }) {
     <Card className="border-stone-800 bg-stone-900">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg text-stone-200">
-          <LayoutDashboard className="w-5 h-5 text-amber-400" />
+          <LayoutDashboard className="w-5 h-5 text-[hsl(var(--primary))]" />
           Dashboard Layout
         </CardTitle>
       </CardHeader>

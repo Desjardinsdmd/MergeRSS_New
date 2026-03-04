@@ -13,15 +13,15 @@ export default function InboxToolbar({ selectedIds, allIds, onSelectAll, onDesel
     <div className="flex items-center gap-2 py-2 px-1 border-b border-stone-800 bg-stone-900 sticky top-0 z-10 flex-wrap">
       <button
         onClick={allSelected ? onDeselectAll : onSelectAll}
-        className="text-slate-400 hover:text-slate-700 transition p-1"
+        className="text-stone-400 hover:text-stone-200 transition p-1"
         title={allSelected ? 'Deselect all' : 'Select all'}
       >
-        {allSelected ? <CheckSquare className="w-4 h-4 text-indigo-600" /> : <Square className="w-4 h-4" />}
+        {allSelected ? <CheckSquare className="w-4 h-4 text-[hsl(var(--primary))]" /> : <Square className="w-4 h-4" />}
       </button>
 
       {someSelected && (
         <>
-          <span className="text-xs text-slate-500 font-medium whitespace-nowrap">{selectedIds.length} selected</span>
+          <span className="text-xs text-stone-400 font-medium whitespace-nowrap">{selectedIds.length} selected</span>
 
           {/* Mobile: collapse all actions into one dropdown */}
           <div className="flex sm:hidden ml-1">

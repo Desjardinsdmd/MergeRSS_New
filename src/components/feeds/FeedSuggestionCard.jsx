@@ -38,7 +38,7 @@ export default function FeedSuggestionCard({ feed, onAdd, added, adding }) {
             href={feed.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-stone-500 hover:text-amber-400 flex items-center gap-1 truncate transition"
+            className="text-xs text-stone-500 hover:text-[hsl(var(--primary))] flex items-center gap-1 truncate transition"
           >
             <ExternalLink className="w-3 h-3 flex-shrink-0" />
             <span className="truncate">{feed.url}</span>
@@ -53,7 +53,7 @@ export default function FeedSuggestionCard({ feed, onAdd, added, adding }) {
             "flex-shrink-0 h-8 px-3 rounded-lg text-xs font-medium transition",
             added
               ? "bg-emerald-950 text-emerald-400 hover:bg-emerald-950 border border-emerald-700"
-              : "bg-amber-400 hover:bg-amber-300 text-stone-900"
+              : "bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900"
           )}
         >
           {added ? (
@@ -72,11 +72,11 @@ export default function FeedSuggestionCard({ feed, onAdd, added, adding }) {
         <div className="mb-3">
           <div className="flex items-center justify-between mb-1">
             <span className="text-[10px] font-medium text-stone-500 uppercase tracking-wide">Relevance</span>
-            <span className="text-[10px] font-semibold text-amber-400">{relevance}/10</span>
+            <span className="text-[10px] font-semibold text-[hsl(var(--primary))]">{relevance}/10</span>
           </div>
           <div className="h-1 bg-stone-800 rounded-full overflow-hidden">
             <div
-              className="h-full bg-amber-400 rounded-full transition-all"
+              className="h-full bg-[hsl(var(--primary))] rounded-full transition-all"
               style={{ width: barWidth }}
             />
           </div>

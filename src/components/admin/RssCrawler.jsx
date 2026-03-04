@@ -57,10 +57,10 @@ export default function RssCrawler() {
   };
 
   return (
-    <Card className="border-amber-700/30 bg-gradient-to-br from-amber-900/20 to-stone-900">
+    <Card className="border-[hsl(var(--primary))]/30 bg-gradient-to-br from-[hsl(var(--primary))]/10 to-stone-900">
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2 text-stone-200">
-          <Sparkles className="w-4 h-4 text-amber-400" />
+          <Sparkles className="w-4 h-4 text-[hsl(var(--primary))]" />
           AI-Powered RSS Discovery
         </CardTitle>
         <CardDescription className="text-xs text-stone-500">
@@ -79,7 +79,7 @@ export default function RssCrawler() {
                    setQuery(q.query);
                    setCategory(q.category);
                  }}
-                 className="px-2.5 py-1 rounded-full border border-amber-700/30 text-xs text-amber-300 bg-stone-800 hover:bg-stone-700 transition"
+                 className="px-2.5 py-1 rounded-full border border-[hsl(var(--primary))]/30 text-xs text-[hsl(var(--primary))] bg-stone-800 hover:bg-stone-700 transition"
                >
                 {q.label}
               </button>
@@ -130,7 +130,7 @@ export default function RssCrawler() {
           <Button
             onClick={() => runSearch()}
             disabled={loading || !query.trim()}
-            className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-semibold"
+            className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold"
           >
             {loading
               ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Searching...</>
@@ -144,7 +144,7 @@ export default function RssCrawler() {
           <div className="border-t border-stone-800 pt-4 space-y-3">
             {/* Summary */}
             <div className="flex flex-wrap gap-2 text-xs">
-              <Badge className="bg-amber-900/30 text-amber-400">
+              <Badge className="bg-[hsl(var(--primary))]/20 text-[hsl(var(--primary))]">
                 {results.discovered} discovered
               </Badge>
               <Badge className="bg-green-900/30 text-green-400">
