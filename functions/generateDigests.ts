@@ -96,12 +96,22 @@ Deno.serve(async (req) => {
                         results.push({ digest: digest.name, skipped: true, reason: 'No new items in time window' });
                         continue;
                     }
-                    // For forced test sends, use recent items regardless of date
-                    const recentItems = await base44.asServiceRole.entities.FeedItem.list('-published_date', 30);
-                    if (recentItems.length > 0) {
-                        items = recentItems.slice(0, 10);
+                    // For forced test sends, extend the lookback window but still respect feed_ids and categories
+                    let fallbackItems = [];
+                    if (digest.feed_ids?.length > 0) {
+                        fallbackItems = await base44.asServiceRole.entities.FeedItem.filter({ 
+                            feed_id: { $in: digest.feed_ids } 
+                        }, '-published_date', 50);
                     } else {
-                        results.push({ digest: digest.name, skipped: true, reason: 'No items available' });
+                        fallbackItems = await base44.asServiceRole.entities.FeedItem.list('-published_date', 50);
+                    }
+                    if (digest.categories?.length > 0) {
+                        fallbackItems = fallbackItems.filter(i => digest.categories.includes(i.category));
+                    }
+                    if (fallbackItems.length > 0) {
+                        items = fallbackItems.slice(0, 20);
+                    } else {
+                        results.push({ digest: digest.name, skipped: true, reason: 'No items available for the configured feeds/categories' });
                         continue;
                     }
                 }
