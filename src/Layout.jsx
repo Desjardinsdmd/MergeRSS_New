@@ -387,6 +387,25 @@ function LayoutContent({ children, currentPageName }) {
 
       {/* Main */}
       <div className="lg:pl-60">
+        {/* Desktop header */}
+        <header className={cn(
+          "hidden lg:block sticky top-0 z-30 border-b transition-colors duration-300",
+          "dark:bg-[#0d0a06] dark:border-stone-800",
+          "light:bg-stone-50 light:border-stone-200"
+        )}>
+          <div className="flex items-center justify-end h-14 px-8 gap-3">
+            <button
+              onClick={() => setReportDialogOpen(true)}
+              title="Report a problem"
+              className="p-1.5 text-stone-500 hover:text-amber-400 transition"
+            >
+              <AlertCircle className="w-5 h-5" />
+            </button>
+            <BookmarkBell user={user} />
+            <InboxBell user={user} />
+          </div>
+        </header>
+
         {/* Mobile header */}
         <header className={cn(
           "lg:hidden sticky top-0 z-30 border-b transition-colors duration-300",
