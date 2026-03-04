@@ -8,10 +8,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
 export default function DigestDeliveryHistory({ digests }) {
+  const digestIds = digests.map(d => d.id);
   const { data: deliveries = [] } = useQuery({
-    queryKey: ['recent-deliveries'],
-    queryFn: () => base44.entities.DigestDelivery.list('-sent_at', 5),
-    enabled: digests.length > 0,
+    queryKey: ['recent-deliveries', digestIds.join(',')],
+    queryFn: () => base44.entities.DigestDelivery.filter(
+      { digest_id: { $in: digestIds }, delivery_type: 'web', status: 'sent' },
+      '-sent_at',
+      5
+    ),
+    enabled: digestIds.length > 0,
   });
 
   if (deliveries.length === 0) return null;

@@ -47,7 +47,7 @@ export default function Digests() {
   }, []);
 
   const { data: digests = [], isLoading } = useQuery({
-    queryKey: ['digests'],
+    queryKey: ['digests', user?.email],
     queryFn: () => base44.entities.Digest.filter({ created_by: user?.email }, '-created_date'),
     enabled: !!user,
   });
