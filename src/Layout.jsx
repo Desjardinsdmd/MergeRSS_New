@@ -404,6 +404,13 @@ function LayoutContent({ children, currentPageName }) {
               <span className="font-bold text-stone-100 tracking-tight">MergeRSS</span>
             </div>
             <div className="flex items-center gap-1">
+              <button
+                onClick={() => setReportDialogOpen(true)}
+                title="Report a problem"
+                className="p-1.5 text-stone-500 hover:text-amber-400 transition"
+              >
+                <AlertCircle className="w-5 h-5" />
+              </button>
               <BookmarkBell user={user} />
               <InboxBell user={user} />
             </div>
@@ -414,6 +421,13 @@ function LayoutContent({ children, currentPageName }) {
           <ErrorBoundary>{children}</ErrorBoundary>
         </main>
       </div>
+
+      {/* Report Dialog */}
+      <ReportProblemDialog
+        open={reportDialogOpen}
+        onOpenChange={setReportDialogOpen}
+        user={user}
+      />
     </div>
   );
 }
