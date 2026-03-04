@@ -249,9 +249,9 @@ export default function Settings() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 flex items-center justify-center ${
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              <div className="flex items-center gap-3 flex-1">
+                <div className={`w-10 h-10 flex-shrink-0 flex items-center justify-center ${
                   isPremium ? 'bg-amber-400' : 'bg-stone-800'
                 }`}>
                   <Crown className={`w-5 h-5 ${isPremium ? 'text-stone-900' : 'text-stone-600'}`} />
@@ -281,14 +281,14 @@ export default function Settings() {
                     const { data } = await base44.functions.invoke('createPortalSession', { return_url: window.location.href });
                     if (data?.url) window.open(data.url, '_blank');
                   }}
-                  className="border-stone-700 text-stone-300 hover:bg-stone-800"
+                  className="border-stone-700 text-stone-300 hover:bg-stone-800 w-full sm:w-auto"
                 >
                   Manage Billing
                   <ExternalLink className="w-4 h-4 ml-2" />
                 </Button>
               ) : (
-                <Link to={createPageUrl('Pricing')}>
-                  <Button className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-semibold rounded-lg">
+                <Link to={createPageUrl('Pricing')} className="w-full sm:w-auto">
+                  <Button className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-semibold rounded-lg w-full sm:w-auto">
                     Upgrade
                   </Button>
                 </Link>
