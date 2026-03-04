@@ -97,10 +97,12 @@ function PopularFeedsSection({ user }) {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <FadeIn className="mb-14">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 border border-[hsl(var(--primary))]/40 rounded-full text-xs font-medium text-[hsl(var(--primary))]/80 mb-6">
-            <TrendingUp className="w-3 h-3" />
-            Trending in the community
-          </div>
-          <h2 className="text-4xl md:text-5xl font-black text-stone-100 tracking-tight leading-none mb-4">Popular Feeds</h2>
+             <TrendingUp className="w-3 h-3" />
+             Trending in the community
+           </div>
+          <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-none mb-4">
+            <span className="text-stone-100">Popular </span><span className="bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary))]/60 bg-clip-text text-transparent">Feeds</span>
+          </h2>
           <p className="text-stone-400 max-w-xl text-lg">Discover what other professionals are reading — add any feed in one click.</p>
         </FadeIn>
         <FadeIn delay={100}>
@@ -175,14 +177,14 @@ export default function Landing() {
           </div>
 
           <h1
-            className="text-6xl md:text-7xl lg:text-8xl font-black text-stone-100 tracking-tight leading-[0.93] mb-8"
+            className="text-6xl md:text-7xl lg:text-8xl font-black tracking-tight leading-[0.93] mb-8"
             style={{ animation: 'fadeSlideDown 0.7s ease 0.1s both' }}
           >
-            Your information,
+            <span className="text-stone-100">Your information,</span>
             <br />
-            <span className="text-[hsl(var(--primary))]">curated &amp;</span>
+            <span className="bg-gradient-to-r from-[hsl(var(--primary))] via-[hsl(var(--primary))]/80 to-[hsl(var(--primary))]/60 bg-clip-text text-transparent">curated &amp;</span>
             <br />
-            delivered.
+            <span className="text-stone-100">delivered.</span>
           </h1>
 
           <p
@@ -199,7 +201,7 @@ export default function Landing() {
           >
             <button
               onClick={() => handleCTA('hero')}
-              className="inline-flex items-center gap-2 bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-bold px-8 py-4 text-base transition-all duration-200 hover:shadow-[0_0_30px_hsl(var(--primary))/0.25] group"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary))]/70 hover:from-[hsl(var(--primary))]/90 hover:to-[hsl(var(--primary))]/60 text-stone-900 font-bold px-8 py-4 text-base transition-all duration-200 hover:shadow-[0_0_40px_hsl(var(--primary))/0.4] group"
             >
               Get started free
               <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
@@ -254,8 +256,9 @@ export default function Landing() {
       <section className="py-28 bg-[#0a0805]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <FadeIn className="mb-16">
-            <h2 className="text-4xl md:text-5xl font-black text-stone-100 tracking-tight leading-none mb-4">
-              Everything you need<br />to stay informed
+            <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-none mb-4">
+              <span className="text-stone-100">Everything you need</span><br />
+              <span className="bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary))]/60 bg-clip-text text-transparent">to stay informed</span>
             </h2>
             <p className="text-stone-400 max-w-lg text-lg">
               Powerful features built for professionals who need to track a lot — without spending hours doing it.
@@ -265,7 +268,7 @@ export default function Landing() {
             {features.map((feature, idx) => (
               <FadeIn key={idx} delay={idx * 60}>
                 <div className="bg-[#0a0805] p-8 hover:bg-stone-900/50 transition-colors duration-200 group h-full">
-                  <div className="w-10 h-10 border border-[hsl(var(--primary))]/40 flex items-center justify-center mb-6 group-hover:border-[hsl(var(--primary))]/60 group-hover:bg-[hsl(var(--primary))]/5 transition-all">
+                  <div className="w-10 h-10 border border-[hsl(var(--primary))]/40 flex items-center justify-center mb-6 group-hover:border-[hsl(var(--primary))]/70 group-hover:bg-gradient-to-br group-hover:from-[hsl(var(--primary))]/15 group-hover:to-[hsl(var(--primary))]/5 transition-all">
                     <feature.icon className="w-5 h-5 text-[hsl(var(--primary))]" />
                   </div>
                   <h3 className="text-base font-bold text-stone-200 mb-3 tracking-tight">{feature.title}</h3>
@@ -283,8 +286,9 @@ export default function Landing() {
       <section className="py-28 bg-[#0d0a06] border-t border-stone-800">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <FadeIn className="mb-16">
-            <h2 className="text-4xl md:text-5xl font-black text-stone-100 tracking-tight leading-none mb-4">
-              Deliver where your<br />team works
+            <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-none mb-4">
+              <span className="text-stone-100">Deliver where your</span><br />
+              <span className="bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary))]/60 bg-clip-text text-transparent">team works</span>
             </h2>
             <p className="text-stone-400 max-w-lg text-lg">
               Each digest can be sent to multiple destinations simultaneously.
@@ -294,9 +298,9 @@ export default function Landing() {
             <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-px bg-stone-800/40">
               {integrations.map((integ, idx) => (
                 <div key={idx} className="bg-[#0d0a06] p-8 hover:bg-stone-900/50 transition-colors group">
-                  <div className="w-12 h-12 border border-[hsl(var(--primary))]/40 group-hover:border-[hsl(var(--primary))]/60 flex items-center justify-center mb-6 transition-colors">
-                    <integ.icon className="w-6 h-6 text-[hsl(var(--primary))]" />
-                  </div>
+                  <div className="w-12 h-12 border border-[hsl(var(--primary))]/40 group-hover:border-[hsl(var(--primary))]/70 group-hover:bg-gradient-to-br group-hover:from-[hsl(var(--primary))]/15 group-hover:to-[hsl(var(--primary))]/5 flex items-center justify-center mb-6 transition-all">
+                        <integ.icon className="w-6 h-6 text-[hsl(var(--primary))]" />
+                      </div>
                   <h3 className="text-base font-bold text-stone-200 mb-2">{integ.name}</h3>
                   <p className="text-stone-500 text-sm leading-relaxed">{integ.description}</p>
                 </div>
@@ -310,8 +314,9 @@ export default function Landing() {
       <section className="py-28 bg-[#0a0805] border-t border-stone-800">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <FadeIn className="mb-16">
-            <h2 className="text-4xl md:text-5xl font-black text-stone-100 tracking-tight leading-none mb-4">
-              Up and running<br />in minutes
+            <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-none mb-4">
+              <span className="text-stone-100">Up and running</span><br />
+              <span className="bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary))]/60 bg-clip-text text-transparent">in minutes</span>
             </h2>
           </FadeIn>
           <div className="grid md:grid-cols-3 gap-px bg-stone-800/40">
@@ -336,8 +341,8 @@ export default function Landing() {
       <section className="py-28 bg-[#0d0a06] border-t border-stone-800">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <FadeIn className="mb-14">
-            <h2 className="text-4xl md:text-5xl font-black text-stone-100 tracking-tight leading-none mb-4">
-              What professionals say
+            <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-none mb-4">
+              <span className="bg-gradient-to-r from-stone-100 via-stone-200 to-[hsl(var(--primary))]/70 bg-clip-text text-transparent">What professionals say</span>
             </h2>
           </FadeIn>
           <div className="grid md:grid-cols-3 gap-px bg-stone-800/40">
@@ -364,9 +369,9 @@ export default function Landing() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_50%_100%,hsl(var(--primary))/0.07,transparent)]" />
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <FadeIn>
-            <h2 className="text-5xl md:text-6xl lg:text-7xl font-black text-stone-100 tracking-tight leading-[0.93] mb-6">
-              Stop drowning in tabs.<br />
-              <span className="text-[hsl(var(--primary))]">Start reading smarter.</span>
+            <h2 className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tight leading-[0.93] mb-6">
+              <span className="text-stone-100">Stop drowning in tabs.</span><br />
+              <span className="bg-gradient-to-r from-[hsl(var(--primary))] via-[hsl(var(--primary))]/80 to-[hsl(var(--primary))]/50 bg-clip-text text-transparent">Start reading smarter.</span>
             </h2>
             <p className="text-stone-400 text-lg mb-10 max-w-lg mx-auto leading-relaxed">
               Professionals use MergeRSS to cut through the noise and stay on top of what actually matters.
@@ -374,7 +379,7 @@ export default function Landing() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <button
                 onClick={() => handleCTA('bottom')}
-                className="inline-flex items-center gap-2 bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-bold px-10 py-4 text-base transition-all duration-200 hover:shadow-[0_0_40px_hsl(var(--primary))/0.30] group"
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary))]/70 hover:from-[hsl(var(--primary))]/90 hover:to-[hsl(var(--primary))]/60 text-stone-900 font-bold px-10 py-4 text-base transition-all duration-200 hover:shadow-[0_0_50px_hsl(var(--primary))/0.45] group"
               >
                 Get started for free
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
@@ -393,7 +398,7 @@ export default function Landing() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-2.5">
-             <div className="w-7 h-7 bg-[hsl(var(--primary))] flex items-center justify-center">
+             <div className="w-7 h-7 bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--primary))]/70 flex items-center justify-center">
                <Rss className="w-3.5 h-3.5 text-stone-900" />
              </div>
               <span className="font-bold text-stone-200 tracking-tight">MergeRSS</span>
