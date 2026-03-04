@@ -37,6 +37,7 @@ const categoryColors = {
 export default function FeedCard({ feed, onEdit, onDelete, onToggleStatus }) {
   const [showAlerts, setShowAlerts] = useState(false);
   return (
+    <>
     <Card className={cn(
       "border-stone-800 bg-stone-900 transition-all hover:shadow-md",
       feed.status === 'error' && "border-red-900 bg-red-950/30"
