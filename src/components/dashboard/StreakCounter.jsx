@@ -36,7 +36,7 @@ export default function StreakCounter({ user }) {
   if (displayStreak < 1) return null;
 
   return (
-    <div className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold transition-all ${
+    <div className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold transition-all flex-shrink-0 ${
       isNew
         ? 'bg-[hsl(var(--primary))] text-stone-900 animate-pulse'
         : 'bg-stone-800 text-[hsl(var(--primary))]'
