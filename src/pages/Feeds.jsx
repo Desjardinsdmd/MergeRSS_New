@@ -31,7 +31,7 @@ import FeedCompactView from '@/components/feeds/FeedCompactView';
 import BulkImportDialog from '@/components/feeds/BulkImportDialog';
 import BulkFeedActions from '@/components/feeds/BulkFeedActions';
 
-const CATEGORIES = ['All', 'CRE', 'Markets', 'Tech', 'News', 'Finance', 'Crypto', 'AI', 'Other'];
+const DEFAULT_CATEGORIES = ['CRE', 'Markets', 'Tech', 'News', 'Finance', 'Crypto', 'AI', 'Other'];
 
 export default function Feeds() {
   const [user, setUser] = useState(null);
