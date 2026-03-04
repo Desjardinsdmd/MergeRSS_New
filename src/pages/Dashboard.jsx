@@ -213,18 +213,18 @@ export default function Dashboard() {
       {feeds.length > 0 && widget('dailySnapshot') && <DailySnapshot />}
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-8">
         {stats.map((stat) => (
           <Link key={stat.name} to={createPageUrl(stat.href)}>
-            <div className="bg-stone-900 border border-stone-800 hover:border-stone-700 transition cursor-pointer p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className={`p-2 ${colorClasses[stat.color]}`}>
-                  <stat.icon className="w-4 h-4" />
-                </div>
-                <ArrowRight className="w-3.5 h-3.5 text-stone-700" />
-              </div>
-              <p className="text-2xl font-bold text-stone-100">{stat.value}</p>
-              <p className="text-sm text-stone-500">{stat.name}</p>
+            <div className="bg-stone-900 border border-stone-800 hover:border-stone-700 transition cursor-pointer p-3 sm:p-4">
+             <div className="flex items-center justify-between mb-2 sm:mb-3">
+               <div className={`p-1.5 sm:p-2 ${colorClasses[stat.color]}`}>
+                 <stat.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+               </div>
+               <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-stone-700" />
+             </div>
+             <p className="text-xl sm:text-2xl font-bold text-stone-100">{stat.value}</p>
+             <p className="text-xs sm:text-sm text-stone-500 truncate">{stat.name}</p>
             </div>
           </Link>
         ))}
@@ -375,7 +375,7 @@ export default function Dashboard() {
       )}
 
       {/* Latest Articles and Trending side by side */}
-      <div className="grid lg:grid-cols-2 gap-6 mb-6 auto-rows-max lg:auto-rows-fr">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 auto-rows-max lg:auto-rows-fr">
         {/* Latest Articles */}
         <div className="flex flex-col">
           <div className="bg-stone-900 border border-stone-800 flex flex-col h-full">
@@ -465,7 +465,7 @@ export default function Dashboard() {
 
       {/* Stacked widgets below */}
       <div className="space-y-6">
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {widget('digestActions') && <DigestQuickActions digests={digests} />}
           {widget('feedHealth') && <FeedHealthWidget feeds={feeds} />}
           {widget('deliveryHistory') && <DigestDeliveryHistory digests={digests} />}
