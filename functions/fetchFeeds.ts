@@ -202,7 +202,17 @@ async function fetchFeedsWithThrottling(feeds, base44, batchSize = 5, delayBetwe
 
         // Bulk create all items from this batch
         if (itemsToCreate.length > 0) {
-            await base44.asServiceRole.entities.FeedItem.bulkCreate(itemsToCreate);
+            const created = await base44.asServiceRole.entities.FeedItem.bulkCreate(itemsToCreate);
+            // Send alerts for feeds that have active alerts configured
+            const allAlerts = await base44.asServiceRole.entities.FeedAlert.filter({ is_active: true });
+            const alertFeedIds = new Set(allAlerts.map(a => a.feed_id));
+            const itemsNeedingAlerts = (Array.isArray(created) ? created : itemsToCreate)
+                .filter(i => alertFeedIds.has(i.feed_id));
+            for (const item of itemsNeedingAlerts) {
+                if (item.id) {
+                    await base44.asServiceRole.functions.invoke('sendFeedAlerts', { feed_item_id: item.id });
+                }
+            }
         }
 
         // Delay between batches to avoid rate limiting
