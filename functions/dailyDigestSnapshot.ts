@@ -66,7 +66,7 @@ Write exactly 3 sentences. No bullet points, no headers. Just 3 flowing sentence
     });
 
     // Generate per-category briefs (only for categories with enough articles)
-    const categories = Object.keys(byCategory).filter(cat => byCategory[cat].length >= 2);
+    const categories = Object.keys(byCategory).filter(cat => byCategory[cat].length >= 1);
     const categoryBriefs = {};
 
     await Promise.all(categories.map(async (cat) => {
