@@ -6,6 +6,7 @@ import { createPageUrl } from '@/utils';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import InboxBell from '@/components/layout/InboxBell';
 import BookmarkBell from '@/components/layout/BookmarkBell';
+import ReportProblemDialog from '@/components/ReportProblemDialog';
 import {
   Rss,
   LayoutDashboard,
@@ -24,7 +25,8 @@ import {
   Users,
   Globe,
   Search,
-  Bookmark
+  Bookmark,
+  AlertCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeProvider } from '@/components/ThemeProvider';
@@ -50,6 +52,7 @@ const navigation = [
 
 const adminNav = [
   { name: 'System Health', href: 'AdminHealth', icon: Activity },
+  { name: 'Problem Reports', href: 'AdminReports', icon: AlertCircle },
   { name: 'Import Feeds', href: 'AdminImport', icon: Globe },
   { name: 'Analytics', href: 'AdminAnalytics', icon: BarChart3 },
 ];
@@ -106,6 +109,7 @@ function LayoutContent({ children, currentPageName }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [themeTransitioning, setThemeTransitioning] = useState(false);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const navigate = useNavigate();
   const { theme, setTheme } = { theme: 'dark', setTheme: () => {} };
 
@@ -420,5 +424,27 @@ export default function Layout({ children, currentPageName }) {
       <LayoutContent children={children} currentPageName={currentPageName} />
       <Toaster />
     </ThemeProvider>
+  );
+}
+
+function LayoutWithReportDialog({ children, currentPageName }) {
+  const [user, setUser] = useState(null);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+
+  React.useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
+  }, []);
+
+  return (
+    <>
+      <Layout children={children} currentPageName={currentPageName} />
+      {user && (
+        <ReportProblemDialog
+          open={reportDialogOpen}
+          onOpenChange={setReportDialogOpen}
+          user={user}
+        />
+      )}
+    </>
   );
 }
