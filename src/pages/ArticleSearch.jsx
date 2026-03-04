@@ -206,11 +206,16 @@ export default function ArticleSearch() {
       )}
 
        {/* Results count */}
-       {!isLoading && (
+       {!isLoading && !isFetching && (
          <p className="text-sm text-stone-500 mb-4">
            {hasFilters
              ? `${filtered.length} result${filtered.length !== 1 ? 's' : ''} found`
-             : `${allItems.length} articles total`}
+             : `${allItems.length} articles loaded`}
+         </p>
+       )}
+       {isFetching && !isLoading && (
+         <p className="text-sm text-stone-500 mb-4 flex items-center gap-2">
+           <Loader2 className="w-3 h-3 animate-spin" /> Searching…
          </p>
        )}
 
