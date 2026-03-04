@@ -205,7 +205,7 @@ export default function ArticleSearch() {
        {/* Content */}
        <div className="grid lg:grid-cols-2 gap-6">
         {/* List */}
-        <div>
+        <div className={selectedArticle ? 'hidden lg:block' : ''}>
           {isLoading ? (
             <div className="flex items-center justify-center py-16">
               <Loader2 className="w-6 h-6 animate-spin text-amber-400" />
@@ -262,6 +262,9 @@ export default function ArticleSearch() {
         {/* Article detail panel */}
         {selectedArticle ? (
           <div className="lg:sticky lg:top-6 self-start">
+            <button onClick={() => setSelectedArticle(null)} className="lg:hidden flex items-center gap-1 text-sm text-stone-500 hover:text-stone-300 mb-3">
+              ← Back to results
+            </button>
             <Card className="border-stone-800 bg-stone-900">
               <CardHeader className="pb-2 border-b border-stone-800">
                 <div className="flex items-start justify-between gap-2">

@@ -177,9 +177,9 @@ export default function Team() {
           ) : (
             <div className="divide-y divide-stone-800">
               {/* Current user row */}
-              <div className="flex items-center justify-between px-6 py-3.5">
+              <div className="flex items-start sm:items-center justify-between px-4 sm:px-6 py-3.5 gap-2">
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-amber-900/30 rounded-full flex items-center justify-center text-xs font-bold text-amber-400">
+                    <div className="w-8 h-8 flex-shrink-0 bg-amber-900/30 rounded-full flex items-center justify-center text-xs font-bold text-amber-400">
                     {user?.full_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase()}
                   </div>
                   <div>
@@ -187,14 +187,14 @@ export default function Team() {
                     <p className="text-xs text-stone-500">{user?.email}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                   <RoleBadge role={user?.role === 'admin' ? 'admin' : 'viewer'} />
-                   <Badge variant="outline" className="text-xs text-stone-500 border-stone-700">You</Badge>
-                 </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                 <RoleBadge role={user?.role === 'admin' ? 'admin' : 'viewer'} />
+                 <Badge variant="outline" className="text-xs text-stone-500 border-stone-700">You</Badge>
+                </div>
               </div>
 
               {members.map((member) => (
-                <div key={member.id} className="flex items-center justify-between px-6 py-3.5">
+                <div key={member.id} className="flex items-start sm:items-center justify-between px-4 sm:px-6 py-3.5 gap-2">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-stone-800 rounded-full flex items-center justify-center text-xs font-bold text-stone-500">
                       {member.email[0].toUpperCase()}
