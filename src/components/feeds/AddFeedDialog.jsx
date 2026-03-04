@@ -180,18 +180,47 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
           <div>
             <Label htmlFor="category">Category</Label>
             <Select
-              value={formData.category}
-              onValueChange={(value) => setFormData({ ...formData, category: value })}
+              value={DEFAULT_CATEGORIES.includes(formData.category) ? formData.category : '__custom__'}
+              onValueChange={(value) => {
+                if (value !== '__custom__') setFormData({ ...formData, category: value });
+              }}
             >
               <SelectTrigger id="category" aria-label="Select feed category">
-                <SelectValue />
+                <SelectValue>{formData.category}</SelectValue>
               </SelectTrigger>
               <SelectContent>
-                {CATEGORIES.map((cat) => (
+                {DEFAULT_CATEGORIES.map((cat) => (
                   <SelectItem key={`${cat}-option`} value={cat}>{cat}</SelectItem>
                 ))}
+                <SelectItem value="__custom__">+ Custom category…</SelectItem>
               </SelectContent>
             </Select>
+            {(!DEFAULT_CATEGORIES.includes(formData.category) || formData.category === '') && (
+              <div className="flex gap-2 mt-2">
+                <Input
+                  placeholder="e.g. Healthcare, Energy…"
+                  value={customCategoryInput}
+                  onChange={(e) => setCustomCategoryInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      if (customCategoryInput.trim()) setFormData({ ...formData, category: customCategoryInput.trim() });
+                    }
+                  }}
+                  className="text-sm"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => { if (customCategoryInput.trim()) setFormData({ ...formData, category: customCategoryInput.trim() }); }}
+                >
+                  Set
+                </Button>
+              </div>
+            )}
+            {!DEFAULT_CATEGORIES.includes(formData.category) && formData.category && (
+              <p className="mt-1 text-xs text-stone-400">Custom category: <span className="text-[hsl(var(--primary))]">{formData.category}</span></p>
+            )}
           </div>
 
           <div>
