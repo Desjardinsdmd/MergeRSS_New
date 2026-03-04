@@ -146,7 +146,7 @@ export default function AdminHealth() {
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-stone-100">System Health</h1>
           <p className="text-stone-500">
@@ -158,6 +158,22 @@ export default function AdminHealth() {
           Refresh
         </Button>
       </div>
+
+      {/* Alert banner for errored/paused feeds */}
+      {(errorFeeds > 0 || feeds.filter(f => f.status === 'paused' && f.fetch_error).length > 0) && (
+        <div className="mb-6 rounded-lg border border-red-800 bg-red-950/40 p-4 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-red-300 font-semibold text-sm">Feed Fetch Errors Detected</p>
+            <p className="text-red-400 text-xs mt-0.5">
+              {errorFeeds} feed(s) are in error state.{' '}
+              {feeds.filter(f => f.status === 'paused' && f.fetch_error).length > 0 &&
+                `${feeds.filter(f => f.status === 'paused' && f.fetch_error).length} feed(s) were auto-paused after repeated failures.`
+              } The rest of the system continues to run normally. Review the Feed Status table below.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
