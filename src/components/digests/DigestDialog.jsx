@@ -151,6 +151,26 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
       data.discord_webhook_url = discordIntegration.webhook_url;
     }
 
+    // Check content moderation if making public
+    if (data.is_public) {
+      try {
+        const moderationResult = await base44.functions.invoke('moderateDirectoryContent', {
+          name: data.name,
+          description: data.description || '',
+          tags: data.tags || []
+        });
+        if (!moderationResult.data.is_safe) {
+          alert(`This digest cannot be published to the directory: ${moderationResult.data.reason}`);
+          setLoading(false);
+          return;
+        }
+      } catch (err) {
+        alert('Failed to moderate content. Please try again.');
+        setLoading(false);
+        return;
+      }
+    }
+
     if (editDigest) {
       await base44.entities.Digest.update(editDigest.id, data);
       base44.analytics.track({ eventName: 'digest_edited', properties: { frequency: data.frequency, delivery_slack: data.delivery_slack, delivery_discord: data.delivery_discord, delivery_email: data.delivery_email } });

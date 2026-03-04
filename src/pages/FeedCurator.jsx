@@ -121,12 +121,27 @@ export default function FeedCurator() {
   const handleAddFeed = async (feed) => {
     setAddingFeed(feed.url);
     try {
+      // Check content moderation before adding to directory
+      let sourcedFromDirectory = false;
+      try {
+        const moderationResult = await base44.functions.invoke('moderateDirectoryContent', {
+          name: feed.name,
+          description: feed.description || '',
+          tags: feed.tags || []
+        });
+        sourcedFromDirectory = moderationResult.data.is_safe;
+      } catch (err) {
+        // If moderation fails, don't add to directory
+        sourcedFromDirectory = false;
+      }
+
       await base44.entities.Feed.create({
         name: feed.name,
         url: feed.url,
         category: feed.category || 'Other',
         tags: feed.tags || [],
         status: 'active',
+        sourced_from_directory: sourcedFromDirectory,
       });
       setAddedFeeds(prev => new Set([...prev, feed.url]));
     } catch (e) {
