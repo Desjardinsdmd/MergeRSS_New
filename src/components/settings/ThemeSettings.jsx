@@ -151,21 +151,26 @@ export default function ThemeSettings({ accentColor, onAccentChange, onAutoSave 
             {ACCENT_COLORS.map(c => {
               const isActive = accentColor === c.id;
               return (
-                <button
-                  key={c.id}
-                  onClick={() => handleAccentChange(c.id)}
-                  role="radio"
-                  aria-checked={isActive}
-                  aria-label={`${c.label} accent color`}
-                  title={c.label}
-                  className={cn(
-                    'w-9 h-9 rounded-full border-2 transition-all duration-150 flex items-center justify-center focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-stone-900',
-                    isActive ? 'border-white scale-110 shadow-lg' : 'border-transparent hover:scale-105 hover:border-stone-400'
-                  )}
-                  style={{ backgroundColor: c.color }}
-                >
-                  {isActive && <span className="w-2.5 h-2.5 rounded-full bg-white/90 block" aria-hidden="true" />}
-                </button>
+                <div key={c.id} className="relative group/swatch">
+                  <button
+                    onClick={() => handleAccentChange(c.id)}
+                    role="radio"
+                    aria-checked={isActive}
+                    aria-label={`${c.label} accent color`}
+                    className={cn(
+                      'w-9 h-9 rounded-full border-2 transition-all duration-150 flex items-center justify-center focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-stone-900',
+                      isActive ? 'border-white scale-110 shadow-lg' : 'border-transparent hover:scale-105 hover:border-stone-400'
+                    )}
+                    style={{ backgroundColor: c.color }}
+                  >
+                    {isActive && <span className="w-2.5 h-2.5 rounded-full bg-white/90 block" aria-hidden="true" />}
+                  </button>
+                  {/* Tooltip */}
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 rounded bg-stone-950 border border-stone-700 text-xs text-stone-100 whitespace-nowrap opacity-0 pointer-events-none group-hover/swatch:opacity-100 transition-opacity duration-150 z-10">
+                    {c.label}
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-stone-950" />
+                  </div>
+                </div>
               );
             })}
           </div>
