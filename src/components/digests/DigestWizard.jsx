@@ -70,7 +70,7 @@ function StepIndicator({ currentStep }) {
                   : <Icon className={cn("w-4 h-4", isActive ? "text-amber-400" : "text-stone-600")} />
                 }
               </div>
-              <span className={cn("text-xs font-medium", isActive ? "text-amber-400" : isCompleted ? "text-stone-400" : "text-stone-600")}>
+              <span className={cn("text-xs font-medium hidden sm:block", isActive ? "text-amber-400" : isCompleted ? "text-stone-400" : "text-stone-600")}>
                 {step.label}
               </span>
             </div>
