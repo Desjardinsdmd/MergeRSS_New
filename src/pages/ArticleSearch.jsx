@@ -79,28 +79,15 @@ export default function ArticleSearch() {
     if (selectedArticle?.id === updated.id) setSelectedArticle(updated);
   };
 
+  // Client-side keyword filter on already-fetched items
   const filtered = useMemo(() => {
+    const kw = keyword.trim().toLowerCase();
+    if (!kw) return allItems;
     return allItems.filter(item => {
-      const kw = keyword.trim().toLowerCase();
-      if (kw) {
-        const haystack = `${item.title} ${item.description || ''} ${item.content || ''}`.toLowerCase();
-        if (!haystack.includes(kw)) return false;
-      }
-      if (author.trim()) {
-        if (!(item.author || '').toLowerCase().includes(author.trim().toLowerCase())) return false;
-      }
-      if (selectedCategory && item.category !== selectedCategory) return false;
-      if (dateFrom) {
-        if (!item.published_date || new Date(item.published_date) < new Date(dateFrom)) return false;
-      }
-      if (dateTo) {
-        const toEnd = new Date(dateTo);
-        toEnd.setHours(23, 59, 59, 999);
-        if (!item.published_date || new Date(item.published_date) > toEnd) return false;
-      }
-      return true;
+      const haystack = `${item.title} ${item.description || ''} ${item.content || ''}`.toLowerCase();
+      return haystack.includes(kw);
     });
-  }, [allItems, keyword, author, selectedCategory, dateFrom, dateTo]);
+  }, [allItems, keyword]);
 
   const hasFilters = keyword || author || selectedCategory || dateFrom || dateTo;
 
