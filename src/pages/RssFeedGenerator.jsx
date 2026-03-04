@@ -158,9 +158,9 @@ export default function RssFeedGenerator() {
                                 />
                             </div>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex flex-col sm:flex-row gap-2">
                             <Select value={feedType} onValueChange={setFeedType}>
-                                <SelectTrigger className="text-sm flex-1">
+                                <SelectTrigger className="text-sm w-full sm:flex-1">
                                     <SelectValue placeholder="Feed type" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -175,7 +175,7 @@ export default function RssFeedGenerator() {
                             <Button
                                 type="submit"
                                 disabled={loading || !url.trim()}
-                                className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold gap-2 flex-shrink-0"
+                                className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold gap-2 w-full sm:w-auto flex-shrink-0"
                             >
                                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
                                 {loading ? 'Generating…' : 'Generate Feed'}

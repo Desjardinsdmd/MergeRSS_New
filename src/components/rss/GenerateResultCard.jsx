@@ -68,19 +68,19 @@ export default function GenerateResultCard({ result, onAddToFeeds }) {
                 )}
 
                 {/* Action buttons */}
-                <div className="flex flex-wrap gap-2">
-                    <Button variant="outline" size="sm" onClick={copyUrl} className="gap-1.5">
+                <div className="flex flex-col sm:flex-row flex-wrap gap-2">
+                    <Button variant="outline" size="sm" onClick={copyUrl} className="gap-1.5 w-full sm:w-auto">
                         {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
                         {copied ? 'Copied!' : 'Copy Feed URL'}
                     </Button>
                     {result.rss_xml && (
-                        <Button variant="outline" size="sm" onClick={downloadXml} className="gap-1.5">
+                        <Button variant="outline" size="sm" onClick={downloadXml} className="gap-1.5 w-full sm:w-auto">
                             <Download className="w-3.5 h-3.5" />
                             Download XML
                         </Button>
                     )}
                     <Button size="sm" onClick={onAddToFeeds}
-                        className="bg-indigo-600 hover:bg-indigo-700 gap-1.5 ml-auto">
+                        className="bg-indigo-600 hover:bg-indigo-700 gap-1.5 w-full sm:w-auto sm:ml-auto">
                         <Plus className="w-3.5 h-3.5" />
                         Add to My Feeds
                     </Button>
