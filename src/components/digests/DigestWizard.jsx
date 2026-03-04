@@ -191,15 +191,15 @@ function StepContent({ formData, setFormData, feeds }) {
       {feeds.length > 0 && (
         <div>
           <Label className="text-stone-300 mb-2 block">Specific Feeds <span className="text-stone-600 font-normal">(optional)</span></Label>
-          <div className="border border-stone-700 rounded-lg divide-y divide-stone-800">
+          <div className="border border-stone-700 rounded-lg divide-y divide-stone-800 max-h-48 overflow-y-auto">
             {feeds.map((feed) => (
-              <label key={feed.id} className="flex items-center gap-3 px-3 py-2 hover:bg-stone-800 cursor-pointer">
+              <label key={feed.id} className="flex items-center gap-3 px-3 py-2.5 hover:bg-stone-800 cursor-pointer">
                 <Checkbox
                   checked={formData.feed_ids.includes(feed.id)}
                   onCheckedChange={() => toggleFeed(feed.id)}
                 />
-                <span className="text-sm text-stone-300 flex-1 truncate">{feed.name}</span>
-                <Badge variant="outline" className="text-xs shrink-0">{feed.category}</Badge>
+                <span className="text-sm text-stone-300 flex-1 min-w-0 truncate">{feed.name}</span>
+                <Badge variant="outline" className="text-xs shrink-0 ml-1">{feed.category}</Badge>
               </label>
             ))}
           </div>
