@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -17,9 +17,11 @@ import {
   Play,
   ExternalLink,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Bell
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import FeedAlertsDialog from '@/components/feeds/FeedAlertsDialog';
 
 const categoryColors = {
   CRE: 'bg-blue-950 text-blue-400',
@@ -33,6 +35,7 @@ const categoryColors = {
 };
 
 export default function FeedCard({ feed, onEdit, onDelete, onToggleStatus }) {
+  const [showAlerts, setShowAlerts] = useState(false);
   return (
     <Card className={cn(
       "border-stone-800 bg-stone-900 transition-all hover:shadow-md",
@@ -76,6 +79,10 @@ export default function FeedCard({ feed, onEdit, onDelete, onToggleStatus }) {
                   <DropdownMenuItem onClick={() => onEdit(feed)}>
                     <Pencil className="w-4 h-4 mr-2" />
                     Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setShowAlerts(true)}>
+                    <Bell className="w-4 h-4 mr-2" />
+                    Alerts
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => window.open(feed.url, '_blank')}>
                     <ExternalLink className="w-4 h-4 mr-2" />
@@ -140,5 +147,7 @@ export default function FeedCard({ feed, onEdit, onDelete, onToggleStatus }) {
         </div>
       </CardContent>
     </Card>
+
+    <FeedAlertsDialog feed={feed} open={showAlerts} onOpenChange={setShowAlerts} />
   );
 }
