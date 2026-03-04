@@ -397,7 +397,7 @@ function LayoutContent({ children, currentPageName }) {
             <button
               onClick={() => setReportDialogOpen(true)}
               title="Report a problem"
-              className="p-1.5 text-stone-500 hover:text-amber-400 transition"
+              className="p-1.5 text-stone-500 hover:text-[hsl(var(--primary))] transition"
             >
               <AlertCircle className="w-5 h-5" />
             </button>
