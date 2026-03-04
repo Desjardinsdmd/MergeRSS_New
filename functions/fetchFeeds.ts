@@ -204,6 +204,7 @@ async function fetchFeedsWithThrottling(feeds, base44, batchSize = 5, delayBetwe
                 item_count: feedExisting.length + newCount,
                 status: 'active',
                 fetch_error: '',
+                consecutive_errors: 0,
             });
 
             results.push({ feed: feed.name, new_items: newCount, status: 'ok' });
