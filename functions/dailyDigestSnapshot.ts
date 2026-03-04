@@ -13,11 +13,21 @@ Deno.serve(async (req) => {
       return Response.json({ snapshot: null, reason: 'no_feeds' });
     }
 
-    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-    const allItems = await base44.entities.FeedItem.list('-published_date', 100);
-    const todayItems = allItems.filter(item =>
-      feedIds.includes(item.feed_id) && item.published_date >= cutoff
+    // Try last 48h, fall back to last 7 days so the brief always generates
+    const cutoff48h = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+    const cutoff7d  = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+    const allItems = await base44.entities.FeedItem.list('-published_date', 200);
+    let todayItems = allItems.filter(item =>
+      feedIds.includes(item.feed_id) && item.published_date >= cutoff48h
     );
+
+    // Widen window if not enough articles
+    if (todayItems.length < 3) {
+      todayItems = allItems.filter(item =>
+        feedIds.includes(item.feed_id) && item.published_date >= cutoff7d
+      );
+    }
 
     if (todayItems.length === 0) {
       return Response.json({ snapshot: null, reason: 'no_articles_today' });
