@@ -216,8 +216,7 @@ export default function Feeds() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="All">All</SelectItem>
-            {[...new Set(['...DEFAULT_CATEGORIES', ...feeds.map(f => f.category).filter(Boolean)])].filter(c => c !== '...DEFAULT_CATEGORIES').concat(DEFAULT_CATEGORIES.filter(c => !feeds.map(f=>f.category).includes(c))).reduce((acc, c) => acc.includes(c) ? acc : [...acc, c], ['All'].concat(DEFAULT_CATEGORIES)).filter((c,i,a)=>a.indexOf(c)===i && c !== 'All').map(cat => (
+            {['All', ...new Set([...DEFAULT_CATEGORIES, ...feeds.map(f => f.category).filter(Boolean)])].map(cat => (
               <SelectItem key={cat} value={cat}>{cat}</SelectItem>
             ))}
           </SelectContent>
