@@ -12,12 +12,12 @@ const THEMES = [
 ];
 
 export const ACCENT_COLORS = [
-  { id: 'amber',   label: 'Amber',   color: '#fbbf24', hsl: '38 95% 54%' },
-  { id: 'indigo',  label: 'Indigo',  color: '#6366f1', hsl: '239 84% 67%' },
-  { id: 'violet',  label: 'Violet',  color: '#8b5cf6', hsl: '263 70% 64%' },
-  { id: 'blue',    label: 'Blue',    color: '#3b82f6', hsl: '217 91% 60%' },
-  { id: 'emerald', label: 'Emerald', color: '#10b981', hsl: '160 84% 39%' },
-  { id: 'rose',    label: 'Rose',    color: '#f43f5e', hsl: '350 89% 60%' },
+  { id: 'coral',   label: 'Electric Coral', color: '#FF4D6D', hsl: '348 100% 65%' },
+  { id: 'cyan',    label: 'Neon Cyan',      color: '#00E5FF', hsl: '187 100% 50%' },
+  { id: 'emerald', label: 'Emerald Neon',   color: '#00FF9C', hsl: '156 100% 50%' },
+  { id: 'violet',  label: 'Violet Pulse',   color: '#8B5CF6', hsl: '263 70% 64%' },
+  { id: 'amber',   label: 'Electric Amber', color: '#FFC857', hsl: '40 100% 67%' },
+  { id: 'magenta', label: 'Hot Magenta',    color: '#FF2E88', hsl: '333 100% 59%' },
 ];
 
 /** Applies accent color CSS variables to :root immediately */
