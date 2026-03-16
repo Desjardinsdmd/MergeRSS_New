@@ -150,7 +150,7 @@ async function fetchFeedsWithThrottling(feeds, base44, batchSize = 10, delayBetw
                 }
             })
         );
-        console.log(`[fetchFeeds] batch ${i}: existing items fetched`);
+
 
         // Process results and prepare bulk creates
         const itemsToCreate = [];
