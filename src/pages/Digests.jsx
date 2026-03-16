@@ -32,6 +32,7 @@ export default function Digests() {
   const [viewMode, setViewMode] = useState('grid'); // grid, list, compact
   const [selectedDigests, setSelectedDigests] = useState([]);
   const [deletingBulk, setDeletingBulk] = useState(false);
+  const [onboardingDismissed, setOnboardingDismissed] = useState(() => localStorage.getItem('digestOnboardingDismissed') === '1');
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -143,8 +144,7 @@ export default function Digests() {
 
       {/* Digest onboarding tip */}
       {digests.length === 0 && !isLoading && (() => {
-        const dismissed = localStorage.getItem('digestOnboardingDismissed') === '1';
-        if (dismissed) return null;
+        if (onboardingDismissed) return null;
         return (
           <div className="mb-6 p-4 border border-amber-400/30 bg-amber-400/5 flex items-start gap-3">
             <Info className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" aria-hidden="true" />
@@ -156,7 +156,7 @@ export default function Digests() {
               </p>
             </div>
             <button
-              onClick={() => { localStorage.setItem('digestOnboardingDismissed', '1'); window.dispatchEvent(new Event('storage')); location.reload(); }}
+              onClick={() => { localStorage.setItem('digestOnboardingDismissed', '1'); setOnboardingDismissed(true); }}
               className="p-1 text-stone-600 hover:text-stone-300 transition flex-shrink-0"
               aria-label="Dismiss tip"
             >
