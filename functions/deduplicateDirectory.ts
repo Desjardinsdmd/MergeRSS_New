@@ -17,29 +17,14 @@ Deno.serve(async (req) => {
     const duplicates = [];
     
     for (const feed of allFeeds) {
-      const url = feed.data.url;
-      if (!urlMap[url]) {
-        urlMap[url] = [];
-      }
-      urlMap[url].push(feed);
-    }
-
-    // Find and delete duplicates (keep the oldest one)
-    for (const url in urlMap) {
-      const feeds = urlMap[url];
-      if (feeds.length > 1) {
-        // Sort by created_date, oldest first
-        feeds.sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
-        
-        // Delete all but the first
-        for (let i = 1; i < feeds.length; i++) {
-          await base44.asServiceRole.entities.DirectoryFeed.delete(feeds[i].id);
-          duplicates.push({
-            url: url,
-            deletedId: feeds[i].id,
-            name: feeds[i].data.name,
-            keptId: feeds[0].id
-          });
+      const url = feed.url;
+    ...
+        duplicates.push({
+          url: url,
+          deletedId: feeds[i].id,
+          name: feeds[i].name,
+          keptId: feeds[0].id
+        });
         }
       }
     }
