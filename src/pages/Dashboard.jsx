@@ -97,6 +97,18 @@ export default function Dashboard() {
     enabled: !!user,
   });
 
+  const digestIds = digests.map(d => d.id);
+
+  const { data: unreadDeliveries = [] } = useQuery({
+    queryKey: ['unread-deliveries', digestIds.join(',')],
+    queryFn: () => base44.entities.DigestDelivery.filter(
+      { digest_id: { $in: digestIds }, delivery_type: 'web', status: 'sent', is_read: false },
+      '-created_date',
+      200
+    ),
+    enabled: !!user && digestIds.length > 0,
+  });
+
   const feedIds = feeds.map(f => f.id);
 
   const { data: feedItems = [] } = useQuery({
