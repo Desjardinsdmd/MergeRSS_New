@@ -243,7 +243,15 @@ Deno.serve(async (req) => {
         
         const startedAt = new Date().toISOString();
 
-        const feeds = await base44.asServiceRole.entities.Feed.filter({ status: { $in: ['active', 'error'] } });
+        console.log('[fetchFeeds] Starting feed fetch...');
+        let feeds;
+        try {
+            feeds = await base44.asServiceRole.entities.Feed.filter({ status: { $in: ['active', 'error'] } });
+            console.log('[fetchFeeds] Feeds loaded:', feeds?.length);
+        } catch (e) {
+            console.error('[fetchFeeds] Failed to load feeds:', e.message, e.response?.status, e.response?.data);
+            throw e;
+        }
         const results = await fetchFeedsWithThrottling(feeds, base44, 5, 1000);
 
         await base44.asServiceRole.entities.SystemHealth.create({
