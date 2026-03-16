@@ -117,7 +117,7 @@ async function parseFeed(url) {
     throw new Error(`Unrecognized feed format — starts with: ${xml.substring(0, 120).replace(/\s+/g, ' ').trim()}`);
 }
 
-async function fetchFeedsWithThrottling(feeds, base44, batchSize = 5, delayBetweenBatches = 1000) {
+async function fetchFeedsWithThrottling(feeds, base44, batchSize = 10, delayBetweenBatches = 200) {
     const results = [];
     
     for (let i = 0; i < feeds.length; i += batchSize) {
