@@ -81,14 +81,21 @@ Deno.serve(async (req) => {
                     ? new Date(digest.last_sent)
                     : new Date(now - lookbackDays * 24 * 60 * 60 * 1000);
 
-                // Gather items
+                // Gather items — always scope to the digest owner's feeds
                 let allItems = [];
                 if (digest.feed_ids?.length > 0) {
                     allItems = await base44.asServiceRole.entities.FeedItem.filter({ 
                         feed_id: { $in: digest.feed_ids } 
                     }, '-published_date', 500);
                 } else {
-                    allItems = await base44.asServiceRole.entities.FeedItem.list('-published_date', 500);
+                    // Fetch only feeds owned by the digest creator
+                    const ownerFeeds = await base44.asServiceRole.entities.Feed.filter({ created_by: digest.created_by });
+                    const ownerFeedIds = ownerFeeds.map(f => f.id);
+                    if (ownerFeedIds.length > 0) {
+                        allItems = await base44.asServiceRole.entities.FeedItem.filter({
+                            feed_id: { $in: ownerFeedIds }
+                        }, '-published_date', 500);
+                    }
                 }
 
                 // Filter by date
