@@ -222,7 +222,7 @@ async function fetchFeedsWithThrottling(feeds, base44, batchSize = 10, delayBetw
 
         // Bulk create all items from this batch
         if (itemsToCreate.length > 0) {
-            console.log(`[fetchFeeds] batch ${i}: bulkCreate ${itemsToCreate.length} items`);
+
             const created = await base44.asServiceRole.entities.FeedItem.bulkCreate(itemsToCreate);
             console.log(`[fetchFeeds] batch ${i}: bulkCreate done`);
             // Send alerts for feeds that have active alerts configured
