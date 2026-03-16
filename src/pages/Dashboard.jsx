@@ -166,7 +166,7 @@ export default function Dashboard() {
     if (e) { e.preventDefault(); e.stopPropagation(); }
     setReadItems(prev => new Set([...prev, item.id]));
     await base44.entities.FeedItem.update(item.id, { is_read: true });
-    queryClient.invalidateQueries({ queryKey: ['feedItems', user?.email] });
+    queryClient.invalidateQueries({ queryKey: ['feedItems'] });
   };
 
   const allArticles = liveArticles.length > 0 ? liveArticles : feedItems;

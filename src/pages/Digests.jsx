@@ -156,7 +156,7 @@ export default function Digests() {
               </p>
             </div>
             <button
-              onClick={() => { localStorage.setItem('digestOnboardingDismissed', '1'); }}
+              onClick={() => { localStorage.setItem('digestOnboardingDismissed', '1'); window.dispatchEvent(new Event('storage')); location.reload(); }}
               className="p-1 text-stone-600 hover:text-stone-300 transition flex-shrink-0"
               aria-label="Dismiss tip"
             >
