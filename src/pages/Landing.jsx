@@ -154,7 +154,7 @@ export default function Landing() {
     // Load real stats
     Promise.all([
       base44.entities.User.list('-created_date', 200),
-      base44.entities.FeedItem.list('-created_date', 200),
+      base44.entities.FeedItem.list('-created_date', 1000),
       base44.entities.DigestDelivery.filter({ status: 'sent' }, '-created_date', 200),
     ]).then(([users, items, deliveries]) => {
       setStats({
