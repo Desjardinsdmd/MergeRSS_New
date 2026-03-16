@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { Check, X, Loader2, ArrowRight, Zap } from 'lucide-react';
+import { PLAN_LIMITS } from '@/lib/planLimits';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
