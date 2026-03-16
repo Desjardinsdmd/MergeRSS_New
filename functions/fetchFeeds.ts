@@ -254,7 +254,10 @@ Deno.serve(async (req) => {
         
         const startedAt = new Date().toISOString();
 
-        const feeds = await base44.asServiceRole.entities.Feed.filter({ status: { $in: ['active', 'error'] } });
+        console.log('[fetchFeeds] Loading feeds...');
+        const feedsRaw = await base44.asServiceRole.entities.Feed.filter({ status: { $in: ['active', 'error'] } });
+        const feeds = Array.isArray(feedsRaw) ? feedsRaw : [];
+        console.log('[fetchFeeds] Feeds loaded:', feeds.length);
         const results = await fetchFeedsWithThrottling(feeds, base44, 5, 1000);
 
         await base44.asServiceRole.entities.SystemHealth.create({
