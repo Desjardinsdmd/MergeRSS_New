@@ -85,6 +85,11 @@ Deno.serve(async (req) => {
     // format: 'opml' | 'urls'
     // mode: 'feeds' | 'digest'
 
+    // Admin-only guard for directory writes
+    if (add_to_directory && user.role !== 'admin') {
+      return Response.json({ error: 'Forbidden: admin only' }, { status: 403 });
+    }
+
     let parsedFeeds = [];
 
     if (format === 'opml') {
