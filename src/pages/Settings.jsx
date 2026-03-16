@@ -215,14 +215,6 @@ export default function Settings() {
         {/* Dashboard Layout */}
         <DashboardLayoutSettings layout={dashboardLayout} onChange={setDashboardLayout} />
 
-        {/* Save preferences button */}
-         <div className="flex justify-end">
-           <Button onClick={handleSavePreferences} disabled={loading} className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold rounded-lg transition-opacity">
-             {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-             Save Other Preferences
-           </Button>
-         </div>
-
         {/* Subscription Section */}
         <Card className="border-stone-800 bg-stone-900">
           <CardHeader>
@@ -309,7 +301,7 @@ export default function Settings() {
         {/* Save Button */}
         <div className="flex justify-end gap-2">
           {editingProfile && (
-            <Button 
+            <Button
               variant="outline"
               onClick={() => setEditingProfile(false)}
               disabled={loading}
@@ -318,13 +310,13 @@ export default function Settings() {
               Cancel
             </Button>
           )}
-          <Button 
-            onClick={handleSave} 
-            disabled={loading || !editingProfile}
+          <Button
+            onClick={handleSave}
+            disabled={loading}
             className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold rounded-lg"
           >
             {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            Save Changes
+            Save Settings
           </Button>
         </div>
 
