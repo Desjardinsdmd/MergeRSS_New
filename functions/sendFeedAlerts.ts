@@ -10,16 +10,15 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'feed_item_id required' }, { status: 400 });
         }
 
-        // Get the feed item
-        const allItems = await base44.asServiceRole.entities.FeedItem.list('-created_date', 200);
-        const feedItem = allItems.find(i => i.id === feed_item_id);
+        // Get the feed item by ID directly
+        const feedItems = await base44.asServiceRole.entities.FeedItem.filter({ id: feed_item_id }, '-created_date', 1);
+        const feedItem = feedItems[0];
         if (!feedItem) {
             return Response.json({ error: 'Feed item not found' }, { status: 404 });
         }
 
         // Get active alerts for this feed
-        const allAlerts = await base44.asServiceRole.entities.FeedAlert.list();
-        const alerts = allAlerts.filter(a => a.feed_id === feedItem.feed_id && a.is_active !== false);
+        const alerts = await base44.asServiceRole.entities.FeedAlert.filter({ feed_id: feedItem.feed_id, is_active: true });
 
         if (alerts.length === 0) {
             return Response.json({ success: true, sent: 0 });
