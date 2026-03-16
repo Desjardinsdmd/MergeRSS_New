@@ -144,6 +144,7 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
       ...formData,
       delivery_slack: isPremium && formData.delivery_slack,
       delivery_discord: isPremium && formData.delivery_discord,
+      delivery_teams: isPremium && formData.delivery_teams,
     };
 
     // Auto-populate Discord webhook from integration if enabling Discord delivery
@@ -446,6 +447,28 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
                     )}
                   </div>
                   <p className="text-xs text-slate-500">Post to Discord channel</p>
+                </div>
+              </label>
+
+              <label className={cn(
+                "flex items-center gap-3 p-3 border rounded-lg",
+                isPremium ? "hover:bg-slate-50 cursor-pointer" : "opacity-60 cursor-not-allowed"
+              )}>
+                <Checkbox
+                  checked={formData.delivery_teams}
+                  onCheckedChange={(checked) => isPremium && setFormData({ ...formData, delivery_teams: checked })}
+                  disabled={!isPremium}
+                />
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-sm">Microsoft Teams</p>
+                    {!isPremium && (
+                      <Badge variant="secondary" className="text-xs gap-1">
+                        <Crown className="w-3 h-3" /> Premium
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-500">Post to Teams channel via webhook</p>
                 </div>
               </label>
               {formData.delivery_discord && isPremium && (
