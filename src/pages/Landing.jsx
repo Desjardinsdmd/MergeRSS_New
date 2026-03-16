@@ -144,9 +144,25 @@ function PopularFeedsSection({ user }) {
 export default function Landing() {
   const [user, setUser] = React.useState(null);
   const [userLoaded, setUserLoaded] = React.useState(false);
+  const [stats, setStats] = React.useState({ users: 0, articles: 0, digests: 0 });
 
   React.useEffect(() => {
     base44.auth.me().then(u => { setUser(u); setUserLoaded(true); }).catch(() => setUserLoaded(true));
+  }, []);
+
+  React.useEffect(() => {
+    // Load real stats
+    Promise.all([
+      base44.entities.User.list('-created_date', 200),
+      base44.entities.FeedItem.list('-created_date', 200),
+      base44.entities.DigestDelivery.filter({ status: 'sent' }, '-created_date', 200),
+    ]).then(([users, items, deliveries]) => {
+      setStats({
+        users: users.length,
+        articles: items.length,
+        digests: deliveries.length,
+      });
+    }).catch(() => {});
   }, []);
 
   const handleCTA = (location) => {
