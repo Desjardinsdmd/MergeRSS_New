@@ -137,7 +137,21 @@ Deno.serve(async (req) => {
         digest_name: digest.name,
       });
     } else {
-      // Mode: individual feeds
+      // Mode: individual feeds — enforce free plan limit server-side
+      if (!add_to_directory) {
+        const FREE_FEED_LIMIT = 50;
+        const isPremium = user.plan === 'premium';
+        if (!isPremium) {
+          const existingFeeds = await base44.entities.Feed.filter({});
+          const remaining = FREE_FEED_LIMIT - existingFeeds.length;
+          if (remaining <= 0) {
+            return Response.json({ error: `Feed limit reached. Free plan allows ${FREE_FEED_LIMIT} feeds. Upgrade to Premium for unlimited feeds.` }, { status: 403 });
+          }
+          // Trim import to what's allowed
+          parsedFeeds = parsedFeeds.slice(0, remaining);
+        }
+      }
+
       const created = [];
       const skipped = [];
 
