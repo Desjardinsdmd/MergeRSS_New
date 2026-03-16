@@ -242,67 +242,47 @@ async function fetchFeedsWithThrottling(feeds, base44, batchSize = 10, delayBetw
                     continue;
                 }
 
-                // --- Attempt URL recovery before counting as an error ---
-                const isHtmlOrNotFound = error.includes('HTML') || error.includes('404') || error.includes('Unrecognized feed');
-                let recovered = false;
+                // Track consecutive errors
+                const consecutiveErrors = (feed.consecutive_errors || 0) + 1;
+                const shouldPause = consecutiveErrors >= MAX_CONSECUTIVE_ERRORS;
 
-                if (isHtmlOrNotFound) {
-                    try {
-                        const newUrl = await recoverFeedUrl(feed.url);
-                        if (newUrl && newUrl !== feed.url) {
-                            // Test the new URL by parsing it
-                            const recoveredItems = await parseFeed(newUrl).catch(() => null);
-                            if (recoveredItems !== null) {
-                                // Update the feed URL and reset errors
-                                base44.asServiceRole.entities.Feed.update(feed.id, {
+                // --- For HTML/404 errors: kick off async URL recovery (fire-and-forget) ---
+                // Recovery runs in background so it doesn't block this run's time budget.
+                const isRecoverable = error.includes('HTML') || error.includes('404') || error.includes('Unrecognized feed');
+                if (isRecoverable && consecutiveErrors >= 2) {
+                    // Fire-and-forget: attempt recovery in background
+                    (async () => {
+                        try {
+                            const newUrl = await recoverFeedUrl(feed.url);
+                            if (newUrl) {
+                                await base44.asServiceRole.entities.Feed.update(feed.id, {
                                     url: newUrl,
                                     status: 'active',
                                     fetch_error: '',
                                     consecutive_errors: 0,
-                                    last_fetched: new Date().toISOString(),
-                                }).catch(() => {});
-                                results.push({ feed: feed.name, status: 'recovered', new_url: newUrl, new_items: recoveredItems.length });
-                                recovered = true;
-                                // Use the recovered items for this feed in this run
-                                const feedExisting = itemsByFeed[feed.id] || [];
-                                const existingGuids = new Set(feedExisting.map(i => i.guid).filter(Boolean));
-                                const existingUrls = new Set(feedExisting.map(i => i.url).filter(Boolean));
-                                for (const item of recoveredItems.slice(0, 50)) {
-                                    if (!item.guid && !item.url) continue;
-                                    if (existingGuids.has(item.guid) || existingUrls.has(item.url)) continue;
-                                    itemsToCreate.push({
-                                        feed_id: feed.id,
-                                        title: String(item.title || '').slice(0, 500),
-                                        url: String(item.url || ''),
-                                        description: String(item.description || '').slice(0, 2000),
-                                        content: String(item.content || '').slice(0, 5000),
-                                        author: String(item.author || '').slice(0, 200),
-                                        published_date: item.published_date,
-                                        guid: String(item.guid || item.url || ''),
-                                        category: feed.category,
-                                        tags: feed.tags || [],
-                                        is_read: false,
-                                    });
-                                }
+                                });
+                                console.log(`[fetchFeeds] Recovered ${feed.name} → ${newUrl}`);
+                            } else if (shouldPause) {
+                                await base44.asServiceRole.entities.Feed.update(feed.id, {
+                                    status: 'paused',
+                                    fetch_error: error,
+                                    consecutive_errors: consecutiveErrors,
+                                });
                             }
-                        }
-                    } catch {}
-                }
-
-                if (!recovered) {
-                    // Track consecutive errors — pause the feed after MAX_CONSECUTIVE_ERRORS
-                    const consecutiveErrors = (feed.consecutive_errors || 0) + 1;
-                    const shouldPause = consecutiveErrors >= MAX_CONSECUTIVE_ERRORS;
+                        } catch {}
+                    })();
+                } else {
                     base44.asServiceRole.entities.Feed.update(feed.id, {
                         status: shouldPause ? 'paused' : 'error',
                         fetch_error: error,
                         consecutive_errors: consecutiveErrors,
                     }).catch(() => {});
-                    if (shouldPause) {
-                        results.push({ feed: feed.name, error, status: 'paused', note: `Auto-paused after ${consecutiveErrors} consecutive failures` });
-                    } else {
-                        results.push({ feed: feed.name, error, status: 'error', consecutive_errors: consecutiveErrors });
-                    }
+                }
+
+                if (shouldPause) {
+                    results.push({ feed: feed.name, error, status: 'paused', note: `Auto-paused after ${consecutiveErrors} consecutive failures` });
+                } else {
+                    results.push({ feed: feed.name, error, status: isRecoverable && consecutiveErrors >= 2 ? 'recovering' : 'error', consecutive_errors: consecutiveErrors });
                 }
                 continue;
             }
