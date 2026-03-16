@@ -71,6 +71,14 @@ export default function BulkImportDialog({ open, onOpenChange, onSuccess, curren
       toast.error('Please enter a name for the digest.');
       return;
     }
+    if (mode === 'feeds' && !isPremium) {
+      const maxFeeds = 50;
+      const remaining = maxFeeds - currentFeedCount;
+      if (remaining <= 0) {
+        toast.error('You\'ve reached the 50-feed limit on the Free plan. Upgrade to Premium for unlimited feeds.');
+        return;
+      }
+    }
 
     setLoading(true);
     const invokeMode = mode === 'directory' ? 'feeds' : mode;
