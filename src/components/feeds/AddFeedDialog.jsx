@@ -104,14 +104,36 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
     setLoading(true);
 
     if (editFeed) {
-      // If sharing a personal feed to public, create a DirectoryFeed
+      // If sharing a personal feed to public, create a DirectoryFeed with AI-enriched title/description
       if (formData.is_public && !editFeed.is_public) {
+        let dirName = formData.name;
+        let dirDescription = formData.public_description;
+
+        // If name looks like a URL or is very short, use AI to generate a proper title/description
+        const looksLikeUrl = dirName.includes('://') || dirName.startsWith('www.') || (dirName.length < 6 && !dirName.includes(' '));
+        if (looksLikeUrl || !dirDescription) {
+          try {
+            const aiResult = await base44.integrations.Core.InvokeLLM({
+              prompt: `Given this RSS feed URL: ${formData.url}\nAnd its current name: "${formData.name}"\n\nGenerate a clean, professional display name (max 50 chars) and a short description (1-2 sentences, max 120 chars) suitable for a public feed directory. The name should be a proper title, not a URL.`,
+              response_json_schema: {
+                type: 'object',
+                properties: {
+                  name: { type: 'string' },
+                  description: { type: 'string' }
+                }
+              }
+            });
+            if (aiResult?.name && !aiResult.name.includes('://')) dirName = aiResult.name;
+            if (aiResult?.description && !dirDescription) dirDescription = aiResult.description;
+          } catch {}
+        }
+
         await base44.entities.DirectoryFeed.create({
-          name: formData.name,
+          name: dirName,
           url: formData.url,
           category: formData.category,
           tags: formData.tags || [],
-          description: formData.public_description,
+          description: dirDescription,
           added_count: 0,
           upvotes: 0,
           downvotes: 0,
