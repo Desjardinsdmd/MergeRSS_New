@@ -236,7 +236,7 @@ export default function Landing() {
           >
             <CheckCircle className="w-3.5 h-3.5 text-stone-700" /> Free plan — no credit card required
             <span className="text-stone-800">·</span>
-            <CheckCircle className="w-3.5 h-3.5 text-stone-700" /> 5 feeds &amp; 1 digest included
+            <CheckCircle className="w-3.5 h-3.5 text-stone-700" /> 50 feeds &amp; 5 digests included
           </p>
 
           {/* Authenticated user shortcut — avoids confusing sign-in after already logged in */}
