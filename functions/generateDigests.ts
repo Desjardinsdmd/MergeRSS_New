@@ -126,7 +126,13 @@ Deno.serve(async (req) => {
                             feed_id: { $in: digest.feed_ids } 
                         }, '-published_date', 50);
                     } else {
-                        fallbackItems = await base44.asServiceRole.entities.FeedItem.list('-published_date', 50);
+                        const ownerFeeds = await base44.asServiceRole.entities.Feed.filter({ created_by: digest.created_by });
+                        const ownerFeedIds = ownerFeeds.map(f => f.id);
+                        if (ownerFeedIds.length > 0) {
+                            fallbackItems = await base44.asServiceRole.entities.FeedItem.filter({
+                                feed_id: { $in: ownerFeedIds }
+                            }, '-published_date', 50);
+                        }
                     }
                     if (digest.categories?.length > 0) {
                         fallbackItems = fallbackItems.filter(i => digest.categories.includes(i.category));

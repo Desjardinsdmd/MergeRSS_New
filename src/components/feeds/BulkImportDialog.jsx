@@ -28,7 +28,7 @@ const MODES = [
   },
 ];
 
-export default function BulkImportDialog({ open, onOpenChange, onSuccess }) {
+export default function BulkImportDialog({ open, onOpenChange, onSuccess, currentFeedCount = 0, isPremium = false }) {
   const [format, setFormat] = useState('opml'); // 'opml' | 'urls'
   const [mode, setMode] = useState('feeds');
   const [opmlContent, setOpmlContent] = useState('');
