@@ -117,6 +117,80 @@ async function parseFeed(url) {
     throw new Error(`Unrecognized feed format — starts with: ${xml.substring(0, 120).replace(/\s+/g, ' ').trim()}`);
 }
 
+const FETCH_HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (compatible; MergeRSS/1.0; +https://mergerss.app)',
+    'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, text/html, */*',
+};
+
+function isRssFeed(text) {
+    const t = text.trimStart();
+    return (
+        (t.startsWith('<?xml') || t.startsWith('<rss') || t.startsWith('<feed') || t.startsWith('<rdf:RDF')) &&
+        (t.includes('<item>') || t.includes('<entry>') || t.includes('<channel>'))
+    );
+}
+
+function discoverFeedUrls(html, pageUrl) {
+    const base = new URL(pageUrl);
+    const fromTags = [];
+    const re = /<link[^>]+>/gi;
+    let m;
+    while ((m = re.exec(html)) !== null) {
+        const tag = m[0];
+        if (!tag.toLowerCase().includes('alternate')) continue;
+        const typeM = tag.match(/type=["']([^"']+)["']/i);
+        const hrefM = tag.match(/href=["']([^"']+)["']/i);
+        if (!hrefM) continue;
+        const type = (typeM?.[1] || '').toLowerCase();
+        if (type.includes('rss') || type.includes('atom') || type.includes('xml')) {
+            try { fromTags.push(new URL(hrefM[1], base).href); } catch {}
+        }
+    }
+    const probes = ['/feed', '/rss', '/atom', '/feed.xml', '/rss.xml', '/atom.xml', '/blog/feed', '/news/feed', '/feed/rss2', '/?feed=rss2']
+        .map(p => { try { return new URL(p, base).href; } catch { return null; } })
+        .filter(Boolean);
+    return [...new Set([...fromTags, ...probes])];
+}
+
+/**
+ * Attempts to find a working RSS/Atom URL for a feed that is erroring.
+ * Returns the discovered URL string, or null if nothing found.
+ */
+async function recoverFeedUrl(originalUrl) {
+    const candidates = discoverFeedUrls('', originalUrl); // probe common paths first
+
+    // Also try fetching the page itself to discover <link rel="alternate"> tags
+    try {
+        const res = await fetch(originalUrl, {
+            headers: FETCH_HEADERS,
+            redirect: 'follow',
+            signal: AbortSignal.timeout(12000),
+        });
+        if (res.ok) {
+            const html = await res.text();
+            if (isRssFeed(html)) return originalUrl; // it IS a feed, just was temporarily down
+            const discovered = discoverFeedUrls(html, originalUrl);
+            candidates.unshift(...discovered); // prioritise discovered over probes
+        }
+    } catch {}
+
+    const deduped = [...new Set(candidates)];
+    for (const candidate of deduped.slice(0, 12)) {
+        if (candidate === originalUrl) continue;
+        try {
+            const res = await fetch(candidate, {
+                headers: FETCH_HEADERS,
+                redirect: 'follow',
+                signal: AbortSignal.timeout(8000),
+            });
+            if (!res.ok) continue;
+            const text = await res.text();
+            if (isRssFeed(text)) return candidate;
+        } catch {}
+    }
+    return null;
+}
+
 async function fetchFeedsWithThrottling(feeds, base44, batchSize = 10, delayBetweenBatches = 200) {
     const results = [];
     
