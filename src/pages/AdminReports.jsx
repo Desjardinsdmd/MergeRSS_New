@@ -171,6 +171,15 @@ export default function AdminReports() {
         </h1>
         <p className="text-stone-500 mt-1">Review and manage user-reported issues</p>
       </div>
+      <Button
+        onClick={downloadPDF}
+        disabled={reports.length === 0}
+        variant="outline"
+        className="border-stone-700 text-stone-300 hover:bg-stone-800 gap-2"
+      >
+        <Download className="w-4 h-4" />
+        Download PDF
+      </Button>
 
       {/* Status Filter */}
       <div className="mb-6 flex gap-2">
