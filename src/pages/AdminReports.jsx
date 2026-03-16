@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { AlertCircle, Loader2, Check, Clock, MessageSquare } from 'lucide-react';
+import { AlertCircle, Loader2, Check, Clock, MessageSquare, Download } from 'lucide-react';
+import { jsPDF } from 'jspdf';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import {
