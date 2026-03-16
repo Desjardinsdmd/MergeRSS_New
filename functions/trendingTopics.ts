@@ -12,13 +12,14 @@ Deno.serve(async (req) => {
 
     if (feedIds.length === 0) return Response.json({ topics: [], summary: 'No active feeds found.' });
 
-    // Fetch recent items across all feeds
+    // Fetch recent items scoped to user's feeds only
     const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
-    const allItems = await base44.entities.FeedItem.list('-published_date', 100);
-    const recentItems = allItems.filter(item =>
-      feedIds.includes(item.feed_id) &&
-      item.published_date >= cutoff
+    const allItems = await base44.entities.FeedItem.filter(
+      { feed_id: { $in: feedIds } },
+      '-published_date',
+      100
     );
+    const recentItems = allItems.filter(item => item.published_date >= cutoff);
 
     if (recentItems.length === 0) {
       return Response.json({ topics: [], summary: 'No recent articles in the last 48 hours.' });
