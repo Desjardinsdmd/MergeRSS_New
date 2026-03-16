@@ -167,11 +167,11 @@ async function fetchFeedsWithThrottling(feeds, base44, batchSize = 10, delayBetw
                     // Track consecutive errors — pause the feed after MAX_CONSECUTIVE_ERRORS
                     const consecutiveErrors = (feed.consecutive_errors || 0) + 1;
                     const shouldPause = consecutiveErrors >= MAX_CONSECUTIVE_ERRORS;
-                    await base44.asServiceRole.entities.Feed.update(feed.id, {
+                    base44.asServiceRole.entities.Feed.update(feed.id, {
                         status: shouldPause ? 'paused' : 'error',
                         fetch_error: error,
                         consecutive_errors: consecutiveErrors,
-                    });
+                    }).catch(() => {});
                     if (shouldPause) {
                         results.push({ feed: feed.name, error, status: 'paused', note: `Auto-paused after ${consecutiveErrors} consecutive failures` });
                     } else {
