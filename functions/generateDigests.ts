@@ -21,6 +21,9 @@ Deno.serve(async (req) => {
             }
         }
 
+        // Plan limits (sync with lib/planLimits.js)
+        const FREE_DIGEST_LIMIT = 5; // max digests for free users
+        
         let digests;
         if (digest_id) {
             const all = await base44.asServiceRole.entities.Digest.list();
