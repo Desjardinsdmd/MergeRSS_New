@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 import { XMLParser } from 'npm:fast-xml-parser@4.3.6';
 
 // SSRF protection
@@ -16,6 +16,15 @@ function isSsrf(url) {
 }
 
 const UA = 'Mozilla/5.0 (compatible; MergeRSS/1.0; +https://mergerss.app)';
+
+// Hard wall-clock budget (ms) — leave headroom before Deno's CPU limit
+const WALL_BUDGET_MS = 50000;
+// Max feeds to process per invocation (prevents runaway loops on large datasets)
+const MAX_FEEDS_PER_RUN = 20;
+// Concurrency: process N feeds in parallel
+const CONCURRENCY = 3;
+// Per-feed fetch timeout (ms) — reduced so slow sites don't monopolize the budget
+const FETCH_TIMEOUT_MS = 8000;
 
 function isRss(text) {
     const t = text.trimStart();
@@ -69,7 +78,7 @@ function extractItems(html, baseUrl, itemLimit = 25) {
         items.push({ title, url: href, description: '', pubDate });
     }
 
-    // Strategy 2: Heading-wrapped links (e.g. <h1><a href="...">title</a></h1>)
+    // Strategy 2: Heading-wrapped links
     if (items.length < 5) {
         const headingRe = /<h[123][^>]*>\s*(<a[^>]+href=["']([^"'#][^"']*?)["'][^>]*>([\s\S]*?)<\/a>)\s*<\/h[123]>/gi;
         let hm;
@@ -83,14 +92,12 @@ function extractItems(html, baseUrl, itemLimit = 25) {
             } catch { continue; }
             if (seen.has(href)) continue;
             seen.add(href);
-            // Look for date near the heading
             const surroundStart = Math.max(0, hm.index - 200);
             const surroundEnd = Math.min(html.length, hm.index + hm[0].length + 400);
             const surround = html.slice(surroundStart, surroundEnd);
             const dateM = surround.match(/\b(\d{2}\/\d{2}\/\d{4}|\d{4}-\d{2}-\d{2}|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* \d{1,2},? \d{4})\b/i);
             let pubDate = '';
             if (dateM) {
-                // Handle MM/DD/YYYY format specifically
                 const raw = dateM[1];
                 if (/^\d{2}\/\d{2}\/\d{4}$/.test(raw)) {
                     const [mm, dd, yyyy] = raw.split('/');
@@ -157,6 +164,65 @@ ${itemsXml}
 // Frequency → min age in hours before re-fetching
 const FREQ_HOURS = { '5min': 0.08, '15min': 0.25, '1hour': 1, '6hours': 6, 'daily': 24 };
 
+async function processOneFeed(feed, base44, now) {
+    const targetUrl = feed.native_feed_url || feed.source_url;
+    const res = await fetch(targetUrl, {
+        headers: { 'User-Agent': UA, 'Accept': 'text/html,application/xml,*/*' },
+        redirect: 'follow',
+        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
+
+    let newXml = null, newItems = null;
+
+    if (isRss(text)) {
+        newXml = text.slice(0, 200000);
+    } else {
+        const { title, description } = extractMeta(text, feed.source_url);
+        const items = extractItems(text, feed.source_url, feed.item_limit || 25);
+        if (items.length > 0) {
+            newXml = buildRss(title, description, feed.source_url, items).slice(0, 200000);
+            newItems = items.slice(0, 50);
+        }
+    }
+
+    const MAX_CACHED_XML = 180000;
+    if (newXml && newXml.length > MAX_CACHED_XML) {
+        const truncated = newXml.slice(0, MAX_CACHED_XML);
+        const lastItem = truncated.lastIndexOf('</item>');
+        const lastEntry = truncated.lastIndexOf('</entry>');
+        const cutoff = Math.max(lastItem, lastEntry);
+        if (cutoff > 0) {
+            const base_ = truncated.slice(0, cutoff + (lastItem > lastEntry ? 7 : 8));
+            newXml = base_ + '\n  </channel>\n</rss>';
+        } else {
+            newXml = truncated;
+        }
+    }
+
+    if (newXml) {
+        await base44.asServiceRole.entities.GeneratedFeed.update(feed.id, {
+            cached_xml: newXml,
+            items_cache: newItems || feed.items_cache,
+            last_fetched: now.toISOString(),
+            last_success: now.toISOString(),
+            error_count: 0,
+            last_error: '',
+            fetch_count: (feed.fetch_count || 0) + 1,
+        });
+        return { id: feed.id, status: 'refreshed' };
+    } else {
+        await base44.asServiceRole.entities.GeneratedFeed.update(feed.id, {
+            last_fetched: now.toISOString(),
+            error_count: (feed.error_count || 0) + 1,
+            last_error: 'No extractable content',
+        });
+        return { id: feed.id, status: 'no_content' };
+    }
+}
+
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
@@ -165,100 +231,77 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Admin only' }, { status: 403 });
         }
 
+        const startTime = Date.now();
         const now = new Date();
-        const feeds = await base44.asServiceRole.entities.GeneratedFeed.list();
-        const results = [];
 
-        for (const feed of feeds) {
-            if (feed.is_disabled) { results.push({ id: feed.id, skipped: 'disabled' }); continue; }
+        // Fetch all feeds but only process up to MAX_FEEDS_PER_RUN that are due
+        const allFeeds = await base44.asServiceRole.entities.GeneratedFeed.list();
 
-            // Check if refresh is due
+        // Filter to only feeds that need refreshing right now
+        const dueFeeds = allFeeds.filter(feed => {
+            if (feed.is_disabled) return false;
             const minAgeHours = FREQ_HOURS[feed.refresh_frequency] || 1;
             if (feed.last_fetched) {
                 const hoursSince = (now - new Date(feed.last_fetched)) / 3600000;
-                if (hoursSince < minAgeHours) { results.push({ id: feed.id, skipped: 'not_due' }); continue; }
+                if (hoursSince < minAgeHours) return false;
             }
-
-            // Backoff: if 5+ consecutive errors, skip until next day
+            // Backoff: 5+ errors → skip for 24h
             if ((feed.error_count || 0) >= 5) {
-                if (feed.last_fetched && (now - new Date(feed.last_fetched)) < 86400000) {
-                    results.push({ id: feed.id, skipped: 'backoff' }); continue;
-                }
+                if (feed.last_fetched && (now - new Date(feed.last_fetched)) < 86400000) return false;
+            }
+            if (isSsrf(feed.source_url)) return false;
+            return true;
+        });
+
+        // Sort by oldest last_fetched first so stale feeds get priority
+        dueFeeds.sort((a, b) => {
+            const aTime = a.last_fetched ? new Date(a.last_fetched).getTime() : 0;
+            const bTime = b.last_fetched ? new Date(b.last_fetched).getTime() : 0;
+            return aTime - bTime;
+        });
+
+        // Cap at MAX_FEEDS_PER_RUN to stay within time budget
+        const toProcess = dueFeeds.slice(0, MAX_FEEDS_PER_RUN);
+
+        const results = [];
+        const skipped = allFeeds.length - dueFeeds.length;
+
+        // Process in concurrent batches of CONCURRENCY
+        for (let i = 0; i < toProcess.length; i += CONCURRENCY) {
+            // Check wall-clock budget before each batch
+            if (Date.now() - startTime > WALL_BUDGET_MS) {
+                const remaining = toProcess.length - i;
+                results.push({ status: 'budget_exceeded', remaining_skipped: remaining });
+                break;
             }
 
-            if (isSsrf(feed.source_url)) { results.push({ id: feed.id, skipped: 'ssrf' }); continue; }
-
-            try {
-                // If it's a native feed, just re-fetch it
-                const targetUrl = feed.native_feed_url || feed.source_url;
-                const res = await fetch(targetUrl, {
-                    headers: { 'User-Agent': UA, 'Accept': 'text/html,application/xml,*/*' },
-                    redirect: 'follow',
-                    signal: AbortSignal.timeout(18000),
-                });
-
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                const text = await res.text();
-
-                let newXml = null, newItems = null;
-
-                if (isRss(text)) {
-                    newXml = text.slice(0, 200000);
-                } else {
-                    // Re-scrape
-                    const { title, description } = extractMeta(text, feed.source_url);
-                    const items = extractItems(text, feed.source_url, feed.item_limit || 25);
-                    if (items.length > 0) {
-                        newXml = buildRss(title, description, feed.source_url, items).slice(0, 200000);
-                        newItems = items.slice(0, 50);
+            const batch = toProcess.slice(i, i + CONCURRENCY);
+            const batchResults = await Promise.all(
+                batch.map(async (feed) => {
+                    try {
+                        return await processOneFeed(feed, base44, now);
+                    } catch (err) {
+                        await base44.asServiceRole.entities.GeneratedFeed.update(feed.id, {
+                            last_fetched: now.toISOString(),
+                            error_count: (feed.error_count || 0) + 1,
+                            last_error: err.message?.slice(0, 200) || 'Fetch failed',
+                        });
+                        return { id: feed.id, status: 'error', error: err.message };
                     }
-                }
-
-                const MAX_CACHED_XML = 180000;
-                if (newXml && newXml.length > MAX_CACHED_XML) {
-                    const truncated = newXml.slice(0, MAX_CACHED_XML);
-                    const lastItem = truncated.lastIndexOf('</item>');
-                    const lastEntry = truncated.lastIndexOf('</entry>');
-                    const cutoff = Math.max(lastItem, lastEntry);
-                    if (cutoff > 0) {
-                        const base_ = truncated.slice(0, cutoff + (lastItem > lastEntry ? 7 : 8));
-                        newXml = base_ + '\n  </channel>\n</rss>';
-                    } else {
-                        newXml = truncated;
-                    }
-                }
-                if (newXml) {
-                    await base44.asServiceRole.entities.GeneratedFeed.update(feed.id, {
-                        cached_xml: newXml,
-                        items_cache: newItems || feed.items_cache,
-                        last_fetched: now.toISOString(),
-                        last_success: now.toISOString(),
-                        error_count: 0,
-                        last_error: '',
-                        fetch_count: (feed.fetch_count || 0) + 1,
-                    });
-                    results.push({ id: feed.id, status: 'refreshed' });
-                } else {
-                    // No new content but don't fail — keep last good cache
-                    await base44.asServiceRole.entities.GeneratedFeed.update(feed.id, {
-                        last_fetched: now.toISOString(),
-                        error_count: (feed.error_count || 0) + 1,
-                        last_error: 'No extractable content',
-                    });
-                    results.push({ id: feed.id, status: 'no_content' });
-                }
-
-            } catch (err) {
-                await base44.asServiceRole.entities.GeneratedFeed.update(feed.id, {
-                    last_fetched: now.toISOString(),
-                    error_count: (feed.error_count || 0) + 1,
-                    last_error: err.message?.slice(0, 200) || 'Fetch failed',
-                });
-                results.push({ id: feed.id, status: 'error', error: err.message });
-            }
+                })
+            );
+            results.push(...batchResults);
         }
 
-        return Response.json({ success: true, processed: feeds.length, results });
+        const elapsed = Date.now() - startTime;
+        return Response.json({
+            success: true,
+            total: allFeeds.length,
+            skipped_not_due: skipped,
+            processed: toProcess.length,
+            elapsed_ms: elapsed,
+            results,
+        });
     } catch (err) {
         return Response.json({ error: err.message }, { status: 500 });
     }
