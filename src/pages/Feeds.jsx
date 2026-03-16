@@ -140,7 +140,7 @@ export default function Feeds() {
   };
 
   const isPremium = user?.plan === 'premium';
-  const maxFeeds = isPremium ? Infinity : 50;
+  const maxFeeds = getLimit(isPremium, 'feeds');
   const canAddMore = feeds.length < maxFeeds;
 
   return (
@@ -190,7 +190,7 @@ export default function Feeds() {
       {!isPremium && feeds.length >= maxFeeds && (
         <div className="mb-6 flex items-center justify-between gap-4 bg-stone-900 border border-stone-800 rounded-xl px-4 py-3">
           <p className="text-sm text-stone-400 font-medium">
-            You've reached the 50-feed limit on the Free plan. Upgrade to Premium for unlimited feeds.
+            You've reached the {maxFeeds}-feed limit on the Free plan. Upgrade to Premium for unlimited feeds.
           </p>
           <Link to={createPageUrl('Pricing')}>
             <Button size="sm" className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 rounded-lg whitespace-nowrap font-bold">

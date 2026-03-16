@@ -100,7 +100,7 @@ export default function Digests() {
   };
 
   const isPremium = user?.plan === 'premium';
-  const maxDigests = isPremium ? Infinity : 5;
+  const maxDigests = getLimit(isPremium, 'digests');
   const canAddMore = digests.length < maxDigests;
 
   return (
@@ -133,7 +133,7 @@ export default function Digests() {
       {!isPremium && digests.length >= maxDigests && (
         <div className="mb-6 flex items-center justify-between gap-4 bg-stone-900 border border-stone-800 rounded-xl px-4 py-3">
           <p className="text-sm text-stone-400 font-medium">
-            You've reached the 5-digest limit on the Free plan. Upgrade to Premium for unlimited digests.
+            You've reached the {maxDigests}-digest limit on the Free plan. Upgrade to Premium for unlimited digests.
           </p>
           <Link to={createPageUrl('Pricing')}>
             <Button size="sm" className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 rounded-lg whitespace-nowrap font-bold">
