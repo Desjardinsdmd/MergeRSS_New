@@ -103,7 +103,7 @@ Write exactly 3 sentences. No bullet points, no headers. Just 3 flowing sentence
     const briefCategories = Object.keys(byCategory).filter(cat => byCategory[cat].length >= 1);
     const categoryBriefs = {};
 
-    await Promise.all(briefCategories.map(async (cat) => {
+    for (const cat of briefCategories) {
       const items = byCategory[cat];
       const headlines = items.slice(0, 20).map(i => `- ${i.title}`).join('\n');
       const res = await base44.integrations.Core.InvokeLLM({
@@ -126,7 +126,7 @@ Write 2-3 sentences max. No bullet points, no headers. Just flowing sentences ab
         article_count: items.length,
         related_articles: topArticles(items, 5),
       };
-    }));
+    }
 
     return Response.json({
       snapshot: {
