@@ -55,6 +55,16 @@ Deno.serve(async (req) => {
   try {
     base44 = createClientFromRequest(req);
     const formData = await req.formData();
+
+    // Verify Mailgun signature
+    const token = formData.get('token') || '';
+    const timestamp = formData.get('timestamp') || '';
+    const signature = formData.get('signature') || '';
+    const isValid = await verifyMailgunSignature(token, timestamp, signature);
+    if (!isValid) {
+      return Response.json({ error: 'Invalid signature' }, { status: 401 });
+    }
+
     const recipient = formData.get('recipient');
     const sender = formData.get('sender');
     const senderName = formData.get('from') || sender;
