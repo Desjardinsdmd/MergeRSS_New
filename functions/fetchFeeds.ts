@@ -224,7 +224,6 @@ async function fetchFeedsWithThrottling(feeds, base44, batchSize = 10, delayBetw
         if (itemsToCreate.length > 0) {
 
             const created = await base44.asServiceRole.entities.FeedItem.bulkCreate(itemsToCreate);
-            console.log(`[fetchFeeds] batch ${i}: bulkCreate done`);
             // Send alerts for feeds that have active alerts configured
             try {
                 const allAlerts = await base44.asServiceRole.entities.FeedAlert.filter({ is_active: true });
