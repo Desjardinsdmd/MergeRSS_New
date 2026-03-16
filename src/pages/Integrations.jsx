@@ -53,12 +53,15 @@ export default function Integrations() {
   const [user, setUser] = useState(null);
   const [showSlackDialog, setShowSlackDialog] = useState(false);
   const [showDiscordDialog, setShowDiscordDialog] = useState(false);
+  const [showTeamsDialog, setShowTeamsDialog] = useState(false);
   const [disconnectConfirm, setDisconnectConfirm] = useState(null);
   const [loading, setLoading] = useState(false);
   const [discordWebhook, setDiscordWebhook] = useState('');
   const [slackWebhook, setSlackWebhook] = useState('');
+  const [teamsWebhook, setTeamsWebhook] = useState('');
   const [slackError, setSlackError] = useState('');
   const [discordError, setDiscordError] = useState('');
+  const [teamsError, setTeamsError] = useState('');
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -77,6 +80,7 @@ export default function Integrations() {
 
   const slackIntegration = integrations.find(i => i.type === 'slack');
   const discordIntegration = integrations.find(i => i.type === 'discord');
+  const teamsIntegration = integrations.find(i => i.type === 'teams');
   const isPremium = user?.plan === 'premium';
   
   const checkIntegrationLimit = () => {
@@ -164,9 +168,44 @@ export default function Integrations() {
     toast.success('Channel updated');
   };
 
+  const handleConnectTeams = async () => {
+    if (!isPremium || !teamsWebhook) return;
+    if (!teamsWebhook.includes('webhook.office.com') && !teamsWebhook.includes('office365.com')) {
+      setTeamsError('URL must be a valid Microsoft Teams webhook (webhook.office.com/…)');
+      return;
+    }
+    setTeamsError('');
+    setLoading(true);
+    try {
+      await base44.entities.Integration.create({
+        type: 'teams',
+        status: 'connected',
+        workspace_name: 'Microsoft Teams',
+        webhook_url: teamsWebhook,
+      });
+      queryClient.invalidateQueries({ queryKey: ['integrations'] });
+      setShowTeamsDialog(false);
+      setTeamsWebhook('');
+      toast.success('Microsoft Teams connected!');
+    } catch (error) {
+      toast.error(error.message || 'Failed to connect Teams');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSendTestMessage = async (type) => {
     setLoading(true);
-    if (type === 'Discord' && discordIntegration?.webhook_url) {
+    if (type === 'Teams' && teamsIntegration?.webhook_url) {
+      const body = { type: 'message', attachments: [{ contentType: 'application/vnd.microsoft.card.adaptive', content: { type: 'AdaptiveCard', body: [{ type: 'TextBlock', text: '✅ MergeRSS test message — your Teams integration is working!' }] } }] };
+      const res = await fetch(teamsIntegration.webhook_url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      setLoading(false);
+      if (res.ok || res.status === 202) {
+        toast.success('Test message sent to Teams!');
+      } else {
+        toast.error('Failed to send test message');
+      }
+    } else if (type === 'Discord' && discordIntegration?.webhook_url) {
       const res = await base44.functions.invoke('sendDiscordTest', { webhook_url: discordIntegration.webhook_url });
       setLoading(false);
       if (res.data?.success) {
@@ -220,6 +259,45 @@ export default function Integrations() {
 
       {/* Integration Cards */}
       <div className="space-y-4">
+        {/* Microsoft Teams */}
+        <Card className="border-stone-800 bg-stone-900">
+          <CardContent className="p-6">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-[#6264A7] rounded-xl flex items-center justify-center">
+                <MessageCircle className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="font-semibold text-stone-200">Microsoft Teams</h3>
+                  {!isPremium && (
+                    <Badge variant="secondary" className="text-xs gap-1 bg-stone-800 text-amber-400">
+                      <Crown className="w-3 h-3" /> Premium
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-sm text-stone-400 mb-4">Post digests to your Microsoft Teams channels</p>
+                {teamsIntegration?.status === 'connected' ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-green-900/30 text-green-400"><Check className="w-3 h-3 mr-1" /> Connected</Badge>
+                      <span className="text-sm text-stone-500">Webhook configured</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Button variant="outline" size="sm" onClick={() => handleSendTestMessage('Teams')} disabled={loading}>Send Test</Button>
+                      <Button variant="ghost" size="sm" onClick={() => setDisconnectConfirm(teamsIntegration)} className="text-red-400 hover:text-red-300 hover:bg-red-900/20">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <Button onClick={() => { if (checkIntegrationLimit()) setShowTeamsDialog(true); }} disabled={!isPremium} className={cn(isPremium ? "bg-[#6264A7] hover:bg-[#4f5196]" : "")}>
+                    <Plus className="w-4 h-4 mr-2" /> Connect Teams
+                  </Button>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
         {/* Slack */}
         <Card className="border-stone-800 bg-stone-900">
           <CardContent className="p-6">
@@ -356,6 +434,51 @@ export default function Integrations() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Teams Dialog */}
+      <Dialog open={showTeamsDialog} onOpenChange={setShowTeamsDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageCircle className="w-5 h-5 text-[#6264A7]" />
+              Connect Microsoft Teams
+            </DialogTitle>
+            <DialogDescription>Add an incoming webhook to post digests to a Teams channel</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="teamsWebhook" className="text-stone-300">Incoming Webhook URL <span className="text-[hsl(var(--primary))]">*</span></Label>
+              <Input
+                id="teamsWebhook"
+                value={teamsWebhook}
+                onChange={(e) => { setTeamsWebhook(e.target.value); setTeamsError(''); }}
+                placeholder="https://xxx.webhook.office.com/webhookb2/..."
+                className={cn("mt-1 bg-stone-800 border-stone-700 text-stone-100 placeholder-stone-600", teamsError && 'border-red-500')}
+              />
+              {teamsError
+                ? <p className="mt-1 text-xs text-red-400 flex items-center gap-1"><AlertCircle className="w-3 h-3" />{teamsError}</p>
+                : <p className="mt-1 text-xs text-stone-500">Paste the webhook URL from your Teams channel connector settings</p>
+              }
+            </div>
+            <div className="bg-stone-800 rounded-lg p-4 text-sm text-stone-400">
+              <p className="font-medium text-stone-300 mb-2">How to get a webhook:</p>
+              <ol className="space-y-1 list-decimal list-inside">
+                <li>Open the Teams channel → click "…" → Connectors</li>
+                <li>Search for "Incoming Webhook" → Configure</li>
+                <li>Give it a name and click Create</li>
+                <li>Copy the webhook URL and paste it above</li>
+              </ol>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowTeamsDialog(false)}>Cancel</Button>
+            <Button onClick={handleConnectTeams} disabled={loading || !teamsWebhook} className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold">
+              {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Connect Teams
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Slack Dialog */}
       <Dialog open={showSlackDialog} onOpenChange={setShowSlackDialog}>
