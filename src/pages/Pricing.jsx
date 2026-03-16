@@ -69,6 +69,11 @@ export default function Pricing() {
       window.location.href = createPageUrl('Dashboard');
       return;
     }
+    // Prevent duplicate subscription
+    if (user?.plan === 'premium') {
+      window.location.href = createPageUrl('Dashboard');
+      return;
+    }
     // Premium - go to Stripe Checkout
     setLoading(true);
     const response = await base44.functions.invoke('createCheckoutSession', {

@@ -64,6 +64,8 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
     setTagInput('');
   }, [editFeed, open]);
 
+  const [validatingRss, setValidatingRss] = useState(false);
+
   const validate = () => {
     const errs = {};
     if (!formData.name.trim()) errs.name = 'Feed name is required';
@@ -72,11 +74,33 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
     return errs;
   };
 
+  const checkIsRssFeed = async (url) => {
+    try {
+      const res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`, { signal: AbortSignal.timeout(8000) });
+      const text = await res.text();
+      return text.includes('<rss') || text.includes('<feed') || text.includes('<channel') || text.includes('<?xml');
+    } catch {
+      return true; // If we can't check, allow it through
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setErrors({});
+
+    // Validate it's an RSS/Atom feed (only on new feeds)
+    if (!editFeed) {
+      setValidatingRss(true);
+      const isRss = await checkIsRssFeed(formData.url);
+      setValidatingRss(false);
+      if (!isRss) {
+        setErrors({ url: 'This URL does not appear to be an RSS/Atom feed. Use the RSS Generator to create a feed from a website.' });
+        return;
+      }
+    }
+
     setLoading(true);
 
     if (editFeed) {
@@ -303,9 +327,9 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading} className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 rounded-sm">
-              {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {editFeed ? 'Save Changes' : 'Add Feed'}
+            <Button type="submit" disabled={loading || validatingRss} className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 rounded-sm">
+              {(loading || validatingRss) && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {validatingRss ? 'Validating…' : editFeed ? 'Save Changes' : 'Add Feed'}
             </Button>
           </DialogFooter>
         </form>

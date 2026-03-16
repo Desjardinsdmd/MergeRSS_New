@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Users, Rss, FileText, TrendingUp, Star } from 'lucide-react';
+import { Users, Rss, FileText, TrendingUp, Star, Loader2 } from 'lucide-react';
 
 export default function AdminAnalytics() {
   const [user, setUser] = useState(null);
@@ -42,7 +42,11 @@ export default function AdminAnalytics() {
     staleTime: 0,
   });
 
-  if (!user) return null;
+  if (!user) return (
+    <div className="p-6 lg:p-8 flex items-center justify-center min-h-64">
+      <Loader2 className="w-6 h-6 animate-spin text-stone-500" />
+    </div>
+  );
   if (user.role !== 'admin') {
     return (
       <div className="p-8 text-center text-stone-500">Access denied. Admin only.</div>
