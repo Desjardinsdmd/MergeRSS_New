@@ -1,5 +1,21 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
+async function verifyMailgunSignature(token, timestamp, signature) {
+  const apiKey = Deno.env.get('MAILGUN_API_KEY');
+  if (!apiKey) return false;
+  const value = timestamp + token;
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(apiKey),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(value));
+  const hex = Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
+  return hex === signature;
+}
+
 let base44;
 
 // Parse email body and extract links/content
