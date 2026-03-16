@@ -12,8 +12,8 @@ const plans = [
     price: 0,
     description: 'Perfect for getting started',
     features: [
-      { text: 'Up to 50 RSS feeds', included: true },
-      { text: 'Up to 5 digests', included: true },
+      { text: `Up to ${PLAN_LIMITS.free.feeds} RSS feeds`, included: true },
+      { text: `Up to ${PLAN_LIMITS.free.digests} digests`, included: true },
       { text: 'Web inbox delivery', included: true },
       { text: 'Email delivery', included: true },
 
