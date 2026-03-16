@@ -12,6 +12,7 @@ import {
 import { Upload, FileText, Link, Rss, LayoutList, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { PLAN_LIMITS } from '@/lib/planLimits';
 
 const MODES = [
   {
