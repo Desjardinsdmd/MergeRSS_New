@@ -258,7 +258,7 @@ Deno.serve(async (req) => {
         
         const startedAt = new Date().toISOString();
 
-        console.log('[fetchFeeds] Loading feeds...');
+
         // Load feeds sorted by oldest last_fetched first so every feed gets rotated through
         const feedsRaw = await base44.asServiceRole.entities.Feed.filter(
             { status: { $in: ['active', 'error'] } },
