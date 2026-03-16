@@ -63,10 +63,11 @@ export default function ArticleSearch() {
           filters.published_date.$lte = toEnd.toISOString();
         }
       }
-      return base44.entities.FeedItem.filter(filters, '-published_date', 200);
+      if (user?.email) filters.created_by = user.email;
+      return base44.entities.FeedItem.filter(filters, '-published_date', 500);
     },
     enabled: !!user,
-    staleTime: 30000
+    staleTime: 0
   });
 
   const mergeItem = (item) => ({
@@ -220,9 +221,9 @@ export default function ArticleSearch() {
         }
 
        {/* Content */}
-       <div className="grid lg:grid-cols-2 gap-6">
+       <div className={selectedArticle ? "grid lg:grid-cols-2 gap-6" : "block"}>
         {/* List */}
-        <div className={selectedArticle ? 'hidden lg:block' : ''}>
+        <div className={selectedArticle ? 'hidden lg:block' : 'w-full'}>
           {isLoading ?
             <div className="flex items-center justify-center py-16">
               <Loader2 className="w-6 h-6 animate-spin text-amber-400" />

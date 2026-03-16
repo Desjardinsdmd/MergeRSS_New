@@ -79,7 +79,7 @@ export default function EmailFeeds() {
   if (loading) {
     return (
       <div className="p-6 lg:p-8 flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-[hsl(var(--primary))] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -90,10 +90,10 @@ export default function EmailFeeds() {
       <div className="mb-8">
         <div className="flex items-center gap-3 flex-wrap">
           <h1 className="text-3xl font-bold text-stone-100 flex items-center gap-2">
-            <Mail className="w-8 h-8 text-amber-400" />
+            <Mail className="w-8 h-8 text-[hsl(var(--primary))]" />
             Email Feeds
           </h1>
-          <Badge className="bg-amber-400/20 text-amber-400 border border-amber-400/40 text-xs font-semibold uppercase tracking-wide">Coming Soon</Badge>
+          <Badge className="bg-[hsl(var(--primary))]/20 text-[hsl(var(--primary))] border border-[hsl(var(--primary))]/40 text-xs font-semibold uppercase tracking-wide">Coming Soon</Badge>
         </div>
         <p className="text-stone-500 mt-2">Subscribe to newsletters using your unique email address. Articles are automatically added to your feeds.</p>
       </div>
@@ -137,7 +137,7 @@ export default function EmailFeeds() {
               <Button
                 onClick={handleInitialize}
                 disabled={initializing}
-                className="bg-amber-400 hover:bg-amber-300 text-stone-900 font-semibold"
+                className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold"
               >
                 {initializing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                 Create Email Feed
@@ -145,7 +145,7 @@ export default function EmailFeeds() {
             </CardContent>
           </Card>
         ) : (
-          <Card className="border-amber-400/50 bg-stone-900 border-2">
+          <Card className="border-[hsl(var(--primary))]/50 bg-stone-900 border-2">
             <CardHeader>
               <CardTitle className="text-lg">Your Unique Email Address</CardTitle>
               <CardDescription>Use this address to subscribe to newsletters</CardDescription>

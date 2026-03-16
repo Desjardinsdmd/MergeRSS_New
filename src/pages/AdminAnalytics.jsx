@@ -12,28 +12,34 @@ export default function AdminAnalytics() {
     base44.auth.me().then(setUser);
   }, []);
 
+  const isAdmin = user?.role === 'admin';
+
   const { data: allFeeds = [] } = useQuery({
     queryKey: ['admin-all-feeds'],
     queryFn: () => base44.entities.Feed.list('-created_date', 500),
-    enabled: user?.role === 'admin',
+    enabled: isAdmin,
+    staleTime: 0,
   });
 
   const { data: allDigests = [] } = useQuery({
     queryKey: ['admin-all-digests'],
     queryFn: () => base44.entities.Digest.list('-created_date', 500),
-    enabled: user?.role === 'admin',
+    enabled: isAdmin,
+    staleTime: 0,
   });
 
   const { data: allDeliveries = [] } = useQuery({
     queryKey: ['admin-all-deliveries'],
     queryFn: () => base44.entities.DigestDelivery.list('-created_date', 500),
-    enabled: user?.role === 'admin',
+    enabled: isAdmin,
+    staleTime: 0,
   });
 
   const { data: directoryFeeds = [] } = useQuery({
     queryKey: ['admin-dir-feeds'],
     queryFn: () => base44.entities.DirectoryFeed.list('-added_count', 200),
-    enabled: user?.role === 'admin',
+    enabled: isAdmin,
+    staleTime: 0,
   });
 
   if (!user) return null;

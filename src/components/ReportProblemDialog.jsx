@@ -97,7 +97,7 @@ export default function ReportProblemDialog({ open, onOpenChange, user }) {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="bg-amber-400 hover:bg-amber-500 text-stone-900 font-semibold"
+              className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold"
             >
               {isSubmitting ? (
                 <>

@@ -58,7 +58,7 @@ export default function RssFeedGenerator() {
 
     const { data: myFeeds = [], refetch: refetchMyFeeds } = useQuery({
         queryKey: ['generatedFeeds'],
-        queryFn: () => base44.entities.GeneratedFeed.filter({ created_by: user?.email }, '-created_date', 20),
+        queryFn: () => base44.entities.GeneratedFeed.filter({ created_by: user?.email }, '-created_date', 200),
         enabled: !!user,
     });
 
