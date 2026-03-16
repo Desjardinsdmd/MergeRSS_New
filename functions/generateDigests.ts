@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 Deno.serve(async (req) => {
     try {
@@ -9,10 +9,26 @@ Deno.serve(async (req) => {
         const body = await req.json().catch(() => ({}));
         const { digest_id, force } = body;
 
+        // Auth check: must be authenticated or called from automation (service role)
+        let callerEmail = null;
+        try {
+            const user = await base44.auth.me();
+            callerEmail = user?.email;
+        } catch {
+            // Unauthenticated — only allowed if called without digest_id (scheduled automation)
+            if (digest_id) {
+                return Response.json({ error: 'Unauthorized' }, { status: 401 });
+            }
+        }
+
         let digests;
         if (digest_id) {
             const all = await base44.asServiceRole.entities.Digest.list();
             const d = all.find(x => x.id === digest_id);
+            // If caller is authenticated, ensure they own this digest
+            if (d && callerEmail && d.created_by !== callerEmail) {
+                return Response.json({ error: 'Forbidden' }, { status: 403 });
+            }
             digests = d ? [d] : [];
         } else {
             digests = await base44.asServiceRole.entities.Digest.filter({ status: 'active' });
