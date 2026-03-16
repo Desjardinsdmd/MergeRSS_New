@@ -133,7 +133,6 @@ async function fetchFeedsWithThrottling(feeds, base44, batchSize = 5, delayBetwe
         );
 
         // Get existing items for all feeds in batch (one query)
-        console.log('[fetchFeeds] Querying FeedItems for batch', i, 'feed ids:', batch.map(f => f.id));
         const existingItemsRaw = await base44.asServiceRole.entities.FeedItem.filter({ 
             feed_id: { $in: batch.map(f => f.id) } 
         }, '-created_date', 200);
@@ -214,9 +213,7 @@ async function fetchFeedsWithThrottling(feeds, base44, batchSize = 5, delayBetwe
 
         // Bulk create all items from this batch
         if (itemsToCreate.length > 0) {
-            console.log('[fetchFeeds] bulkCreate', itemsToCreate.length, 'items');
             const created = await base44.asServiceRole.entities.FeedItem.bulkCreate(itemsToCreate);
-            console.log('[fetchFeeds] bulkCreate done');
             // Send alerts for feeds that have active alerts configured
             try {
                 const allAlerts = await base44.asServiceRole.entities.FeedAlert.filter({ is_active: true });
@@ -250,15 +247,7 @@ Deno.serve(async (req) => {
         
         const startedAt = new Date().toISOString();
 
-        console.log('[fetchFeeds] Starting feed fetch...');
-        let feeds;
-        try {
-            feeds = await base44.asServiceRole.entities.Feed.filter({ status: { $in: ['active', 'error'] } });
-            console.log('[fetchFeeds] Feeds loaded:', feeds?.length);
-        } catch (e) {
-            console.error('[fetchFeeds] Failed to load feeds:', e.message, e.response?.status, e.response?.data);
-            throw e;
-        }
+        const feeds = await base44.asServiceRole.entities.Feed.filter({ status: { $in: ['active', 'error'] } });
         const results = await fetchFeedsWithThrottling(feeds, base44, 5, 1000);
 
         await base44.asServiceRole.entities.SystemHealth.create({
