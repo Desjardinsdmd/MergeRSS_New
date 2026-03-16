@@ -132,16 +132,23 @@ async function fetchFeedsWithThrottling(feeds, base44, batchSize = 5, delayBetwe
             )
         );
 
-        // Get existing items for all feeds in batch (one query)
-        const existingItemsRaw = await base44.asServiceRole.entities.FeedItem.filter({ 
-            feed_id: { $in: batch.map(f => f.id) } 
-        }, '-created_date', 200);
-        const existingItems = Array.isArray(existingItemsRaw) ? existingItemsRaw : [];
+        // Get existing items per feed individually to avoid large $in query payloads
         const itemsByFeed = {};
-        batch.forEach(f => itemsByFeed[f.id] = []);
-        existingItems.forEach(item => {
-            if (itemsByFeed[item.feed_id]) itemsByFeed[item.feed_id].push(item);
-        });
+        for (const f of batch) {
+            itemsByFeed[f.id] = [];
+        }
+        await Promise.allSettled(
+            batch.map(async f => {
+                try {
+                    const raw = await base44.asServiceRole.entities.FeedItem.filter(
+                        { feed_id: f.id }, '-created_date', 100
+                    );
+                    itemsByFeed[f.id] = Array.isArray(raw) ? raw : [];
+                } catch (_e) {
+                    itemsByFeed[f.id] = [];
+                }
+            })
+        );
 
         // Process results and prepare bulk creates
         const itemsToCreate = [];
