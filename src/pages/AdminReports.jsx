@@ -36,6 +36,98 @@ export default function AdminReports() {
   const [savingNotes, setSavingNotes] = useState(false);
   const queryClient = useQueryClient();
 
+  const downloadPDF = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    let y = 20;
+
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Problem Reports — ${statusFilter.replace('_', ' ').toUpperCase()}`, 14, y);
+    y += 8;
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(120, 120, 120);
+    doc.text(`Generated ${new Date().toLocaleString()} — ${reports.length} report(s)`, 14, y);
+    y += 10;
+
+    reports.forEach((report, idx) => {
+      if (y > 260) { doc.addPage(); y = 20; }
+
+      doc.setDrawColor(60, 60, 60);
+      doc.setFillColor(30, 30, 30);
+      doc.rect(14, y, pageWidth - 28, 7, 'F');
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(255, 255, 255);
+      doc.text(`${idx + 1}. ${report.title}`, 17, y + 5);
+      y += 10;
+
+      doc.setFontSize(8.5);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(60, 60, 60);
+
+      const meta = [
+        `User: ${report.user_email || 'N/A'}`,
+        `Page: ${report.page || 'N/A'}`,
+        `Priority: ${report.priority || 'medium'}`,
+        `Status: ${report.status}`,
+        `Reported: ${format(new Date(report.created_date), 'PPP p')}`,
+      ];
+      meta.forEach(line => {
+        if (y > 270) { doc.addPage(); y = 20; }
+        doc.text(line, 17, y);
+        y += 5;
+      });
+
+      if (report.description) {
+        y += 2;
+        doc.setFont('helvetica', 'bold');
+        doc.text('Description:', 17, y);
+        y += 5;
+        doc.setFont('helvetica', 'normal');
+        const lines = doc.splitTextToSize(report.description, pageWidth - 34);
+        lines.forEach(line => {
+          if (y > 270) { doc.addPage(); y = 20; }
+          doc.text(line, 17, y);
+          y += 5;
+        });
+      }
+
+      if (report.browser_info) {
+        y += 2;
+        doc.setFont('helvetica', 'bold');
+        doc.text('Browser Info:', 17, y);
+        y += 5;
+        doc.setFont('helvetica', 'normal');
+        const lines = doc.splitTextToSize(report.browser_info, pageWidth - 34);
+        lines.forEach(line => {
+          if (y > 270) { doc.addPage(); y = 20; }
+          doc.text(line, 17, y);
+          y += 4;
+        });
+      }
+
+      if (report.admin_notes) {
+        y += 2;
+        doc.setFont('helvetica', 'bold');
+        doc.text('Admin Notes:', 17, y);
+        y += 5;
+        doc.setFont('helvetica', 'normal');
+        const lines = doc.splitTextToSize(report.admin_notes, pageWidth - 34);
+        lines.forEach(line => {
+          if (y > 270) { doc.addPage(); y = 20; }
+          doc.text(line, 17, y);
+          y += 5;
+        });
+      }
+
+      y += 8;
+    });
+
+    doc.save(`problem-reports-${statusFilter}-${new Date().toISOString().slice(0, 10)}.pdf`);
+  };
+
   const { data: reports = [], isLoading } = useQuery({
     queryKey: ['problem-reports', statusFilter],
     queryFn: () =>
