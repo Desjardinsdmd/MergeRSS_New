@@ -84,9 +84,9 @@ export default function Settings() {
       });
       setUser({ ...user, full_name: formData.full_name, email: formData.email });
       setEditingProfile(false);
-      toast.success('Profile updated');
+      toast.success('Settings saved');
     } catch (error) {
-      toast.error('Failed to update profile');
+      toast.error('Failed to save settings');
     } finally {
       setLoading(false);
     }
