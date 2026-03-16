@@ -259,11 +259,11 @@ export default function Landing() {
       <section className="border-y border-stone-800 py-8 bg-[#0d0a06]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-10 sm:gap-16 text-center">
-            <AnimatedStat value={500} label="Active users" delay={0} />
+            <AnimatedStat value={stats.users} label="Active users" delay={0} />
             <span className="hidden sm:block w-px h-10 bg-stone-800" />
-            <AnimatedStat value={12000} label="Articles curated daily" delay={80} />
+            <AnimatedStat value={stats.articles} label="Articles curated" delay={80} />
             <span className="hidden sm:block w-px h-10 bg-stone-800" />
-            <AnimatedStat value={3500} label="Digests delivered" delay={160} />
+            <AnimatedStat value={stats.digests} label="Digests delivered" delay={160} />
           </div>
         </div>
       </section>
