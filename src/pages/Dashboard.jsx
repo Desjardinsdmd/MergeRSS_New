@@ -93,7 +93,7 @@ export default function Dashboard() {
 
   const { data: digests = [] } = useQuery({
     queryKey: ['digests'],
-    queryFn: () => base44.entities.Digest.filter({ created_by: user?.email }, '-created_date', 10),
+    queryFn: () => base44.entities.Digest.filter({ created_by: user?.email }, '-created_date', 200),
     enabled: !!user,
   });
 
