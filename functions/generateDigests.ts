@@ -212,6 +212,36 @@ Write a well-organized, professional digest. Group related stories where appropr
                     }
                 }
 
+                // Teams delivery
+                if (digest.delivery_teams) {
+                    const teamsIntegrations = await base44.asServiceRole.entities.Integration.filter({ type: 'teams', status: 'connected' });
+                    const teamsInt = teamsIntegrations.find(i => i.created_by === digest.created_by) || teamsIntegrations[0];
+                    if (teamsInt?.webhook_url) {
+                        const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                        const teamsBody = {
+                            type: 'message',
+                            attachments: [{
+                                contentType: 'application/vnd.microsoft.card.adaptive',
+                                content: {
+                                    type: 'AdaptiveCard',
+                                    $schema: 'http://adaptivecards.io/schemas/adaptive-card.json',
+                                    version: '1.4',
+                                    body: [
+                                        { type: 'TextBlock', text: `📰 ${digest.name}`, weight: 'Bolder', size: 'Large' },
+                                        { type: 'TextBlock', text: `${dateStr} • ${items.length} articles`, isSubtle: true, spacing: 'None' },
+                                        { type: 'TextBlock', text: content.slice(0, 2000) + (content.length > 2000 ? '…' : ''), wrap: true },
+                                        { type: 'ActionSet', actions: [{ type: 'Action.OpenUrl', title: '📥 View in MergeRSS', url: inboxUrl }] }
+                                    ]
+                                }
+                            }]
+                        };
+                        try {
+                            const teamsRes = await fetch(teamsInt.webhook_url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(teamsBody) });
+                            if (teamsRes.ok || teamsRes.status === 202) deliveryTypes.push('teams');
+                        } catch {}
+                    }
+                }
+
                 // Discord delivery
                 if (digest.delivery_discord) {
                     const webhookUrl = digest.discord_webhook_url;
