@@ -209,14 +209,13 @@ async function fetchFeedsWithThrottling(feeds, base44, batchSize = 10, delayBetw
                 newCount++;
             }
 
-            console.log(`[fetchFeeds] updating feed ${feed.id} (${feed.name}) success`);
-            await base44.asServiceRole.entities.Feed.update(feed.id, {
+            base44.asServiceRole.entities.Feed.update(feed.id, {
                 last_fetched: new Date().toISOString(),
                 item_count: feedExisting.length + newCount,
                 status: 'active',
                 fetch_error: '',
                 consecutive_errors: 0,
-            });
+            }).catch(() => {});
 
             results.push({ feed: feed.name, new_items: newCount, status: 'ok' });
         }
