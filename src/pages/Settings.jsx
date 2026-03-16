@@ -243,7 +243,7 @@ export default function Settings() {
                   <p className="text-sm text-stone-500">
                     {isPremium 
                       ? 'Unlimited feeds, digests, and integrations'
-                      : '5 feeds, 1 digest, web inbox only'
+                      : '50 feeds, 5 digests, web & email delivery'
                     }
                   </p>
                 </div>
