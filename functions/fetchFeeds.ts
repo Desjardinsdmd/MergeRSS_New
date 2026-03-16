@@ -133,9 +133,15 @@ async function fetchFeedsWithThrottling(feeds, base44, batchSize = 5, delayBetwe
         );
 
         // Get existing items for all feeds in batch (one query)
-        const existingItemsRaw = await base44.asServiceRole.entities.FeedItem.filter({ 
-            feed_id: { $in: batch.map(f => f.id) } 
-        });
+        let existingItemsRaw;
+        try {
+            existingItemsRaw = await base44.asServiceRole.entities.FeedItem.filter({ 
+                feed_id: { $in: batch.map(f => f.id) } 
+            });
+        } catch (e) {
+            console.error('[fetchFeeds] FeedItem.filter failed:', e.message, e.response?.status);
+            throw e;
+        }
         const existingItems = Array.isArray(existingItemsRaw) ? existingItemsRaw : [];
         const itemsByFeed = {};
         batch.forEach(f => itemsByFeed[f.id] = []);
