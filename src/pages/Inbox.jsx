@@ -122,7 +122,11 @@ export default function Inbox() {
   React.useEffect(() => {
     if (autoOpenId && deliveries.length > 0) {
       const d = deliveries.find(x => x.id === autoOpenId);
-      if (d) { handleOpen(d); setAutoOpenId(null); }
+      if (d) {
+        handleOpen(d);
+        setAutoOpenId(null);
+      }
+      // Don't clear autoOpenId if not found yet — deliveries may still be loading
     }
   }, [autoOpenId, deliveries]);
 
