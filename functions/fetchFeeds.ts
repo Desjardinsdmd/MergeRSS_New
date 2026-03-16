@@ -133,7 +133,7 @@ async function fetchFeedsWithThrottling(feeds, base44, batchSize = 10, delayBetw
         );
 
         // Get existing items per feed individually to avoid large $in query payloads
-        console.log(`[fetchFeeds] batch ${i}: fetching existing items for ${batch.length} feeds`);
+
         const itemsByFeed = {};
         for (const f of batch) {
             itemsByFeed[f.id] = [];
