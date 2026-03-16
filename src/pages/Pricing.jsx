@@ -15,6 +15,7 @@ const plans = [
       { text: '1 digest', included: true },
       { text: 'Web inbox delivery', included: true },
       { text: 'Email delivery', included: true },
+
       { text: 'Daily AI summaries', included: true },
       { text: 'Slack integration', included: false },
       { text: 'Discord integration', included: false },

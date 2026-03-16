@@ -93,7 +93,7 @@ export default function EmailFeeds() {
             <Mail className="w-8 h-8 text-[hsl(var(--primary))]" />
             Email Feeds
           </h1>
-          <Badge className="bg-[hsl(var(--primary))]/20 text-[hsl(var(--primary))] border border-[hsl(var(--primary))]/40 text-xs font-semibold uppercase tracking-wide">Coming Soon</Badge>
+
         </div>
         <p className="text-stone-500 mt-2">Subscribe to newsletters using your unique email address. Articles are automatically added to your feeds.</p>
       </div>

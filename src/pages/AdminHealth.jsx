@@ -60,16 +60,19 @@ export default function AdminHealth() {
   const { data: jobs = [], isLoading, refetch } = useQuery({
     queryKey: ['systemHealth'],
     queryFn: () => base44.entities.SystemHealth.list('-created_date', 50),
+    enabled: user?.role === 'admin',
   });
 
   const { data: feeds = [] } = useQuery({
     queryKey: ['feeds'],
     queryFn: () => base44.entities.Feed.list(),
+    enabled: user?.role === 'admin',
   });
 
   const { data: digests = [] } = useQuery({
     queryKey: ['digests'],
     queryFn: () => base44.entities.Digest.list(),
+    enabled: user?.role === 'admin',
   });
 
   // Calculate stats
