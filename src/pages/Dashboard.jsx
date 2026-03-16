@@ -199,7 +199,7 @@ export default function Dashboard() {
   const stats = [
     { name: 'Active Feeds', value: feeds.length, icon: Rss, color: 'violet', href: 'Feeds' },
     { name: 'Digests', value: digests.length, icon: FileText, color: 'indigo', href: 'Digests' },
-    { name: 'Unread Items', value: unreadCount, icon: TrendingUp, color: 'emerald', href: 'Inbox' },
+    { name: 'Unread Items', value: unreadDeliveries.length, icon: TrendingUp, color: 'emerald', href: 'Inbox' },
   ];
 
   const colorClasses = {
