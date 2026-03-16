@@ -158,7 +158,8 @@ Write a well-organized, professional digest. Group related stories where appropr
                 });
 
                 // Deep link to this specific delivery in the inbox
-                const inboxUrl = `https://app.base44.com/apps/683c8dffd5a77e5aee16a6da/Inbox?delivery_id=${webDelivery.id}`;
+                const origin = req.headers.get('origin') || req.headers.get('referer')?.replace(/\/$/, '') || 'https://mergerss.com';
+                const inboxUrl = `${origin}/Inbox?delivery_id=${webDelivery.id}`;
 
                 const deliveryTypes = ['web'];
 
@@ -166,11 +167,14 @@ Write a well-organized, professional digest. Group related stories where appropr
                 if (digest.delivery_email && digest.created_by) {
                     const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                     // Sanitize content to prevent HTML injection
+                    // Apply line breaks first before HTML-escaping angle brackets
                     const sanitizedContent = content
                         .replace(/&/g, '&amp;')
+                        .replace(/\n/g, '<br/>')
+                        .replace(/<br\/>/g, '\x00BR\x00')
                         .replace(/</g, '&lt;')
                         .replace(/>/g, '&gt;')
-                        .replace(/\n/g, '<br/>');
+                        .replace(/\x00BR\x00/g, '<br/>');
                     const emailBody = `<h2>📰 ${digest.name}</h2><p><em>${dateStr} • ${items.length} articles</em></p><hr/><div style="white-space: pre-wrap;">${sanitizedContent}</div>`;
                     await base44.asServiceRole.integrations.Core.SendEmail({
                         to: digest.created_by,
@@ -182,7 +186,7 @@ Write a well-organized, professional digest. Group related stories where appropr
 
                 // Slack delivery
                 if (digest.delivery_slack) {
-                    const slackIntegrations = await base44.asServiceRole.entities.Integration.filter({ type: 'slack', status: 'connected' });
+                    const slackIntegrations = await base44.asServiceRole.entities.Integration.filter({ type: 'slack', status: 'connected', created_by: digest.created_by });
                     const slackInt = slackIntegrations[0];
                     if (slackInt?.webhook_url) {
                         const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
