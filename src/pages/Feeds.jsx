@@ -353,6 +353,8 @@ export default function Feeds() {
       <BulkImportDialog
         open={showBulkImport}
         onOpenChange={setShowBulkImport}
+        currentFeedCount={feeds.length}
+        isPremium={isPremium}
         onSuccess={() => {
           queryClient.invalidateQueries({ queryKey: ['feeds'] });
           queryClient.invalidateQueries({ queryKey: ['digests'] });
