@@ -266,7 +266,7 @@ Deno.serve(async (req) => {
             60  // process up to 60 feeds per run
         );
         const feeds = Array.isArray(feedsRaw) ? feedsRaw : [];
-        console.log('[fetchFeeds] Feeds to process this run:', feeds.length);
+        console.log(`[fetchFeeds] Starting — processing ${feeds.length} feeds this run`);
         const results = await fetchFeedsWithThrottling(feeds, base44, 10, 200);
 
         await base44.asServiceRole.entities.SystemHealth.create({
