@@ -164,7 +164,7 @@ export default function AdminReports() {
   return (
     <div className="p-6 lg:p-8 max-w-6xl mx-auto">
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-8 flex items-start justify-between gap-4">
         <h1 className="text-2xl font-bold text-stone-100 flex items-center gap-2">
           <AlertCircle className="w-6 h-6 text-red-500" />
           Problem Reports
