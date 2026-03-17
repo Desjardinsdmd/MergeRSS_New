@@ -44,6 +44,7 @@ import DigestQuickActions from '@/components/dashboard/DigestQuickActions';
 import DigestDeliveryHistory from '@/components/dashboard/DigestDeliveryHistory';
 import ContextualTips from '@/components/dashboard/ContextualTips';
 import WidgetCustomizer from '@/components/dashboard/WidgetCustomizer';
+import FeaturedDigestHero from '@/components/dashboard/FeaturedDigestHero';
 
 export default function Dashboard() {
   const queryClient = useQueryClient();
