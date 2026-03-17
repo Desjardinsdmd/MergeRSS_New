@@ -114,7 +114,7 @@ export default function Bookmarks() {
                        )}
                     </div>
                     <a
-                      href={bookmark.url}
+                      href={safeUrl(bookmark.url)}
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={() => !bookmark.is_read && markReadMutation.mutate(bookmark.id)}
@@ -131,7 +131,7 @@ export default function Bookmarks() {
                   </div>
                   <div className="flex items-center gap-1 flex-shrink-0">
                     <a
-                      href={bookmark.url}
+                      href={safeUrl(bookmark.url)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="p-1.5 rounded-lg text-stone-600 hover:text-amber-400 hover:bg-stone-800 transition-colors"

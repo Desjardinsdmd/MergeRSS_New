@@ -128,7 +128,7 @@ export default function DailySnapshot() {
                 {currentRelated.map((article, i) => (
                   <a
                     key={i}
-                    href={article.url}
+                    href={safeUrl(article.url)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-start gap-1.5 text-xs text-stone-500 hover:text-stone-200 hover:underline transition-colors group"

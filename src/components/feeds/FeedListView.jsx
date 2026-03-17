@@ -70,7 +70,7 @@ export default function FeedListView({ feeds, selectedIds, onSelectionChange, on
                 <div>
                   <p className="font-medium text-stone-200">{feed.name}</p>
                    <a
-                     href={feed.url}
+                     href={safeUrl(feed.url)}
                      target="_blank"
                      rel="noopener noreferrer"
                      className="text-xs text-stone-500 hover:text-stone-400 truncate block max-w-xs"
@@ -116,7 +116,7 @@ export default function FeedListView({ feeds, selectedIds, onSelectionChange, on
                       )}
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <a href={feed.url} target="_blank" rel="noopener noreferrer">
+                      <a href={safeUrl(feed.url)} target="_blank" rel="noopener noreferrer">
                         <ExternalLink className="w-4 h-4 mr-2" />
                         Open Feed
                       </a>

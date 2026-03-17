@@ -62,7 +62,7 @@ export default function FeedCard({ feed, onEdit, onDelete, onToggleStatus }) {
                   {feed.name}
                 </h3>
                 <a 
-                  href={feed.url}
+                  href={safeUrl(feed.url)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-xs text-stone-500 hover:text-[hsl(var(--primary))] truncate block"
@@ -86,7 +86,7 @@ export default function FeedCard({ feed, onEdit, onDelete, onToggleStatus }) {
                     <Bell className="w-4 h-4 mr-2" />
                     Alerts
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => window.open(feed.url, '_blank')}>
+                  <DropdownMenuItem onClick={() => window.open(safeUrl(feed.url), '_blank')}>
                     <ExternalLink className="w-4 h-4 mr-2" />
                     Open Feed
                   </DropdownMenuItem>

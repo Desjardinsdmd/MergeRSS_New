@@ -309,7 +309,7 @@ export default function ArticleSearch() {
                 <p className="text-sm text-stone-400 leading-relaxed mb-3">{decodeHtml(selectedArticle.description)}</p>
                 }
                 <a
-                  href={selectedArticle.url}
+                  href={safeUrl(selectedArticle.url)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 text-sm text-amber-400 hover:underline font-medium">

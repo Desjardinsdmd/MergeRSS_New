@@ -47,7 +47,7 @@ export default function RelatedArticles({ currentItem, allItems }) {
         {related.map(item => (
           <a
             key={item.id}
-            href={item.url}
+            href={safeUrl(item.url)}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-start gap-2.5 group hover:bg-stone-800 rounded-lg p-2 -mx-2 transition"
