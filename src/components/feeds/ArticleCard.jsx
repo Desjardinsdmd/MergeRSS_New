@@ -118,11 +118,14 @@ export default function ArticleCard({
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          {/* Header with category and time */}
+          {/* Header with publication, category, time, and read time */}
           <div className="flex items-start justify-between mb-2">
-            <div className="flex items-center gap-2 flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-1 min-w-0 flex-wrap">
               {isMustRead && (
                 <Star className="w-3.5 h-3.5 text-[hsl(var(--primary))] flex-shrink-0 fill-[hsl(var(--primary))]" title="Important article" />
+              )}
+              {faviconUrl && (
+                <img src={faviconUrl} alt={publicationName} className="w-3.5 h-3.5 rounded flex-shrink-0" onError={(e) => (e.target.style.display = 'none')} title={publicationName} />
               )}
               {item.category && (
                 <span className={`text-xs font-medium px-2 py-1 rounded flex-shrink-0 ${categoryColors[item.category] || categoryColors.Other}`}>
@@ -133,6 +136,12 @@ export default function ArticleCard({
                 <Clock className="w-3 h-3" />
                 {formatTime(item.published_date)}
               </span>
+              {readTime && (
+                <span className="text-xs text-stone-500 flex-shrink-0 flex items-center gap-1">
+                  <Zap className="w-3 h-3" />
+                  {readTime}m
+                </span>
+              )}
             </div>
           </div>
 
