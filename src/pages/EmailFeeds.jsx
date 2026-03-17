@@ -5,6 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Mail, Copy, Check, Loader2, Trash2, Eye, EyeOff } from 'lucide-react';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue
+} from '@/components/ui/select';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -14,6 +17,7 @@ export default function EmailFeeds() {
   const [initializing, setInitializing] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showEmail, setShowEmail] = useState(false);
+  const [sortBy, setSortBy] = useState('newest');
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -206,7 +210,21 @@ export default function EmailFeeds() {
         {/* Subscriptions List */}
         {emailFeed && (
           <div>
-            <h2 className="text-lg font-semibold text-stone-100 mb-4">Subscribed Newsletters</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-stone-100">Subscribed Newsletters</h2>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-44 text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">Newest first</SelectItem>
+                  <SelectItem value="oldest">Oldest first</SelectItem>
+                  <SelectItem value="name">Name A–Z</SelectItem>
+                  <SelectItem value="most-emails">Most emails</SelectItem>
+                  <SelectItem value="last-email">Recently emailed</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             {subscriptions.filter(s => s.is_active).length === 0 ? (
               <Card className="border-stone-800 bg-stone-900">
                 <CardContent className="py-8 text-center">
@@ -215,7 +233,14 @@ export default function EmailFeeds() {
               </Card>
             ) : (
               <div className="space-y-3">
-                {subscriptions.filter(s => s.is_active).map((sub) => (
+                {[...subscriptions.filter(s => s.is_active)].sort((a, b) => {
+                  if (sortBy === 'newest') return new Date(b.subscribed_date || b.created_date) - new Date(a.subscribed_date || a.created_date);
+                  if (sortBy === 'oldest') return new Date(a.subscribed_date || a.created_date) - new Date(b.subscribed_date || b.created_date);
+                  if (sortBy === 'name') return (a.newsletter_name || '').localeCompare(b.newsletter_name || '');
+                  if (sortBy === 'most-emails') return (b.email_count || 0) - (a.email_count || 0);
+                  if (sortBy === 'last-email') return new Date(b.last_email_date || 0) - new Date(a.last_email_date || 0);
+                  return 0;
+                }).map((sub) => (
                   <Card key={sub.id} className="border-stone-800 bg-stone-900">
                     <CardContent className="py-4 flex items-center justify-between">
                       <div className="flex-1">
