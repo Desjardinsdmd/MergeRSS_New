@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
     });
 
     const categories = Object.keys(feedsByCategory);
-    const TARGET_TOTAL = 200;
+    const TARGET_TOTAL = 80;
     const perCategoryTarget = Math.ceil(TARGET_TOTAL / categories.length);
 
     // Fetch items per feed sequentially in small batches to avoid rate limits
