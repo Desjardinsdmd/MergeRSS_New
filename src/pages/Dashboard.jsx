@@ -247,27 +247,47 @@ export default function Dashboard() {
       {/* Featured Digest Hero */}
       {feeds.length > 0 && digests.length > 0 && <FeaturedDigestHero digests={digests} />}
 
+      {/* Daily AI Snapshot */}
+      {feeds.length > 0 && widget('dailySnapshot') && <DailySnapshot />}
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-3 gap-3 mb-8">
+        {stats.map((stat) => (
+          <Link key={stat.name} to={createPageUrl(stat.href)}>
+            <div className="bg-stone-900 border border-stone-800 hover:border-stone-700 hover:bg-stone-900/80 transition cursor-pointer p-4">
+             <div className="flex items-center justify-between mb-3">
+               <div className={`p-2 ${colorClasses[stat.color]}`}>
+                 <stat.icon className="w-4 h-4" />
+               </div>
+               <ArrowRight className="w-4 h-4 text-stone-700" />
+             </div>
+             <p className="text-2xl font-bold text-stone-100">{stat.value}</p>
+             <p className="text-xs text-stone-500 truncate">{stat.name}</p>
+            </div>
+          </Link>
+        ))}
+      </div>
+
       {/* Hero: Trending Articles */}
       {feeds.length > 0 && allArticles.length >= 3 && widget('trendingArticles') && (
         <div className="mb-8 bg-gradient-to-br from-stone-800/50 to-stone-900 border border-stone-700 p-6">
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 mb-1">
             <TrendingUp className="w-5 h-5 text-[hsl(var(--primary))]" />
             <h2 className="text-lg font-semibold text-stone-100">What's trending</h2>
           </div>
+          <p className="text-xs text-stone-500 mb-4">Topics with the most coverage across your feeds</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {(() => {
-              const trending = (() => {
-                const freq = {};
-                allArticles.forEach(item => {
-                  const words = (item.title + ' ' + (item.description || '')).toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(w => w.length > 3);
-                  [...new Set(words)].forEach(w => { freq[w] = (freq[w] || 0) + 1; });
-                });
-                return allArticles.map(item => {
-                  const words = (item.title + ' ' + (item.description || '')).toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(w => w.length > 3);
-                  const score = [...new Set(words)].reduce((s, w) => s + (freq[w] > 1 ? freq[w] : 0), 0);
-                  return { ...item, _trendScore: score };
-                }).sort((a, b) => b._trendScore - a._trendScore).slice(0, 3);
-              })();
+              const freq = {};
+              allArticles.forEach(item => {
+                const words = (item.title + ' ' + (item.description || '')).toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(w => w.length > 3);
+                [...new Set(words)].forEach(w => { freq[w] = (freq[w] || 0) + 1; });
+              });
+              const trending = allArticles.map(item => {
+                const words = (item.title + ' ' + (item.description || '')).toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(w => w.length > 3);
+                const score = [...new Set(words)].reduce((s, w) => s + (freq[w] > 1 ? freq[w] : 0), 0);
+                return { ...item, _trendScore: score };
+              }).sort((a, b) => b._trendScore - a._trendScore).slice(0, 3);
               return trending.map((item) => (
                 <a
                   key={item.id}
@@ -292,27 +312,6 @@ export default function Dashboard() {
           </div>
         </div>
       )}
-
-      {/* Daily AI Snapshot */}
-      {feeds.length > 0 && widget('dailySnapshot') && <DailySnapshot />}
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-3 gap-3 mb-8">
-        {stats.map((stat) => (
-          <Link key={stat.name} to={createPageUrl(stat.href)}>
-            <div className="bg-stone-900 border border-stone-800 hover:border-stone-700 hover:bg-stone-900/80 transition cursor-pointer p-4">
-             <div className="flex items-center justify-between mb-3">
-               <div className={`p-2 ${colorClasses[stat.color]}`}>
-                 <stat.icon className="w-4 h-4" />
-               </div>
-               <ArrowRight className="w-4 h-4 text-stone-700" />
-             </div>
-             <p className="text-2xl font-bold text-stone-100">{stat.value}</p>
-             <p className="text-xs text-stone-500 truncate">{stat.name}</p>
-            </div>
-          </Link>
-        ))}
-      </div>
 
       {/* Contextual tips */}
       {feeds.length > 0 && (
