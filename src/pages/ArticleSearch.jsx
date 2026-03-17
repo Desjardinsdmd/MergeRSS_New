@@ -81,15 +81,29 @@ export default function ArticleSearch() {
     if (selectedArticle?.id === updated.id) setSelectedArticle(updated);
   };
 
-  // Client-side keyword filter on already-fetched items
+  // Client-side keyword filter + sort on already-fetched items
   const filtered = useMemo(() => {
     const kw = keyword.trim().toLowerCase();
-    if (!kw) return allItems;
-    return allItems.filter((item) => {
+    let list = !kw ? allItems : allItems.filter((item) => {
       const haystack = `${item.title} ${item.description || ''} ${item.content || ''}`.toLowerCase();
       return haystack.includes(kw);
     });
-  }, [allItems, keyword]);
+    return [...list].sort((a, b) => {
+      if (sortBy === 'newest') return new Date(b.published_date || 0) - new Date(a.published_date || 0);
+      if (sortBy === 'oldest') return new Date(a.published_date || 0) - new Date(b.published_date || 0);
+      if (sortBy === 'title') return (a.title || '').localeCompare(b.title || '');
+      if (sortBy === 'relevance' && kw) {
+        const scoreOf = item => {
+          let s = 0;
+          if (item.title?.toLowerCase().includes(kw)) s += 3;
+          if (item.description?.toLowerCase().includes(kw)) s += 1;
+          return s;
+        };
+        return scoreOf(b) - scoreOf(a);
+      }
+      return 0;
+    });
+  }, [allItems, keyword, sortBy]);
 
   const hasFilters = keyword || author || selectedCategory || dateFrom || dateTo;
 
