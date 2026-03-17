@@ -143,7 +143,7 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
       await base44.entities.Feed.update(editFeed.id, { name: formData.name, url: formData.url, category: formData.category, tags: formData.tags });
       base44.analytics.track({ eventName: 'feed_edited', properties: { category: formData.category } });
     } else {
-      await base44.entities.Feed.create({
+      const newFeed = await base44.entities.Feed.create({
         name: formData.name,
         url: formData.url,
         category: formData.category,
@@ -152,6 +152,15 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
         item_count: 0
       });
       base44.analytics.track({ eventName: 'feed_added', properties: { category: formData.category } });
+
+      // If this is the user's first feed, immediately fetch items so they see content right away
+      if (existingFeedCount === 0 && newFeed?.id) {
+        setLoading(false);
+        setFetchingItems(true);
+        base44.functions.invoke('fetchSingleFeed', { feed_id: newFeed.id }).catch(() => {});
+        await new Promise(resolve => setTimeout(resolve, 3000)); // give it 3s head start
+        setFetchingItems(false);
+      }
     }
 
     setLoading(false);
