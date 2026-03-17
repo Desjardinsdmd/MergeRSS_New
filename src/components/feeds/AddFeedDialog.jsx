@@ -287,7 +287,7 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
               id="url"
               type="url"
               value={formData.url}
-              onChange={(e) => { setFormData({ ...formData, url: e.target.value }); setErrors(prev => ({ ...prev, url: '' })); }}
+              onChange={(e) => { setFormData({ ...formData, url: e.target.value }); setErrors(prev => ({ ...prev, url: '' })); setDeadEndWarning(null); }}
               placeholder="e.g., https://techcrunch.com/feed/"
               aria-required="true"
               aria-invalid={!!errors.url}
