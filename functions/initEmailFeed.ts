@@ -43,11 +43,16 @@ Deno.serve(async (req) => {
     });
 
     if (!routeResponse.ok) {
-      throw new Error(`Failed to create Mailgun route: ${routeResponse.statusText}`);
+      const error = await routeResponse.text();
+      console.error('Mailgun route creation failed:', routeResponse.status, error);
+      // Continue without route ID - webhook URL still works
     }
 
-    const routeData2 = await routeResponse.json();
-    const mailgunRouteId = routeData2.route?.id;
+    let mailgunRouteId = null;
+    if (routeResponse.ok) {
+      const routeData2 = await routeResponse.json();
+      mailgunRouteId = routeData2.route?.id;
+    }
 
     // Create EmailFeed record
     const emailFeed = await base44.entities.EmailFeed.create({
