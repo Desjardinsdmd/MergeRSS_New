@@ -45,6 +45,7 @@ import DigestDeliveryHistory from '@/components/dashboard/DigestDeliveryHistory'
 import ContextualTips from '@/components/dashboard/ContextualTips';
 import WidgetCustomizer from '@/components/dashboard/WidgetCustomizer';
 import FeaturedDigestHero from '@/components/dashboard/FeaturedDigestHero';
+import GroupedArticles from '@/components/dashboard/GroupedArticles';
 
 export default function Dashboard() {
   const queryClient = useQueryClient();
@@ -485,20 +486,15 @@ export default function Dashboard() {
               {allArticles.length === 0 ? 'No items yet. Add feeds to start aggregating content.' : 'All caught up! 🎉'}
             </div>
           ) : (
-            <div className="divide-y divide-stone-800">
-              {filteredArticles.slice(0, 5).map((item) => {
-                const merged = mergeItem(item);
-                return (
-                  <ArticleCard
-                    key={item.id}
-                    item={merged}
-                    onExpand={() => setExpandedItem(merged)}
-                    onMarkAsRead={markAsRead}
-                    onSummaryUpdate={handleSummaryUpdate}
-                    showBookmark={true}
-                  />
-                );
-              })}
+            <div className="p-4">
+              <GroupedArticles
+                articles={filteredArticles.slice(0, 5)}
+                feeds={feeds}
+                onExpand={(item) => setExpandedItem(mergeItem(item))}
+                onMarkAsRead={markAsRead}
+                onSummaryUpdate={handleSummaryUpdate}
+                showBookmark={true}
+              />
             </div>
           )}
         </div>
