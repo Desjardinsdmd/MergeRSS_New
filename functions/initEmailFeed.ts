@@ -31,8 +31,7 @@ Deno.serve(async (req) => {
     routeData.append('priority', '10');
     routeData.append('description', `Newsletter feed for ${user.email}`);
     routeData.append('expression', `match_recipient("${uniqueEmail}")`);
-    routeData.append('action', `forward("${webhookUrl}")`);
-    routeData.append('action', 'store(notify="yes")');
+    routeData.append('action', `store(notify="${webhookUrl}")`)
 
     const routeResponse = await fetch(`https://api.mailgun.net/v3/${mailgunDomain}/routes`, {
       method: 'POST',
