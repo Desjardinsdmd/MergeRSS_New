@@ -33,6 +33,7 @@ export default function ArticleSearch() {
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [articleSummaries, setArticleSummaries] = useState({});
   const [showFilters, setShowFilters] = useState(false);
+  const [sortBy, setSortBy] = useState('newest');
 
   React.useEffect(() => {
     base44.auth.me().then(setUser);
