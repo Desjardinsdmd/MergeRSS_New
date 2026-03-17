@@ -190,19 +190,17 @@ export default function Landing() {
             className="text-6xl md:text-7xl lg:text-8xl font-black tracking-tight leading-[0.93] mb-8"
             style={{ animation: 'fadeSlideDown 0.7s ease 0.1s both' }}
           >
-            <span className="text-stone-100">Your information,</span>
+            <span className="text-stone-100">Turn noise into</span>
             <br />
-            <span className="bg-gradient-to-r from-[hsl(var(--primary))] via-[hsl(var(--primary))]/80 to-[hsl(var(--primary))]/60 bg-clip-text text-transparent">curated &amp;</span>
-            <br />
-            <span className="text-stone-100">delivered.</span>
+            <span className="bg-gradient-to-r from-[hsl(var(--primary))] via-[hsl(var(--primary))]/80 to-[hsl(var(--primary))]/60 bg-clip-text text-transparent">daily intelligence.</span>
           </h1>
 
           <p
             className="text-lg md:text-xl text-stone-400 mb-12 max-w-xl leading-relaxed"
             style={{ animation: 'fadeSlideDown 0.7s ease 0.2s both' }}
           >
-            Aggregate RSS feeds from any source, let AI summarize the articles that matter,
-            and get a clean digest delivered to Slack, Discord, email, or your web inbox — on your schedule.
+            AI-powered briefings that cut through the clutter. Aggregate feeds from any source, get smart summaries,
+            and receive a polished digest in Slack, Discord, email, or your inbox — on your schedule.
           </p>
 
           <div
