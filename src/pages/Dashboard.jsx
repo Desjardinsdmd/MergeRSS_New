@@ -30,6 +30,7 @@ const categoryColors = {
   Other: 'bg-stone-800 text-stone-300',
 };
 import ArticleSummarizeButton from '@/components/feeds/ArticleSummarizeButton';
+import ArticleCard from '@/components/feeds/ArticleCard';
 import { decodeHtml, safeUrl } from '@/components/utils/htmlUtils';
 import TrendingArticles from '@/components/feeds/TrendingArticles';
 import RelatedArticles from '@/components/feeds/RelatedArticles';
