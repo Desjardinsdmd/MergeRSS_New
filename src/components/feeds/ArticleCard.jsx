@@ -102,11 +102,9 @@ export default function ArticleCard({
               by <span className="font-medium text-stone-400">{item.author}</span>
             </p>
           )}
-        </div>
-      </div>
 
-      {/* Footer Actions */}
-      <div className="flex items-center justify-between pt-2 border-t border-stone-800/50">
+          {/* Footer Actions */}
+          <div className="flex items-center justify-between pt-2 border-t border-stone-800/50 -mx-3 -mb-4 mt-3 px-3 py-2">
         <div className="flex-1">
           <ArticleSummarizeButton
             item={item}
@@ -154,7 +152,8 @@ export default function ArticleCard({
             </button>
           )}
         </div>
-      </div>
-    </div>
+        </div>
+        </div>
+        </div>
   );
 }
