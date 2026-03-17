@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { decodeHtml, safeUrl } from '@/components/utils/htmlUtils';
 import { useQuery } from '@tanstack/react-query';
 import { Search, X, Clock, ExternalLink, Filter, CalendarRange, User, Loader2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -221,19 +222,27 @@ export default function ArticleSearch() {
         </Card>
         }
 
-       {/* Results count */}
-       {!isLoading && !isFetching &&
-        <p className="text-sm text-stone-500 mb-4">
-           {hasFilters ?
-          `${filtered.length} result${filtered.length !== 1 ? 's' : ''} found` :
-          `${allItems.length} articles loaded`}
+       {/* Results count + Sort */}
+       <div className="flex items-center justify-between gap-3 mb-4">
+         <p className="text-sm text-stone-500">
+           {isFetching && !isLoading
+             ? <span className="flex items-center gap-2"><Loader2 className="w-3 h-3 animate-spin" /> Searching…</span>
+             : hasFilters
+             ? `${filtered.length} result${filtered.length !== 1 ? 's' : ''} found`
+             : `${allItems.length} articles loaded`}
          </p>
-        }
-       {isFetching && !isLoading &&
-        <p className="text-sm text-stone-500 mb-4 flex items-center gap-2">
-           <Loader2 className="w-3 h-3 animate-spin" /> Searching…
-         </p>
-        }
+         <Select value={sortBy} onValueChange={setSortBy}>
+           <SelectTrigger className="w-44 text-sm">
+             <SelectValue />
+           </SelectTrigger>
+           <SelectContent>
+             <SelectItem value="newest">Newest first</SelectItem>
+             <SelectItem value="oldest">Oldest first</SelectItem>
+             <SelectItem value="title">Title A–Z</SelectItem>
+             <SelectItem value="relevance">Most relevant</SelectItem>
+           </SelectContent>
+         </Select>
+       </div>
 
        {/* Content */}
        <div className={selectedArticle ? "grid lg:grid-cols-2 gap-6" : "block"}>
