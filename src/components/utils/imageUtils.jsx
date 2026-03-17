@@ -15,6 +15,18 @@ export function extractImageFromHtml(htmlContent) {
     const firstUrl = srcset.split(',')[0].trim().split(/\s+/)[0];
     return firstUrl;
   }
+
+  // Try media:content from RSS
+  const mediaMatch = htmlContent.match(/<media:content[^>]+url=["']([^"']+)["']/i);
+  if (mediaMatch) return mediaMatch[1];
+
+  // Try media:thumbnail from RSS
+  const thumbMatch = htmlContent.match(/<media:thumbnail[^>]+url=["']([^"']+)["']/i);
+  if (thumbMatch) return thumbMatch[1];
+
+  // Try enclosure from RSS podcasts/media
+  const enclosureMatch = htmlContent.match(/<enclosure[^>]+url=["']([^"']+)["'][^>]+type=["']image/i);
+  if (enclosureMatch) return enclosureMatch[1];
   
   return null;
 }
