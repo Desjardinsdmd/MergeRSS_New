@@ -125,6 +125,38 @@ export default function AdminHealth() {
   const [alertsLoading, setAlertsLoading] = useState(false);
   const [liveAlerts, setLiveAlerts] = useState(null);
 
+  // Alert settings
+  const [alertSettingsId, setAlertSettingsId] = useState(null);
+  const [alertEmail, setAlertEmail] = useState('');
+  const [alertFrequency, setAlertFrequency] = useState('24');
+  const [savingSettings, setSavingSettings] = useState(false);
+
+  useEffect(() => {
+    if (user?.role !== 'admin') return;
+    base44.entities.AlertSettings.list('-created_date', 1).then(rows => {
+      if (rows[0]) {
+        setAlertSettingsId(rows[0].id);
+        setAlertEmail(rows[0].destination_email || '');
+        setAlertFrequency(String(rows[0].frequency_hours || 24));
+      }
+    }).catch(() => {});
+  }, [user]);
+
+  const saveAlertSettings = async () => {
+    setSavingSettings(true);
+    const data = { destination_email: alertEmail.trim(), frequency_hours: Number(alertFrequency) };
+    if (alertSettingsId) {
+      await base44.entities.AlertSettings.update(alertSettingsId, data);
+    } else {
+      const rec = await base44.entities.AlertSettings.create(data);
+      setAlertSettingsId(rec.id);
+    }
+    // Update the automation schedule
+    await base44.functions.invoke('updateAlertSchedule', { frequency_hours: Number(alertFrequency) });
+    setSavingSettings(false);
+    toast.success('Alert settings saved');
+  };
+
   const runAlertCheck = async () => {
     setAlertsLoading(true);
     const res = await base44.functions.invoke('systemAlerts', { dry_run: true });
