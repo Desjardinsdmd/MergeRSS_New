@@ -27,6 +27,40 @@ export default function ArticleSummarizeButton({ item, onSummaryUpdate, compact 
     setShowSummary(v => !v);
   };
 
+  if (compact) {
+    // Compact mode for article cards
+    if (item.ai_summary) {
+      return (
+        <button
+          onClick={toggleSummary}
+          className="text-xs text-[hsl(var(--primary))]/70 hover:text-[hsl(var(--primary))] font-medium flex items-center gap-1 mt-2"
+        >
+          <Sparkles className="w-3 h-3" />
+          {showSummary ? 'Hide' : 'Summary'}
+        </button>
+      );
+    }
+    return (
+      <button
+        onClick={handleSummarize}
+        disabled={loading}
+        className="text-xs text-stone-600 hover:text-[hsl(var(--primary))]/70 transition-colors flex items-center gap-1 mt-2 disabled:opacity-50"
+      >
+        {loading ? (
+          <>
+            <Loader2 className="w-3 h-3 animate-spin" />
+            Summarizing…
+          </>
+        ) : (
+          <>
+            <Sparkles className="w-3 h-3" />
+            Summarize
+          </>
+        )}
+      </button>
+    );
+  }
+
   if (item.ai_summary) {
     return (
       <div className="mt-2">
