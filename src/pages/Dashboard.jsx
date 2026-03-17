@@ -230,14 +230,17 @@ export default function Dashboard() {
       )}
 
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-stone-100 mb-1">
-          {(() => { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; })()}{user?.full_name ? `, ${user.full_name.split(' ')[0]}` : ''}
-        </h1>
-        <p className="text-stone-500 text-sm">Your daily briefing is ready</p>
-        <div className="mt-3 flex items-center gap-2">
-          <StreakCounter user={user} />
+      <div className="mb-8 flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-stone-100 mb-1">
+            {(() => { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; })()}{user?.full_name ? `, ${user.full_name.split(' ')[0]}` : ''}
+          </h1>
+          <p className="text-stone-500 text-sm">Your daily briefing is ready</p>
+          <div className="mt-3 flex items-center gap-2">
+            <StreakCounter user={user} />
+          </div>
         </div>
+        <WidgetCustomizer user={user} onSave={() => window.location.reload()} />
       </div>
 
       {/* Hero: Trending Articles */}
