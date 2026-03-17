@@ -377,16 +377,23 @@ Deno.serve(async (req) => {
         }
 
         // Write running lock
-        const lockRecord = await base44.asServiceRole.entities.SystemHealth.create({
-            job_type: 'feed_fetch',
-            status: 'running',
-            started_at: startedAt,
-        });
+        let lockRecord = null;
+        try {
+            lockRecord = await base44.asServiceRole.entities.SystemHealth.create({
+                job_type: 'feed_fetch',
+                status: 'running',
+                started_at: startedAt,
+            });
+            console.log('[fetchFeeds] Lock created:', lockRecord?.id);
+        } catch (createErr) {
+            console.warn('[fetchFeeds] Could not create lock (non-fatal):', createErr.message);
+        }
 
         const runStartMs = Date.now();
         const RUN_INTERVAL_MINUTES = 10; // matches automation schedule
 
         // Load feeds sorted by oldest last_fetched first so every feed gets rotated through
+        console.log('[fetchFeeds] Loading feeds...');
         const allFeedsRaw = await base44.asServiceRole.entities.Feed.filter(
             { status: { $in: ['active', 'error'] } },
             'last_fetched',
