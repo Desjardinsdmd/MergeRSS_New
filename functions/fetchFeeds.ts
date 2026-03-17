@@ -440,7 +440,14 @@ Deno.serve(async (req) => {
             console.warn(`[fetchFeeds] ${allFeeds.length} total — ${overdueFeeds.length} overdue — processing ${feeds.length} — skipping ${skippedCount} (recently fetched or beyond cap)`);
         }
         console.log(`[fetchFeeds] Starting — processing ${feeds.length} of ${allFeeds.length} feeds this run`);
-        const results = await fetchFeedsWithThrottling(feeds, base44, 10, 200);
+        let results = [];
+        try {
+            results = await fetchFeedsWithThrottling(feeds, base44, 10, 200);
+            console.log(`[fetchFeeds] Batch processing complete — ${results.length} results`);
+        } catch (batchErr) {
+            console.error('[fetchFeeds] Fatal error in fetchFeedsWithThrottling:', batchErr.message);
+            throw batchErr;
+        }
 
         const runDurationMs = Date.now() - runStartMs;
 
