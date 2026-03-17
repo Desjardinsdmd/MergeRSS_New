@@ -76,13 +76,63 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
     return errs;
   };
 
-  const checkIsRssFeed = async (url) => {
+  const DEAD_END_LABELS = {
+    '404_gone': { icon: FileX, label: '404 – Page Not Found', detail: 'This URL returned a 404 or 410 error. The feed no longer exists at this address.' },
+    'blocked_antibot': { icon: ShieldAlert, label: 'Bot Protection Detected', detail: 'This site is blocking automated access (Cloudflare, CAPTCHA, or similar). The feed cannot be fetched.' },
+    'paywall_login': { icon: Lock, label: 'Paywall / Login Required', detail: 'This URL requires a login or paid subscription to access.' },
+    'network_error': { icon: WifiOff, label: 'Network Error', detail: 'The URL could not be reached. It may be offline or the domain may not exist.' },
+    'timeout': { icon: WifiOff, label: 'Connection Timed Out', detail: 'The server took too long to respond. It may be down or unreachable.' },
+    'feed_validation_failed': { icon: AlertCircle, label: 'Invalid Feed Content', detail: 'This URL returned something that doesn\'t look like a valid RSS feed with articles.' },
+    'no_articles_found': { icon: AlertCircle, label: 'No Articles Found', detail: 'This URL loaded but no articles or feed entries could be found.' },
+  };
+
+  const checkFeedHealth = async (url) => {
+    // Use the same proxy to do a real check
     try {
-      const res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`, { signal: AbortSignal.timeout(8000) });
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 12000);
+      const res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`, { signal: controller.signal });
+      clearTimeout(timeout);
+
+      const httpStatus = res.status;
+      if (!res.ok) {
+        const cat = (httpStatus === 404 || httpStatus === 410 || (httpStatus >= 400 && httpStatus < 500)) ? '404_gone' : 'network_error';
+        return { ok: false, category: cat, httpStatus };
+      }
+
       const text = await res.text();
-      return text.includes('<rss') || text.includes('<feed') || text.includes('<channel') || text.includes('<?xml');
-    } catch {
-      return true; // If we can't check, allow it through
+      const lc = text.toLowerCase().slice(0, 5000);
+
+      // Bot block detection
+      if (lc.includes('captcha') || lc.includes('cloudflare') || lc.includes('access denied') ||
+          lc.includes('please enable javascript') || lc.includes('ddos-guard') || httpStatus === 403) {
+        return { ok: false, category: 'blocked_antibot' };
+      }
+
+      // Paywall detection
+      if ((lc.includes('subscribe') && lc.includes('paywall')) || lc.includes('login required') ||
+          lc.includes('sign in to continue') || httpStatus === 401) {
+        return { ok: false, category: 'paywall_login' };
+      }
+
+      // Is it RSS?
+      const isRss = text.includes('<rss') || text.includes('<feed') || text.includes('<channel') || text.includes('<?xml');
+      if (!isRss) {
+        // Not RSS but page loaded — not a dead end, just not a feed URL
+        return { ok: true, isRss: false };
+      }
+
+      // Validate feed has actual content
+      const itemCount = (text.match(/<item[\s>]/g) || []).length + (text.match(/<entry[\s>]/g) || []).length;
+      if (itemCount === 0) {
+        return { ok: false, category: 'no_articles_found' };
+      }
+
+      return { ok: true, isRss: true, itemCount };
+    } catch (e) {
+      const msg = e.message?.toLowerCase() || '';
+      if (msg.includes('abort') || msg.includes('timeout')) return { ok: false, category: 'timeout' };
+      return { ok: false, category: 'network_error' };
     }
   };
 
