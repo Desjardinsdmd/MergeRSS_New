@@ -29,6 +29,7 @@ const categoryColors = {
 export default function Bookmarks() {
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('newest');
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -51,11 +52,20 @@ export default function Bookmarks() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['bookmarks', user?.email] }),
   });
 
-  const filtered = filter === 'unread'
-    ? bookmarks.filter(b => !b.is_read)
-    : filter === 'read'
-    ? bookmarks.filter(b => b.is_read)
-    : bookmarks;
+  const filtered = React.useMemo(() => {
+    let list = filter === 'unread'
+      ? bookmarks.filter(b => !b.is_read)
+      : filter === 'read'
+      ? bookmarks.filter(b => b.is_read)
+      : bookmarks;
+    return [...list].sort((a, b) => {
+      if (sortBy === 'newest') return new Date(b.created_date) - new Date(a.created_date);
+      if (sortBy === 'oldest') return new Date(a.created_date) - new Date(b.created_date);
+      if (sortBy === 'title') return (a.title || '').localeCompare(b.title || '');
+      if (sortBy === 'published') return new Date(b.published_date || 0) - new Date(a.published_date || 0);
+      return 0;
+    });
+  }, [bookmarks, filter, sortBy]);
 
   const unreadCount = bookmarks.filter(b => !b.is_read).length;
 
