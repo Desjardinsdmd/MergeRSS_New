@@ -153,8 +153,17 @@ Deno.serve(async (req) => {
     const emailsSent = [];
 
     if (!dry_run && (criticalAlerts.length > 0 || warningAlerts.length > 0)) {
-        const adminUsers = await base44.asServiceRole.entities.User.filter({ role: 'admin' });
-        const adminEmails = adminUsers.map(u => u.email).filter(Boolean);
+        // Load custom destination from AlertSettings (first record wins)
+        const alertSettingsList = await base44.asServiceRole.entities.AlertSettings.list('-created_date', 1).catch(() => []);
+        const alertSettings = alertSettingsList[0];
+
+        let adminEmails;
+        if (alertSettings?.destination_email?.trim()) {
+            adminEmails = [alertSettings.destination_email.trim()];
+        } else {
+            const adminUsers = await base44.asServiceRole.entities.User.filter({ role: 'admin' });
+            adminEmails = adminUsers.map(u => u.email).filter(Boolean);
+        }
 
         for (const email of adminEmails) {
             const subject = criticalAlerts.length > 0
