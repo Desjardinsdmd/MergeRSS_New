@@ -193,21 +193,47 @@ async function recoverFeedUrl(originalUrl) {
 
 async function fetchFeedsWithThrottling(feeds, base44, batchSize = 10, delayBetweenBatches = 200) {
     const results = [];
+
+    // Hoist the alerts query once — avoid repeating it per-feed
+    let alertFeedIds = new Set();
+    try {
+        const allAlerts = await base44.asServiceRole.entities.FeedAlert.filter({ is_active: true });
+        alertFeedIds = new Set((allAlerts || []).map(a => a.feed_id));
+    } catch {}
     
     for (let i = 0; i < feeds.length; i += batchSize) {
         const batch = feeds.slice(i, i + batchSize);
         
-        // Fetch all feeds in batch in parallel
-        const batchResults = await Promise.allSettled(
-            batch.map(feed => 
-                parseFeed(feed.url)
-                    .then(items => ({ feed, items, error: null }))
-                    .catch(err => ({ feed, items: [], error: err.message }))
-            )
-        );
+        // Fetch all feeds AND their existing items in parallel
+        const [batchResults, dedupResults] = await Promise.all([
+            Promise.allSettled(
+                batch.map(feed =>
+                    parseFeed(feed.url)
+                        .then(items => ({ feed, items, error: null }))
+                        .catch(err => ({ feed, items: [], error: err.message }))
+                )
+            ),
+            Promise.allSettled(
+                batch.map(feed =>
+                    base44.asServiceRole.entities.FeedItem.filter({ feed_id: feed.id }, '-created_date', 100)
+                        .then(existing => ({ feed_id: feed.id, existing: existing || [] }))
+                        .catch(() => ({ feed_id: feed.id, existing: [] }))
+                )
+            ),
+        ]);
 
-        // Process results per feed — dedup read happens immediately before insert
-        // to minimize the race window (Priority 3 fix)
+        // Build dedup sets indexed by feed_id
+        const dedupMap = {};
+        for (const r of dedupResults) {
+            if (r.status === 'fulfilled') {
+                const { feed_id, existing } = r.value;
+                dedupMap[feed_id] = {
+                    guids: new Set(existing.map(i => i.guid).filter(Boolean)),
+                    urls:  new Set(existing.map(i => i.url).filter(Boolean)),
+                };
+            }
+        }
+
         for (let j = 0; j < batchResults.length; j++) {
             const result = batchResults[j];
             const feed = batch[j];
@@ -223,8 +249,8 @@ async function fetchFeedsWithThrottling(feeds, base44, batchSize = 10, delayBetw
 
                 const consecutiveErrors = (feed.consecutive_errors || 0) + 1;
                 const shouldPause = consecutiveErrors >= MAX_CONSECUTIVE_ERRORS;
-
                 const isRecoverable = error.includes('HTML') || error.includes('404') || error.includes('Unrecognized feed');
+
                 if (isRecoverable && consecutiveErrors >= 2) {
                     (async () => {
                         try {
@@ -257,24 +283,12 @@ async function fetchFeedsWithThrottling(feeds, base44, batchSize = 10, delayBetw
             }
 
             const items = result.value.items;
-
-            // ── Narrowed race window: re-fetch existing guids immediately before insert ──
-            // This moves the dedup read as close to the bulkCreate as possible,
-            // reducing the race window from O(entire_batch_parse_time) to ~10ms.
-            let existingGuids = new Set();
-            let existingUrls = new Set();
-            try {
-                const existing = await base44.asServiceRole.entities.FeedItem.filter(
-                    { feed_id: feed.id }, '-created_date', 300
-                );
-                existingGuids = new Set((existing || []).map(i => i.guid).filter(Boolean));
-                existingUrls  = new Set((existing || []).map(i => i.url).filter(Boolean));
-            } catch {}
+            const dedup = dedupMap[feed.id] || { guids: new Set(), urls: new Set() };
 
             const itemsToCreate = [];
             for (const item of items.slice(0, 50)) {
                 if (!item.guid && !item.url) continue;
-                if (existingGuids.has(item.guid) || existingUrls.has(item.url)) continue;
+                if (dedup.guids.has(item.guid) || dedup.urls.has(item.url)) continue;
                 itemsToCreate.push({
                     feed_id: feed.id,
                     title: String(item.title || '').slice(0, 500),
@@ -295,43 +309,36 @@ async function fetchFeedsWithThrottling(feeds, base44, batchSize = 10, delayBetw
             if (newCount > 0) {
                 try {
                     const created = await base44.asServiceRole.entities.FeedItem.bulkCreate(itemsToCreate);
-                    // Send alerts — fire in parallel, capped to 10
-                    try {
-                        const allAlerts = await base44.asServiceRole.entities.FeedAlert.filter({ is_active: true });
-                        const alertFeedIds = new Set(allAlerts.map(a => a.feed_id));
+                    if (alertFeedIds.has(feed.id)) {
                         const itemsNeedingAlerts = (Array.isArray(created) ? created : itemsToCreate)
-                            .filter(i => alertFeedIds.has(i.feed_id) && i.id)
+                            .filter(i => i.id)
                             .slice(0, 10);
-                        await Promise.allSettled(
+                        Promise.allSettled(
                             itemsNeedingAlerts.map(item =>
                                 base44.asServiceRole.functions.invoke('sendFeedAlerts', { feed_item_id: item.id })
                             )
-                        );
-                    } catch (alertErr) {
-                        console.warn('[fetchFeeds] Alert sending failed (non-fatal):', alertErr.message);
+                        ).catch(() => {});
                     }
                 } catch (bulkErr) {
                     console.warn(`[fetchFeeds] bulkCreate failed for ${feed.name} (non-fatal):`, bulkErr.message);
                 }
             }
 
-            // Don't compute item_count from capped list — just increment by newCount
             base44.asServiceRole.entities.Feed.update(feed.id, {
                 last_fetched: new Date().toISOString(),
                 item_count: (feed.item_count || 0) + newCount,
                 status: 'active',
                 fetch_error: '',
                 consecutive_errors: 0,
-            }).catch(e => console.warn(`[fetchFeeds] Feed update failed for ${feed.name}:`, e.message));
+            }).catch(() => {});
 
             results.push({ feed: feed.name, new_items: newCount, status: 'ok' });
-        } // end per-feed for loop
+        }
 
-        // Delay between batches to avoid rate limiting
         if (i + batchSize < feeds.length) {
             await sleep(delayBetweenBatches);
         }
-    } // end batch for loop
+    }
     
     return results;
 }
