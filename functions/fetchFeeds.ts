@@ -406,10 +406,9 @@ Deno.serve(async (req) => {
         console.log(`[fetchFeeds] Starting — processing ${feeds.length} of ${allFeeds.length} feeds this run`);
         const results = await fetchFeedsWithThrottling(feeds, base44, 10, 200);
 
-        await base44.asServiceRole.entities.SystemHealth.create({
-            job_type: 'feed_fetch',
+        // Update lock record to completed
+        await base44.asServiceRole.entities.SystemHealth.update(lockRecord.id, {
             status: 'completed',
-            started_at: startedAt,
             completed_at: new Date().toISOString(),
             metadata: {
                 total_feeds: allFeeds.length,
@@ -421,6 +420,20 @@ Deno.serve(async (req) => {
 
         return Response.json({ success: true, total_feeds: allFeeds.length, feeds_processed: feeds.length, feeds_skipped: skippedCount, results });
     } catch (error) {
+        // Best-effort: mark lock as failed so next run isn't blocked
+        try {
+            const base44Cleanup = createClientFromRequest(req);
+            const stuckRuns = await base44Cleanup.asServiceRole.entities.SystemHealth.filter(
+                { job_type: 'feed_fetch', status: 'running' }, '-started_at', 1
+            );
+            if (stuckRuns?.[0]?.id) {
+                await base44Cleanup.asServiceRole.entities.SystemHealth.update(stuckRuns[0].id, {
+                    status: 'failed',
+                    completed_at: new Date().toISOString(),
+                    error_message: error.message,
+                });
+            }
+        } catch {}
         return Response.json({ error: error.message }, { status: 500 });
     }
 });
