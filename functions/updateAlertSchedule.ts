@@ -1,7 +1,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
-const ALERT_AUTOMATION_ID = '69b8a58429cea6257c9aeca8';
-
+/**
+ * Saves alert schedule preference to AlertSettings entity.
+ * Note: The actual automation schedule must be updated manually via the
+ * admin dashboard if frequency changes — this stores the config for reference.
+ */
 Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
@@ -15,11 +18,13 @@ Deno.serve(async (req) => {
         return Response.json({ error: 'Invalid frequency_hours' }, { status: 400 });
     }
 
-    // Update the automation via the Base44 SDK
-    await base44.asServiceRole.automations.update(ALERT_AUTOMATION_ID, {
-        repeat_interval: hours,
-        repeat_unit: 'hours',
-    });
+    // Upsert AlertSettings
+    const existing = await base44.asServiceRole.entities.AlertSettings.list('-created_date', 1).catch(() => []);
+    if (existing[0]) {
+        await base44.asServiceRole.entities.AlertSettings.update(existing[0].id, { frequency_hours: hours });
+    } else {
+        await base44.asServiceRole.entities.AlertSettings.create({ frequency_hours: hours });
+    }
 
-    return Response.json({ success: true, repeat_interval: hours, repeat_unit: 'hours' });
+    return Response.json({ success: true, frequency_hours: hours });
 });
