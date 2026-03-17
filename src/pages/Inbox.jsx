@@ -36,6 +36,7 @@ export default function Inbox() {
   const queryClient = useQueryClient();
 
   const [showItems, setShowItems] = useState(false);
+  const [sortBy, setSortBy] = useState('newest');
 
   React.useEffect(() => {
     base44.auth.me().then(setUser);
@@ -89,10 +90,18 @@ export default function Inbox() {
   }, [deliveries]);
 
   const filtered = useMemo(() => {
-    if (selectedTag) return deliveries.filter(d => (d.tags || []).includes(selectedTag));
-    if (selectedFolder === 'Starred') return deliveries.filter(d => d.is_favorited);
-    return deliveries.filter(d => (d.folder || 'Inbox') === selectedFolder);
-  }, [deliveries, selectedFolder, selectedTag]);
+    let list;
+    if (selectedTag) list = deliveries.filter(d => (d.tags || []).includes(selectedTag));
+    else if (selectedFolder === 'Starred') list = deliveries.filter(d => d.is_favorited);
+    else list = deliveries.filter(d => (d.folder || 'Inbox') === selectedFolder);
+    return [...list].sort((a, b) => {
+      if (sortBy === 'newest') return new Date(b.sent_at || b.created_date) - new Date(a.sent_at || a.created_date);
+      if (sortBy === 'oldest') return new Date(a.sent_at || a.created_date) - new Date(b.sent_at || b.created_date);
+      if (sortBy === 'unread') return (a.is_read ? 1 : 0) - (b.is_read ? 1 : 0);
+      if (sortBy === 'items') return (b.item_count || 0) - (a.item_count || 0);
+      return 0;
+    });
+  }, [deliveries, selectedFolder, selectedTag, sortBy]);
 
   const getDigestName = id => digests.find(d => d.id === id)?.name || 'Unknown Digest';
 
