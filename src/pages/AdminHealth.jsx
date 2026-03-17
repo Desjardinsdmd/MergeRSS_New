@@ -39,6 +39,7 @@ import {
 } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import RepairJobPanel from '@/components/admin/RepairJobPanel';
 
 const jobTypeIcons = {
   feed_fetch: Rss,
