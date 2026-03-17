@@ -126,19 +126,31 @@ export default function RepairJobPanel({ errorFeedCount }) {
     }
   }, [logs.length, showLogs]);
 
-  // Polling while running
+  // Polling while running (with rate limit protection)
   useEffect(() => {
     if (activeJob?.status !== 'running') {
       clearInterval(pollRef.current);
       return;
     }
+    let lastPollTime = 0;
+    const minPollInterval = 5000; // 5 seconds minimum between polls
+    
     pollRef.current = setInterval(async () => {
-      const jobs = await base44.entities.RepairJob.filter({ id: activeJob.id });
-      if (jobs.length) {
-        setActiveJob(jobs[0]);
-        if (jobs[0].status !== 'running') clearInterval(pollRef.current);
+      const now = Date.now();
+      if (now - lastPollTime < minPollInterval) return; // Skip if too soon
+      lastPollTime = now;
+      
+      try {
+        const jobs = await base44.entities.RepairJob.filter({ id: activeJob.id });
+        if (jobs.length) {
+          setActiveJob(jobs[0]);
+          if (jobs[0].status !== 'running') clearInterval(pollRef.current);
+        }
+        await loadLogsForJob(activeJob.id);
+      } catch (e) {
+        // Silently handle rate limit errors during polling
+        console.error('Poll error:', e.message);
       }
-      loadLogsForJob(activeJob.id);
     }, 3000);
     return () => clearInterval(pollRef.current);
   }, [activeJob?.status, activeJob?.id]);
