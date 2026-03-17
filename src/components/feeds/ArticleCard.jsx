@@ -47,20 +47,42 @@ export default function ArticleCard({
   // Extract image from article content
   const imageUrl = normalizeImageUrl(getArticleImage(item));
 
+  // Generate a subtle gradient background color based on title hash
+  const getBackgroundColor = () => {
+    let hash = 0;
+    for (let i = 0; i < item.title.length; i++) {
+      hash = ((hash << 5) - hash) + item.title.charCodeAt(i);
+      hash = hash & hash;
+    }
+    const colors = [
+      'from-blue-900 to-blue-800',
+      'from-purple-900 to-purple-800',
+      'from-green-900 to-green-800',
+      'from-amber-900 to-amber-800',
+      'from-pink-900 to-pink-800',
+      'from-indigo-900 to-indigo-800',
+      'from-cyan-900 to-cyan-800',
+      'from-rose-900 to-rose-800',
+    ];
+    return colors[Math.abs(hash) % colors.length];
+  };
+
   return (
     <div className={`group border-b border-stone-800 transition-colors p-4 cursor-pointer ${isMustRead ? 'bg-stone-900/80 hover:bg-stone-900/60 border-l-2 border-l-[hsl(var(--primary))]' : 'hover:bg-stone-900/40'}`}>
       <div onClick={() => onExpand && onExpand(item)} className="flex gap-3">
         {/* Thumbnail */}
-        {imageUrl && (
-          <div className="flex-shrink-0 w-16 h-16 bg-stone-800 rounded overflow-hidden border border-stone-700/50">
+        <div className={`flex-shrink-0 w-16 h-16 bg-gradient-to-br ${getBackgroundColor()} rounded overflow-hidden border border-stone-700/50 flex items-center justify-center`}>
+          {imageUrl ? (
             <img
               src={imageUrl}
               alt={item.title}
               className="w-full h-full object-cover"
               onError={(e) => (e.target.style.display = 'none')}
             />
-          </div>
-        )}
+          ) : (
+            <ImageIcon className="w-6 h-6 text-white/30" />
+          )}
+        </div>
 
         {/* Content */}
         <div className="flex-1 min-w-0">
