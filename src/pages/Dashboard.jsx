@@ -244,6 +244,9 @@ export default function Dashboard() {
         <WidgetCustomizer user={user} onSave={() => window.location.reload()} />
       </div>
 
+      {/* Featured Digest Hero */}
+      {feeds.length > 0 && digests.length > 0 && <FeaturedDigestHero digests={digests} />}
+
       {/* Hero: Trending Articles */}
       {feeds.length > 0 && allArticles.length >= 3 && widget('trendingArticles') && (
         <div className="mb-8 bg-gradient-to-br from-stone-800/50 to-stone-900 border border-stone-700 p-6">
