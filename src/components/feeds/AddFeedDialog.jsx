@@ -63,6 +63,7 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
       });
     }
     setTagInput('');
+    setDeadEndWarning(null);
   }, [editFeed, open]);
 
   const [validatingRss, setValidatingRss] = useState(false);
