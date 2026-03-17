@@ -394,11 +394,18 @@ Deno.serve(async (req) => {
 
         // Load feeds sorted by oldest last_fetched first so every feed gets rotated through
         console.log('[fetchFeeds] Loading feeds...');
-        const allFeedsRaw = await base44.asServiceRole.entities.Feed.filter(
-            { status: { $in: ['active', 'error'] } },
-            'last_fetched',
-            2000
-        );
+        let allFeedsRaw;
+        try {
+            allFeedsRaw = await base44.asServiceRole.entities.Feed.filter(
+                { status: { $in: ['active', 'error'] } },
+                'last_fetched',
+                2000
+            );
+            console.log('[fetchFeeds] Loaded', allFeedsRaw?.length, 'feeds');
+        } catch (feedErr) {
+            console.error('[fetchFeeds] Failed to load feeds:', feedErr.message);
+            throw feedErr;
+        }
         const allFeeds = Array.isArray(allFeedsRaw) ? allFeedsRaw : [];
 
         // ── P0 Telemetry: compute fetch-lag distribution across ALL feeds ────────
