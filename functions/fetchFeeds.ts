@@ -337,15 +337,15 @@ const MAX_CONSECUTIVE_ERRORS = 5;
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
+        console.log('[fetchFeeds] SDK client created');
         
         const startedAt = new Date().toISOString();
 
         // ── Overlap prevention lock with zombie TTL ──────────────────────────────
-        // If another run is still "running" but started >15 min ago, it's a zombie
-        // (crashed without cleanup). Auto-expire it so ingestion isn't permanently blocked.
-        const LOCK_WINDOW_MS = 8 * 60 * 1000;   // 8 min — normal overlap window
-        const ZOMBIE_TTL_MS  = 15 * 60 * 1000;  // 15 min — max before we declare it dead
+        const LOCK_WINDOW_MS = 8 * 60 * 1000;
+        const ZOMBIE_TTL_MS  = 15 * 60 * 1000;
 
+        console.log('[fetchFeeds] Querying SystemHealth lock...');
         const recentRuns = await base44.asServiceRole.entities.SystemHealth.filter(
             { job_type: 'feed_fetch', status: 'running' }, '-started_at', 5
         );
