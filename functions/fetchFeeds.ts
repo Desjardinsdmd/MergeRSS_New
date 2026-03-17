@@ -364,6 +364,32 @@ Deno.serve(async (req) => {
         
         const startedAt = new Date().toISOString();
 
+        // ── Overlap prevention lock ──────────────────────────────────────────────
+        // If another fetchFeeds run started within the last 8 minutes and is still
+        // marked "running", exit early to prevent concurrent dedup race conditions.
+        const recentRuns = await base44.asServiceRole.entities.SystemHealth.filter(
+            { job_type: 'feed_fetch', status: 'running' }, '-started_at', 5
+        );
+        const lockWindowMs = 8 * 60 * 1000;
+        const overlapping = (recentRuns || []).find(r => {
+            const age = Date.now() - new Date(r.started_at).getTime();
+            return age < lockWindowMs;
+        });
+        if (overlapping) {
+            console.warn(`[fetchFeeds] Skipping — another run is already in progress (started ${overlapping.started_at})`);
+            return Response.json({
+                skipped: true,
+                reason: 'Another fetchFeeds run is already in progress',
+                running_since: overlapping.started_at,
+            });
+        }
+
+        // Write running lock
+        const lockRecord = await base44.asServiceRole.entities.SystemHealth.create({
+            job_type: 'feed_fetch',
+            status: 'running',
+            started_at: startedAt,
+        });
 
         // Load feeds sorted by oldest last_fetched first so every feed gets rotated through
         const allFeedsRaw = await base44.asServiceRole.entities.Feed.filter(
