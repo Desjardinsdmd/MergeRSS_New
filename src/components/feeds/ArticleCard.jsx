@@ -86,8 +86,6 @@ export default function ArticleCard({
           <h3 className="text-sm font-semibold text-stone-100 mb-2 line-clamp-2 group-hover:text-[hsl(var(--primary))] transition-colors leading-snug">
             {decodeHtml(item.title)}
           </h3>
-        </div>
-      </div>
 
           {/* Inline AI Summary */}
           {hasAiSummary && (
@@ -104,56 +102,56 @@ export default function ArticleCard({
           )}
 
           {/* Footer Actions */}
-          <div className="flex items-center justify-between pt-2 border-t border-stone-800/50 -mx-3 -mb-4 mt-3 px-3 py-2">
-        <div className="flex-1">
-          <ArticleSummarizeButton
-            item={item}
-            onSummaryUpdate={onSummaryUpdate}
-            compact={true}
-          />
-        </div>
-        <div className="flex items-center gap-1 flex-shrink-0 ml-2">
-          {showBookmark && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onBookmark && onBookmark(item);
-              }}
-              title={isBookmarked ? 'Remove bookmark' : 'Bookmark article'}
-              className="p-1.5 text-stone-600 hover:text-[hsl(var(--primary))] hover:bg-stone-800 rounded transition"
-            >
-              {isBookmarked ? (
-                <BookmarkCheck className="w-3.5 h-3.5" />
-              ) : (
-                <BookmarkPlus className="w-3.5 h-3.5" />
+          <div className="flex items-center justify-between pt-2 border-t border-stone-800/50 mt-3 -mx-4 px-4 py-2">
+            <div className="flex-1">
+              <ArticleSummarizeButton
+                item={item}
+                onSummaryUpdate={onSummaryUpdate}
+                compact={true}
+              />
+            </div>
+            <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+              {showBookmark && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onBookmark && onBookmark(item);
+                  }}
+                  title={isBookmarked ? 'Remove bookmark' : 'Bookmark article'}
+                  className="p-1.5 text-stone-600 hover:text-[hsl(var(--primary))] hover:bg-stone-800 rounded transition"
+                >
+                  {isBookmarked ? (
+                    <BookmarkCheck className="w-3.5 h-3.5" />
+                  ) : (
+                    <BookmarkPlus className="w-3.5 h-3.5" />
+                  )}
+                </button>
               )}
-            </button>
-          )}
-          <a
-            href={safeUrl(item.url)}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            title="Open in new tab"
-            className="p-1.5 text-stone-600 hover:text-[hsl(var(--primary))] hover:bg-stone-800 rounded transition"
-          >
-            <ExternalLink className="w-3.5 h-3.5" />
-          </a>
-          {onMarkAsRead && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onMarkAsRead(item, e);
-              }}
-              title="Mark as read"
-              className="p-1.5 text-stone-600 hover:text-[hsl(var(--primary))] hover:bg-stone-800 rounded transition opacity-0 group-hover:opacity-100"
-            >
-              ✓
-            </button>
-          )}
+              <a
+                href={safeUrl(item.url)}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                title="Open in new tab"
+                className="p-1.5 text-stone-600 hover:text-[hsl(var(--primary))] hover:bg-stone-800 rounded transition"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+              {onMarkAsRead && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onMarkAsRead(item, e);
+                  }}
+                  title="Mark as read"
+                  className="p-1.5 text-stone-600 hover:text-[hsl(var(--primary))] hover:bg-stone-800 rounded transition opacity-0 group-hover:opacity-100"
+                >
+                  ✓
+                </button>
+              )}
+            </div>
+          </div>
         </div>
-        </div>
-        </div>
-        </div>
+      </div>
   );
 }
