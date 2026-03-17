@@ -106,13 +106,17 @@ Write exactly 3 sentences. No bullet points, no headers. Just 3 flowing sentence
       }
     });
 
-    // Generate per-category briefs (only for categories with enough articles)
-    const briefCategories = Object.keys(byCategory).filter(cat => byCategory[cat].length >= 1);
+    // Generate per-category briefs (only for top 3 categories to reduce rate limits)
+    const briefCategories = Object.keys(byCategory)
+      .filter(cat => byCategory[cat].length >= 1)
+      .sort((a, b) => byCategory[b].length - byCategory[a].length)
+      .slice(0, 3); // Only top 3 categories
     const categoryBriefs = {};
 
+    // Batch category brief requests sequentially with delay
     for (const cat of briefCategories) {
       const items = byCategory[cat];
-      const headlines = items.slice(0, 20).map(i => `- ${i.title}`).join('\n');
+      const headlines = items.slice(0, 15).map(i => `- ${i.title}`).join('\n');
       const res = await base44.integrations.Core.InvokeLLM({
         prompt: `You are a sharp news editor covering the ${cat} sector. Summarize today's top ${cat} stories from these headlines into a concise 2-3 sentence brief for a busy professional. Be direct and specific.
 
@@ -133,6 +137,8 @@ Write 2-3 sentences max. No bullet points, no headers. Just flowing sentences ab
         article_count: items.length,
         related_articles: topArticles(items, 5),
       };
+      // Small delay between LLM calls to avoid rate limits
+      await new Promise(resolve => setTimeout(resolve, 500));
     }
 
     return Response.json({
