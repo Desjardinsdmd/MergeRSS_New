@@ -363,13 +363,18 @@ Deno.serve(async (req) => {
 
 
         // Load feeds sorted by oldest last_fetched first so every feed gets rotated through
-        const feedsRaw = await base44.asServiceRole.entities.Feed.filter(
+        const allFeedsRaw = await base44.asServiceRole.entities.Feed.filter(
             { status: { $in: ['active', 'error'] } },
             'last_fetched',
-            60  // process up to 60 feeds per run
+            2000 // fetch all, then cap to batch size below
         );
-        const feeds = Array.isArray(feedsRaw) ? feedsRaw : [];
-        console.log(`[fetchFeeds] Starting — processing ${feeds.length} feeds this run`);
+        const allFeeds = Array.isArray(allFeedsRaw) ? allFeedsRaw : [];
+        const feeds = allFeeds.slice(0, 100); // process up to 100 feeds per run
+        const skippedCount = allFeeds.length - feeds.length;
+        if (skippedCount > 0) {
+            console.warn(`[fetchFeeds] WARNING: ${allFeeds.length} feeds total, processing ${feeds.length}, ${skippedCount} will be picked up on next run`);
+        }
+        console.log(`[fetchFeeds] Starting — processing ${feeds.length} of ${allFeeds.length} feeds this run`);
         const results = await fetchFeedsWithThrottling(feeds, base44, 10, 200);
 
         await base44.asServiceRole.entities.SystemHealth.create({
