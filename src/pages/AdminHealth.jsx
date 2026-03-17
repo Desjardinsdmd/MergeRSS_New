@@ -117,6 +117,16 @@ export default function AdminHealth() {
     },
   ];
 
+  const [alertsLoading, setAlertsLoading] = useState(false);
+  const [liveAlerts, setLiveAlerts] = useState(null);
+
+  const runAlertCheck = async () => {
+    setAlertsLoading(true);
+    const res = await base44.functions.invoke('systemAlerts', { dry_run: true });
+    setLiveAlerts(res.data);
+    setAlertsLoading(false);
+  };
+
   const handleRefresh = () => {
     refetch();
     toast.success('Data refreshed');
