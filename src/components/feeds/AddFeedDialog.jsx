@@ -24,9 +24,10 @@ import { cn } from '@/lib/utils';
 
 const DEFAULT_CATEGORIES = ['CRE', 'Markets', 'Tech', 'News', 'Finance', 'Crypto', 'AI', 'Other'];
 
-export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed = null, prefillUrl = '', prefillName = '' }) {
+export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed = null, prefillUrl = '', prefillName = '', existingFeedCount = 0 }) {
    const [loading, setLoading] = useState(false);
    const [success, setSuccess] = useState(false);
+   const [fetchingItems, setFetchingItems] = useState(false);
    const [errors, setErrors] = useState({});
    const [customCategoryInput, setCustomCategoryInput] = useState('');
    const [formData, setFormData] = useState({
