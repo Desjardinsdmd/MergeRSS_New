@@ -187,20 +187,21 @@ export default function Landing() {
           </div>
 
           <h1
-            className="text-6xl md:text-7xl lg:text-8xl font-black tracking-tight leading-[0.93] mb-8"
+            className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tight leading-[0.95] mb-6"
             style={{ animation: 'fadeSlideDown 0.7s ease 0.1s both' }}
           >
-            <span className="text-stone-100">Turn noise into</span>
+            <span className="text-stone-100">Your Daily Intelligence Brief.</span>
             <br />
-            <span className="bg-gradient-to-r from-[hsl(var(--primary))] via-[hsl(var(--primary))]/80 to-[hsl(var(--primary))]/60 bg-clip-text text-transparent">daily intelligence.</span>
+            <span className="bg-gradient-to-r from-[hsl(var(--primary))] via-[hsl(var(--primary))]/80 to-[hsl(var(--primary))]/60 bg-clip-text text-transparent">7 minutes every morning.</span>
           </h1>
 
           <p
-            className="text-lg md:text-xl text-stone-400 mb-12 max-w-xl leading-relaxed"
+            className="text-lg md:text-xl text-stone-400 mb-8 max-w-2xl leading-relaxed"
             style={{ animation: 'fadeSlideDown 0.7s ease 0.2s both' }}
           >
-            AI-powered briefings that cut through the clutter. Aggregate feeds from any source, get smart summaries,
-            and receive a polished digest in Slack, Discord, email, or your inbox — on your schedule.
+            Aggregate your feeds. AI reads everything. You get the signal, never the noise. 
+            <br className="hidden md:block" />
+            Delivered to Slack, Discord, email, or your inbox — every morning at the same time.
           </p>
 
           <div
