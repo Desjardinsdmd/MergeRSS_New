@@ -274,11 +274,12 @@ export default function Inbox() {
 
   return (
     <div className="p-6 lg:p-8 max-w-6xl mx-auto">
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-stone-100">Inbox</h1>
-          <p className="text-stone-500">Your AI-generated digests, delivered to your web inbox</p>
-        </div>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-stone-100 mb-1">Inbox</h1>
+        <p className="text-stone-500 text-sm">Your delivered digests and reading history</p>
+      </div>
+
+      <div className="flex items-center justify-between gap-4 mb-6">
         <Select value={sortBy} onValueChange={setSortBy}>
           <SelectTrigger className="w-44 text-sm">
             <SelectValue />
