@@ -367,35 +367,24 @@ export default function Dashboard() {
                       </div>
                     )}
                     {filteredArticles.map((item, idx) => {
-                      const merged = mergeItem(item);
-                      const isFocused = idx === focusedIndex;
-                      return (
-                        <div
-                          key={item.id}
-                          className={`p-4 hover:bg-stone-800/50 transition cursor-pointer group ${isFocused ? 'bg-stone-800 ring-1 ring-inset ring-[hsl(var(--primary))]/30' : ''}`}
-                          onClick={() => setExpandedItem(merged)}
-                        >
-                          <div className="flex items-start gap-2">
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-stone-200 mb-1 line-clamp-2">{decodeHtml(item.title)}</p>
-                              <div className="flex items-center gap-2 text-xs text-stone-500">
-                                <Clock className="w-3 h-3" />
-                                {item.published_date && new Date(item.published_date).toLocaleDateString()}
-                                {item.category && <span className="bg-stone-800 text-stone-400 px-1.5 py-0.5">{item.category}</span>}
-                              </div>
-                            </div>
-                            <button
-                              onClick={(e) => markAsRead(item, e)}
-                              title="Mark as read"
-                              className="opacity-0 group-hover:opacity-100 p-1.5 text-stone-600 hover:text-[hsl(var(--primary))] hover:bg-stone-800 transition flex-shrink-0"
-                            >
-                              <CheckCircle className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                          <ArticleSummarizeButton item={merged} onSummaryUpdate={handleSummaryUpdate} />
-                        </div>
-                      );
-                    })}
+                       const merged = mergeItem(item);
+                       const isFocused = idx === focusedIndex;
+                       return (
+                         <div
+                           key={item.id}
+                           className={isFocused ? 'bg-stone-800 ring-1 ring-inset ring-[hsl(var(--primary))]/30' : ''}
+                           onClick={() => setExpandedItem(merged)}
+                         >
+                           <ArticleCard
+                             item={merged}
+                             onExpand={() => setExpandedItem(merged)}
+                             onMarkAsRead={markAsRead}
+                             onSummaryUpdate={handleSummaryUpdate}
+                             showBookmark={true}
+                           />
+                         </div>
+                       );
+                     })}
                   </div>
                 )
               )}
