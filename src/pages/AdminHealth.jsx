@@ -315,6 +315,9 @@ export default function AdminHealth() {
         )}
       </Card>
 
+      {/* Repair Errored Feeds Panel */}
+      <RepairJobPanel errorFeedCount={errorFeeds} />
+
       {/* Alert banner for errored/paused feeds */}
       {(errorFeeds > 0 || feeds.filter(f => f.status === 'paused' && f.fetch_error).length > 0) && (
         <div className="mb-6 rounded-lg border border-red-800 bg-red-950/40 p-4 flex items-start gap-3">
