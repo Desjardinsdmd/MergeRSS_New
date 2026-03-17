@@ -151,8 +151,12 @@ export default function Landing() {
   }, []);
 
   React.useEffect(() => {
-    // Static representative stats — auth-gated queries return 0 for unauthenticated visitors
-    setStats({ users: 120, articles: 850, digests: 2400 });
+    base44.functions.invoke('publicStats', {})
+      .then(res => {
+        const d = res.data;
+        if (d && !d.error) setStats({ users: d.users, articles: d.feeds, digests: d.digests });
+      })
+      .catch(() => {});
   }, []);
 
   const handleCTA = (location) => {
