@@ -75,9 +75,16 @@ Deno.serve(async (req) => {
       byCategory[cat].push(item);
     });
 
-    // Helper to pick top related articles for a set of items
+    // Helper to pick top related articles for a set of items (with full data for UI rendering)
     const topArticles = (items, n = 5) =>
-      items.slice(0, n).map(i => ({ title: i.title, url: i.url }));
+      items.slice(0, n).map(i => ({ 
+        title: i.title, 
+        url: i.url,
+        description: i.description,
+        content: i.content,
+        published_date: i.published_date,
+        category: i.category
+      }));
 
     // Generate overall brief
     const allHeadlines = todayItems.slice(0, 40).map(i => `[${i.title}]`).join('\n');
