@@ -294,28 +294,40 @@ async function fetchFeedsWithThrottling(feeds, base44, batchSize = 10, delayBetw
 
             if (newCount > 0) {
                 const created = await base44.asServiceRole.entities.FeedItem.bulkCreate(itemsToCreate);
-            // Send alerts for feeds that have active alerts configured — fire in parallel, capped to 10
-            try {
-                const allAlerts = await base44.asServiceRole.entities.FeedAlert.filter({ is_active: true });
-                const alertFeedIds = new Set(allAlerts.map(a => a.feed_id));
-                const itemsNeedingAlerts = (Array.isArray(created) ? created : itemsToCreate)
-                    .filter(i => alertFeedIds.has(i.feed_id) && i.id)
-                    .slice(0, 10); // cap to 10 alerts per batch to stay within budget
-                await Promise.allSettled(
-                    itemsNeedingAlerts.map(item =>
-                        base44.asServiceRole.functions.invoke('sendFeedAlerts', { feed_item_id: item.id })
-                    )
-                );
-            } catch (alertErr) {
-                console.warn('[fetchFeeds] Alert sending failed (non-fatal):', alertErr.message);
+                // Send alerts — fire in parallel, capped to 10
+                try {
+                    const allAlerts = await base44.asServiceRole.entities.FeedAlert.filter({ is_active: true });
+                    const alertFeedIds = new Set(allAlerts.map(a => a.feed_id));
+                    const itemsNeedingAlerts = (Array.isArray(created) ? created : itemsToCreate)
+                        .filter(i => alertFeedIds.has(i.feed_id) && i.id)
+                        .slice(0, 10);
+                    await Promise.allSettled(
+                        itemsNeedingAlerts.map(item =>
+                            base44.asServiceRole.functions.invoke('sendFeedAlerts', { feed_item_id: item.id })
+                        )
+                    );
+                } catch (alertErr) {
+                    console.warn('[fetchFeeds] Alert sending failed (non-fatal):', alertErr.message);
+                }
             }
-        }
+
+            // Don't compute item_count from capped list — just increment by newCount
+            base44.asServiceRole.entities.Feed.update(feed.id, {
+                last_fetched: new Date().toISOString(),
+                item_count: (feed.item_count || 0) + newCount,
+                status: 'active',
+                fetch_error: '',
+                consecutive_errors: 0,
+            }).catch(() => {});
+
+            results.push({ feed: feed.name, new_items: newCount, status: 'ok' });
+        } // end per-feed for loop
 
         // Delay between batches to avoid rate limiting
         if (i + batchSize < feeds.length) {
             await sleep(delayBetweenBatches);
         }
-    }
+    } // end batch for loop
     
     return results;
 }
