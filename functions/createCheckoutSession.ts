@@ -1,6 +1,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 import Stripe from 'npm:stripe@17.0.0';
 
+function createPageUrl(page) {
+    return `/${page}`;
+}
+
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
