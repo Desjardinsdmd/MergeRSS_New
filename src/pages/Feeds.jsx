@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
@@ -232,6 +232,20 @@ export default function Feeds() {
             {['All', ...new Set([...DEFAULT_CATEGORIES, ...feeds.map(f => f.category).filter(Boolean)])].map(cat => (
               <SelectItem key={cat} value={cat}>{cat}</SelectItem>
             ))}
+          </SelectContent>
+        </Select>
+        <Select value={sortBy} onValueChange={setSortBy}>
+          <SelectTrigger className="w-full sm:w-44">
+            <ArrowUpDown className="w-4 h-4 mr-2" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="name-asc">Name A–Z</SelectItem>
+            <SelectItem value="name-desc">Name Z–A</SelectItem>
+            <SelectItem value="newest">Newest first</SelectItem>
+            <SelectItem value="oldest">Oldest first</SelectItem>
+            <SelectItem value="items">Most items</SelectItem>
+            <SelectItem value="last-fetched">Recently fetched</SelectItem>
           </SelectContent>
         </Select>
         <div className="flex gap-1 border border-stone-800 rounded-lg p-1 bg-stone-900">
