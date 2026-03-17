@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Sparkles, Loader2, RefreshCw, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
-import { safeUrl } from '@/components/utils/htmlUtils';
+import { Sparkles, Loader2, RefreshCw, ChevronDown, ChevronUp, ExternalLink, Clock, Zap } from 'lucide-react';
+import { safeUrl, decodeHtml } from '@/components/utils/htmlUtils';
+import { getArticleImage, normalizeImageUrl } from '@/components/utils/imageUtils';
+import { calculateReadTime, getFaviconUrl } from '@/components/utils/articleUtils';
 
 export default function DailySnapshot() {
   const [snapshot, setSnapshot] = useState(null);
@@ -124,19 +126,51 @@ export default function DailySnapshot() {
           {currentRelated.length > 0 && (
             <div className="mt-4 pt-3 border-t border-stone-800">
               <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-600 mb-2">Related Articles</p>
-              <div className="flex flex-col gap-1.5">
-                {currentRelated.map((article, i) => (
-                  <a
-                    key={i}
-                    href={safeUrl(article.url)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-start gap-1.5 text-xs text-stone-500 hover:text-stone-200 hover:underline transition-colors group"
-                  >
-                    <ExternalLink className="w-3 h-3 mt-0.5 flex-shrink-0" />
-                    <span className="line-clamp-1">{article.title}</span>
-                  </a>
-                ))}
+              <div className="flex flex-col gap-2.5">
+                {currentRelated.map((article, i) => {
+                  const imageUrl = normalizeImageUrl(getArticleImage(article));
+                  const readTime = calculateReadTime(article.content || article.description);
+                  const faviconUrl = getFaviconUrl(article.url);
+                  return (
+                    <a
+                      key={i}
+                      href={safeUrl(article.url)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-start gap-2.5 text-xs text-stone-500 hover:bg-stone-800/50 hover:text-stone-200 transition-all duration-200 group p-2 -mx-2 rounded"
+                    >
+                      {imageUrl && (
+                        <div className="flex-shrink-0 w-12 h-12 bg-stone-800 rounded overflow-hidden border border-stone-700/50">
+                          <img
+                            src={imageUrl}
+                            alt={article.title}
+                            className="w-full h-full object-cover"
+                            onError={(e) => (e.target.style.display = 'none')}
+                          />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-stone-200 line-clamp-2 group-hover:text-[hsl(var(--primary))] transition-colors mb-1">
+                          {decodeHtml(article.title)}
+                        </p>
+                        <div className="flex items-center gap-1.5 text-xs text-stone-600 flex-wrap">
+                          {faviconUrl && (
+                            <img src={faviconUrl} alt="publication" className="w-3 h-3 rounded" onError={(e) => (e.target.style.display = 'none')} />
+                          )}
+                          <Clock className="w-3 h-3" />
+                          {article.published_date && new Date(article.published_date).toLocaleDateString()}
+                          {readTime && (
+                            <>
+                              <Zap className="w-3 h-3" />
+                              {readTime}m
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      <ExternalLink className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                    </a>
+                  );
+                })}
               </div>
             </div>
           )}
