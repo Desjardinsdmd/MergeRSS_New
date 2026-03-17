@@ -293,21 +293,25 @@ async function fetchFeedsWithThrottling(feeds, base44, batchSize = 10, delayBetw
             const newCount = itemsToCreate.length;
 
             if (newCount > 0) {
-                const created = await base44.asServiceRole.entities.FeedItem.bulkCreate(itemsToCreate);
-                // Send alerts — fire in parallel, capped to 10
                 try {
-                    const allAlerts = await base44.asServiceRole.entities.FeedAlert.filter({ is_active: true });
-                    const alertFeedIds = new Set(allAlerts.map(a => a.feed_id));
-                    const itemsNeedingAlerts = (Array.isArray(created) ? created : itemsToCreate)
-                        .filter(i => alertFeedIds.has(i.feed_id) && i.id)
-                        .slice(0, 10);
-                    await Promise.allSettled(
-                        itemsNeedingAlerts.map(item =>
-                            base44.asServiceRole.functions.invoke('sendFeedAlerts', { feed_item_id: item.id })
-                        )
-                    );
-                } catch (alertErr) {
-                    console.warn('[fetchFeeds] Alert sending failed (non-fatal):', alertErr.message);
+                    const created = await base44.asServiceRole.entities.FeedItem.bulkCreate(itemsToCreate);
+                    // Send alerts — fire in parallel, capped to 10
+                    try {
+                        const allAlerts = await base44.asServiceRole.entities.FeedAlert.filter({ is_active: true });
+                        const alertFeedIds = new Set(allAlerts.map(a => a.feed_id));
+                        const itemsNeedingAlerts = (Array.isArray(created) ? created : itemsToCreate)
+                            .filter(i => alertFeedIds.has(i.feed_id) && i.id)
+                            .slice(0, 10);
+                        await Promise.allSettled(
+                            itemsNeedingAlerts.map(item =>
+                                base44.asServiceRole.functions.invoke('sendFeedAlerts', { feed_item_id: item.id })
+                            )
+                        );
+                    } catch (alertErr) {
+                        console.warn('[fetchFeeds] Alert sending failed (non-fatal):', alertErr.message);
+                    }
+                } catch (bulkErr) {
+                    console.warn(`[fetchFeeds] bulkCreate failed for ${feed.name} (non-fatal):`, bulkErr.message);
                 }
             }
 
