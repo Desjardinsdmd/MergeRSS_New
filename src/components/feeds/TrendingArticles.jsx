@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
-import { TrendingUp, ExternalLink, Clock, ArrowRight } from 'lucide-react';
+import { TrendingUp, ExternalLink, Clock, ArrowRight, Zap } from 'lucide-react';
 import { decodeHtml } from '@/components/utils/htmlUtils';
 import { getArticleImage, normalizeImageUrl } from '@/components/utils/imageUtils';
+import { calculateReadTime, getFaviconUrl } from '@/components/utils/articleUtils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
@@ -59,13 +60,15 @@ export default function TrendingArticles({ articles }) {
         <div className="divide-y divide-stone-800">
           {trending.map((item) => {
             const imageUrl = normalizeImageUrl(getArticleImage(item));
+            const readTime = calculateReadTime(item.content || item.description);
+            const faviconUrl = getFaviconUrl(item.url);
             return (
               <a
                 key={item.id}
                 href={item.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-start gap-3 p-4 hover:bg-stone-800/50 transition group border-b border-stone-800/30 last:border-0"
+                className="flex items-start gap-3 p-4 hover:bg-stone-800/80 hover:shadow-md transition-all duration-200 group border-b border-stone-800/30 last:border-0"
               >
                 {imageUrl && (
                   <div className="flex-shrink-0 w-12 h-12 bg-stone-800 rounded overflow-hidden border border-stone-700/50">
@@ -79,9 +82,18 @@ export default function TrendingArticles({ articles }) {
                 )}
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-stone-200 mb-1 line-clamp-1 group-hover:text-[hsl(var(--primary))] transition-colors">{decodeHtml(item.title)}</p>
-                  <div className="flex items-center gap-2 text-xs text-stone-500">
+                  <div className="flex items-center gap-2 text-xs text-stone-500 flex-wrap">
+                    {faviconUrl && (
+                      <img src={faviconUrl} alt="publication" className="w-3 h-3 rounded" onError={(e) => (e.target.style.display = 'none')} />
+                    )}
                     <Clock className="w-3 h-3" />
                     {item.published_date && new Date(item.published_date).toLocaleDateString()}
+                    {readTime && (
+                      <>
+                        <Zap className="w-3 h-3" />
+                        {readTime}m
+                      </>
+                    )}
                     {item.category && (
                       <Badge className="bg-stone-800 text-stone-400 px-1.5 py-0.5 text-xs">{item.category}</Badge>
                     )}
