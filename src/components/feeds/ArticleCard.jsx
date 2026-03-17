@@ -103,7 +103,7 @@ export default function ArticleCard({
     <div className={`group border-b border-stone-800 transition-all duration-200 p-4 cursor-pointer ${isMustRead ? 'bg-stone-900/80 hover:bg-stone-800/80 border-l-2 border-l-[hsl(var(--primary))] hover:shadow-lg hover:shadow-[hsl(var(--primary))]/10' : 'hover:bg-stone-900/60 hover:shadow-md'}`}>
       <div onClick={() => onExpand && onExpand(item)} className="flex gap-3">
         {/* Thumbnail */}
-        <div className={`flex-shrink-0 w-16 h-16 bg-gradient-to-br ${getBackgroundColor()} rounded overflow-hidden border border-stone-700/50 flex items-center justify-center`}>
+        <div className={`flex-shrink-0 w-24 h-24 bg-gradient-to-br ${getBackgroundColor()} rounded overflow-hidden border border-stone-700/50 flex items-center justify-center`}>
           {imageUrl ? (
             <img
               src={imageUrl}
