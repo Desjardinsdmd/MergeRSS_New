@@ -18,13 +18,13 @@ function isSsrf(url) {
 const UA = 'Mozilla/5.0 (compatible; MergeRSS/1.0; +https://mergerss.app)';
 
 // Hard wall-clock budget (ms) — leave headroom before Deno's CPU limit
-const WALL_BUDGET_MS = 50000;
+const WALL_BUDGET_MS = 30000;
 // Max feeds to process per invocation (prevents runaway loops on large datasets)
-const MAX_FEEDS_PER_RUN = 20;
+const MAX_FEEDS_PER_RUN = 10;
 // Concurrency: process N feeds in parallel
-const CONCURRENCY = 3;
+const CONCURRENCY = 5;
 // Per-feed fetch timeout (ms) — reduced so slow sites don't monopolize the budget
-const FETCH_TIMEOUT_MS = 8000;
+const FETCH_TIMEOUT_MS = 5000;
 
 function isRss(text) {
     const t = text.trimStart();
