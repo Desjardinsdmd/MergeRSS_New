@@ -41,6 +41,7 @@ export default function Feeds() {
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
+  const [sortBy, setSortBy] = useState('name-asc');
   const [fetching, setFetching] = useState(false);
   const [showBulkImport, setShowBulkImport] = useState(false);
   const [viewMode, setViewMode] = useState(() => {
@@ -76,12 +77,23 @@ export default function Feeds() {
     enabled: !!user,
   });
 
-  const filteredFeeds = feeds.filter((feed) => {
-    const matchesSearch = feed.name.toLowerCase().includes(search.toLowerCase()) ||
-                          feed.url.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = categoryFilter === 'All' || feed.category === categoryFilter;
-    return matchesSearch && matchesCategory;
-  });
+  const filteredFeeds = React.useMemo(() => {
+    const list = feeds.filter((feed) => {
+      const matchesSearch = feed.name.toLowerCase().includes(search.toLowerCase()) ||
+                            feed.url.toLowerCase().includes(search.toLowerCase());
+      const matchesCategory = categoryFilter === 'All' || feed.category === categoryFilter;
+      return matchesSearch && matchesCategory;
+    });
+    return list.sort((a, b) => {
+      if (sortBy === 'name-asc') return a.name.localeCompare(b.name);
+      if (sortBy === 'name-desc') return b.name.localeCompare(a.name);
+      if (sortBy === 'newest') return new Date(b.created_date) - new Date(a.created_date);
+      if (sortBy === 'oldest') return new Date(a.created_date) - new Date(b.created_date);
+      if (sortBy === 'items') return (b.item_count || 0) - (a.item_count || 0);
+      if (sortBy === 'last-fetched') return new Date(b.last_fetched || 0) - new Date(a.last_fetched || 0);
+      return 0;
+    });
+  }, [feeds, search, categoryFilter, sortBy]);
 
   const handleDelete = async () => {
     if (deleteConfirm) {
