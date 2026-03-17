@@ -425,6 +425,16 @@ Deno.serve(async (req) => {
 
         const runDurationMs = Date.now() - runStartMs;
 
+        // Summarize results — don't store full array to avoid payload size limits
+        const resultSummary = {
+            ok: results.filter(r => r.status === 'ok').length,
+            error: results.filter(r => r.status === 'error').length,
+            paused: results.filter(r => r.status === 'paused').length,
+            recovering: results.filter(r => r.status === 'recovering').length,
+            rate_limited: results.filter(r => r.status === 'rate_limited').length,
+            new_items_total: results.reduce((s, r) => s + (r.new_items || 0), 0),
+        };
+
         // Update lock record to completed
         await base44.asServiceRole.entities.SystemHealth.update(lockRecord.id, {
             status: 'completed',
@@ -440,7 +450,7 @@ Deno.serve(async (req) => {
                 max_lag_min: maxLagMin,
                 overdue_count: overdueCount,
                 run_duration_ms: runDurationMs,
-                results,
+                ...resultSummary,
             },
         });
 
