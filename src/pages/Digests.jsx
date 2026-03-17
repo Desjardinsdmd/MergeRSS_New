@@ -191,19 +191,19 @@ export default function Digests() {
           <Loader2 className="w-6 h-6 animate-spin text-amber-400" />
         </div>
       ) : digests.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="w-12 h-12 bg-stone-800 rounded-full flex items-center justify-center mx-auto mb-4">
-            <FileText className="w-6 h-6 text-stone-600" />
-          </div>
-          <h3 className="text-lg font-medium text-stone-100 mb-1">No digests yet</h3>
-          <p className="text-stone-500 mb-4">
-            Create your first digest to start receiving curated content
-          </p>
-          <Button onClick={() => setShowWizard(true)} className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 rounded-lg font-bold">
-            <Plus className="w-4 h-4 mr-2" />
-            Create Digest
-          </Button>
-        </div>
+       <div className="text-center py-16">
+         <div className="w-12 h-12 bg-stone-800 rounded-full flex items-center justify-center mx-auto mb-4">
+           <FileText className="w-6 h-6 text-stone-600" />
+         </div>
+         <h3 className="text-lg font-semibold text-stone-100 mb-1">No digests yet</h3>
+         <p className="text-stone-500 text-sm mb-6">
+           Create your first digest to start receiving curated content
+         </p>
+         <Button onClick={() => setShowWizard(true)} className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 rounded-lg font-bold">
+           <Plus className="w-4 h-4 mr-2" />
+           Create Digest
+         </Button>
+       </div>
       ) : (
         <>
           <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
