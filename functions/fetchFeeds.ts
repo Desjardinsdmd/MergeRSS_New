@@ -340,16 +340,29 @@ Deno.serve(async (req) => {
         
         const startedAt = new Date().toISOString();
 
-        // ── Overlap prevention lock ──────────────────────────────────────────────
-        // If another fetchFeeds run started within the last 8 minutes and is still
-        // marked "running", exit early to prevent concurrent dedup race conditions.
+        // ── Overlap prevention lock with zombie TTL ──────────────────────────────
+        // If another run is still "running" but started >15 min ago, it's a zombie
+        // (crashed without cleanup). Auto-expire it so ingestion isn't permanently blocked.
+        const LOCK_WINDOW_MS = 8 * 60 * 1000;   // 8 min — normal overlap window
+        const ZOMBIE_TTL_MS  = 15 * 60 * 1000;  // 15 min — max before we declare it dead
+
         const recentRuns = await base44.asServiceRole.entities.SystemHealth.filter(
             { job_type: 'feed_fetch', status: 'running' }, '-started_at', 5
         );
-        const lockWindowMs = 8 * 60 * 1000;
+        for (const stale of (recentRuns || [])) {
+            const age = Date.now() - new Date(stale.started_at).getTime();
+            if (age >= ZOMBIE_TTL_MS) {
+                console.warn(`[fetchFeeds] Expiring zombie lock ${stale.id} — started ${Math.round(age/60000)}min ago`);
+                await base44.asServiceRole.entities.SystemHealth.update(stale.id, {
+                    status: 'failed',
+                    completed_at: new Date().toISOString(),
+                    error_message: `Zombie lock expired after ${Math.round(age/60000)}min`,
+                }).catch(() => {});
+            }
+        }
         const overlapping = (recentRuns || []).find(r => {
             const age = Date.now() - new Date(r.started_at).getTime();
-            return age < lockWindowMs;
+            return age < LOCK_WINDOW_MS && age < ZOMBIE_TTL_MS;
         });
         if (overlapping) {
             console.warn(`[fetchFeeds] Skipping — another run is already in progress (started ${overlapping.started_at})`);

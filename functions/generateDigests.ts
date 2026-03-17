@@ -97,7 +97,7 @@ Deno.serve(async (req) => {
                     allItems = await base44.asServiceRole.entities.FeedItem.filter({
                         feed_id: { $in: digest.feed_ids },
                         published_date: { $gte: since.toISOString() },
-                    }, '-published_date', 500);
+                    }, '-published_date', 200);
                 } else {
                     const ownerFeeds = await base44.asServiceRole.entities.Feed.filter({ created_by: digest.created_by });
                     const ownerFeedIds = ownerFeeds.map(f => f.id);
@@ -105,7 +105,7 @@ Deno.serve(async (req) => {
                         allItems = await base44.asServiceRole.entities.FeedItem.filter({
                             feed_id: { $in: ownerFeedIds },
                             published_date: { $gte: since.toISOString() },
-                        }, '-published_date', 500);
+                        }, '-published_date', 200);
                     }
                 }
 
@@ -279,10 +279,18 @@ Write a well-organized, professional digest. Group related stories where appropr
                     (async () => {
                         if (!digest.delivery_discord || !digest.discord_webhook_url) return;
                         const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                        const footerLink = `\n\n[📥 View full digest & article list in MergeRSS](${inboxUrl})`;
+                        const footerLink = `\n\n[📥 View full digest in MergeRSS](${inboxUrl})`;
                         const header = `**📰 ${digest.name}**\n*${dateStr} • ${items.length} articles*\n\n`;
-                        const maxContent = 1900 - header.length - footerLink.length;
-                        const discordMsg = header + content.slice(0, maxContent) + (content.length > maxContent ? '...' : '') + footerLink;
+                        // Enforce Discord's hard 2000 char limit on the fully assembled message
+                        const DISCORD_LIMIT = 1990; // leave 10 char buffer
+                        const overhead = header.length + footerLink.length + 3; // +3 for "..."
+                        const maxContent = DISCORD_LIMIT - overhead;
+                        const truncatedContent = content.length > maxContent ? content.slice(0, maxContent) + '...' : content;
+                        const discordMsg = header + truncatedContent + footerLink;
+                        // Safety assertion — should never exceed limit after fix
+                        if (discordMsg.length > 2000) {
+                            console.error(`[generateDigests] Discord message still too long: ${discordMsg.length} chars — clamping hard`);
+                        }
                         const discordRes = await fetch(digest.discord_webhook_url, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
