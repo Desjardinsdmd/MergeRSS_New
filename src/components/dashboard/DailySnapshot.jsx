@@ -11,16 +11,18 @@ export default function DailySnapshot() {
   const [collapsed, setCollapsed] = useState(false);
   const [activeCategory, setActiveCategory] = useState('All');
 
-  const load = async () => {
+  const load = async (skipCache = false) => {
     setLoading(true);
     try {
       const cacheKey = 'dailySnapshot_v2_' + new Date().toDateString();
-      const cached = localStorage.getItem(cacheKey);
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        setSnapshot(parsed.snapshot);
-        setLoading(false);
-        return;
+      if (!skipCache) {
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          setSnapshot(parsed.snapshot);
+          setLoading(false);
+          return;
+        }
       }
       const res = await base44.functions.invoke('dailyDigestSnapshot', {});
       const data = res.data;
@@ -32,9 +34,8 @@ export default function DailySnapshot() {
   };
 
   const refresh = async () => {
-    localStorage.removeItem('dailySnapshot_v2_' + new Date().toDateString());
     setActiveCategory('All');
-    await load();
+    await load(true); // Force fresh call, skip cache
   };
 
   useEffect(() => { load(); }, []);
