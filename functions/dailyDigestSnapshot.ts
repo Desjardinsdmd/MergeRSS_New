@@ -106,47 +106,8 @@ Write exactly 3 sentences. No bullet points, no headers. Just 3 flowing sentence
       }
     });
 
-    // Generate per-category briefs (only for top 2 categories to reduce rate limits)
-    const briefCategories = Object.keys(byCategory)
-      .filter(cat => byCategory[cat].length >= 3)
-      .sort((a, b) => byCategory[b].length - byCategory[a].length)
-      .slice(0, 2); // Only top 2 categories
+    // Skip per-category briefs to reduce CPU usage (too expensive at scale)
     const categoryBriefs = {};
-
-    // Batch category brief requests in parallel (limited to 2 at a time)
-    const categoryPromises = briefCategories.map(async (cat) => {
-      const items = byCategory[cat];
-      const headlines = items.slice(0, 12).map(i => `- ${i.title}`).join('\n');
-      const res = await base44.integrations.Core.InvokeLLM({
-        prompt: `You are a sharp news editor covering the ${cat} sector. Summarize today's top ${cat} stories from these headlines into a concise 2-3 sentence brief for a busy professional. Be direct and specific.
-
-Headlines:
-${headlines}
-
-Write 2-3 sentences max. No bullet points, no headers. Just flowing sentences about today's ${cat} news.`,
-        add_context_from_internet: false,
-        response_json_schema: {
-          type: 'object',
-          properties: {
-            brief: { type: 'string' }
-          }
-        }
-      });
-      return {
-        cat,
-        brief: res.brief,
-        article_count: items.length,
-        related_articles: topArticles(items, 5),
-      };
-    });
-
-    const categoryResults = await Promise.allSettled(categoryPromises);
-    for (const result of categoryResults) {
-      if (result.status === 'fulfilled') {
-        const { cat, brief, article_count, related_articles } = result.value;
-        categoryBriefs[cat] = { brief, article_count, related_articles };
-      }
-    }
 
     return Response.json({
       snapshot: {
