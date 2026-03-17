@@ -263,7 +263,7 @@ export default function Digests() {
 
           {viewMode === 'grid' && (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {digests.map((digest) => (
+              {sortedDigests.map((digest) => (
                 <DigestCard
                   key={digest.id}
                   digest={digest}
@@ -280,7 +280,7 @@ export default function Digests() {
 
           {viewMode === 'list' && (
             <DigestListView
-              digests={digests}
+              digests={sortedDigests}
               selectedIds={selectedDigests}
               onSelectionChange={setSelectedDigests}
               onEdit={(d) => { setEditDigest(d); setShowDialog(true); }}
@@ -294,7 +294,7 @@ export default function Digests() {
 
           {viewMode === 'compact' && (
             <DigestCompactView
-              digests={digests}
+              digests={sortedDigests}
               selectedIds={selectedDigests}
               onSelectionChange={setSelectedDigests}
               onEdit={(d) => { setEditDigest(d); setShowDialog(true); }}
