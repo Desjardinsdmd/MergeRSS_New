@@ -192,10 +192,16 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-          {success && (
+          {fetchingItems && (
+            <div role="status" aria-live="polite" className="flex items-center gap-2 px-3 py-2.5 bg-stone-800 border border-stone-700 text-stone-300 text-sm font-medium rounded-none">
+              <Loader2 className="w-4 h-4 flex-shrink-0 animate-spin" aria-hidden="true" />
+              Fetching your first articles…
+            </div>
+          )}
+          {success && !fetchingItems && (
             <div role="status" aria-live="polite" className="flex items-center gap-2 px-3 py-2.5 bg-emerald-900/40 border border-emerald-700 text-emerald-300 text-sm font-medium rounded-none">
               <CheckCircle2 className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
-              {editFeed ? 'Feed updated successfully!' : 'Feed added successfully!'}
+              {editFeed ? 'Feed updated successfully!' : 'Feed added! Articles are loading.'}
             </div>
           )}
 
