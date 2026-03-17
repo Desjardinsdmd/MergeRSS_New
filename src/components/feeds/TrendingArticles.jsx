@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { TrendingUp, ExternalLink, Clock, ArrowRight } from 'lucide-react';
 import { decodeHtml } from '@/components/utils/htmlUtils';
+import { getArticleImage, normalizeImageUrl } from '@/components/utils/imageUtils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
@@ -56,29 +57,42 @@ export default function TrendingArticles({ articles }) {
       </div>
       <div className="p-0 flex-1">
         <div className="divide-y divide-stone-800">
-          {trending.map((item) => (
-            <a
-              key={item.id}
-              href={item.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-start gap-2 p-4 hover:bg-stone-800/50 transition group"
-            >
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-stone-200 mb-1 line-clamp-1">{decodeHtml(item.title)}</p>
-                <div className="flex items-center gap-2 text-xs text-stone-500">
-                  <Clock className="w-3 h-3" />
-                  {item.published_date && new Date(item.published_date).toLocaleDateString()}
-                  {item.category && (
-                    <Badge className="bg-stone-800 text-stone-400 px-1.5 py-0.5 text-xs">{item.category}</Badge>
-                  )}
+          {trending.map((item) => {
+            const imageUrl = normalizeImageUrl(getArticleImage(item));
+            return (
+              <a
+                key={item.id}
+                href={item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-start gap-3 p-4 hover:bg-stone-800/50 transition group border-b border-stone-800/30 last:border-0"
+              >
+                {imageUrl && (
+                  <div className="flex-shrink-0 w-12 h-12 bg-stone-800 rounded overflow-hidden border border-stone-700/50">
+                    <img
+                      src={imageUrl}
+                      alt={item.title}
+                      className="w-full h-full object-cover"
+                      onError={(e) => (e.target.style.display = 'none')}
+                    />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-stone-200 mb-1 line-clamp-1 group-hover:text-[hsl(var(--primary))] transition-colors">{decodeHtml(item.title)}</p>
+                  <div className="flex items-center gap-2 text-xs text-stone-500">
+                    <Clock className="w-3 h-3" />
+                    {item.published_date && new Date(item.published_date).toLocaleDateString()}
+                    {item.category && (
+                      <Badge className="bg-stone-800 text-stone-400 px-1.5 py-0.5 text-xs">{item.category}</Badge>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-1 flex-shrink-0">
-                <ExternalLink className="w-3.5 h-3.5 text-stone-600 group-hover:text-amber-400 transition-colors" />
-              </div>
-            </a>
-          ))}
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <ExternalLink className="w-3.5 h-3.5 text-stone-600 group-hover:text-[hsl(var(--primary))] transition-colors" />
+                </div>
+              </a>
+            );
+          })}
         </div>
       </div>
     </div>
