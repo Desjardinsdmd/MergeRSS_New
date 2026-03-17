@@ -14,12 +14,6 @@ Deno.serve(async (req) => {
     const mailgunDomain = Deno.env.get('MAILGUN_DOMAIN');
     const uniquePart = btoa(user.email).slice(0, 12).toLowerCase().replace(/[^a-z0-9]/g, '');
     const uniqueEmail = `newsletter-${uniquePart}@${mailgunDomain}`;
-    
-    if (existingFeeds.length > 0) {
-      // Update existing feed with new webhook route (in case it was wrong)
-      const existingFeed = existingFeeds[0];
-      // We'll still try to create the route below
-    }
 
     // Create Mailgun route to forward emails to the webhook
     const mailgunApiKey = Deno.env.get('MAILGUN_API_KEY');
@@ -29,7 +23,7 @@ Deno.serve(async (req) => {
     routeData.append('priority', '10');
     routeData.append('description', `Newsletter feed for ${user.email}`);
     routeData.append('expression', `match_recipient("${uniqueEmail}")`);
-    routeData.append('action', `store(notify="${webhookUrl}")`)
+    routeData.append('action', `store(notify="${webhookUrl}")`);
 
     const routeResponse = await fetch(`https://api.mailgun.net/v3/${mailgunDomain}/routes`, {
       method: 'POST',
@@ -39,19 +33,28 @@ Deno.serve(async (req) => {
       body: routeData
     });
 
-    if (!routeResponse.ok) {
-      const error = await routeResponse.text();
-      console.error('Mailgun route creation failed:', routeResponse.status, error);
-      // Continue without route ID - webhook URL still works
-    }
-
     let mailgunRouteId = null;
     if (routeResponse.ok) {
       const routeData2 = await routeResponse.json();
       mailgunRouteId = routeData2.route?.id;
+      console.log('Mailgun route created:', mailgunRouteId);
+    } else {
+      const error = await routeResponse.text();
+      console.error('Mailgun route creation failed:', routeResponse.status, error);
     }
 
-    // Create EmailFeed record
+    // Create or update EmailFeed record
+    if (existingFeeds.length > 0) {
+      // Update existing feed with route ID if needed
+      await base44.entities.EmailFeed.update(existingFeeds[0].id, {
+        mailgun_route_id: mailgunRouteId
+      });
+      return Response.json({ 
+        email_feed: existingFeeds[0],
+        message: 'Email feed updated with webhook route'
+      });
+    }
+
     const emailFeed = await base44.entities.EmailFeed.create({
       user_email: user.email,
       unique_email: uniqueEmail,
