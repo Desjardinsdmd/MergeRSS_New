@@ -151,7 +151,8 @@ export default function ArticleCard({
               )}
             </div>
           </div>
-        </div>
-      </div>
-  );
-}
+          </div>
+          </div>
+          </div>
+          );
+          }
