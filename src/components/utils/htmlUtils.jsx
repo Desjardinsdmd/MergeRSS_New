@@ -1,4 +1,19 @@
 /**
+ * Sanitize a URL from untrusted RSS content.
+ * Rejects javascript: / data: / vbscript: URIs — only allows http(s) and feed-relative paths.
+ * Returns '#' for any disallowed scheme so links are inert but the DOM stays valid.
+ */
+export function safeUrl(url) {
+  if (!url || typeof url !== 'string') return '#';
+  const trimmed = url.trim();
+  // Allow only http / https / mailto (never javascript:, data:, vbscript:, etc.)
+  if (/^(https?:\/\/|mailto:)/i.test(trimmed)) return trimmed;
+  // Relative URLs starting with / or ./ are acceptable
+  if (/^\.?\/[^/]/i.test(trimmed)) return trimmed;
+  return '#';
+}
+
+/**
  * Decode HTML entities from a string (both decimal and hex).
  * Handles common named entities and numeric character references.
  */
