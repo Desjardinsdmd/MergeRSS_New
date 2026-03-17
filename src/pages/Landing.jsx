@@ -209,11 +209,11 @@ export default function Landing() {
             style={{ animation: 'fadeSlideDown 0.7s ease 0.3s both' }}
           >
             <button
-              onClick={() => handleCTA('hero')}
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary))]/70 hover:from-[hsl(var(--primary))]/90 hover:to-[hsl(var(--primary))]/60 text-stone-900 font-bold px-8 py-4 text-base transition-all duration-200 hover:shadow-[0_0_40px_hsl(var(--primary))/0.4] group"
+             onClick={() => handleCTA('hero')}
+             className="inline-flex items-center gap-2 bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary))]/70 hover:from-[hsl(var(--primary))]/90 hover:to-[hsl(var(--primary))]/60 text-stone-900 font-bold px-8 py-4 text-base transition-all duration-200 hover:shadow-[0_0_40px_hsl(var(--primary))/0.4] group"
             >
-              Get started free
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+             Start your briefing free
+             <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
             </button>
             <Link
               to={createPageUrl('Pricing')}
