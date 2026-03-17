@@ -175,6 +175,67 @@ export default function AdminHealth() {
         </Button>
       </div>
 
+      {/* Live Alerts Panel */}
+      <Card className="border-stone-800 bg-stone-900 mb-6">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg flex items-center gap-2 text-stone-200">
+              <Bell className="w-4 h-4 text-amber-400" />
+              Live Alert Check
+            </CardTitle>
+            <Button onClick={runAlertCheck} variant="outline" size="sm" disabled={alertsLoading}>
+              {alertsLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <ShieldAlert className="w-4 h-4 mr-2" />}
+              Run Check
+            </Button>
+          </div>
+        </CardHeader>
+        {liveAlerts && (
+          <CardContent>
+            <div className="flex items-center gap-4 mb-4 text-sm text-stone-500">
+              <span>Checked at {format(new Date(liveAlerts.checked_at), 'h:mm:ss a')}</span>
+              <span className="text-red-400 font-medium">{liveAlerts.critical} critical</span>
+              <span className="text-amber-400 font-medium">{liveAlerts.warnings} warnings</span>
+            </div>
+            {liveAlerts.alert_count === 0 ? (
+              <div className="flex items-center gap-2 text-green-400 text-sm">
+                <CheckCircle className="w-4 h-4" />
+                All checks passing — no active incidents
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {liveAlerts.alerts.map((alert) => (
+                  <div key={alert.id} className={cn(
+                    'rounded-lg border p-4',
+                    alert.severity === 'critical'
+                      ? 'border-red-800 bg-red-950/40'
+                      : 'border-amber-800 bg-amber-950/30'
+                  )}>
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className={cn('w-4 h-4 mt-0.5 flex-shrink-0', alert.severity === 'critical' ? 'text-red-400' : 'text-amber-400')} />
+                      <div className="flex-1 min-w-0">
+                        <p className={cn('font-semibold text-sm', alert.severity === 'critical' ? 'text-red-300' : 'text-amber-300')}>
+                          {alert.title}
+                        </p>
+                        <pre className="text-xs text-stone-400 mt-1 whitespace-pre-wrap font-mono">{alert.detail}</pre>
+                        <p className="text-xs text-stone-500 mt-2 flex items-center gap-1">
+                          <Info className="w-3 h-3" />
+                          {alert.action}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        )}
+        {!liveAlerts && !alertsLoading && (
+          <CardContent>
+            <p className="text-stone-500 text-sm">Click "Run Check" to evaluate all alert thresholds. Automated checks run every 30 minutes and email admins on issues.</p>
+          </CardContent>
+        )}
+      </Card>
+
       {/* Alert banner for errored/paused feeds */}
       {(errorFeeds > 0 || feeds.filter(f => f.status === 'paused' && f.fetch_error).length > 0) && (
         <div className="mb-6 rounded-lg border border-red-800 bg-red-950/40 p-4 flex items-start gap-3">
