@@ -336,10 +336,7 @@ const MAX_CONSECUTIVE_ERRORS = 5;
 
 Deno.serve(async (req) => {
     try {
-        // This function runs as a scheduled automation (no user session).
-        // Use service-role client directly so all DB operations have admin privileges
-        // without needing an authenticated user in the request.
-        const base44 = createClient({ appId: Deno.env.get('BASE44_APP_ID') });
+        const base44 = createClientFromRequest(req);
         
         const startedAt = new Date().toISOString();
 
@@ -453,7 +450,7 @@ Deno.serve(async (req) => {
     } catch (error) {
         // Best-effort: mark lock as failed so next run isn't blocked
         try {
-            const base44Cleanup = createClient({ appId: Deno.env.get('BASE44_APP_ID') });
+            const base44Cleanup = createClientFromRequest(req);
             const stuckRuns = await base44Cleanup.asServiceRole.entities.SystemHealth.filter(
                 { job_type: 'feed_fetch', status: 'running' }, '-started_at', 1
             );
