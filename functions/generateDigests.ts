@@ -95,14 +95,16 @@ Deno.serve(async (req) => {
                 let allItems = [];
                 if (digest.feed_ids?.length > 0) {
                     allItems = await base44.asServiceRole.entities.FeedItem.filter({
-                        feed_id: { $in: digest.feed_ids }
+                        feed_id: { $in: digest.feed_ids },
+                        published_date: { $gte: since.toISOString() },
                     }, '-published_date', 500);
                 } else {
                     const ownerFeeds = await base44.asServiceRole.entities.Feed.filter({ created_by: digest.created_by });
                     const ownerFeedIds = ownerFeeds.map(f => f.id);
                     if (ownerFeedIds.length > 0) {
                         allItems = await base44.asServiceRole.entities.FeedItem.filter({
-                            feed_id: { $in: ownerFeedIds }
+                            feed_id: { $in: ownerFeedIds },
+                            published_date: { $gte: since.toISOString() },
                         }, '-published_date', 500);
                     }
                 }
