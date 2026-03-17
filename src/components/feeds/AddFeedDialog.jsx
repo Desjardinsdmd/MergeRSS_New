@@ -142,16 +142,26 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setErrors({});
 
-    // Validate it's an RSS/Atom feed (only on new feeds)
-    if (!editFeed) {
+    // Validate the feed URL health (only on new feeds, skip if user already acknowledged a dead-end)
+    if (!editFeed && !deadEndWarning?.acknowledged) {
       setValidatingRss(true);
-      const isRss = await checkIsRssFeed(formData.url);
+      const health = await checkFeedHealth(formData.url);
       setValidatingRss(false);
-      if (!isRss) {
+
+      if (!health.ok) {
+        // Genuine dead end — show warning but allow user to add anyway
+        setDeadEndWarning({ category: health.category, acknowledged: false });
+        return;
+      }
+
+      if (!health.isRss) {
         setErrors({ url: 'This URL does not appear to be an RSS/Atom feed. Use the RSS Generator to create a feed from a website.' });
         return;
       }
     }
+
+    // Clear any prior dead-end warning since user is proceeding
+    setDeadEndWarning(null);
 
     setLoading(true);
 
