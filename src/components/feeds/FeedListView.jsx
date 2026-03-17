@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { MoreVertical, Edit, Trash2, Pause, Play, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { safeUrl } from '@/components/utils/htmlUtils';
 
 export default function FeedListView({ feeds, selectedIds, onSelectionChange, onEdit, onDelete, onToggleStatus }) {
   const handleSelectAll = (checked) => {

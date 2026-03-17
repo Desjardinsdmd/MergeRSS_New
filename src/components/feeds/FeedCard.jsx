@@ -21,6 +21,7 @@ import {
   Bell
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { safeUrl } from '@/components/utils/htmlUtils';
 import FeedAlertsDialog from '@/components/feeds/FeedAlertsDialog';
 
 const categoryColors = {

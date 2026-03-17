@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { decodeHtml } from '@/components/utils/htmlUtils';
+import { decodeHtml, safeUrl } from '@/components/utils/htmlUtils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Bookmark, Trash2, ExternalLink, Clock, CheckCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
