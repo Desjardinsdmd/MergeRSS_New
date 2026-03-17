@@ -335,7 +335,7 @@ export default function Dashboard() {
                     {expandedItem.author && <span>by {expandedItem.author}</span>}
                   </div>
                   {expandedItem.description && (
-                    <p className="text-sm text-stone-400 leading-relaxed mb-3">{expandedItem.description}</p>
+                    <p className="text-sm text-stone-400 leading-relaxed mb-3">{decodeHtml(expandedItem.description)}</p>
                   )}
                   <ArticleSummarizeButton item={mergeItem(expandedItem)} onSummaryUpdate={(updated) => { handleSummaryUpdate(updated); setExpandedItem(updated); }} />
                   <RelatedArticles currentItem={expandedItem} allItems={allArticles} />
