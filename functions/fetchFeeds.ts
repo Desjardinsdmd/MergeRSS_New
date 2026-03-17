@@ -381,7 +381,7 @@ Deno.serve(async (req) => {
         });
 
         const runStartMs = Date.now();
-        const RUN_INTERVAL_MINUTES = 10;
+        const RUN_INTERVAL_MINUTES = 10; // matches automation schedule
 
         // Load feeds sorted by oldest last_fetched first so every feed gets rotated through
         const allFeedsRaw = await base44.asServiceRole.entities.Feed.filter(
@@ -416,7 +416,7 @@ Deno.serve(async (req) => {
         const overdueFeeds = allFeeds.filter(f =>
             !f.last_fetched || (Date.now() - new Date(f.last_fetched).getTime()) > overdueThreshMs
         );
-        const feeds = overdueFeeds.slice(0, 100);
+        const feeds = overdueFeeds.slice(0, 150);
         const skippedCount = allFeeds.length - feeds.length;
 
         if (skippedCount > 0) {
