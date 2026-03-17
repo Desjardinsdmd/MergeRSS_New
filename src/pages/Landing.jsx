@@ -261,7 +261,7 @@ export default function Landing() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-10 sm:gap-16 text-center">
             <AnimatedStat value={stats.users} label="Active users" delay={0} />
             <span className="hidden sm:block w-px h-10 bg-stone-800" />
-            <AnimatedStat value={stats.articles} label="Articles curated" delay={80} />
+            <AnimatedStat value={stats.articles} label="Feeds tracked" delay={80} />
             <span className="hidden sm:block w-px h-10 bg-stone-800" />
             <AnimatedStat value={stats.digests} label="Digests delivered" delay={160} />
           </div>
