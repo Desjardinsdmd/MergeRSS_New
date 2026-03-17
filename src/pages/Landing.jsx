@@ -378,13 +378,13 @@ export default function Landing() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_50%_100%,hsl(var(--primary))/0.07,transparent)]" />
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <FadeIn>
-            <h2 className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tight leading-[0.93] mb-6">
-              <span className="text-stone-100">Stop drowning in tabs.</span><br />
-              <span className="bg-gradient-to-r from-[hsl(var(--primary))] via-[hsl(var(--primary))]/80 to-[hsl(var(--primary))]/50 bg-clip-text text-transparent">Start reading smarter.</span>
-            </h2>
-            <p className="text-stone-400 text-lg mb-10 max-w-lg mx-auto leading-relaxed">
-              Professionals use MergeRSS to cut through the noise and stay on top of what actually matters.
-            </p>
+           <h2 className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tight leading-[0.93] mb-6">
+             <span className="text-stone-100">One morning routine.</span><br />
+             <span className="bg-gradient-to-r from-[hsl(var(--primary))] via-[hsl(var(--primary))]/80 to-[hsl(var(--primary))]/50 bg-clip-text text-transparent">Stay informed every day.</span>
+           </h2>
+           <p className="text-stone-400 text-lg mb-10 max-w-lg mx-auto leading-relaxed">
+             Stop reading, start knowing. Replace 2 hours of content review with a 7-minute briefing that actually matters.
+           </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <button
                 onClick={() => handleCTA('bottom')}
