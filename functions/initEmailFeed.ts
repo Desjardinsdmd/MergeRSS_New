@@ -37,10 +37,19 @@ Deno.serve(async (req) => {
     if (routeResponse.ok) {
       const routeData2 = await routeResponse.json();
       mailgunRouteId = routeData2.route?.id;
-      console.log('Mailgun route created:', mailgunRouteId);
+      console.log('✅ Mailgun route created:', mailgunRouteId);
+      console.log('Route webhook URL:', webhookUrl);
     } else {
-      const error = await routeResponse.text();
-      console.error('Mailgun route creation failed:', routeResponse.status, error);
+      const errorText = await routeResponse.text();
+      console.error('❌ Mailgun route creation failed');
+      console.error('Status:', routeResponse.status);
+      console.error('Response:', errorText);
+      console.error('Request details:', {
+        domain: mailgunDomain,
+        expression: `match_recipient("${uniqueEmail}")`,
+        webhookUrl: webhookUrl,
+        apiKeyExists: !!mailgunApiKey
+      });
     }
 
     // Create or update EmailFeed record
