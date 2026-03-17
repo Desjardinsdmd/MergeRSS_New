@@ -151,15 +151,15 @@ export default function Landing() {
   }, []);
 
   React.useEffect(() => {
-    // Load real stats
+    // Load real platform-wide stats
     Promise.all([
-      base44.entities.User.list('-created_date', 200),
-      base44.entities.FeedItem.list('-created_date', 1000),
-      base44.entities.DigestDelivery.filter({ status: 'sent' }, '-created_date', 200),
-    ]).then(([users, items, deliveries]) => {
+      base44.entities.User.list('-created_date', 10000),
+      base44.entities.Feed.list('-created_date', 10000),
+      base44.entities.DigestDelivery.filter({ status: 'sent' }, '-created_date', 10000),
+    ]).then(([users, allFeeds, deliveries]) => {
       setStats({
         users: users.length,
-        articles: items.length,
+        articles: allFeeds.length,
         digests: deliveries.length,
       });
     }).catch(() => {});
