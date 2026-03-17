@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Clock, BookmarkPlus, BookmarkCheck, MoreVertical, ExternalLink, Star, Image as ImageIcon } from 'lucide-react';
 import { decodeHtml, safeUrl } from '@/components/utils/htmlUtils';
 import { getArticleImage, normalizeImageUrl } from '@/components/utils/imageUtils';
 import ArticleSummarizeButton from './ArticleSummarizeButton';
+import { base44 } from '@/api/base44Client';
 
 const categoryColors = {
   CRE: 'bg-blue-950 text-blue-300',
@@ -24,6 +25,9 @@ export default function ArticleCard({
   showBookmark = true,
   onSummaryUpdate,
 }) {
+  const [fetchedImage, setFetchedImage] = useState(null);
+  const [isLoadingImage, setIsLoadingImage] = useState(false);
+
   const formatTime = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -40,12 +44,35 @@ export default function ArticleCard({
   };
 
   const hasAiSummary = item.ai_summary && item.ai_summary.trim();
-
-  // Importance indicator: articles with AI summaries or from "must-read" sources
   const isMustRead = hasAiSummary || item.tags?.includes('must-read');
 
   // Extract image from article content
-  const imageUrl = normalizeImageUrl(getArticleImage(item));
+  let imageUrl = normalizeImageUrl(getArticleImage(item));
+
+  // If no image in RSS, fetch from article URL
+  useEffect(() => {
+    if (imageUrl || !item.url || isLoadingImage) return;
+
+    const fetchImage = async () => {
+      setIsLoadingImage(true);
+      try {
+        const response = await base44.functions.invoke('extractImageFromUrl', { url: item.url });
+        if (response.data?.imageUrl) {
+          setFetchedImage(response.data.imageUrl);
+        }
+      } catch (error) {
+        // Silently fail
+      } finally {
+        setIsLoadingImage(false);
+      }
+    };
+
+    // Debounce slightly to avoid hammering on load
+    const timer = setTimeout(fetchImage, 100);
+    return () => clearTimeout(timer);
+  }, [item.url, imageUrl]);
+
+  imageUrl = imageUrl || fetchedImage;
 
   // Generate a subtle gradient background color based on title hash
   const getBackgroundColor = () => {
@@ -173,8 +200,8 @@ export default function ArticleCard({
               )}
             </div>
           </div>
-          </div>
-          </div>
-          </div>
-          );
-          }
+        </div>
+      </div>
+    </div>
+  );
+}
