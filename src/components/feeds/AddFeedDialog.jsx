@@ -422,13 +422,57 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
             </div>
           )}
 
+          {/* Dead-end warning banner */}
+          {deadEndWarning && !deadEndWarning.acknowledged && (() => {
+            const info = DEAD_END_LABELS[deadEndWarning.category] || { icon: AlertCircle, label: 'Feed Unreachable', detail: 'This feed could not be reached or validated.' };
+            const Icon = info.icon;
+            return (
+              <div className="rounded-lg border border-red-800 bg-red-950/40 p-4 space-y-3">
+                <div className="flex items-start gap-3">
+                  <Icon className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-red-300">{info.label}</p>
+                    <p className="text-xs text-red-400/80 mt-0.5">{info.detail}</p>
+                  </div>
+                </div>
+                <p className="text-xs text-stone-400 pl-8">
+                  You can still add this feed, but it will likely show errors and won't deliver articles until the source is fixed.
+                </p>
+                <div className="flex gap-2 pl-8">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="text-xs border-stone-700 text-stone-400 hover:text-stone-200"
+                    onClick={() => setDeadEndWarning(prev => ({ ...prev, acknowledged: true }))}
+                  >
+                    Add Anyway
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="text-xs text-stone-500 hover:text-stone-300"
+                    onClick={() => setDeadEndWarning(null)}
+                  >
+                    Try a Different URL
+                  </Button>
+                </div>
+              </div>
+            );
+          })()}
+
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading || validatingRss} className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 rounded-sm">
+            <Button
+              type="submit"
+              disabled={loading || validatingRss || (deadEndWarning && !deadEndWarning.acknowledged)}
+              className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 rounded-sm"
+            >
               {(loading || validatingRss) && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {validatingRss ? 'Validating…' : editFeed ? 'Save Changes' : 'Add Feed'}
+              {validatingRss ? 'Checking feed…' : editFeed ? 'Save Changes' : deadEndWarning?.acknowledged ? 'Add Anyway' : 'Add Feed'}
             </Button>
           </DialogFooter>
         </form>
