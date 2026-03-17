@@ -412,19 +412,28 @@ Deno.serve(async (req) => {
         console.log(`[fetchFeeds] Starting — processing ${feeds.length} of ${allFeeds.length} feeds this run`);
         const results = await fetchFeedsWithThrottling(feeds, base44, 10, 200);
 
+        const runDurationMs = Date.now() - runStartMs;
+
         // Update lock record to completed
         await base44.asServiceRole.entities.SystemHealth.update(lockRecord.id, {
             status: 'completed',
             completed_at: new Date().toISOString(),
             metadata: {
                 total_feeds: allFeeds.length,
+                overdue_feeds: overdueFeeds.length,
                 feeds_processed: feeds.length,
                 feeds_skipped: skippedCount,
+                p50_lag_min: p50lag,
+                p95_lag_min: p95lag,
+                p99_lag_min: p99lag,
+                max_lag_min: maxLagMin,
+                overdue_count: overdueCount,
+                run_duration_ms: runDurationMs,
                 results,
             },
         });
 
-        return Response.json({ success: true, total_feeds: allFeeds.length, feeds_processed: feeds.length, feeds_skipped: skippedCount, results });
+        return Response.json({ success: true, total_feeds: allFeeds.length, overdue_feeds: overdueFeeds.length, feeds_processed: feeds.length, feeds_skipped: skippedCount, p50_lag_min: p50lag, p95_lag_min: p95lag, p99_lag_min: p99lag, max_lag_min: maxLagMin, run_duration_ms: runDurationMs, results });
     } catch (error) {
         // Best-effort: mark lock as failed so next run isn't blocked
         try {
