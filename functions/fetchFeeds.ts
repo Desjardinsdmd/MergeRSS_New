@@ -303,7 +303,7 @@ async function fetchFeedsWithThrottling(feeds, base44, batchSize = 10, delayBetw
                         .slice(0, 10);
                     await Promise.allSettled(
                         itemsNeedingAlerts.map(item =>
-                            base44.asServiceRole.functions.invoke('sendFeedAlerts', { feed_item_id: item.id })
+                            base44.functions.invoke('sendFeedAlerts', { feed_item_id: item.id })
                         )
                     );
                 } catch (alertErr) {
