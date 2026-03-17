@@ -212,6 +212,49 @@ export default function AdminHealth() {
         </Button>
       </div>
 
+      {/* Alert Settings */}
+      <Card className="border-stone-800 bg-stone-900 mb-6">
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2 text-stone-200">
+            <Settings className="w-4 h-4 text-amber-400" />
+            Alert Settings
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid sm:grid-cols-3 gap-4 items-end">
+            <div>
+              <Label className="text-stone-400 mb-1.5 block text-xs">Destination Email</Label>
+              <Input
+                value={alertEmail}
+                onChange={e => setAlertEmail(e.target.value)}
+                placeholder="Leave blank to email all admins"
+                className="bg-stone-800 border-stone-700 text-stone-200 placeholder-stone-600"
+              />
+            </div>
+            <div>
+              <Label className="text-stone-400 mb-1.5 block text-xs">Alert Frequency</Label>
+              <Select value={alertFrequency} onValueChange={setAlertFrequency}>
+                <SelectTrigger className="bg-stone-800 border-stone-700 text-stone-200">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">Every hour</SelectItem>
+                  <SelectItem value="6">Every 6 hours</SelectItem>
+                  <SelectItem value="12">Every 12 hours</SelectItem>
+                  <SelectItem value="24">Every 24 hours</SelectItem>
+                  <SelectItem value="48">Every 48 hours</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button onClick={saveAlertSettings} disabled={savingSettings} variant="outline" className="w-full sm:w-auto">
+              {savingSettings ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+              Save Settings
+            </Button>
+          </div>
+          <p className="text-xs text-stone-600 mt-3">Alerts are sent when warning or critical thresholds are breached. Leave email blank to notify all admin accounts.</p>
+        </CardContent>
+      </Card>
+
       {/* Live Alerts Panel */}
       <Card className="border-stone-800 bg-stone-900 mb-6">
         <CardHeader>
