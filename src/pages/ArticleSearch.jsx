@@ -253,10 +253,12 @@ export default function ArticleSearch() {
               <Loader2 className="w-6 h-6 animate-spin text-amber-400" />
             </div> :
             filtered.length === 0 ?
-            <div className="text-center py-16 text-stone-500">
-              <Search className="w-10 h-10 mx-auto mb-3 text-stone-700" />
-              <p className="font-medium">No articles found</p>
-              <p className="text-sm mt-1">Try different keywords or adjust your filters</p>
+            <div className="text-center py-16">
+             <div className="w-12 h-12 bg-stone-800 rounded-full flex items-center justify-center mx-auto mb-4">
+               <Search className="w-6 h-6 text-stone-600" />
+             </div>
+             <p className="font-semibold text-stone-100">No articles found</p>
+             <p className="text-sm text-stone-500 mt-1">Try different keywords or adjust your filters</p>
             </div> :
 
             <div className="space-y-2">
