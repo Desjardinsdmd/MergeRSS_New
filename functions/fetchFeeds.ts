@@ -347,7 +347,15 @@ const MAX_CONSECUTIVE_ERRORS = 5;
 
 Deno.serve(async (req) => {
     try {
-        const base44 = createClientFromRequest(req);
+        let base44;
+        try {
+            base44 = createClientFromRequest(req);
+        } catch {
+            // If createClientFromRequest fails (no user context in automation),
+            // the SDK will still have service role capabilities via env vars
+            const { createClient } = await import('npm:@base44/sdk@0.8.20');
+            base44 = createClient();
+        }
         
         const startedAt = new Date().toISOString();
 
