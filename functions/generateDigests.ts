@@ -170,6 +170,10 @@ ${topItems.map((item, idx) => `${idx + 1}. [${item.category}] ${item.title}
 
 Write a well-organized, professional digest. Group related stories where appropriate. Be concise but informative. Reference specific article titles and include source URLs inline where relevant.`;
 
+                // Stamp last_sent BEFORE delivery to prevent race condition / double-send
+                // if this run is retried before delivery completes
+                await base44.asServiceRole.entities.Digest.update(digest.id, { last_sent: now.toISOString() });
+
                 const content = await base44.asServiceRole.integrations.Core.InvokeLLM({ prompt });
 
                 const itemsList = topItems.map(i => ({ title: i.title, url: i.url }));
