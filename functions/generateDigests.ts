@@ -302,7 +302,6 @@ Write a well-organized, professional digest. Group related stories where appropr
                     })(),
                 ]);
 
-                await base44.asServiceRole.entities.Digest.update(digest.id, { last_sent: now.toISOString() });
                 results.push({ digest: digest.name, items_included: items.length, deliveries: deliveryTypes, status: 'ok' });
 
             } catch (err) {
