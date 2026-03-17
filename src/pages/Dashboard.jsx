@@ -229,15 +229,61 @@ export default function Dashboard() {
       )}
 
       {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-1">
-          <h1 className="text-2xl font-bold text-stone-100">
-            {(() => { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; })()}{user?.full_name ? `, ${user.full_name.split(' ')[0]}` : ''}
-          </h1>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-stone-100 mb-1">
+          {(() => { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; })()}{user?.full_name ? `, ${user.full_name.split(' ')[0]}` : ''}
+        </h1>
+        <p className="text-stone-500 text-sm">Your daily briefing is ready</p>
+        <div className="mt-3 flex items-center gap-2">
           <StreakCounter user={user} />
         </div>
-        <p className="text-stone-500">Here's what's happening across your feeds today</p>
       </div>
+
+      {/* Hero: Trending Articles */}
+      {feeds.length > 0 && allArticles.length >= 3 && widget('trendingArticles') && (
+        <div className="mb-8 bg-gradient-to-br from-stone-800/50 to-stone-900 border border-stone-700 p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <TrendingUp className="w-5 h-5 text-[hsl(var(--primary))]" />
+            <h2 className="text-lg font-semibold text-stone-100">What's trending</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {(() => {
+              const trending = (() => {
+                const freq = {};
+                allArticles.forEach(item => {
+                  const words = (item.title + ' ' + (item.description || '')).toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(w => w.length > 3);
+                  [...new Set(words)].forEach(w => { freq[w] = (freq[w] || 0) + 1; });
+                });
+                return allArticles.map(item => {
+                  const words = (item.title + ' ' + (item.description || '')).toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(w => w.length > 3);
+                  const score = [...new Set(words)].reduce((s, w) => s + (freq[w] > 1 ? freq[w] : 0), 0);
+                  return { ...item, _trendScore: score };
+                }).sort((a, b) => b._trendScore - a._trendScore).slice(0, 3);
+              })();
+              return trending.map((item) => (
+                <a
+                  key={item.id}
+                  href={safeUrl(item.url)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-stone-900/60 border border-stone-700/50 hover:border-stone-600 hover:bg-stone-800/60 transition p-4 group"
+                >
+                  <h3 className="font-semibold text-stone-100 text-sm line-clamp-2 mb-2 group-hover:text-[hsl(var(--primary))] transition-colors">
+                    {decodeHtml(item.title)}
+                  </h3>
+                  <div className="flex items-center justify-between text-xs text-stone-500">
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {item.published_date && new Date(item.published_date).toLocaleDateString()}
+                    </div>
+                    {item.category && <span className="bg-stone-800 text-stone-400 px-2 py-0.5">{item.category}</span>}
+                  </div>
+                </a>
+              ));
+            })()}
+          </div>
+        </div>
+      )}
 
       {/* Daily AI Snapshot */}
       {feeds.length > 0 && widget('dailySnapshot') && <DailySnapshot />}
