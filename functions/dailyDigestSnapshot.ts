@@ -106,17 +106,17 @@ Write exactly 3 sentences. No bullet points, no headers. Just 3 flowing sentence
       }
     });
 
-    // Generate per-category briefs (only for top 3 categories to reduce rate limits)
+    // Generate per-category briefs (only for top 2 categories to reduce rate limits)
     const briefCategories = Object.keys(byCategory)
-      .filter(cat => byCategory[cat].length >= 1)
+      .filter(cat => byCategory[cat].length >= 3)
       .sort((a, b) => byCategory[b].length - byCategory[a].length)
-      .slice(0, 3); // Only top 3 categories
+      .slice(0, 2); // Only top 2 categories
     const categoryBriefs = {};
 
-    // Batch category brief requests sequentially with delay
-    for (const cat of briefCategories) {
+    // Batch category brief requests in parallel (limited to 2 at a time)
+    const categoryPromises = briefCategories.map(async (cat) => {
       const items = byCategory[cat];
-      const headlines = items.slice(0, 15).map(i => `- ${i.title}`).join('\n');
+      const headlines = items.slice(0, 12).map(i => `- ${i.title}`).join('\n');
       const res = await base44.integrations.Core.InvokeLLM({
         prompt: `You are a sharp news editor covering the ${cat} sector. Summarize today's top ${cat} stories from these headlines into a concise 2-3 sentence brief for a busy professional. Be direct and specific.
 
@@ -132,13 +132,20 @@ Write 2-3 sentences max. No bullet points, no headers. Just flowing sentences ab
           }
         }
       });
-      categoryBriefs[cat] = {
+      return {
+        cat,
         brief: res.brief,
         article_count: items.length,
         related_articles: topArticles(items, 5),
       };
-      // Small delay between LLM calls to avoid rate limits
-      await new Promise(resolve => setTimeout(resolve, 500));
+    });
+
+    const categoryResults = await Promise.allSettled(categoryPromises);
+    for (const result of categoryResults) {
+      if (result.status === 'fulfilled') {
+        const { cat, brief, article_count, related_articles } = result.value;
+        categoryBriefs[cat] = { brief, article_count, related_articles };
+      }
     }
 
     return Response.json({
