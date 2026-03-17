@@ -337,7 +337,6 @@ const MAX_CONSECUTIVE_ERRORS = 5;
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
-        console.log('[fetchFeeds] SDK client created');
         
         const startedAt = new Date().toISOString();
 
@@ -345,7 +344,6 @@ Deno.serve(async (req) => {
         const LOCK_WINDOW_MS = 8 * 60 * 1000;
         const ZOMBIE_TTL_MS  = 15 * 60 * 1000;
 
-        console.log('[fetchFeeds] Querying SystemHealth lock...');
         const recentRuns = await base44.asServiceRole.entities.SystemHealth.filter(
             { job_type: 'feed_fetch', status: 'running' }, '-started_at', 5
         );
