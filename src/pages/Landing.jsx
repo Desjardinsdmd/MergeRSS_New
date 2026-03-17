@@ -179,11 +179,11 @@ export default function Landing() {
 
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div
-            className="inline-flex items-center gap-2 px-3 py-1.5 border border-amber-800/40 rounded-full text-xs font-medium text-amber-500/80 mb-10"
-            style={{ animation: 'fadeSlideDown 0.6s ease forwards' }}
+           className="inline-flex items-center gap-2 px-3 py-1.5 border border-[hsl(var(--primary))]/40 rounded-full text-xs font-medium text-[hsl(var(--primary))]/80 mb-10"
+           style={{ animation: 'fadeSlideDown 0.6s ease forwards' }}
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--primary))] animate-pulse" />
-            AI-powered RSS aggregation — now live
+           <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--primary))] animate-pulse" />
+           For CRE professionals, investors, and information junkies
           </div>
 
           <h1
