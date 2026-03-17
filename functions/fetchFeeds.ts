@@ -215,8 +215,9 @@ async function fetchFeedsWithThrottling(feeds, base44, batchSize = 10, delayBetw
         await Promise.allSettled(
             batch.map(async f => {
                 try {
+                    // Fetch more items to reduce duplicate insertion risk as DB grows
                     const raw = await base44.asServiceRole.entities.FeedItem.filter(
-                        { feed_id: f.id }, '-created_date', 100
+                        { feed_id: f.id }, '-created_date', 300
                     );
                     itemsByFeed[f.id] = Array.isArray(raw) ? raw : [];
                 } catch (_e) {
