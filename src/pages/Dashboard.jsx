@@ -317,13 +317,13 @@ export default function Dashboard() {
 
       {/* Empty state */}
       {feeds.length === 0 && (
-        <div className="mb-8 border border-dashed border-stone-800 bg-stone-900/50 p-8 text-center">
+        <div className="mb-8 border border-stone-700 bg-stone-900/60 p-8 text-center">
           <div className="w-12 h-12 bg-stone-800 flex items-center justify-center mx-auto mb-4">
             <Rss className="w-6 h-6 text-[hsl(var(--primary))]" />
           </div>
-          <h3 className="text-lg font-semibold text-stone-100 mb-2">Add your first feed</h3>
-          <p className="text-stone-500 mb-4 max-w-sm mx-auto">
-            Start by adding RSS feeds to aggregate content from your favorite sources
+          <h3 className="text-lg font-semibold text-stone-100 mb-2">Start aggregating</h3>
+          <p className="text-stone-500 mb-6 max-w-sm mx-auto text-sm">
+            Add RSS feeds to get your daily intelligence briefing
           </p>
           <Link to={createPageUrl('Feeds')}>
             <Button className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-bold transition-opacity">
