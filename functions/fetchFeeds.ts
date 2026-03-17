@@ -314,9 +314,10 @@ async function fetchFeedsWithThrottling(feeds, base44, batchSize = 10, delayBetw
                 newCount++;
             }
 
+            // Don't compute item_count from capped list — just increment by newCount
             base44.asServiceRole.entities.Feed.update(feed.id, {
                 last_fetched: new Date().toISOString(),
-                item_count: feedExisting.length + newCount,
+                item_count: (feed.item_count || 0) + newCount,
                 status: 'active',
                 fetch_error: '',
                 consecutive_errors: 0,
