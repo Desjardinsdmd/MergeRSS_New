@@ -38,6 +38,7 @@ export default function Digests() {
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [sendingTest, setSendingTest] = useState(null);
   const [viewMode, setViewMode] = useState('grid'); // grid, list, compact
+  const [sortBy, setSortBy] = useState('newest');
   const [selectedDigests, setSelectedDigests] = useState([]);
   const [deletingBulk, setDeletingBulk] = useState(false);
   const [onboardingDismissed, setOnboardingDismissed] = useState(() => localStorage.getItem('digestOnboardingDismissed') === '1');
@@ -105,6 +106,16 @@ export default function Digests() {
     queryClient.invalidateQueries({ queryKey: ['digests'] });
     toast.success(digest.is_public ? 'Digest made private' : 'Digest made public');
   };
+
+  const sortedDigests = React.useMemo(() => {
+    const list = [...digests];
+    if (sortBy === 'newest') list.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+    else if (sortBy === 'oldest') list.sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
+    else if (sortBy === 'name-asc') list.sort((a, b) => a.name.localeCompare(b.name));
+    else if (sortBy === 'name-desc') list.sort((a, b) => b.name.localeCompare(a.name));
+    else if (sortBy === 'last-sent') list.sort((a, b) => new Date(b.last_sent || 0) - new Date(a.last_sent || 0));
+    return list;
+  }, [digests, sortBy]);
 
   const isPremium = user?.plan === 'premium';
   const maxDigests = getLimit(isPremium, 'digests');
