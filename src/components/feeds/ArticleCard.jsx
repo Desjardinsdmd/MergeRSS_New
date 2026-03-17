@@ -95,8 +95,12 @@ export default function ArticleCard({
     return colors[Math.abs(hash) % colors.length];
   };
 
+  const readTime = calculateReadTime(item.content || item.description);
+  const faviconUrl = getFaviconUrl(item.url);
+  const publicationName = getPublicationName(item.url);
+
   return (
-    <div className={`group border-b border-stone-800 transition-colors p-4 cursor-pointer ${isMustRead ? 'bg-stone-900/80 hover:bg-stone-900/60 border-l-2 border-l-[hsl(var(--primary))]' : 'hover:bg-stone-900/40'}`}>
+    <div className={`group border-b border-stone-800 transition-all duration-200 p-4 cursor-pointer ${isMustRead ? 'bg-stone-900/80 hover:bg-stone-800/80 border-l-2 border-l-[hsl(var(--primary))] hover:shadow-lg hover:shadow-[hsl(var(--primary))]/10' : 'hover:bg-stone-900/60 hover:shadow-md'}`}>
       <div onClick={() => onExpand && onExpand(item)} className="flex gap-3">
         {/* Thumbnail */}
         <div className={`flex-shrink-0 w-16 h-16 bg-gradient-to-br ${getBackgroundColor()} rounded overflow-hidden border border-stone-700/50 flex items-center justify-center`}>
