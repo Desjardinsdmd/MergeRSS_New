@@ -450,33 +450,14 @@ export default function Dashboard() {
                   {filteredArticles.slice(0, 5).map((item) => {
                     const merged = mergeItem(item);
                     return (
-                      <div key={item.id} className="p-4 hover:bg-stone-800/50 transition group">
-                        <div className="flex items-start gap-2">
-                          <a href={safeUrl(item.url)} target="_blank" rel="noopener noreferrer" className="block flex-1 min-w-0">
-                            <p className="font-medium text-stone-200 mb-1 line-clamp-1">{decodeHtml(item.title)}</p>
-                            <div className="flex items-center gap-2 text-xs text-stone-500">
-                              <Clock className="w-3 h-3" />
-                              {item.published_date && (
-                                <>{new Date(item.published_date).toLocaleDateString()} at {new Date(item.published_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</>
-                              )}
-                              {item.category && activeCategory === 'All' && (
-                                <span className="bg-stone-800 text-stone-400 px-1.5 py-0.5 text-xs">{item.category}</span>
-                              )}
-                            </div>
-                          </a>
-                          <div className="flex items-center gap-1 flex-shrink-0">
-                            <button
-                              onClick={(e) => markAsRead(item, e)}
-                              title="Mark as read"
-                              className="opacity-0 group-hover:opacity-100 p-1.5 text-stone-600 hover:text-[hsl(var(--primary))] hover:bg-stone-800 transition"
-                            >
-                              <CheckCircle className="w-3.5 h-3.5" />
-                            </button>
-                            <BookmarkButton item={item} />
-                          </div>
-                        </div>
-                        <ArticleSummarizeButton item={merged} onSummaryUpdate={handleSummaryUpdate} />
-                      </div>
+                      <ArticleCard
+                        key={item.id}
+                        item={merged}
+                        onExpand={() => setExpandedItem(merged)}
+                        onMarkAsRead={markAsRead}
+                        onSummaryUpdate={handleSummaryUpdate}
+                        showBookmark={true}
+                      />
                     );
                   })}
                 </div>
