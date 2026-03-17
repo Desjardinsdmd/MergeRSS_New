@@ -344,9 +344,14 @@ Deno.serve(async (req) => {
         const LOCK_WINDOW_MS = 8 * 60 * 1000;
         const ZOMBIE_TTL_MS  = 15 * 60 * 1000;
 
-        const recentRuns = await base44.asServiceRole.entities.SystemHealth.filter(
-            { job_type: 'feed_fetch', status: 'running' }, '-started_at', 5
-        );
+        let recentRuns = [];
+        try {
+            recentRuns = await base44.asServiceRole.entities.SystemHealth.filter(
+                { job_type: 'feed_fetch', status: 'running' }, '-started_at', 5
+            ) || [];
+        } catch (lockErr) {
+            console.warn('[fetchFeeds] Could not query lock (non-fatal):', lockErr.message);
+        }
         for (const stale of (recentRuns || [])) {
             const age = Date.now() - new Date(stale.started_at).getTime();
             if (age >= ZOMBIE_TTL_MS) {
