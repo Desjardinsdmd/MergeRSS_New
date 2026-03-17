@@ -311,7 +311,7 @@ export default function AdminHealth() {
         )}
         {!liveAlerts && !alertsLoading && (
           <CardContent>
-            <p className="text-stone-500 text-sm">Click "Run Check" to evaluate all alert thresholds. Automated checks run every 30 minutes and email admins on issues.</p>
+            <p className="text-stone-500 text-sm">Click "Run Check" to evaluate all alert thresholds. Automated checks run on the configured schedule and email admins on issues.</p>
           </CardContent>
         )}
       </Card>
