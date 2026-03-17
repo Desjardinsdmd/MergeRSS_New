@@ -371,6 +371,7 @@ export default function Feeds() {
          }}
          onSuccess={() => queryClient.invalidateQueries({ queryKey: ['feeds'] })}
          editFeed={editFeed}
+         existingFeedCount={feeds.length}
        />
 
        {/* Bulk Actions */}
