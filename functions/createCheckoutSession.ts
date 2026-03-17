@@ -7,7 +7,13 @@ function createPageUrl(page) {
 
 Deno.serve(async (req) => {
     try {
-        const base44 = createClientFromRequest(req);
+        let base44;
+        try {
+            base44 = createClientFromRequest(req);
+        } catch {
+            const { createClient } = await import('npm:@base44/sdk@0.8.20');
+            base44 = createClient();
+        }
         const user = await base44.auth.me();
         if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
