@@ -385,10 +385,15 @@ Deno.serve(async (req) => {
             status: 'completed',
             started_at: startedAt,
             completed_at: new Date().toISOString(),
-            metadata: { feeds_processed: feeds.length, results },
+            metadata: {
+                total_feeds: allFeeds.length,
+                feeds_processed: feeds.length,
+                feeds_skipped: skippedCount,
+                results,
+            },
         });
 
-        return Response.json({ success: true, feeds_processed: feeds.length, results });
+        return Response.json({ success: true, total_feeds: allFeeds.length, feeds_processed: feeds.length, feeds_skipped: skippedCount, results });
     } catch (error) {
         return Response.json({ error: error.message }, { status: 500 });
     }
