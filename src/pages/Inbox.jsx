@@ -15,6 +15,7 @@ import {
   ChevronUp,
   ExternalLink
 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -273,9 +274,22 @@ export default function Inbox() {
 
   return (
     <div className="p-6 lg:p-8 max-w-6xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-stone-100">Inbox</h1>
-        <p className="text-stone-500">Your AI-generated digests, delivered to your web inbox</p>
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-stone-100">Inbox</h1>
+          <p className="text-stone-500">Your AI-generated digests, delivered to your web inbox</p>
+        </div>
+        <Select value={sortBy} onValueChange={setSortBy}>
+          <SelectTrigger className="w-44 text-sm">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="newest">Newest first</SelectItem>
+            <SelectItem value="oldest">Oldest first</SelectItem>
+            <SelectItem value="unread">Unread first</SelectItem>
+            <SelectItem value="items">Most items</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Mobile folder selector */}
