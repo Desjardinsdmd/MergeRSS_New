@@ -268,14 +268,14 @@ export default function ArticleSearch() {
                 return (
                   <Card
                     key={item.id}
-                    className={`border transition cursor-pointer rounded-none ${isSelected ? 'border-amber-400 bg-stone-800 shadow-sm' : 'border-stone-800 bg-stone-900 hover:shadow-sm'}`}
+                    className={`border transition cursor-pointer ${isSelected ? 'border-[hsl(var(--primary))] bg-stone-800 shadow-sm' : 'border-stone-800 bg-stone-900 hover:bg-stone-800/70'}`}
                     onClick={() => setSelectedArticle(isSelected ? null : merged)}>
 
                     <CardContent className="p-4">
-                      <p className={`font-medium line-clamp-2 mb-1 text-sm ${isSelected ? 'text-amber-400' : 'text-stone-200'}`}>
+                      <p className={`font-semibold line-clamp-2 mb-2 text-sm ${isSelected ? 'text-[hsl(var(--primary))]' : 'text-stone-100'}`}>
                         {decodeHtml(item.title)}
                       </p>
-                      <div className="flex flex-wrap items-center gap-2 text-xs text-stone-500">
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-stone-500 mb-2">
                         <span className="flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           {item.published_date ? new Date(item.published_date).toLocaleDateString() : 'Unknown'}
@@ -287,12 +287,12 @@ export default function ArticleSearch() {
                           </span>
                         }
                         {item.category &&
-                        <Badge className={`text-xs py-0 ${categoryColors[item.category] || categoryColors.Other}`}>{item.category}</Badge>
+                        <Badge className={`text-xs py-0.5 px-1.5 ${categoryColors[item.category] || categoryColors.Other}`}>{item.category}</Badge>
                         }
                       </div>
                       {item.ai_summary &&
-                      <p className="mt-2 text-xs text-amber-400 line-clamp-2 bg-stone-800 rounded px-2 py-1">
-                          {item.ai_summary}
+                      <p className="text-xs text-stone-400 line-clamp-2 italic">
+                          "{item.ai_summary}"
                         </p>
                       }
                     </CardContent>
