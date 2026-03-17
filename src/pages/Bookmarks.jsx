@@ -83,8 +83,8 @@ export default function Bookmarks() {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-2 mb-6">
+      {/* Filters + Sort */}
+      <div className="flex flex-wrap items-center gap-2 mb-6">
         {['all', 'unread', 'read'].map(f => (
           <button
             key={f}
@@ -98,6 +98,19 @@ export default function Bookmarks() {
             {f}
           </button>
         ))}
+        <div className="ml-auto">
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-44 text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Newest saved</SelectItem>
+              <SelectItem value="oldest">Oldest saved</SelectItem>
+              <SelectItem value="published">By publish date</SelectItem>
+              <SelectItem value="title">Title A–Z</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {isLoading ? (
