@@ -507,7 +507,13 @@ Deno.serve(async (req) => {
     } catch (error) {
         // Best-effort: mark lock as failed so next run isn't blocked
         try {
-            const base44Cleanup = createClientFromRequest(req);
+            let base44Cleanup;
+            try {
+                base44Cleanup = createClientFromRequest(req);
+            } catch {
+                const { createClient } = await import('npm:@base44/sdk@0.8.20');
+                base44Cleanup = createClient();
+            }
             const stuckRuns = await base44Cleanup.asServiceRole.entities.SystemHealth.filter(
                 { job_type: 'feed_fetch', status: 'running' }, '-started_at', 1
             );
