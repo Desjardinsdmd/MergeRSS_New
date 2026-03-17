@@ -245,6 +245,7 @@ export default function Digests() {
               <span className="text-xs font-semibold">≡</span>
             </Button>
           </div>
+          </div>
 
           {selectedDigests.length > 0 && (
             <div className="mb-6 flex items-center justify-between gap-4 bg-stone-900 border border-stone-800 rounded-lg px-4 py-3">
