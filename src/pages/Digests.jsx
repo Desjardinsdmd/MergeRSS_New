@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
@@ -206,7 +206,20 @@ export default function Digests() {
         </div>
       ) : (
         <>
-          <div className="flex justify-end gap-1 mb-6 border border-stone-800 rounded-lg p-1 bg-stone-900 w-fit">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-44 text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Newest first</SelectItem>
+              <SelectItem value="oldest">Oldest first</SelectItem>
+              <SelectItem value="name-asc">Name A–Z</SelectItem>
+              <SelectItem value="name-desc">Name Z–A</SelectItem>
+              <SelectItem value="last-sent">Recently sent</SelectItem>
+            </SelectContent>
+          </Select>
+          <div className="flex gap-1 border border-stone-800 rounded-lg p-1 bg-stone-900">
             <Button
               variant={viewMode === 'grid' ? 'default' : 'ghost'}
               size="sm"
