@@ -120,8 +120,8 @@ export default function ArticleSearch() {
     <div className="p-6 lg:p-8 max-w-full mx-auto">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-stone-100 mb-1">Search Articles</h1>
-          <p className="text-stone-500">Find content across all your feeds</p>
+          <h1 className="text-3xl font-bold text-stone-100 mb-1">Search Articles</h1>
+          <p className="text-stone-500 text-sm">Find content across all your feeds</p>
         </div>
 
         {/* Search bar */}
