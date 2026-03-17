@@ -45,9 +45,12 @@ export default function EmailFeeds() {
       if (data.success) {
         toast.success('Email feed created! Share your unique address with newsletters.');
         queryClient.invalidateQueries({ queryKey: ['email-feeds', user?.email] });
+      } else if (data.message === 'Email feed already exists') {
+        toast.info('You already have an email feed set up.');
+        queryClient.invalidateQueries({ queryKey: ['email-feeds', user?.email] });
       }
     } catch (error) {
-      toast.error('Failed to create email feed');
+      toast.error(error.message || 'Failed to create email feed');
     } finally {
       setInitializing(false);
     }
