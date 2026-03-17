@@ -11,17 +11,15 @@ Deno.serve(async (req) => {
 
     // Check if user already has an email feed
     const existingFeeds = await base44.entities.EmailFeed.filter({ user_email: user.email });
-    if (existingFeeds.length > 0) {
-      return Response.json({ 
-        email_feed: existingFeeds[0],
-        message: 'Email feed already exists'
-      });
-    }
-
-    // Generate unique email address using user ID hash
-    const uniquePart = btoa(user.email).slice(0, 12).toLowerCase().replace(/[^a-z0-9]/g, '');
     const mailgunDomain = Deno.env.get('MAILGUN_DOMAIN');
+    const uniquePart = btoa(user.email).slice(0, 12).toLowerCase().replace(/[^a-z0-9]/g, '');
     const uniqueEmail = `newsletter-${uniquePart}@${mailgunDomain}`;
+    
+    if (existingFeeds.length > 0) {
+      // Update existing feed with new webhook route (in case it was wrong)
+      const existingFeed = existingFeeds[0];
+      // We'll still try to create the route below
+    }
 
     // Create Mailgun route to forward emails to the webhook
     const mailgunApiKey = Deno.env.get('MAILGUN_API_KEY');
