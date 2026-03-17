@@ -221,10 +221,10 @@ export default function Dashboard() {
 
       {/* Feed error banner */}
       {errorFeeds.length > 0 && (
-        <div className="mb-4 flex items-center gap-3 p-3 bg-stone-900 border border-red-900 text-sm text-red-400">
+        <div className="mb-6 flex items-center gap-3 p-3 bg-red-950/20 border border-red-900/40 text-sm text-red-400 rounded">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
           <span>{errorFeeds.length} feed{errorFeeds.length > 1 ? 's are' : ' is'} experiencing errors.</span>
-          <Link to={createPageUrl('Feeds')} className="ml-auto font-medium underline text-[hsl(var(--primary))] hover:opacity-80 transition-opacity">Fix now →</Link>
+          <Link to={createPageUrl('Feeds')} className="ml-auto font-semibold hover:text-red-300 transition-colors">Fix →</Link>
         </div>
       )}
 
