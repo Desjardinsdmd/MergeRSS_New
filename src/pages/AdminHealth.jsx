@@ -151,8 +151,6 @@ export default function AdminHealth() {
       const rec = await base44.entities.AlertSettings.create(data);
       setAlertSettingsId(rec.id);
     }
-    // Update the automation schedule
-    await base44.functions.invoke('updateAlertSchedule', { frequency_hours: Number(alertFrequency) });
     setSavingSettings(false);
     toast.success('Alert settings saved');
   };
