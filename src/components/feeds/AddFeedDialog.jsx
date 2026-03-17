@@ -66,6 +66,7 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
   }, [editFeed, open]);
 
   const [validatingRss, setValidatingRss] = useState(false);
+  const [deadEndWarning, setDeadEndWarning] = useState(null); // { reason, category, details }
 
   const validate = () => {
     const errs = {};
