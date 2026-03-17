@@ -323,7 +323,7 @@ export default function Dashboard() {
             <div className="p-0 overflow-y-auto flex-1">
               {expandedItem ? (
                 <div className="p-5">
-                  <a href={expandedItem.url} target="_blank" rel="noopener noreferrer" className="group">
+                  <a href={safeUrl(expandedItem.url)} target="_blank" rel="noopener noreferrer" className="group">
                     <h2 className="text-base font-semibold text-stone-100 group-hover:text-[hsl(var(--primary))] transition-colors mb-2 leading-snug">
                       {expandedItem.title}
                     </h2>
@@ -451,7 +451,7 @@ export default function Dashboard() {
                     return (
                       <div key={item.id} className="p-4 hover:bg-stone-800/50 transition group">
                         <div className="flex items-start gap-2">
-                          <a href={item.url} target="_blank" rel="noopener noreferrer" className="block flex-1 min-w-0">
+                          <a href={safeUrl(item.url)} target="_blank" rel="noopener noreferrer" className="block flex-1 min-w-0">
                             <p className="font-medium text-stone-200 mb-1 line-clamp-1">{decodeHtml(item.title)}</p>
                             <div className="flex items-center gap-2 text-xs text-stone-500">
                               <Clock className="w-3 h-3" />
