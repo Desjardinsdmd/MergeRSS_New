@@ -466,6 +466,10 @@ Deno.serve(async (req) => {
         };
 
         // Update lock record to completed
+        if (!lockRecord?.id) {
+            console.warn('[fetchFeeds] No lock record to update — skipping completion mark');
+            return Response.json({ success: true, total_feeds: allFeeds.length, overdue_feeds: overdueFeeds.length, feeds_processed: feeds.length, feeds_skipped: skippedCount, p50_lag_min: p50lag, p95_lag_min: p95lag, p99_lag_min: p99lag, max_lag_min: maxLagMin, run_duration_ms: runDurationMs, ...resultSummary });
+        }
         await base44.asServiceRole.entities.SystemHealth.update(lockRecord.id, {
             status: 'completed',
             completed_at: new Date().toISOString(),
