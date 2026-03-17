@@ -367,17 +367,47 @@ Deno.serve(async (req) => {
             started_at: startedAt,
         });
 
+        const runStartMs = Date.now();
+        const RUN_INTERVAL_MINUTES = 10;
+
         // Load feeds sorted by oldest last_fetched first so every feed gets rotated through
         const allFeedsRaw = await base44.asServiceRole.entities.Feed.filter(
             { status: { $in: ['active', 'error'] } },
             'last_fetched',
-            2000 // fetch all, then cap to batch size below
+            2000
         );
         const allFeeds = Array.isArray(allFeedsRaw) ? allFeedsRaw : [];
-        const feeds = allFeeds.slice(0, 100); // process up to 100 feeds per run
+
+        // ── P0 Telemetry: compute fetch-lag distribution across ALL feeds ────────
+        const feedAgesMs = allFeeds.map(f =>
+            f.last_fetched ? Date.now() - new Date(f.last_fetched).getTime() : Infinity
+        );
+        const finiteAges = feedAgesMs.filter(isFinite).sort((a, b) => a - b);
+        const p50lag  = finiteAges.length ? Math.round(finiteAges[Math.floor(0.50 * finiteAges.length)] / 60000) : 0;
+        const p95lag  = finiteAges.length ? Math.round(finiteAges[Math.floor(0.95 * finiteAges.length)] / 60000) : 0;
+        const p99lag  = finiteAges.length ? Math.round(finiteAges[Math.floor(0.99 * finiteAges.length)] / 60000) : 0;
+        const maxLagMin = finiteAges.length ? Math.round(finiteAges[finiteAges.length - 1] / 60000) : 0;
+        const overdueThreshMs = RUN_INTERVAL_MINUTES * 60 * 1000;
+        const overdueCount = feedAgesMs.filter(a => a > overdueThreshMs).length;
+
+        console.log(`[fetchFeeds] lag p50=${p50lag}min p95=${p95lag}min p99=${p99lag}min max=${maxLagMin}min overdue=${overdueCount}/${allFeeds.length}`);
+
+        if (maxLagMin > 30) {
+            const staleFeeds = allFeeds.filter(f => f.last_fetched && (Date.now() - new Date(f.last_fetched).getTime()) > 30 * 60 * 1000);
+            console.warn(`[fetchFeeds] STARVATION_ALERT: ${staleFeeds.length} feed(s) unfetched >30min. Max lag: ${maxLagMin}min`);
+        }
+
+        // ── Phase 1: Overdue filter — skip feeds fetched within the last interval ─
+        // This prevents recently-refreshed feeds from consuming cap slots,
+        // freeing capacity for feeds that are actually due.
+        const overdueFeeds = allFeeds.filter(f =>
+            !f.last_fetched || (Date.now() - new Date(f.last_fetched).getTime()) > overdueThreshMs
+        );
+        const feeds = overdueFeeds.slice(0, 100);
         const skippedCount = allFeeds.length - feeds.length;
+
         if (skippedCount > 0) {
-            console.warn(`[fetchFeeds] WARNING: ${allFeeds.length} feeds total, processing ${feeds.length}, ${skippedCount} will be picked up on next run`);
+            console.warn(`[fetchFeeds] ${allFeeds.length} total — ${overdueFeeds.length} overdue — processing ${feeds.length} — skipping ${skippedCount} (recently fetched or beyond cap)`);
         }
         console.log(`[fetchFeeds] Starting — processing ${feeds.length} of ${allFeeds.length} feeds this run`);
         const results = await fetchFeedsWithThrottling(feeds, base44, 10, 200);
