@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, BookmarkPlus, BookmarkCheck, MoreVertical, ExternalLink } from 'lucide-react';
+import { Clock, BookmarkPlus, BookmarkCheck, MoreVertical, ExternalLink, Star } from 'lucide-react';
 import { decodeHtml, safeUrl } from '@/components/utils/htmlUtils';
 import ArticleSummarizeButton from './ArticleSummarizeButton';
 
@@ -40,12 +40,18 @@ export default function ArticleCard({
 
   const hasAiSummary = item.ai_summary && item.ai_summary.trim();
 
+  // Importance indicator: articles with AI summaries or from "must-read" sources
+  const isMustRead = hasAiSummary || item.tags?.includes('must-read');
+
   return (
-    <div className="group border-b border-stone-800 hover:bg-stone-900/40 transition-colors p-4 cursor-pointer">
+    <div className={`group border-b border-stone-800 transition-colors p-4 cursor-pointer ${isMustRead ? 'bg-stone-900/80 hover:bg-stone-900/60 border-l-2 border-l-[hsl(var(--primary))]' : 'hover:bg-stone-900/40'}`}>
       <div onClick={() => onExpand && onExpand(item)}>
         {/* Header with category and time */}
         <div className="flex items-start justify-between mb-2">
           <div className="flex items-center gap-2 flex-1 min-w-0">
+            {isMustRead && (
+              <Star className="w-3.5 h-3.5 text-[hsl(var(--primary))] flex-shrink-0 fill-[hsl(var(--primary))]" title="Important article" />
+            )}
             {item.category && (
               <span className={`text-xs font-medium px-2 py-1 rounded flex-shrink-0 ${categoryColors[item.category] || categoryColors.Other}`}>
                 {item.category}
