@@ -322,7 +322,7 @@ async function fetchFeedsWithThrottling(feeds, base44, batchSize = 10, delayBetw
                 status: 'active',
                 fetch_error: '',
                 consecutive_errors: 0,
-            }).catch(() => {});
+            }).catch(e => console.warn(`[fetchFeeds] Feed update failed for ${feed.name}:`, e.message));
 
             results.push({ feed: feed.name, new_items: newCount, status: 'ok' });
         } // end per-feed for loop
