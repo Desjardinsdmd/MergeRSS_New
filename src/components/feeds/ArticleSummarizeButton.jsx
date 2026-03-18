@@ -100,15 +100,32 @@ export default function ArticleSummarizeButton({ item, onSummaryUpdate, compact 
     );
   }
 
+  if (error) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="flex items-center gap-1 text-xs text-stone-600 cursor-default select-none mt-1.5">
+              <XCircle className="w-3 h-3 text-stone-600" />
+              <span>Summary failed</span>
+            </span>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="bg-stone-950 border border-stone-700 text-stone-300 text-xs max-w-[200px]">
+            Could not generate summary — try again later
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+
   return (
     <button
       onClick={handleSummarize}
       disabled={loading}
       className="flex items-center gap-1 text-xs text-stone-600 hover:text-amber-400 transition-colors mt-1.5 disabled:opacity-50"
-      title={error ? 'Rate limit hit — click to retry' : undefined}
     >
-      {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : error ? <AlertCircle className="w-3 h-3 text-red-500" /> : <Sparkles className="w-3 h-3" />}
-      {loading ? 'Summarizing…' : error ? 'Retry' : 'Summarize'}
+      {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+      {loading ? 'Summarizing…' : 'Summarize'}
     </button>
   );
 }
