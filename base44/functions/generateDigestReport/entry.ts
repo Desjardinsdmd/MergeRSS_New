@@ -47,7 +47,21 @@ Deno.serve(async (req) => {
       item_count: d.item_count || 0,
     }));
 
+    // Compute actual data range for the prompt
+    const sortedForPrompt = [...deliveries].sort((a, b) =>
+      new Date(a.sent_at || a.created_date) - new Date(b.sent_at || b.created_date)
+    );
+    const promptActualStart = new Date(sortedForPrompt[0].sent_at || sortedForPrompt[0].created_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    const promptActualEnd = new Date(sortedForPrompt[sortedForPrompt.length - 1].sent_at || sortedForPrompt[sortedForPrompt.length - 1].created_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    const requestedStartFormatted = new Date(start_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    const requestedEndFormatted = new Date(end_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    const rangeNote = (promptActualStart !== requestedStartFormatted || promptActualEnd !== requestedEndFormatted)
+      ? `NOTE: The user requested data from ${requestedStartFormatted} to ${requestedEndFormatted}, but actual digest data is only available from ${promptActualStart} to ${promptActualEnd}. You MUST mention this discrepancy clearly in your executive summary.`
+      : `The data covers the full requested range from ${requestedStartFormatted} to ${requestedEndFormatted}.`;
+
     const prompt = `You are an expert analyst. You have been given a series of digest deliveries from a feed called "${digest.name}" spanning from ${start_date} to ${end_date} (${period_label || 'custom period'}).
+
+${rangeNote}
 
 Each entry is a dated AI-generated news digest. Your task is to analyze how the themes, topics, and signals within these digests have evolved over time and produce a comprehensive trend report.
 
