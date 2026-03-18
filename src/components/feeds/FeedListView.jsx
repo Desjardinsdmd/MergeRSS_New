@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -7,9 +7,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreVertical, Edit, Trash2, Pause, Play, ExternalLink } from 'lucide-react';
+import { MoreVertical, Edit, Trash2, Pause, Play, ExternalLink, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { safeUrl } from '@/components/utils/htmlUtils';
+import { safeUrl, decodeHtml } from '@/components/utils/htmlUtils';
+import { base44 } from '@/api/base44Client';
 
 export default function FeedListView({ feeds, selectedIds, onSelectionChange, onEdit, onDelete, onToggleStatus }) {
   const handleSelectAll = (checked) => {
