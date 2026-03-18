@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Sparkles, Loader2, Eye } from 'lucide-react';
+import { Sparkles, Loader2, Eye, CheckCircle2, XCircle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export default function ArticleVisualBadge({ item, onVisualReady }) {
   const [loading, setLoading] = useState(false);
@@ -71,7 +72,21 @@ export default function ArticleVisualBadge({ item, onVisualReady }) {
   }
 
   if (status === 'rejected') {
-    return null; // Silent rejection — don't show anything
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="flex items-center gap-1 text-xs text-stone-600 cursor-default select-none">
+              <XCircle className="w-3 h-3 text-stone-600" />
+              <span>No visual</span>
+            </span>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="bg-stone-950 border border-stone-700 text-stone-300 text-xs max-w-[200px]">
+            This article's content isn't suitable for an illustrative visual
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
   }
 
   return (
