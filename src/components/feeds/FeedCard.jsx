@@ -41,6 +41,21 @@ const categoryColors = {
 
 export default function FeedCard({ feed, onEdit, onDelete, onToggleStatus }) {
   const [showAlerts, setShowAlerts] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [articles, setArticles] = useState([]);
+  const [loadingArticles, setLoadingArticles] = useState(false);
+
+  const toggleArticles = async (e) => {
+    e.stopPropagation();
+    if (expanded) { setExpanded(false); return; }
+    setExpanded(true);
+    if (articles.length > 0) return;
+    setLoadingArticles(true);
+    const items = await base44.entities.FeedItem.filter({ feed_id: feed.id }, '-published_date', 20);
+    setArticles(items);
+    setLoadingArticles(false);
+  };
+
   return (
     <>
     <Card className={cn(
