@@ -187,7 +187,7 @@ async function downloadReportAsPdf(savedReport) {
 }
 
 function SavedReportsList({ userEmail }) {
-  const { data: savedReports = [], isLoading } = useQuery({
+  const { data: savedReports = [], isLoading, refetch } = useQuery({
     queryKey: ['saved-digest-reports', userEmail],
     queryFn: () => base44.entities.SavedDigestReport.filter({ created_by: userEmail }, '-created_date', 100),
     enabled: !!userEmail,
@@ -195,6 +195,17 @@ function SavedReportsList({ userEmail }) {
 
   const [open, setOpen] = useState(false);
   const [expandedId, setExpandedId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
+  const [confirmId, setConfirmId] = useState(null);
+
+  const handleDelete = async (id) => {
+    setDeletingId(id);
+    await base44.entities.SavedDigestReport.delete(id);
+    setConfirmId(null);
+    setExpandedId(null);
+    setDeletingId(null);
+    refetch();
+  };
 
   return (
     <div className="mb-4 border border-stone-800">
