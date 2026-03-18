@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Sparkles, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Sparkles, Loader2, ChevronDown, ChevronUp, AlertCircle } from 'lucide-react';
 
 export default function ArticleSummarizeButton({ item, onSummaryUpdate, compact = false }) {
   const [loading, setLoading] = useState(false);
