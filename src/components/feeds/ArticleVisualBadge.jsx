@@ -1,0 +1,87 @@
+import React, { useState } from 'react';
+import { Sparkles, Loader2, Eye } from 'lucide-react';
+import { base44 } from '@/api/base44Client';
+
+export default function ArticleVisualBadge({ item, onVisualReady }) {
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState(null); // null | 'running' | 'accepted' | 'rejected'
+  const [imageUrl, setImageUrl] = useState(null);
+  const [showPreview, setShowPreview] = useState(false);
+
+  const handleGenerate = async (e) => {
+    e.stopPropagation();
+    if (loading || status) return;
+
+    setLoading(true);
+    setStatus('running');
+
+    try {
+      const response = await base44.functions.invoke('visualIntelligence', {
+        article_id: item.id,
+        title: item.title,
+        content: item.content || item.description || item.ai_summary || '',
+        url: item.url
+      });
+
+      const result = response?.data?.result;
+      if (result?.final_outcome === 'accepted' && result?.image_url) {
+        setImageUrl(result.image_url);
+        setStatus('accepted');
+        onVisualReady && onVisualReady(result.image_url);
+      } else {
+        setStatus('rejected');
+      }
+    } catch (err) {
+      setStatus('rejected');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (status === 'accepted' && imageUrl) {
+    return (
+      <div className="relative">
+        <button
+          onClick={(e) => { e.stopPropagation(); setShowPreview(!showPreview); }}
+          className="flex items-center gap-1 text-xs text-[hsl(var(--primary))] hover:opacity-80 transition"
+          title="View AI visual"
+        >
+          <Eye className="w-3 h-3" />
+          <span>Visual</span>
+        </button>
+        {showPreview && (
+          <div
+            className="absolute bottom-full left-0 mb-2 z-50 w-64 rounded overflow-hidden shadow-2xl border border-stone-700"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img src={imageUrl} alt="AI-generated visual" className="w-full h-auto" />
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (status === 'running') {
+    return (
+      <div className="flex items-center gap-1 text-xs text-stone-500">
+        <Loader2 className="w-3 h-3 animate-spin" />
+        <span>Generating...</span>
+      </div>
+    );
+  }
+
+  if (status === 'rejected') {
+    return null; // Silent rejection — don't show anything
+  }
+
+  return (
+    <button
+      onClick={handleGenerate}
+      className="flex items-center gap-1 text-xs text-stone-600 hover:text-[hsl(var(--primary))] transition"
+      title="Generate AI visual for this article"
+    >
+      <Sparkles className="w-3 h-3" />
+      <span>Visual</span>
+    </button>
+  );
+}
