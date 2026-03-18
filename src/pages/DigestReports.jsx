@@ -266,38 +266,17 @@ function SavedReportsList({ userEmail }) {
               </button>
 
               {expandedId === sr.id && sr.report && (
-                <div className="px-6 pb-5 pt-3 space-y-3 bg-stone-950 border-t border-stone-800">
-                  {sr.report.executive_summary && (
-                    <div>
-                      <p className="text-xs font-semibold text-[hsl(var(--primary))] uppercase tracking-widest mb-1">Executive Summary</p>
-                      <p className="text-xs text-stone-300 leading-relaxed">{sr.report.executive_summary}</p>
-                    </div>
-                  )}
-                  {sr.report.key_themes?.length > 0 && (
-                    <div>
-                      <p className="text-xs font-semibold text-stone-400 uppercase tracking-widest mb-1.5">Key Themes</p>
-                      <div className="space-y-1">
-                        {sr.report.key_themes.map((t, i) => (
-                          <div key={i} className="flex items-center gap-2">
-                            <span className="text-xs text-stone-300">{t.theme}</span>
-                            <TrajectoryBadge trajectory={t.trajectory} />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {sr.report.outlook && (
-                    <div>
-                      <p className="text-xs font-semibold text-stone-400 uppercase tracking-widest mb-1">Outlook</p>
-                      <p className="text-xs text-stone-400 leading-relaxed">{sr.report.outlook}</p>
-                    </div>
-                  )}
-                  <button
-                    onClick={() => downloadReportAsPdf(sr)}
-                    className="flex items-center gap-1.5 text-xs text-[hsl(var(--primary))] hover:opacity-80 transition"
-                  >
-                    <Download className="w-3.5 h-3.5" /> Download full report as PDF
-                  </button>
+                <div className="border-t border-stone-800">
+                  <ReportViewer
+                    report={sr.report}
+                    digestName={sr.digest_name}
+                    startDate={sr.start_date}
+                    endDate={sr.end_date}
+                    deliveryCount={sr.delivery_count}
+                    actualStart={sr.actual_start}
+                    actualEnd={sr.actual_end}
+                    savedReport={sr}
+                  />
                 </div>
               )}
             </div>
