@@ -49,7 +49,7 @@ export default function DigestReports() {
     enabled: !!user,
   });
 
-  const [selectedDigestId, setSelectedDigestId] = useState('');
+  const [selectedDigestIds, setSelectedDigestIds] = useState([]);
   const [quickRange, setQuickRange] = useState('Last 30 days');
   const [startDate, setStartDate] = useState(format(subDays(new Date(), 30), 'yyyy-MM-dd'));
   const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
