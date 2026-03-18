@@ -104,7 +104,13 @@ export default function FeedListView({ feeds, selectedIds, onSelectionChange, on
                 </Badge>
               </td>
               <td className="px-4 py-3 text-sm text-stone-500">
-                {feed.item_count || 0}
+                <button
+                  onClick={() => toggleFeed(feed)}
+                  className="flex items-center gap-1 hover:text-[hsl(var(--primary))] transition-colors"
+                >
+                  {expandedFeedId === feed.id ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                  {feed.item_count || 0}
+                </button>
               </td>
               <td className="px-4 py-3">
                 <DropdownMenu>
