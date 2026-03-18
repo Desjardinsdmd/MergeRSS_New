@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import {
   BarChart2, Play, Loader2, TrendingUp, TrendingDown,
   Minus, AlertTriangle, ArrowUpRight, ArrowDownRight, RefreshCw,
-  ChevronDown, ChevronUp, FileText, Check, X, Download, Inbox, Eye
+  ChevronDown, ChevronUp, FileText, Check, X, Download, Inbox, Eye, ClipboardList
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format, subDays } from 'date-fns';
