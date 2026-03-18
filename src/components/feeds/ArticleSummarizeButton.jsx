@@ -11,14 +11,20 @@ export default function ArticleSummarizeButton({ item, onSummaryUpdate, compact 
     e.preventDefault();
     e.stopPropagation();
     setLoading(true);
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Summarize the following article in 2-3 concise sentences. Focus on the key points and takeaways.\n\nTitle: ${item.title}\n\n${item.description || item.content || 'No content available.'}`,
-    });
-    const summary = typeof result === 'string' ? result : result?.summary || result?.text || String(result);
-    await base44.entities.FeedItem.update(item.id, { ai_summary: summary });
-    onSummaryUpdate?.({ ...item, ai_summary: summary });
-    setShowSummary(true);
-    setLoading(false);
+    setError(false);
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Summarize the following article in 2-3 concise sentences. Focus on the key points and takeaways.\n\nTitle: ${item.title}\n\n${item.description || item.content || 'No content available.'}`,
+      });
+      const summary = typeof result === 'string' ? result : result?.summary || result?.text || String(result);
+      await base44.entities.FeedItem.update(item.id, { ai_summary: summary });
+      onSummaryUpdate?.({ ...item, ai_summary: summary });
+      setShowSummary(true);
+    } catch (err) {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const toggleSummary = (e) => {
