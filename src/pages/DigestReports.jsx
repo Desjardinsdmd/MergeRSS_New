@@ -195,13 +195,41 @@ export default function DigestReports() {
                 {report.digest_name} — {report.period_label || 'Trend'} Report
               </h2>
               <p className="text-xs text-stone-500 mt-1">
-                {report.delivery_count} digest{report.delivery_count !== 1 ? 's' : ''} analyzed · {format(new Date(report.start_date), 'MMM d, yyyy')} – {format(new Date(report.end_date), 'MMM d, yyyy')}
+                {report.delivery_count} digest{report.delivery_count !== 1 ? 's' : ''} analyzed
               </p>
             </div>
             <button onClick={runReport} className="p-1.5 text-stone-600 hover:text-stone-300 transition" title="Regenerate">
               <RefreshCw className="w-4 h-4" />
             </button>
           </div>
+
+          {/* Range callout */}
+          {(() => {
+            const reqStart = format(new Date(report.requested_start), 'MMM d, yyyy');
+            const reqEnd = format(new Date(report.requested_end), 'MMM d, yyyy');
+            const actStart = format(new Date(report.actual_start), 'MMM d, yyyy');
+            const actEnd = format(new Date(report.actual_end), 'MMM d, yyyy');
+            const differs = reqStart !== actStart || reqEnd !== actEnd;
+            return (
+              <div className={`p-4 border text-sm ${differs ? 'bg-amber-950/20 border-amber-900/50' : 'bg-stone-900 border-stone-800'}`}>
+                <div className="flex flex-wrap gap-x-6 gap-y-1">
+                  <span className="text-stone-500">
+                    <span className="text-stone-400 font-medium">Requested range:</span>{' '}
+                    {reqStart} – {reqEnd}
+                  </span>
+                  <span className={differs ? 'text-amber-300' : 'text-stone-500'}>
+                    <span className={`font-medium ${differs ? 'text-amber-400' : 'text-stone-400'}`}>Actual data range:</span>{' '}
+                    {actStart} – {actEnd}
+                  </span>
+                </div>
+                {differs && (
+                  <p className="text-xs text-amber-500 mt-1.5">
+                    ⚠ No digest data was found for part of the requested range. The report is based on available data only.
+                  </p>
+                )}
+              </div>
+            );
+          })()}
 
           {/* Executive Summary */}
           <div className="bg-stone-900 border border-[hsl(var(--primary))]/30 p-5">
