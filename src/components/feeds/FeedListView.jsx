@@ -13,6 +13,20 @@ import { safeUrl, decodeHtml } from '@/components/utils/htmlUtils';
 import { base44 } from '@/api/base44Client';
 
 export default function FeedListView({ feeds, selectedIds, onSelectionChange, onEdit, onDelete, onToggleStatus }) {
+  const [expandedFeedId, setExpandedFeedId] = useState(null);
+  const [articlesByFeed, setArticlesByFeed] = useState({});
+  const [loadingFeedId, setLoadingFeedId] = useState(null);
+
+  const toggleFeed = async (feed) => {
+    if (expandedFeedId === feed.id) { setExpandedFeedId(null); return; }
+    setExpandedFeedId(feed.id);
+    if (articlesByFeed[feed.id]) return;
+    setLoadingFeedId(feed.id);
+    const items = await base44.entities.FeedItem.filter({ feed_id: feed.id }, '-published_date', 20);
+    setArticlesByFeed(prev => ({ ...prev, [feed.id]: items }));
+    setLoadingFeedId(null);
+  };
+
   const handleSelectAll = (checked) => {
     if (checked) {
       onSelectionChange(feeds.map(f => f.id));
