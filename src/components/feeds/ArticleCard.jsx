@@ -29,6 +29,7 @@ export default function ArticleCard({
 }) {
   const [fetchedImage, setFetchedImage] = useState(null);
   const [isLoadingImage, setIsLoadingImage] = useState(false);
+  const [aiVisualUrl, setAiVisualUrl] = useState(null);
 
   const formatTime = (dateString) => {
     if (!dateString) return '';
