@@ -352,6 +352,7 @@ export default function DigestReports() {
   const [report, setReport] = useState(null);
   const [error, setError] = useState(null);
   const [expandedThemes, setExpandedThemes] = useState({});
+  const [issuesOpen, setIssuesOpen] = useState(false);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
