@@ -246,9 +246,6 @@ export default function Dashboard() {
         <WidgetCustomizer user={user} onSave={() => window.location.reload()} />
       </div>
 
-      {/* Featured Digest Hero */}
-      {feeds.length > 0 && digests.length > 0 && <FeaturedDigestHero digests={digests} />}
-
       {/* Stats Grid */}
       <div className="grid grid-cols-3 gap-3 mb-8">
         {stats.map((stat) => (
