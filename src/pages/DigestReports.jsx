@@ -141,41 +141,27 @@ export default function DigestReports() {
           </div>
         </div>
 
-        {/* Custom date inputs */}
-        {quickRange === 'Custom' && (
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="text-xs text-stone-500 mb-1.5 block flex items-center gap-1">
-                <Calendar className="w-3 h-3" /> Start Date
-              </label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={e => setStartDate(e.target.value)}
-                className="w-full bg-stone-800 border border-stone-700 text-stone-200 text-sm px-3 py-2 focus:outline-none focus:border-[hsl(var(--primary))]"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-stone-500 mb-1.5 block flex items-center gap-1">
-                <Calendar className="w-3 h-3" /> End Date
-              </label>
-              <input
-                type="date"
-                value={endDate}
-                onChange={e => setEndDate(e.target.value)}
-                className="w-full bg-stone-800 border border-stone-700 text-stone-200 text-sm px-3 py-2 focus:outline-none focus:border-[hsl(var(--primary))]"
-              />
-            </div>
+        {/* Date inputs — always visible */}
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label className="text-xs text-stone-500 mb-1.5 block">Start Date</label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={e => { setStartDate(e.target.value); setQuickRange('Custom'); }}
+              className="w-full bg-stone-800 border border-stone-700 text-stone-200 text-sm px-3 py-2 focus:outline-none focus:border-[hsl(var(--primary))]"
+            />
           </div>
-        )}
-
-        {/* Date display for non-custom */}
-        {quickRange !== 'Custom' && (
-          <div className="flex items-center gap-2 mb-4 text-xs text-stone-500">
-            <Calendar className="w-3.5 h-3.5" />
-            <span>{format(new Date(startDate), 'MMM d, yyyy')} → {format(new Date(endDate), 'MMM d, yyyy')}</span>
+          <div>
+            <label className="text-xs text-stone-500 mb-1.5 block">End Date</label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={e => { setEndDate(e.target.value); setQuickRange('Custom'); }}
+              className="w-full bg-stone-800 border border-stone-700 text-stone-200 text-sm px-3 py-2 focus:outline-none focus:border-[hsl(var(--primary))]"
+            />
           </div>
-        )}
+        </div>
 
         <Button
           onClick={runReport}
