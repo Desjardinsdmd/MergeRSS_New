@@ -190,8 +190,9 @@ export default function FeedListView({ feeds, selectedIds, onSelectionChange, on
               </tr>
             )}
             </React.Fragment>
-          ))}
-        </tbody>
+             );
+            })}
+            </tbody>
       </table>
     </div>
   );
