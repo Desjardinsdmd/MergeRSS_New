@@ -120,12 +120,21 @@ Be specific, analytical, and reference actual content from the digests. Avoid ge
       }
     });
 
+    // Compute actual data range from the deliveries found
+    const sortedByDate = [...deliveries].sort((a, b) =>
+      new Date(a.sent_at || a.created_date) - new Date(b.sent_at || b.created_date)
+    );
+    const actual_start = sortedByDate[0].sent_at || sortedByDate[0].created_date;
+    const actual_end = sortedByDate[sortedByDate.length - 1].sent_at || sortedByDate[sortedByDate.length - 1].created_date;
+
     return Response.json({
       report: result,
       digest_name: digest.name,
       delivery_count: deliveries.length,
-      start_date,
-      end_date,
+      requested_start: start_date,
+      requested_end: end_date,
+      actual_start,
+      actual_end,
       period_label,
     });
 
