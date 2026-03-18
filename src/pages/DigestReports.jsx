@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import {
   BarChart2, Play, Loader2,
-  ChevronDown, ChevronUp, FileText, Check, X, Download, Inbox, Eye, ClipboardList
+  ChevronDown, ChevronUp, FileText, Check, X, Download, Inbox, Eye, ClipboardList, Trash2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format, subDays } from 'date-fns';
