@@ -76,7 +76,9 @@ export default function ArticleCard({
     return () => clearTimeout(timer);
   }, [item.url, imageUrl]);
 
-  imageUrl = imageUrl || fetchedImage || aiVisualUrl;
+  // Only promote AI visual to thumbnail if score is high enough (≥75)
+  const useAiAsThumbnail = aiVisualUrl && aiVisualScore >= 75;
+  imageUrl = imageUrl || fetchedImage || (useAiAsThumbnail ? aiVisualUrl : null);
 
   // Generate a subtle gradient background color based on title hash
   const getBackgroundColor = () => {
