@@ -4,6 +4,7 @@ import { decodeHtml, safeUrl } from '@/components/utils/htmlUtils';
 import { getArticleImage, normalizeImageUrl } from '@/components/utils/imageUtils';
 import { calculateReadTime, getFaviconUrl, getPublicationName } from '@/components/utils/articleUtils';
 import ArticleSummarizeButton from './ArticleSummarizeButton';
+import ArticleVisualBadge from './ArticleVisualBadge';
 import { base44 } from '@/api/base44Client';
 
 const categoryColors = {
