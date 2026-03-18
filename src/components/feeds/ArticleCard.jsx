@@ -168,11 +168,15 @@ export default function ArticleCard({
 
           {/* Footer Actions */}
           <div className="flex items-center justify-between pt-2 border-t border-stone-800/50 mt-3 -mx-4 px-4 py-2">
-            <div className="flex-1">
+            <div className="flex-1 flex items-center gap-3">
               <ArticleSummarizeButton
                 item={item}
                 onSummaryUpdate={onSummaryUpdate}
                 compact={true}
+              />
+              <ArticleVisualBadge
+                item={item}
+                onVisualReady={(url) => setAiVisualUrl(url)}
               />
             </div>
             <div className="flex items-center gap-1 flex-shrink-0 ml-2">
