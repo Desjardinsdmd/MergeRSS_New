@@ -1,15 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import {
-  BarChart2, Calendar, Play, Loader2, TrendingUp, TrendingDown,
+  BarChart2, Play, Loader2, TrendingUp, TrendingDown,
   Minus, AlertTriangle, ArrowUpRight, ArrowDownRight, RefreshCw,
-  ChevronDown, ChevronUp, FileText
+  ChevronDown, ChevronUp, FileText, Check, X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { format, subMonths, subDays, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter } from 'date-fns';
+import { format, subDays } from 'date-fns';
 
 const TRAJECTORY_CONFIG = {
   rising:     { icon: TrendingUp,    color: 'text-emerald-400', bg: 'bg-emerald-400/10', label: 'Rising' },
