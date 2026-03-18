@@ -41,26 +41,20 @@ export default function DigestReports() {
   });
 
   const [selectedDigestIds, setSelectedDigestIds] = useState([]);
-  const [quickRange, setQuickRange] = useState('Last 30 days');
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [startDate, setStartDate] = useState(format(subDays(new Date(), 30), 'yyyy-MM-dd'));
   const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [periodLabel, setPeriodLabel] = useState('Monthly');
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState(null);
   const [error, setError] = useState(null);
   const [expandedThemes, setExpandedThemes] = useState({});
+  const dropdownRef = useRef(null);
 
-  const handleQuickRange = (label) => {
-    setQuickRange(label);
-    if (label !== 'Custom') {
-      const range = QUICK_RANGES.find(r => r.label === label)?.getValue();
-      if (range) {
-        setStartDate(range.start);
-        setEndDate(range.end);
-        setPeriodLabel(range.period);
-      }
-    }
-  };
+  useEffect(() => {
+    const handler = (e) => { if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setDropdownOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   const toggleDigest = (id) => {
     setSelectedDigestIds(prev =>
