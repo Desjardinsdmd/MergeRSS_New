@@ -151,7 +151,7 @@ Be specific, analytical, and reference actual content from the digests. Avoid ge
 
     return Response.json({
       report: result,
-      digest_name: digest.name,
+      digest_name: digestLabel,
       delivery_count: deliveries.length,
       requested_start: start_date,
       requested_end: end_date,
