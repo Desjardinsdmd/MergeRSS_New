@@ -28,14 +28,7 @@ function TrajectoryBadge({ trajectory }) {
   );
 }
 
-const QUICK_RANGES = [
-  { label: 'Last 30 days',    getValue: () => ({ start: format(subDays(new Date(), 30), 'yyyy-MM-dd'), end: format(new Date(), 'yyyy-MM-dd'), period: 'Monthly' }) },
-  { label: 'Last month',      getValue: () => { const d = subMonths(new Date(), 1); return { start: format(startOfMonth(d), 'yyyy-MM-dd'), end: format(endOfMonth(d), 'yyyy-MM-dd'), period: 'Monthly' }; } },
-  { label: 'Last quarter',    getValue: () => { const d = subMonths(new Date(), 3); return { start: format(startOfQuarter(d), 'yyyy-MM-dd'), end: format(endOfQuarter(d), 'yyyy-MM-dd'), period: 'Quarterly' }; } },
-  { label: 'Last 90 days',    getValue: () => ({ start: format(subDays(new Date(), 90), 'yyyy-MM-dd'), end: format(new Date(), 'yyyy-MM-dd'), period: 'Quarterly' }) },
-  { label: 'Last 6 months',   getValue: () => ({ start: format(subMonths(new Date(), 6), 'yyyy-MM-dd'), end: format(new Date(), 'yyyy-MM-dd'), period: 'Semi-Annual' }) },
-  { label: 'Custom',          getValue: () => null },
-];
+
 
 export default function DigestReports() {
   const [user, setUser] = React.useState(null);
