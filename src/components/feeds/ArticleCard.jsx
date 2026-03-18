@@ -177,7 +177,7 @@ export default function ArticleCard({
               />
               <ArticleVisualBadge
                 item={item}
-                onVisualReady={(url) => setAiVisualUrl(url)}
+                onVisualReady={(url, score) => { setAiVisualUrl(url); setAiVisualScore(score); }}
               />
             </div>
             <div className="flex items-center gap-1 flex-shrink-0 ml-2">
