@@ -9,6 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { format, subDays } from 'date-fns';
 import { jsPDF } from 'jspdf';
+import { generatePremiumPdf } from '@/lib/generatePremiumPdf';
 
 const TRAJECTORY_CONFIG = {
   rising:     { icon: TrendingUp,    color: 'text-emerald-400', bg: 'bg-emerald-400/10', label: 'Rising' },
