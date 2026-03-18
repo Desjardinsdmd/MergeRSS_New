@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Sparkles, Loader2, ChevronDown, ChevronUp, AlertCircle } from 'lucide-react';
+import { Sparkles, Loader2, ChevronDown, ChevronUp, XCircle } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export default function ArticleSummarizeButton({ item, onSummaryUpdate, compact = false }) {
   const [loading, setLoading] = useState(false);
