@@ -253,6 +253,32 @@ function SavedReportsList({ userEmail }) {
                   >
                     <Download className="w-3.5 h-3.5" />
                   </button>
+                  {confirmId === sr.id ? (
+                    <>
+                      <span className="text-xs text-red-400">Delete?</span>
+                      <button
+                        onClick={e => { e.stopPropagation(); handleDelete(sr.id); }}
+                        disabled={deletingId === sr.id}
+                        className="text-xs text-red-400 hover:text-red-300 font-semibold transition px-1"
+                      >
+                        {deletingId === sr.id ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Yes'}
+                      </button>
+                      <button
+                        onClick={e => { e.stopPropagation(); setConfirmId(null); }}
+                        className="text-xs text-stone-500 hover:text-stone-300 transition px-1"
+                      >
+                        No
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={e => { e.stopPropagation(); setConfirmId(sr.id); }}
+                      title="Delete report"
+                      className="p-1 text-stone-600 hover:text-red-400 transition"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                   {expandedId === sr.id ? <ChevronUp className="w-3.5 h-3.5 text-stone-600" /> : <ChevronDown className="w-3.5 h-3.5 text-stone-600" />}
                 </div>
               </button>
