@@ -4,6 +4,7 @@ import { Sparkles, Loader2, ChevronDown, ChevronUp, AlertCircle } from 'lucide-r
 
 export default function ArticleSummarizeButton({ item, onSummaryUpdate, compact = false }) {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
   const [showSummary, setShowSummary] = useState(!!item.ai_summary);
 
   const handleSummarize = async (e) => {
