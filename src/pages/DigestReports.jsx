@@ -369,6 +369,7 @@ export default function DigestReports() {
 
   const runReport = async () => {
     if (!selectedDigestIds.length) return;
+    setDropdownOpen(false);
     setLoading(true);
     setError(null);
     setReport(null);
