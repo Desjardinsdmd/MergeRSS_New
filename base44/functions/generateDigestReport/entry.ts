@@ -149,8 +149,11 @@ Be specific, analytical, and reference actual content from the digests. Avoid ge
     const actual_start = sortedByDate[0].sent_at || sortedByDate[0].created_date;
     const actual_end = sortedByDate[sortedByDate.length - 1].sent_at || sortedByDate[sortedByDate.length - 1].created_date;
 
+    // InvokeLLM wraps structured JSON output under a `response` key
+    const reportData = result?.response ?? result;
+
     const responseData = {
-      report: result,
+      report: reportData,
       digest_name: digestLabel,
       delivery_count: deliveries.length,
       requested_start: start_date,
@@ -169,7 +172,7 @@ Be specific, analytical, and reference actual content from the digests. Avoid ge
       delivery_count: deliveries.length,
       actual_start,
       actual_end,
-      report: result,
+      report: reportData,
     });
 
     return Response.json(responseData);
