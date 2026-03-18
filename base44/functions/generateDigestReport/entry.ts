@@ -65,7 +65,9 @@ Deno.serve(async (req) => {
       ? `NOTE: The user requested data from ${requestedStartFormatted} to ${requestedEndFormatted}, but actual digest data is only available from ${promptActualStart} to ${promptActualEnd}. You MUST mention this discrepancy clearly in your executive summary.`
       : `The data covers the full requested range from ${requestedStartFormatted} to ${requestedEndFormatted}.`;
 
-    const prompt = `You are an expert analyst. You have been given a series of digest deliveries from a feed called "${digest.name}" spanning from ${start_date} to ${end_date} (${period_label || 'custom period'}).
+    const digestLabel = digestNames.length === 1 ? digestNames[0] : digestNames.join(' + ');
+
+    const prompt = `You are an expert analyst. You have been given a series of digest deliveries from ${digestNames.length === 1 ? `a feed called "${digestNames[0]}"` : `${digestNames.length} combined feeds: ${digestNames.map(n => `"${n}"`).join(', ')}`} spanning from ${start_date} to ${end_date} (${period_label || 'custom period'}).
 
 ${rangeNote}
 
