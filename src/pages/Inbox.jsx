@@ -24,6 +24,7 @@ import InboxFolderSidebar from '@/components/inbox/InboxFolderSidebar';
 import { decodeHtml } from '@/components/utils/htmlUtils';
 import InboxToolbar from '@/components/inbox/InboxToolbar';
 import { jsPDF } from 'jspdf';
+import { generatePremiumPdf } from '@/lib/generatePremiumPdf';
 
 const SYSTEM_FOLDERS = ['Inbox', 'Starred'];
 
