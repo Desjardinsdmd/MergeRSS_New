@@ -400,7 +400,7 @@ export default function DigestReports() {
       </div>
 
       {/* Config panel */}
-      <div className="bg-stone-900 border border-stone-800 p-5 mb-6">
+      <div className="bg-stone-900 border border-stone-800 p-5 mb-6 relative z-10">
         <h2 className="text-sm font-semibold text-stone-300 mb-4">Configure Report</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           {/* Digest multi-select dropdown */}
