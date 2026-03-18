@@ -178,6 +178,162 @@ function DigestDeliveryList({ digests }) {
   );
 }
 
+function downloadReportAsPdf(savedReport) {
+  const doc = new jsPDF();
+  const margin = 20;
+  const maxWidth = doc.internal.pageSize.getWidth() - margin * 2;
+  let y = 20;
+
+  const addLine = (text, size, color, bold = false) => {
+    doc.setFontSize(size);
+    doc.setTextColor(...color);
+    doc.setFont('helvetica', bold ? 'bold' : 'normal');
+    const lines = doc.splitTextToSize(String(text || ''), maxWidth);
+    lines.forEach(line => {
+      if (y > 270) { doc.addPage(); y = 20; }
+      doc.text(line, margin, y);
+      y += size * 0.5;
+    });
+    y += 3;
+  };
+
+  const r = savedReport.report;
+  addLine(savedReport.digest_name + ' — Trend Report', 18, [251, 191, 36], true);
+  addLine(`${savedReport.start_date} – ${savedReport.end_date}`, 10, [150, 150, 150]);
+  y += 4;
+
+  if (r.executive_summary) {
+    addLine('Executive Summary', 13, [200, 200, 200], true);
+    addLine(r.executive_summary, 10, [220, 220, 210]);
+    y += 2;
+  }
+  if (r.key_themes?.length) {
+    addLine('Key Themes', 13, [200, 200, 200], true);
+    r.key_themes.forEach(t => {
+      addLine(`• ${t.theme} (${t.trajectory})`, 10, [220, 220, 210], true);
+      addLine(t.description, 10, [180, 180, 170]);
+    });
+    y += 2;
+  }
+  if (r.inflection_points?.length) {
+    addLine('Inflection Points', 13, [200, 200, 200], true);
+    r.inflection_points.forEach(p => {
+      addLine(`${p.date}: ${p.event}`, 10, [220, 220, 210], true);
+      addLine(p.significance, 10, [180, 180, 170]);
+    });
+    y += 2;
+  }
+  if (r.outlook) {
+    addLine('Outlook', 13, [200, 200, 200], true);
+    addLine(r.outlook, 10, [220, 220, 210]);
+  }
+
+  doc.save(`${savedReport.digest_name}-report-${savedReport.start_date}.pdf`);
+}
+
+function SavedReportsList({ userEmail }) {
+  const { data: savedReports = [], isLoading } = useQuery({
+    queryKey: ['saved-digest-reports', userEmail],
+    queryFn: () => base44.entities.SavedDigestReport.filter({ created_by: userEmail }, '-created_date', 100),
+    enabled: !!userEmail,
+  });
+
+  const [open, setOpen] = useState(false);
+  const [expandedId, setExpandedId] = useState(null);
+
+  return (
+    <div className="mb-4 border border-stone-800">
+      <button
+        onClick={() => setOpen(p => !p)}
+        className="w-full flex items-center justify-between px-4 py-3 bg-stone-900 hover:bg-stone-800 transition-colors text-left"
+      >
+        <div className="flex items-center gap-2">
+          <ClipboardList className="w-4 h-4 text-[hsl(var(--primary))]" />
+          <span className="text-sm font-semibold text-stone-200">All Digest Reports Issued</span>
+          {savedReports.length > 0 && (
+            <span className="text-xs text-stone-500 bg-stone-800 px-2 py-0.5">{savedReports.length}</span>
+          )}
+        </div>
+        {open ? <ChevronUp className="w-4 h-4 text-stone-500" /> : <ChevronDown className="w-4 h-4 text-stone-500" />}
+      </button>
+
+      {open && (
+        <div className="bg-stone-950">
+          {isLoading && (
+            <div className="flex items-center gap-2 text-stone-500 text-sm px-4 py-3">
+              <Loader2 className="w-4 h-4 animate-spin" /> Loading reports...
+            </div>
+          )}
+          {!isLoading && savedReports.length === 0 && (
+            <div className="px-4 py-3 text-xs text-stone-600">No reports generated yet. Run a report above to save it here.</div>
+          )}
+          {savedReports.map(sr => (
+            <div key={sr.id} className="border-t border-stone-800 first:border-t-0">
+              <button
+                onClick={() => setExpandedId(p => p === sr.id ? null : sr.id)}
+                className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-stone-900 transition-colors text-left"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <FileText className="w-3.5 h-3.5 text-stone-600 flex-shrink-0" />
+                  <span className="text-xs text-stone-300 font-medium truncate">{sr.digest_name}</span>
+                  <span className="text-xs text-stone-600 flex-shrink-0">{sr.start_date} – {sr.end_date}</span>
+                  {sr.delivery_count > 0 && <span className="text-xs text-stone-600">{sr.delivery_count} issues</span>}
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <button
+                    onClick={e => { e.stopPropagation(); downloadReportAsPdf(sr); }}
+                    title="Download as PDF"
+                    className="p-1 text-stone-600 hover:text-[hsl(var(--primary))] transition"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                  </button>
+                  {expandedId === sr.id ? <ChevronUp className="w-3.5 h-3.5 text-stone-600" /> : <ChevronDown className="w-3.5 h-3.5 text-stone-600" />}
+                </div>
+              </button>
+
+              {expandedId === sr.id && sr.report && (
+                <div className="px-6 pb-5 pt-3 space-y-3 bg-stone-950 border-t border-stone-800">
+                  {sr.report.executive_summary && (
+                    <div>
+                      <p className="text-xs font-semibold text-[hsl(var(--primary))] uppercase tracking-widest mb-1">Executive Summary</p>
+                      <p className="text-xs text-stone-300 leading-relaxed">{sr.report.executive_summary}</p>
+                    </div>
+                  )}
+                  {sr.report.key_themes?.length > 0 && (
+                    <div>
+                      <p className="text-xs font-semibold text-stone-400 uppercase tracking-widest mb-1.5">Key Themes</p>
+                      <div className="space-y-1">
+                        {sr.report.key_themes.map((t, i) => (
+                          <div key={i} className="flex items-center gap-2">
+                            <span className="text-xs text-stone-300">{t.theme}</span>
+                            <TrajectoryBadge trajectory={t.trajectory} />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {sr.report.outlook && (
+                    <div>
+                      <p className="text-xs font-semibold text-stone-400 uppercase tracking-widest mb-1">Outlook</p>
+                      <p className="text-xs text-stone-400 leading-relaxed">{sr.report.outlook}</p>
+                    </div>
+                  )}
+                  <button
+                    onClick={() => downloadReportAsPdf(sr)}
+                    className="flex items-center gap-1.5 text-xs text-[hsl(var(--primary))] hover:opacity-80 transition"
+                  >
+                    <Download className="w-3.5 h-3.5" /> Download full report as PDF
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function DigestReports() {
   const [user, setUser] = React.useState(null);
   React.useEffect(() => { base44.auth.me().then(setUser); }, []);
