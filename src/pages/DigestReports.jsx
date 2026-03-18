@@ -185,7 +185,7 @@ export default function DigestReports() {
 
         <Button
           onClick={runReport}
-          disabled={!selectedDigestId || loading}
+          disabled={!selectedDigestIds.length || loading}
           className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-bold gap-2"
         >
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
