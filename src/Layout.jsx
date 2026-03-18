@@ -39,6 +39,7 @@ const navigation = [
   { name: 'AI Curator', href: 'FeedCurator', icon: Zap },
   { name: 'Feeds', href: 'Feeds', icon: Rss },
   { name: 'Digests', href: 'Digests', icon: FileText },
+  { name: 'Digest Reports', href: 'DigestReports', icon: BarChart3 },
   { name: 'Inbox', href: 'Inbox', icon: Inbox },
   { name: 'Read Later', href: 'Bookmarks', icon: Bookmark },
   { name: 'Email Feeds', href: 'EmailFeeds', icon: Rss },
