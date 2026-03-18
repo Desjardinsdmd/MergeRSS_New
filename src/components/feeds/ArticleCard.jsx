@@ -75,7 +75,7 @@ export default function ArticleCard({
     return () => clearTimeout(timer);
   }, [item.url, imageUrl]);
 
-  imageUrl = imageUrl || fetchedImage;
+  imageUrl = imageUrl || fetchedImage || aiVisualUrl;
 
   // Generate a subtle gradient background color based on title hash
   const getBackgroundColor = () => {
