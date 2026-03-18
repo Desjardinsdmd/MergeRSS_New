@@ -154,6 +154,41 @@ export default function FeedListView({ feeds, selectedIds, onSelectionChange, on
                 </DropdownMenu>
               </td>
             </tr>
+            {expandedFeedId === feed.id && (
+              <tr className="bg-stone-950">
+                <td colSpan={6} className="px-6 py-3">
+                  {loadingFeedId === feed.id ? (
+                    <div className="flex items-center gap-2 text-xs text-stone-500 py-1">
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      Loading articles…
+                    </div>
+                  ) : (articlesByFeed[feed.id] || []).length === 0 ? (
+                    <p className="text-xs text-stone-600">No articles found.</p>
+                  ) : (
+                    <ul className="space-y-1.5 max-h-60 overflow-y-auto">
+                      {(articlesByFeed[feed.id] || []).map((article) => (
+                        <li key={article.id} className="flex items-start gap-3">
+                          <a
+                            href={safeUrl(article.url)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-stone-300 hover:text-[hsl(var(--primary))] line-clamp-1 flex-1"
+                          >
+                            {decodeHtml(article.title)}
+                          </a>
+                          {article.published_date && (
+                            <span className="text-[10px] text-stone-600 flex-shrink-0">
+                              {new Date(article.published_date).toLocaleDateString()}
+                            </span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </td>
+              </tr>
+            )}
+            </React.Fragment>
           ))}
         </tbody>
       </table>
