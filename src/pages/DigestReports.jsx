@@ -31,40 +31,61 @@ function TrajectoryBadge({ trajectory }) {
 }
 
 function downloadDeliveryAsPdf(delivery, digestName) {
-  const doc = new jsPDF();
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const margin = 20;
-  const maxWidth = pageWidth - margin * 2;
-  let y = 20;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const margin = 18;
+  const col = 174;
+  let y = 22;
 
-  const addText = (text, size, color, bold = false) => {
-    doc.setFontSize(size);
-    doc.setTextColor(...color);
-    if (bold) doc.setFont('helvetica', 'bold');
-    else doc.setFont('helvetica', 'normal');
-    const lines = doc.splitTextToSize(String(text || ''), maxWidth);
-    lines.forEach(line => {
-      if (y > 270) { doc.addPage(); y = 20; }
-      doc.text(line, margin, y);
-      y += size * 0.5;
-    });
-    y += 2;
-  };
+  // Cover bar
+  doc.setFillColor(10, 8, 5);
+  doc.rect(0, 0, 210, 40, 'F');
+  doc.setFillColor(214, 158, 20);
+  doc.rect(0, 40, 210, 2, 'F');
 
-  addText(digestName || 'Digest', 18, [251, 191, 36], true);
-  addText(delivery.date_range_start ? format(new Date(delivery.date_range_start), 'MMM d, yyyy') + ' – ' + format(new Date(delivery.date_range_end), 'MMM d, yyyy') : '', 10, [150, 150, 150]);
-  y += 4;
+  // Brand
+  doc.setFillColor(214, 158, 20);
+  doc.rect(margin, y - 6, 12, 12, 'F');
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(10, 8, 5);
+  doc.text('M', margin + 3.5, y + 2);
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(255, 255, 255);
+  doc.text('MergeRSS', margin + 16, y + 2);
 
-  // Strip markdown-ish formatting from content
-  const plainContent = (delivery.content || '')
+  // Title
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.setTextColor(255, 255, 255);
+  const titleLines = doc.splitTextToSize((digestName || 'Digest').toUpperCase(), col);
+  titleLines.slice(0, 2).forEach((l, i) => doc.text(l, margin, 30 + i * 8));
+
+  y = 52;
+  // Date range
+  const drStr = delivery.date_range_start
+    ? `${format(new Date(delivery.date_range_start), 'MMMM d, yyyy')} – ${format(new Date(delivery.date_range_end), 'MMMM d, yyyy')}`
+    : format(new Date(delivery.created_date || Date.now()), 'MMMM d, yyyy');
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(110, 104, 96);
+  doc.text(drStr, margin, y);
+  y += 8;
+
+  // Content
+  const plain = (delivery.content || '')
     .replace(/#{1,6}\s/g, '')
     .replace(/\*\*/g, '')
     .replace(/\*/g, '')
     .replace(/^\s*[-•]\s/gm, '• ');
 
-  addText(plainContent, 10, [220, 220, 210]);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(34, 28, 20);
+  const lines = doc.splitTextToSize(plain, col);
+  lines.forEach(line => {
+    if (y > 280) { doc.addPage(); y = 22; }
+    doc.text(line, margin, y);
+    y += 4.5;
+  });
 
-  doc.save(`${digestName || 'digest'}-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+  // Footer
+  doc.setFillColor(245, 243, 240);
+  doc.rect(0, 287, 210, 10, 'F');
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(180, 175, 168);
+  doc.text('MergeRSS Intelligence  ·  mergerss.com', margin, 293);
+
+  doc.save(`${(digestName || 'digest').replace(/[^a-z0-9]/gi, '-').toLowerCase()}-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
 }
 
 function DigestDeliveryList({ digests }) {
