@@ -97,71 +97,73 @@ export default function DigestReports() {
       {/* Config panel */}
       <div className="bg-stone-900 border border-stone-800 p-5 mb-6">
         <h2 className="text-sm font-semibold text-stone-300 mb-4">Configure Report</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          {/* Digest selector — multi-select */}
-          <div className="md:col-span-2">
-            <label className="text-xs text-stone-500 mb-1.5 block">
-              Select Digest(s) <span className="text-stone-600">— pick one or more to combine into a single report</span>
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {digests.map(d => {
-                const selected = selectedDigestIds.includes(d.id);
-                return (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          {/* Digest multi-select dropdown */}
+          <div className="md:col-span-1 relative" ref={dropdownRef}>
+            <label className="text-xs text-stone-500 mb-1.5 block">Select Digest(s)</label>
+            <button
+              onClick={() => setDropdownOpen(p => !p)}
+              className="w-full flex items-center justify-between bg-stone-800 border border-stone-700 text-sm px-3 py-2 text-left hover:border-stone-500 transition-colors focus:outline-none focus:border-[hsl(var(--primary))]"
+            >
+              <span className={selectedDigestIds.length ? 'text-stone-200' : 'text-stone-500'}>
+                {selectedDigestIds.length === 0
+                  ? 'Choose digests...'
+                  : selectedDigestIds.length === 1
+                    ? digests.find(d => d.id === selectedDigestIds[0])?.name
+                    : `${selectedDigestIds.length} digests selected`}
+              </span>
+              <ChevronDown className="w-4 h-4 text-stone-500 flex-shrink-0" />
+            </button>
+            {dropdownOpen && (
+              <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-stone-800 border border-stone-700 shadow-xl max-h-60 overflow-y-auto">
+                {digests.length === 0 && (
+                  <div className="px-3 py-2 text-xs text-stone-500">No digests found</div>
+                )}
+                {digests.map(d => {
+                  const selected = selectedDigestIds.includes(d.id);
+                  return (
+                    <button
+                      key={d.id}
+                      onClick={() => toggleDigest(d.id)}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-stone-700 transition-colors"
+                    >
+                      <div className={`w-4 h-4 border flex items-center justify-center flex-shrink-0 ${selected ? 'bg-[hsl(var(--primary))] border-[hsl(var(--primary))]' : 'border-stone-600'}`}>
+                        {selected && <Check className="w-2.5 h-2.5 text-stone-900" />}
+                      </div>
+                      <span className={selected ? 'text-stone-100' : 'text-stone-400'}>{d.name}</span>
+                    </button>
+                  );
+                })}
+                {selectedDigestIds.length > 0 && (
                   <button
-                    key={d.id}
-                    onClick={() => toggleDigest(d.id)}
-                    className={`px-3 py-1.5 text-sm border transition-colors ${
-                      selected
-                        ? 'bg-[hsl(var(--primary))] border-[hsl(var(--primary))] text-stone-900 font-semibold'
-                        : 'bg-stone-800 border-stone-700 text-stone-400 hover:border-stone-500 hover:text-stone-200'
-                    }`}
+                    onClick={() => setSelectedDigestIds([])}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-xs text-red-400 hover:bg-stone-700 border-t border-stone-700 transition-colors"
                   >
-                    {d.name}
+                    <X className="w-3 h-3" /> Clear selection
                   </button>
-                );
-              })}
-            </div>
-            {selectedDigestIds.length > 0 && (
-              <p className="text-xs text-stone-600 mt-1.5">
-                {selectedDigestIds.length} digest{selectedDigestIds.length > 1 ? 's' : ''} selected
-                {selectedDigestIds.length > 1 && ' — will be merged into one combined report'}
-              </p>
+                )}
+              </div>
             )}
           </div>
 
-          {/* Quick range */}
-          <div>
-            <label className="text-xs text-stone-500 mb-1.5 block">Date Range</label>
-            <Select value={quickRange} onValueChange={handleQuickRange}>
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {QUICK_RANGES.map(r => (
-                  <SelectItem key={r.label} value={r.label}>{r.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {/* Date inputs — always visible */}
-        <div className="grid grid-cols-2 gap-4 mb-4">
+          {/* Start Date */}
           <div>
             <label className="text-xs text-stone-500 mb-1.5 block">Start Date</label>
             <input
               type="date"
               value={startDate}
-              onChange={e => { setStartDate(e.target.value); setQuickRange('Custom'); }}
+              onChange={e => setStartDate(e.target.value)}
               className="w-full bg-stone-800 border border-stone-700 text-stone-200 text-sm px-3 py-2 focus:outline-none focus:border-[hsl(var(--primary))]"
             />
           </div>
+
+          {/* End Date */}
           <div>
             <label className="text-xs text-stone-500 mb-1.5 block">End Date</label>
             <input
               type="date"
               value={endDate}
-              onChange={e => { setEndDate(e.target.value); setQuickRange('Custom'); }}
+              onChange={e => setEndDate(e.target.value)}
               className="w-full bg-stone-800 border border-stone-700 text-stone-200 text-sm px-3 py-2 focus:outline-none focus:border-[hsl(var(--primary))]"
             />
           </div>
