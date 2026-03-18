@@ -379,10 +379,11 @@ export default function Dashboard() {
               {expandedItem ? (
                 <div className="p-5">
                   <a href={safeUrl(expandedItem.url)} target="_blank" rel="noopener noreferrer" className="group">
-                    <h2 className="text-base font-semibold text-stone-100 group-hover:text-[hsl(var(--primary))] transition-colors mb-2 leading-snug">
+                    <h2 className="text-base font-semibold text-stone-100 group-hover:text-[hsl(var(--primary))] transition-colors mb-3 leading-snug">
                       {expandedItem.title}
                     </h2>
                   </a>
+                  <ArticleDetailVisual articleId={expandedItem.id} />
                   <div className="flex items-center gap-2 text-xs text-stone-500 mb-3">
                     <Clock className="w-3 h-3" />
                     {expandedItem.published_date && new Date(expandedItem.published_date).toLocaleString()}
