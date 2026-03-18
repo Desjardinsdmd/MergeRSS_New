@@ -487,13 +487,31 @@ export default function DigestReports() {
         )}
       </div>
 
-      {/* Digest Delivery History */}
+      {/* Saved Reports */}
+      {user && (
+        <div className="mb-4">
+          <SavedReportsList userEmail={user.email} />
+        </div>
+      )}
+
+      {/* Digest Delivery History — collapsible */}
       {digests.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-sm font-semibold text-stone-300 mb-3 flex items-center gap-2">
-            <Inbox className="w-4 h-4 text-stone-500" /> All Digest Issues
-          </h2>
-          <DigestDeliveryList digests={digests} />
+        <div className="mb-8 border border-stone-800">
+          <button
+            onClick={() => setIssuesOpen(p => !p)}
+            className="w-full flex items-center justify-between px-4 py-3 bg-stone-900 hover:bg-stone-800 transition-colors text-left"
+          >
+            <div className="flex items-center gap-2">
+              <Inbox className="w-4 h-4 text-stone-500" />
+              <span className="text-sm font-semibold text-stone-200">All Digest Issues</span>
+            </div>
+            {issuesOpen ? <ChevronUp className="w-4 h-4 text-stone-500" /> : <ChevronDown className="w-4 h-4 text-stone-500" />}
+          </button>
+          {issuesOpen && (
+            <div className="p-4 bg-stone-950">
+              <DigestDeliveryList digests={digests} />
+            </div>
+          )}
         </div>
       )}
 
