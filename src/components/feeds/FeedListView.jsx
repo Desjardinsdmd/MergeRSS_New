@@ -74,7 +74,8 @@ export default function FeedListView({ feeds, selectedIds, onSelectionChange, on
         </thead>
         <tbody className="divide-y divide-stone-800">
            {feeds.map((feed) => (
-             <tr key={feed.id} className="hover:bg-stone-800 transition">
+             <React.Fragment key={feed.id}>
+             <tr className="hover:bg-stone-800 transition">
               <td className="px-4 py-3">
                 <Checkbox
                   checked={selectedIds.includes(feed.id)}
