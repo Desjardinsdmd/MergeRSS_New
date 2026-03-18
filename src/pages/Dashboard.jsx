@@ -246,6 +246,9 @@ export default function Dashboard() {
         <WidgetCustomizer user={user} onSave={() => window.location.reload()} />
       </div>
 
+      {/* Daily AI Snapshot */}
+      {feeds.length > 0 && widget('dailySnapshot') && <DailySnapshot />}
+
       {/* Stats Grid */}
       <div className="grid grid-cols-3 gap-3 mb-8">
         {stats.map((stat) => (
