@@ -72,7 +72,6 @@ export default function DigestReports() {
         digest_ids: selectedDigestIds,
         start_date: startDate,
         end_date: endDate,
-        period_label: periodLabel,
       });
       setReport(res.data);
     } catch (e) {
