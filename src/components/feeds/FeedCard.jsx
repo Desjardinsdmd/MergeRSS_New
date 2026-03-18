@@ -18,11 +18,15 @@ import {
   ExternalLink,
   Clock,
   AlertCircle,
-  Bell
+  Bell,
+  ChevronDown,
+  ChevronUp,
+  Loader2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { safeUrl } from '@/components/utils/htmlUtils';
+import { safeUrl, decodeHtml } from '@/components/utils/htmlUtils';
 import FeedAlertsDialog from '@/components/feeds/FeedAlertsDialog';
+import { base44 } from '@/api/base44Client';
 
 const categoryColors = {
   CRE: 'bg-blue-950 text-blue-400',
