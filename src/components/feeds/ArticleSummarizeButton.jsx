@@ -48,20 +48,17 @@ export default function ArticleSummarizeButton({ item, onSummaryUpdate, compact 
     }
     return (
       <button
-        onClick={handleSummarize}
+        onClick={error ? handleSummarize : handleSummarize}
         disabled={loading}
         className="text-xs text-stone-600 hover:text-[hsl(var(--primary))]/70 transition-colors flex items-center gap-1 mt-2 disabled:opacity-50"
+        title={error ? 'Rate limit hit — click to retry' : undefined}
       >
         {loading ? (
-          <>
-            <Loader2 className="w-3 h-3 animate-spin" />
-            Summarizing…
-          </>
+          <><Loader2 className="w-3 h-3 animate-spin" />Summarizing…</>
+        ) : error ? (
+          <><AlertCircle className="w-3 h-3 text-red-500" />Retry</>
         ) : (
-          <>
-            <Sparkles className="w-3 h-3" />
-            Summarize
-          </>
+          <><Sparkles className="w-3 h-3" />Summarize</>
         )}
       </button>
     );
