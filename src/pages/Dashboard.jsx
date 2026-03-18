@@ -46,6 +46,7 @@ import ContextualTips from '@/components/dashboard/ContextualTips';
 import WidgetCustomizer from '@/components/dashboard/WidgetCustomizer';
 import FeaturedDigestHero from '@/components/dashboard/FeaturedDigestHero';
 import GroupedArticles from '@/components/dashboard/GroupedArticles';
+import ArticleDetailVisual from '@/components/feeds/ArticleDetailVisual';
 
 export default function Dashboard() {
   const queryClient = useQueryClient();
