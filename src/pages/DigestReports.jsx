@@ -11,24 +11,6 @@ import { jsPDF } from 'jspdf';
 import { generatePremiumPdf } from '@/lib/generatePremiumPdf';
 import ReportViewer from '@/components/reports/ReportViewer';
 
-const TRAJECTORY_CONFIG = {
-  rising:     { icon: TrendingUp,    color: 'text-emerald-400', bg: 'bg-emerald-400/10', label: 'Rising' },
-  falling:    { icon: TrendingDown,  color: 'text-red-400',     bg: 'bg-red-400/10',     label: 'Falling' },
-  stable:     { icon: Minus,         color: 'text-stone-400',   bg: 'bg-stone-700',      label: 'Stable' },
-  volatile:   { icon: AlertTriangle, color: 'text-amber-400',   bg: 'bg-amber-400/10',   label: 'Volatile' },
-  peaked:     { icon: ArrowUpRight,  color: 'text-orange-400',  bg: 'bg-orange-400/10',  label: 'Peaked' },
-  resolving:  { icon: ArrowDownRight,color: 'text-blue-400',    bg: 'bg-blue-400/10',    label: 'Resolving' },
-};
-
-function TrajectoryBadge({ trajectory }) {
-  const cfg = TRAJECTORY_CONFIG[trajectory] || TRAJECTORY_CONFIG.stable;
-  const Icon = cfg.icon;
-  return (
-    <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 font-medium ${cfg.bg} ${cfg.color}`}>
-      <Icon className="w-3 h-3" />{cfg.label}
-    </span>
-  );
-}
 
 function downloadDeliveryAsPdf(delivery, digestName) {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
