@@ -500,78 +500,119 @@ export default function DigestReports() {
 
       {/* Report output */}
       {report?.report && (
-        <div className="space-y-4">
-          {/* Report title */}
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h2 className="text-xl font-bold text-stone-100">
-                {report.digest_name} — {report.period_label || 'Trend'} Report
-              </h2>
-              <p className="text-xs text-stone-500 mt-1">
-                {report.delivery_count} digest{report.delivery_count !== 1 ? 's' : ''} analyzed
-              </p>
-            </div>
-            <button onClick={runReport} className="p-1.5 text-stone-600 hover:text-stone-300 transition" title="Regenerate">
-              <RefreshCw className="w-4 h-4" />
-            </button>
-          </div>
+        <div className="space-y-0">
 
-          {/* Range callout */}
-          {(() => {
-            const reqStart = format(new Date(report.requested_start), 'MMM d, yyyy');
-            const reqEnd = format(new Date(report.requested_end), 'MMM d, yyyy');
-            const actStart = format(new Date(report.actual_start), 'MMM d, yyyy');
-            const actEnd = format(new Date(report.actual_end), 'MMM d, yyyy');
-            const differs = reqStart !== actStart || reqEnd !== actEnd;
-            return (
-              <div className={`p-4 border text-sm ${differs ? 'bg-amber-950/20 border-amber-900/50' : 'bg-stone-900 border-stone-800'}`}>
-                <div className="flex flex-wrap gap-x-6 gap-y-1">
-                  <span className="text-stone-500">
-                    <span className="text-stone-400 font-medium">Requested range:</span>{' '}
-                    {reqStart} – {reqEnd}
-                  </span>
-                  <span className={differs ? 'text-amber-300' : 'text-stone-500'}>
-                    <span className={`font-medium ${differs ? 'text-amber-400' : 'text-stone-400'}`}>Actual data range:</span>{' '}
-                    {actStart} – {actEnd}
+          {/* ── Report Header Bar ── */}
+          <div className="bg-stone-950 border border-stone-800 border-b-0 p-6">
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[10px] font-bold tracking-[0.2em] text-[hsl(var(--primary))] uppercase">Intelligence Report</span>
+                </div>
+                <h2 className="text-2xl font-bold text-stone-100 leading-tight">
+                  {report.digest_name}
+                </h2>
+                <p className="text-sm text-stone-500 mt-1">
+                  {format(new Date(report.actual_start || report.requested_start), 'MMMM d, yyyy')} – {format(new Date(report.actual_end || report.requested_end), 'MMMM d, yyyy')}
+                  <span className="mx-2 text-stone-700">·</span>
+                  {report.delivery_count} issue{report.delivery_count !== 1 ? 's' : ''} analyzed
+                </p>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <button
+                  onClick={() => downloadReportAsPdf({ report: report.report, digest_name: report.digest_name, start_date: report.requested_start, end_date: report.requested_end, delivery_count: report.delivery_count })}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-[hsl(var(--primary))] text-stone-900 hover:opacity-90 transition"
+                >
+                  <Download className="w-3.5 h-3.5" /> Export PDF
+                </button>
+                <button onClick={runReport} className="p-1.5 text-stone-600 hover:text-stone-300 transition border border-stone-800" title="Regenerate">
+                  <RefreshCw className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Data range notice */}
+            {(() => {
+              const reqStart = format(new Date(report.requested_start), 'MMM d, yyyy');
+              const reqEnd = format(new Date(report.requested_end), 'MMM d, yyyy');
+              const actStart = format(new Date(report.actual_start), 'MMM d, yyyy');
+              const actEnd = format(new Date(report.actual_end), 'MMM d, yyyy');
+              const differs = reqStart !== actStart || reqEnd !== actEnd;
+              if (!differs) return null;
+              return (
+                <div className="flex items-start gap-2 p-3 bg-amber-950/20 border border-amber-900/40 text-xs">
+                  <AlertTriangle className="w-3.5 h-3.5 text-amber-400 flex-shrink-0 mt-0.5" />
+                  <span className="text-amber-300">
+                    Data available {actStart} – {actEnd} only. Report is based on available issues within the requested range.
                   </span>
                 </div>
-                {differs && (
-                  <p className="text-xs text-amber-500 mt-1.5">
-                    ⚠ No digest data was found for part of the requested range. The report is based on available data only.
-                  </p>
-                )}
-              </div>
-            );
-          })()}
-
-          {/* Executive Summary */}
-          <div className="bg-stone-900 border border-[hsl(var(--primary))]/30 p-5">
-            <div className="flex items-center gap-2 mb-2">
-              <FileText className="w-4 h-4 text-[hsl(var(--primary))]" />
-              <span className="text-xs font-semibold text-[hsl(var(--primary))] uppercase tracking-widest">Executive Summary</span>
-            </div>
-            <p className="text-stone-200 text-sm leading-relaxed">{report.report.executive_summary}</p>
+              );
+            })()}
           </div>
 
-          {/* Key Themes */}
-          {report.report.key_themes?.length > 0 && (
-            <div className="bg-stone-900 border border-stone-800 p-5">
-              <h3 className="text-sm font-semibold text-stone-300 mb-3">Key Themes & Evolution</h3>
+          {/* ── 01 Executive Summary ── */}
+          <div className="border border-stone-800 border-t-0">
+            <div className="flex items-center gap-3 px-6 py-3 bg-[hsl(var(--primary))]">
+              <span className="text-[10px] font-bold tracking-[0.2em] text-stone-900">01</span>
+              <div className="w-px h-3 bg-stone-900/30" />
+              <span className="text-[10px] font-bold tracking-[0.2em] text-stone-900 uppercase">Executive Summary</span>
+            </div>
+            <div className="p-6 bg-stone-950 space-y-5">
+              {/* Key takeaway box */}
+              {report.report.executive_summary && (
+                <div className="border-l-4 border-[hsl(var(--primary))] bg-stone-900 px-5 py-4">
+                  <p className="text-[10px] font-bold tracking-widest text-[hsl(var(--primary))] uppercase mb-2">Key Takeaway</p>
+                  <p className="text-sm font-medium text-stone-200 leading-relaxed">
+                    {report.report.executive_summary.split(/(?<=[.!?])\s+/)[0]}
+                  </p>
+                </div>
+              )}
+              {/* Full summary */}
               <div className="space-y-3">
+                {(report.report.executive_summary || '').split(/\n+/).filter(p => p.trim()).map((para, i) => (
+                  <p key={i} className="text-sm text-stone-300 leading-[1.8]">{para}</p>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* ── 02 Key Themes ── */}
+          {report.report.key_themes?.length > 0 && (
+            <div className="border border-stone-800 border-t-0">
+              <div className="flex items-center gap-3 px-6 py-3 bg-stone-900 border-b border-stone-800">
+                <span className="text-[10px] font-bold tracking-[0.2em] text-stone-500">02</span>
+                <div className="w-px h-3 bg-stone-700" />
+                <span className="text-[10px] font-bold tracking-[0.2em] text-stone-400 uppercase">Key Themes & Evolution</span>
+              </div>
+              <div className="bg-stone-950 divide-y divide-stone-800/60">
                 {report.report.key_themes.map((theme, i) => (
-                  <div key={i} className="border border-stone-800 p-3">
-                    <div className="flex items-center justify-between gap-3 mb-1">
+                  <div key={i} className="p-5">
+                    <div className="flex items-start justify-between gap-4 mb-0">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <span className="text-[10px] font-bold text-stone-600 flex-shrink-0 w-6">
+                          {String(i + 1).padStart(2, '0')}
+                        </span>
+                        <button
+                          className="flex items-center gap-3 flex-1 text-left group"
+                          onClick={() => setExpandedThemes(p => ({ ...p, [i]: !p[i] }))}
+                        >
+                          <span className="text-sm font-semibold text-stone-100 group-hover:text-[hsl(var(--primary))] transition-colors">
+                            {theme.theme}
+                          </span>
+                          <TrajectoryBadge trajectory={theme.trajectory} />
+                        </button>
+                      </div>
                       <button
-                        className="flex items-center gap-2 flex-1 text-left"
                         onClick={() => setExpandedThemes(p => ({ ...p, [i]: !p[i] }))}
+                        className="text-stone-600 hover:text-stone-400 flex-shrink-0 mt-0.5"
                       >
-                        <span className="text-sm font-medium text-stone-200">{theme.theme}</span>
-                        <TrajectoryBadge trajectory={theme.trajectory} />
-                        {expandedThemes[i] ? <ChevronUp className="w-3.5 h-3.5 text-stone-600 ml-auto" /> : <ChevronDown className="w-3.5 h-3.5 text-stone-600 ml-auto" />}
+                        {expandedThemes[i] ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                       </button>
                     </div>
                     {expandedThemes[i] && (
-                      <p className="text-xs text-stone-400 leading-relaxed mt-2 pl-0">{theme.description}</p>
+                      <div className="mt-4 ml-9 space-y-3">
+                        <p className="text-sm text-stone-400 leading-[1.8]">{theme.description}</p>
+                      </div>
                     )}
                   </div>
                 ))}
@@ -579,88 +620,135 @@ export default function DigestReports() {
             </div>
           )}
 
-          {/* Inflection Points */}
+          {/* ── 03 Trend Trajectories ── */}
+          {(report.report.escalating_topics?.length > 0 || report.report.deescalating_topics?.length > 0 || report.report.cyclical_topics?.length > 0) && (
+            <div className="border border-stone-800 border-t-0">
+              <div className="flex items-center gap-3 px-6 py-3 bg-stone-900 border-b border-stone-800">
+                <span className="text-[10px] font-bold tracking-[0.2em] text-stone-500">03</span>
+                <div className="w-px h-3 bg-stone-700" />
+                <span className="text-[10px] font-bold tracking-[0.2em] text-stone-400 uppercase">Trend Trajectories</span>
+              </div>
+              <div className="bg-stone-950 grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-stone-800">
+                {report.report.escalating_topics?.length > 0 && (
+                  <div className="p-5">
+                    <div className="flex items-center gap-2 mb-3">
+                      <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+                      <span className="text-[10px] font-bold tracking-widest text-emerald-400 uppercase">Escalating</span>
+                    </div>
+                    <ul className="space-y-2">
+                      {report.report.escalating_topics.map((t, i) => (
+                        <li key={i} className="text-xs text-stone-300 flex items-start gap-2">
+                          <span className="text-emerald-500 flex-shrink-0 mt-0.5">↑</span>{t}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {report.report.deescalating_topics?.length > 0 && (
+                  <div className="p-5">
+                    <div className="flex items-center gap-2 mb-3">
+                      <TrendingDown className="w-3.5 h-3.5 text-blue-400" />
+                      <span className="text-[10px] font-bold tracking-widest text-blue-400 uppercase">De-escalating</span>
+                    </div>
+                    <ul className="space-y-2">
+                      {report.report.deescalating_topics.map((t, i) => (
+                        <li key={i} className="text-xs text-stone-300 flex items-start gap-2">
+                          <span className="text-blue-400 flex-shrink-0 mt-0.5">↓</span>{t}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {report.report.cyclical_topics?.length > 0 && (
+                  <div className="p-5">
+                    <div className="flex items-center gap-2 mb-3">
+                      <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                      <span className="text-[10px] font-bold tracking-widest text-amber-400 uppercase">Cyclical / Volatile</span>
+                    </div>
+                    <ul className="space-y-2">
+                      {report.report.cyclical_topics.map((t, i) => (
+                        <li key={i} className="text-xs text-stone-300 flex items-start gap-2">
+                          <span className="text-amber-400 flex-shrink-0 mt-0.5">⚡</span>{t}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ── 04 Inflection Points ── */}
           {report.report.inflection_points?.length > 0 && (
-            <div className="bg-stone-900 border border-stone-800 p-5">
-              <h3 className="text-sm font-semibold text-stone-300 mb-3">Significant Inflection Points</h3>
-              <div className="space-y-3">
-                {report.report.inflection_points.map((pt, i) => (
-                  <div key={i} className="flex gap-3">
-                    <div className="flex-shrink-0 mt-0.5">
-                      <div className="w-2 h-2 rounded-full bg-[hsl(var(--primary))] mt-1.5" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <span className="text-xs font-semibold text-[hsl(var(--primary))]">{pt.date}</span>
-                        <span className="text-sm text-stone-200">{pt.event}</span>
+            <div className="border border-stone-800 border-t-0">
+              <div className="flex items-center gap-3 px-6 py-3 bg-stone-900 border-b border-stone-800">
+                <span className="text-[10px] font-bold tracking-[0.2em] text-stone-500">04</span>
+                <div className="w-px h-3 bg-stone-700" />
+                <span className="text-[10px] font-bold tracking-[0.2em] text-stone-400 uppercase">Inflection Points</span>
+              </div>
+              <div className="bg-stone-950 p-6">
+                <div className="relative">
+                  {/* Timeline line */}
+                  <div className="absolute left-[7px] top-2 bottom-2 w-px bg-stone-800" />
+                  <div className="space-y-6">
+                    {report.report.inflection_points.map((pt, i) => (
+                      <div key={i} className="flex gap-5 relative">
+                        <div className="flex-shrink-0 mt-1">
+                          <div className="w-3.5 h-3.5 rounded-full bg-[hsl(var(--primary))] border-2 border-stone-950 relative z-10" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="text-[10px] font-bold tracking-widest text-[hsl(var(--primary))] uppercase">{pt.date}</span>
+                          <h4 className="text-sm font-semibold text-stone-100 mt-1 mb-2 leading-snug">{pt.event}</h4>
+                          <p className="text-xs text-stone-400 leading-relaxed">{pt.significance}</p>
+                        </div>
                       </div>
-                      <p className="text-xs text-stone-500">{pt.significance}</p>
-                    </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── 05 Outlook ── */}
+          {report.report.outlook && (
+            <div className="border border-stone-800 border-t-0">
+              <div className="flex items-center gap-3 px-6 py-3 bg-stone-900 border-b border-stone-800">
+                <span className="text-[10px] font-bold tracking-[0.2em] text-stone-500">05</span>
+                <div className="w-px h-3 bg-stone-700" />
+                <span className="text-[10px] font-bold tracking-[0.2em] text-stone-400 uppercase">Outlook & Forward Signals</span>
+              </div>
+              <div className="bg-stone-950 p-6 space-y-3">
+                {report.report.outlook.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 8).map((signal, i) => (
+                  <div key={i} className="flex gap-4 items-start">
+                    <span className="flex-shrink-0 w-5 h-5 bg-stone-800 border border-stone-700 flex items-center justify-center text-[9px] font-bold text-[hsl(var(--primary))] mt-0.5">
+                      {i + 1}
+                    </span>
+                    <p className="text-sm text-stone-300 leading-relaxed">{signal.trim()}</p>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Trend Trajectories */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {report.report.escalating_topics?.length > 0 && (
-              <div className="bg-emerald-950/20 border border-emerald-900/40 p-4">
-                <div className="flex items-center gap-1.5 mb-2">
-                  <TrendingUp className="w-4 h-4 text-emerald-400" />
-                  <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wide">Escalating</span>
-                </div>
-                <ul className="space-y-1">
-                  {report.report.escalating_topics.map((t, i) => (
-                    <li key={i} className="text-xs text-stone-300">• {t}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {report.report.deescalating_topics?.length > 0 && (
-              <div className="bg-blue-950/20 border border-blue-900/40 p-4">
-                <div className="flex items-center gap-1.5 mb-2">
-                  <TrendingDown className="w-4 h-4 text-blue-400" />
-                  <span className="text-xs font-semibold text-blue-400 uppercase tracking-wide">De-escalating</span>
-                </div>
-                <ul className="space-y-1">
-                  {report.report.deescalating_topics.map((t, i) => (
-                    <li key={i} className="text-xs text-stone-300">• {t}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {report.report.cyclical_topics?.length > 0 && (
-              <div className="bg-amber-950/20 border border-amber-900/40 p-4">
-                <div className="flex items-center gap-1.5 mb-2">
-                  <AlertTriangle className="w-4 h-4 text-amber-400" />
-                  <span className="text-xs font-semibold text-amber-400 uppercase tracking-wide">Cyclical / Volatile</span>
-                </div>
-                <ul className="space-y-1">
-                  {report.report.cyclical_topics.map((t, i) => (
-                    <li key={i} className="text-xs text-stone-300">• {t}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-
-          {/* Outlook */}
-          {report.report.outlook && (
-            <div className="bg-stone-900 border border-stone-800 p-5">
-              <h3 className="text-sm font-semibold text-stone-300 mb-2">Outlook</h3>
-              <p className="text-sm text-stone-400 leading-relaxed">{report.report.outlook}</p>
-            </div>
-          )}
-
-          {/* Data Summary */}
+          {/* ── Footer / Data Summary ── */}
           {report.report.data_summary && (
-            <div className="flex flex-wrap gap-4 text-xs text-stone-600 border-t border-stone-800 pt-4">
-              <span>📊 {report.report.data_summary.digest_count} digests analyzed</span>
-              <span>📅 {report.report.data_summary.date_range}</span>
-              {report.report.data_summary.most_active_period && (
-                <span>🔥 Most active: {report.report.data_summary.most_active_period}</span>
-              )}
+            <div className="border border-stone-800 border-t-0 bg-stone-900 px-6 py-4">
+              <div className="flex flex-wrap gap-6 text-xs text-stone-600">
+                <span className="flex items-center gap-1.5">
+                  <BarChart2 className="w-3 h-3" />
+                  {report.report.data_summary.digest_count} issues analyzed
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <FileText className="w-3 h-3" />
+                  {report.report.data_summary.date_range}
+                </span>
+                {report.report.data_summary.most_active_period && (
+                  <span className="flex items-center gap-1.5">
+                    <TrendingUp className="w-3 h-3" />
+                    Most active: {report.report.data_summary.most_active_period}
+                  </span>
+                )}
+              </div>
             </div>
           )}
         </div>
