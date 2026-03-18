@@ -2,8 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import {
-  BarChart2, Play, Loader2, TrendingUp, TrendingDown,
-  Minus, AlertTriangle, ArrowUpRight, ArrowDownRight, RefreshCw,
+  BarChart2, Play, Loader2,
   ChevronDown, ChevronUp, FileText, Check, X, Download, Inbox, Eye, ClipboardList
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
