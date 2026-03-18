@@ -4,10 +4,11 @@ import { useQuery } from '@tanstack/react-query';
 import {
   BarChart2, Play, Loader2, TrendingUp, TrendingDown,
   Minus, AlertTriangle, ArrowUpRight, ArrowDownRight, RefreshCw,
-  ChevronDown, ChevronUp, FileText, Check, X
+  ChevronDown, ChevronUp, FileText, Check, X, Download, Inbox, Eye
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format, subDays } from 'date-fns';
+import { jsPDF } from 'jspdf';
 
 const TRAJECTORY_CONFIG = {
   rising:     { icon: TrendingUp,    color: 'text-emerald-400', bg: 'bg-emerald-400/10', label: 'Rising' },
@@ -28,7 +29,154 @@ function TrajectoryBadge({ trajectory }) {
   );
 }
 
+function downloadDeliveryAsPdf(delivery, digestName) {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const margin = 20;
+  const maxWidth = pageWidth - margin * 2;
+  let y = 20;
 
+  const addText = (text, size, color, bold = false) => {
+    doc.setFontSize(size);
+    doc.setTextColor(...color);
+    if (bold) doc.setFont('helvetica', 'bold');
+    else doc.setFont('helvetica', 'normal');
+    const lines = doc.splitTextToSize(String(text || ''), maxWidth);
+    lines.forEach(line => {
+      if (y > 270) { doc.addPage(); y = 20; }
+      doc.text(line, margin, y);
+      y += size * 0.5;
+    });
+    y += 2;
+  };
+
+  addText(digestName || 'Digest', 18, [251, 191, 36], true);
+  addText(delivery.date_range_start ? format(new Date(delivery.date_range_start), 'MMM d, yyyy') + ' – ' + format(new Date(delivery.date_range_end), 'MMM d, yyyy') : '', 10, [150, 150, 150]);
+  y += 4;
+
+  // Strip markdown-ish formatting from content
+  const plainContent = (delivery.content || '')
+    .replace(/#{1,6}\s/g, '')
+    .replace(/\*\*/g, '')
+    .replace(/\*/g, '')
+    .replace(/^\s*[-•]\s/gm, '• ');
+
+  addText(plainContent, 10, [220, 220, 210]);
+
+  doc.save(`${digestName || 'digest'}-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+}
+
+function DigestDeliveryList({ digests }) {
+  const digestIds = digests.map(d => d.id);
+
+  const { data: allDeliveries = [], isLoading } = useQuery({
+    queryKey: ['digest-report-deliveries', digestIds.join(',')],
+    queryFn: () => base44.entities.DigestDelivery.filter(
+      { digest_id: { $in: digestIds }, delivery_type: 'web', status: 'sent' },
+      '-created_date',
+      200
+    ),
+    enabled: digestIds.length > 0,
+  });
+
+  const [expandedId, setExpandedId] = useState(null);
+  const [openDigestId, setOpenDigestId] = useState(null);
+
+  // Group deliveries by digest
+  const grouped = digests.map(d => ({
+    digest: d,
+    deliveries: allDeliveries.filter(del => del.digest_id === d.id),
+  }));
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2 text-stone-500 text-sm py-4">
+        <Loader2 className="w-4 h-4 animate-spin" /> Loading digest history...
+      </div>
+    );
+  }
+
+  if (!allDeliveries.length) {
+    return (
+      <div className="text-stone-600 text-sm py-4 flex items-center gap-2">
+        <Inbox className="w-4 h-4" /> No sent digest deliveries found yet.
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      {grouped.filter(g => g.deliveries.length > 0).map(({ digest, deliveries }) => (
+        <div key={digest.id} className="border border-stone-800">
+          <button
+            onClick={() => setOpenDigestId(p => p === digest.id ? null : digest.id)}
+            className="w-full flex items-center justify-between px-4 py-3 bg-stone-900 hover:bg-stone-800 transition-colors text-left"
+          >
+            <div className="flex items-center gap-3">
+              <FileText className="w-4 h-4 text-[hsl(var(--primary))] flex-shrink-0" />
+              <span className="text-sm font-medium text-stone-200">{digest.name}</span>
+              <span className="text-xs text-stone-500 bg-stone-800 px-2 py-0.5">{deliveries.length} issue{deliveries.length !== 1 ? 's' : ''}</span>
+            </div>
+            {openDigestId === digest.id
+              ? <ChevronUp className="w-4 h-4 text-stone-500" />
+              : <ChevronDown className="w-4 h-4 text-stone-500" />}
+          </button>
+
+          {openDigestId === digest.id && (
+            <div className="divide-y divide-stone-800">
+              {deliveries.map(delivery => (
+                <div key={delivery.id} className="bg-stone-950">
+                  <button
+                    onClick={() => setExpandedId(p => p === delivery.id ? null : delivery.id)}
+                    className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-stone-900 transition-colors text-left"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Eye className="w-3.5 h-3.5 text-stone-600 flex-shrink-0" />
+                      <span className="text-xs text-stone-400 truncate">
+                        {delivery.date_range_start
+                          ? format(new Date(delivery.date_range_start), 'MMM d') + ' – ' + format(new Date(delivery.date_range_end), 'MMM d, yyyy')
+                          : format(new Date(delivery.created_date), 'MMM d, yyyy')}
+                      </span>
+                      {delivery.item_count > 0 && (
+                        <span className="text-xs text-stone-600">{delivery.item_count} articles</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <button
+                        onClick={e => { e.stopPropagation(); downloadDeliveryAsPdf(delivery, digest.name); }}
+                        title="Download as PDF"
+                        className="p-1 text-stone-600 hover:text-[hsl(var(--primary))] transition"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                      </button>
+                      {expandedId === delivery.id
+                        ? <ChevronUp className="w-3.5 h-3.5 text-stone-600" />
+                        : <ChevronDown className="w-3.5 h-3.5 text-stone-600" />}
+                    </div>
+                  </button>
+
+                  {expandedId === delivery.id && delivery.content && (
+                    <div className="px-6 pb-4 pt-2 bg-stone-950">
+                      <div className="prose prose-invert prose-sm max-w-none text-stone-300 text-xs leading-relaxed whitespace-pre-wrap">
+                        {delivery.content}
+                      </div>
+                      <button
+                        onClick={() => downloadDeliveryAsPdf(delivery, digest.name)}
+                        className="mt-4 flex items-center gap-1.5 text-xs text-[hsl(var(--primary))] hover:opacity-80 transition"
+                      >
+                        <Download className="w-3.5 h-3.5" /> Download as PDF
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function DigestReports() {
   const [user, setUser] = React.useState(null);
@@ -181,6 +329,16 @@ export default function DigestReports() {
           <p className="text-xs text-stone-500 mt-2">This uses AI analysis and may take 20–40 seconds...</p>
         )}
       </div>
+
+      {/* Digest Delivery History */}
+      {digests.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-sm font-semibold text-stone-300 mb-3 flex items-center gap-2">
+            <Inbox className="w-4 h-4 text-stone-500" /> All Digest Issues
+          </h2>
+          <DigestDeliveryList digests={digests} />
+        </div>
+      )}
 
       {/* Error */}
       {error && (
@@ -360,10 +518,10 @@ export default function DigestReports() {
       )}
 
       {/* Empty state */}
-      {!report && !loading && !error && (
+      {!report && !loading && !error && digests.length === 0 && (
         <div className="text-center py-16 text-stone-600">
           <BarChart2 className="w-10 h-10 mx-auto mb-3 opacity-30" />
-          <p className="text-sm">Select a digest and date range above, then run a report to see trend analysis.</p>
+          <p className="text-sm">No digests found. Create a digest first to see reports here.</p>
         </div>
       )}
     </div>
