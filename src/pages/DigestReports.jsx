@@ -114,19 +114,35 @@ export default function DigestReports() {
       <div className="bg-stone-900 border border-stone-800 p-5 mb-6">
         <h2 className="text-sm font-semibold text-stone-300 mb-4">Configure Report</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          {/* Digest selector */}
-          <div>
-            <label className="text-xs text-stone-500 mb-1.5 block">Select Digest</label>
-            <Select value={selectedDigestId} onValueChange={setSelectedDigestId}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Choose a digest..." />
-              </SelectTrigger>
-              <SelectContent>
-                {digests.map(d => (
-                  <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          {/* Digest selector — multi-select */}
+          <div className="md:col-span-2">
+            <label className="text-xs text-stone-500 mb-1.5 block">
+              Select Digest(s) <span className="text-stone-600">— pick one or more to combine into a single report</span>
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {digests.map(d => {
+                const selected = selectedDigestIds.includes(d.id);
+                return (
+                  <button
+                    key={d.id}
+                    onClick={() => toggleDigest(d.id)}
+                    className={`px-3 py-1.5 text-sm border transition-colors ${
+                      selected
+                        ? 'bg-[hsl(var(--primary))] border-[hsl(var(--primary))] text-stone-900 font-semibold'
+                        : 'bg-stone-800 border-stone-700 text-stone-400 hover:border-stone-500 hover:text-stone-200'
+                    }`}
+                  >
+                    {d.name}
+                  </button>
+                );
+              })}
+            </div>
+            {selectedDigestIds.length > 0 && (
+              <p className="text-xs text-stone-600 mt-1.5">
+                {selectedDigestIds.length} digest{selectedDigestIds.length > 1 ? 's' : ''} selected
+                {selectedDigestIds.length > 1 && ' — will be merged into one combined report'}
+              </p>
+            )}
           </div>
 
           {/* Quick range */}
