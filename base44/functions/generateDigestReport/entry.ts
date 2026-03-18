@@ -6,26 +6,32 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { digest_id, start_date, end_date, period_label } = await req.json();
+    const { digest_id, digest_ids: rawDigestIds, start_date, end_date, period_label } = await req.json();
 
-    if (!digest_id || !start_date || !end_date) {
-      return Response.json({ error: 'digest_id, start_date, and end_date are required' }, { status: 400 });
+    // Support both single digest_id (legacy) and array digest_ids
+    const digestIds = rawDigestIds?.length ? rawDigestIds : (digest_id ? [digest_id] : []);
+
+    if (!digestIds.length || !start_date || !end_date) {
+      return Response.json({ error: 'digest_ids, start_date, and end_date are required' }, { status: 400 });
     }
 
-    // Fetch the digest definition
-    const digest = await base44.entities.Digest.get(digest_id);
-    if (!digest) return Response.json({ error: 'Digest not found' }, { status: 404 });
+    // Fetch all selected digest definitions
+    const digestDocs = await Promise.all(digestIds.map(id => base44.entities.Digest.get(id)));
+    const validDigests = digestDocs.filter(Boolean);
+    if (!validDigests.length) return Response.json({ error: 'No valid digests found' }, { status: 404 });
+    const digestNames = validDigests.map(d => d.name);
 
-    // Fetch all web deliveries for this digest in the date range
-    const allDeliveries = await base44.entities.DigestDelivery.filter(
-      {
-        digest_id,
-        delivery_type: 'web',
-        status: 'sent',
-      },
-      'sent_at',
-      500
+    // Fetch all web deliveries for all selected digests
+    const allDeliveriesArrays = await Promise.all(
+      digestIds.map(id =>
+        base44.entities.DigestDelivery.filter(
+          { digest_id: id, delivery_type: 'web', status: 'sent' },
+          'sent_at',
+          500
+        )
+      )
     );
+    const allDeliveries = allDeliveriesArrays.flat();
 
     const start = new Date(start_date);
     const end = new Date(end_date);
