@@ -160,10 +160,50 @@ export default function FeedCard({ feed, onEdit, onDelete, onToggleStatus }) {
                       : 'Never fetched'
                     }
                   </span>
-                  <span>{feed.item_count || 0} items</span>
+                  <button
+                    onClick={toggleArticles}
+                    className="flex items-center gap-1 hover:text-[hsl(var(--primary))] transition-colors"
+                  >
+                    {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                    {feed.item_count || 0} items
+                  </button>
                 </>
               )}
             </div>
+
+            {expanded && (
+              <div className="mt-3 border-t border-stone-800 pt-3">
+                {loadingArticles ? (
+                  <div className="flex items-center gap-2 text-xs text-stone-500 py-2">
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    Loading articles…
+                  </div>
+                ) : articles.length === 0 ? (
+                  <p className="text-xs text-stone-600 py-1">No articles found.</p>
+                ) : (
+                  <ul className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                    {articles.map((article) => (
+                      <li key={article.id} className="flex items-start gap-2">
+                        <a
+                          href={safeUrl(article.url)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-xs text-stone-300 hover:text-[hsl(var(--primary))] line-clamp-2 flex-1 leading-snug"
+                        >
+                          {decodeHtml(article.title)}
+                        </a>
+                        {article.published_date && (
+                          <span className="text-[10px] text-stone-600 flex-shrink-0 mt-0.5">
+                            {new Date(article.published_date).toLocaleDateString()}
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </CardContent>
