@@ -149,7 +149,7 @@ Be specific, analytical, and reference actual content from the digests. Avoid ge
     const actual_start = sortedByDate[0].sent_at || sortedByDate[0].created_date;
     const actual_end = sortedByDate[sortedByDate.length - 1].sent_at || sortedByDate[sortedByDate.length - 1].created_date;
 
-    return Response.json({
+    const responseData = {
       report: result,
       digest_name: digestLabel,
       delivery_count: deliveries.length,
@@ -158,7 +158,21 @@ Be specific, analytical, and reference actual content from the digests. Avoid ge
       actual_start,
       actual_end,
       period_label,
+    };
+
+    // Persist the report so it can be reviewed later
+    await base44.entities.SavedDigestReport.create({
+      digest_ids: digestIds,
+      digest_name: digestLabel,
+      start_date,
+      end_date,
+      delivery_count: deliveries.length,
+      actual_start,
+      actual_end,
+      report: result,
     });
+
+    return Response.json(responseData);
 
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
