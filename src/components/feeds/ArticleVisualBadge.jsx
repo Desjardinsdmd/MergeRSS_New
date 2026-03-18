@@ -27,7 +27,7 @@ export default function ArticleVisualBadge({ item, onVisualReady }) {
       if (result?.final_outcome === 'accepted' && result?.image_url) {
         setImageUrl(result.image_url);
         setStatus('accepted');
-        onVisualReady && onVisualReady(result.image_url);
+        onVisualReady && onVisualReady(result.image_url, result.visual_value_score);
       } else {
         setStatus('rejected');
       }
