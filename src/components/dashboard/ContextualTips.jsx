@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { X, Zap, Link2, Search, Globe, Sparkles } from 'lucide-react';
+import { X, Zap, Link2, Search, Globe, Sparkles, Lightbulb, ChevronRight } from 'lucide-react';
 
 const TIPS = [
   {
@@ -61,53 +61,78 @@ const TIPS = [
   },
 ];
 
+const FIRST_VISIT_KEY = 'mergerss_tips_shown';
+const DISMISSED_KEY = 'mergerss_dismissed_tips';
+
 export default function ContextualTips({ feedCount, digestCount, hasSlack }) {
+  const [open, setOpen] = useState(() => {
+    try { return !localStorage.getItem(FIRST_VISIT_KEY); } catch { return false; }
+  });
+
   const [dismissed, setDismissed] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('mergerss_dismissed_tips') || '[]'); } catch { return []; }
+    try { return JSON.parse(localStorage.getItem(DISMISSED_KEY) || '[]'); } catch { return []; }
   });
 
   const dismiss = (id) => {
     const next = [...dismissed, id];
     setDismissed(next);
-    localStorage.setItem('mergerss_dismissed_tips', JSON.stringify(next));
+    localStorage.setItem(DISMISSED_KEY, JSON.stringify(next));
+  };
+
+  const closeAll = () => {
+    localStorage.setItem(FIRST_VISIT_KEY, '1');
+    setOpen(false);
   };
 
   const ctx = { feedCount, digestCount, hasSlack };
   const visible = TIPS.filter(t => !dismissed.includes(t.id) && t.condition(ctx));
 
-  if (!visible.length) return null;
+  if (!open || !visible.length) return null;
 
-  // Show only 1 tip at a time (most relevant)
   const tip = visible[0];
   const Icon = tip.icon;
 
   return (
-    <div className={`mb-6 flex items-start gap-4 p-4 border border-stone-800 bg-stone-900 relative group`}>
-      <div className={`p-2 flex-shrink-0 ${tip.bg}`}>
-        <Icon className={`w-4 h-4 ${tip.color}`} />
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5 mb-0.5">
-          <Sparkles className="w-3 h-3 text-stone-600" />
-          <span className="text-[10px] font-semibold text-stone-600 uppercase tracking-widest">Tip</span>
+    <div className="fixed top-20 right-4 z-50 w-80 bg-stone-900 border border-stone-700 shadow-2xl shadow-black/60 animate-in">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-stone-800">
+        <div className="flex items-center gap-1.5">
+          <Lightbulb className="w-3.5 h-3.5 text-[hsl(var(--primary))]" />
+          <span className="text-[10px] font-semibold text-stone-500 uppercase tracking-widest">Tip</span>
+          {visible.length > 1 && (
+            <span className="text-[10px] text-stone-600 ml-1">{visible.length} remaining</span>
+          )}
         </div>
-        <p className="text-sm font-medium text-stone-200">{tip.title}</p>
-        <p className="text-xs text-stone-500 mt-0.5 leading-relaxed">{tip.description}</p>
-      </div>
-      <div className="flex items-center gap-2 flex-shrink-0">
-        <Link
-          to={createPageUrl(tip.href)}
-          className={`text-xs font-semibold px-3 py-1.5 ${tip.bg} ${tip.color} hover:opacity-80 transition whitespace-nowrap`}
-        >
-          {tip.cta}
-        </Link>
-        <button
-          onClick={() => dismiss(tip.id)}
-          className="p-1 text-stone-700 hover:text-stone-400 transition"
-          title="Dismiss tip"
-        >
+        <button onClick={closeAll} className="p-1 text-stone-600 hover:text-stone-300 transition">
           <X className="w-3.5 h-3.5" />
         </button>
+      </div>
+
+      {/* Tip content */}
+      <div className="p-4">
+        <div className={`inline-flex p-2 mb-3 ${tip.bg}`}>
+          <Icon className={`w-4 h-4 ${tip.color}`} />
+        </div>
+        <p className="text-sm font-semibold text-stone-100 mb-1">{tip.title}</p>
+        <p className="text-xs text-stone-400 leading-relaxed mb-4">{tip.description}</p>
+        <div className="flex items-center gap-2">
+          <Link
+            to={createPageUrl(tip.href)}
+            onClick={closeAll}
+            className={`flex items-center gap-1 text-xs font-semibold px-3 py-1.5 ${tip.bg} ${tip.color} hover:opacity-80 transition`}
+          >
+            {tip.cta}
+            <ChevronRight className="w-3 h-3" />
+          </Link>
+          {visible.length > 1 && (
+            <button
+              onClick={() => dismiss(tip.id)}
+              className="text-xs text-stone-600 hover:text-stone-400 transition px-2 py-1.5"
+            >
+              Next tip →
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
