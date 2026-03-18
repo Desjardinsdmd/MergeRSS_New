@@ -179,57 +179,8 @@ function DigestDeliveryList({ digests }) {
   );
 }
 
-function downloadReportAsPdf(savedReport) {
-  const doc = new jsPDF();
-  const margin = 20;
-  const maxWidth = doc.internal.pageSize.getWidth() - margin * 2;
-  let y = 20;
-
-  const addLine = (text, size, color, bold = false) => {
-    doc.setFontSize(size);
-    doc.setTextColor(...color);
-    doc.setFont('helvetica', bold ? 'bold' : 'normal');
-    const lines = doc.splitTextToSize(String(text || ''), maxWidth);
-    lines.forEach(line => {
-      if (y > 270) { doc.addPage(); y = 20; }
-      doc.text(line, margin, y);
-      y += size * 0.5;
-    });
-    y += 3;
-  };
-
-  const r = savedReport.report;
-  addLine(savedReport.digest_name + ' — Trend Report', 18, [251, 191, 36], true);
-  addLine(`${savedReport.start_date} – ${savedReport.end_date}`, 10, [150, 150, 150]);
-  y += 4;
-
-  if (r.executive_summary) {
-    addLine('Executive Summary', 13, [200, 200, 200], true);
-    addLine(r.executive_summary, 10, [220, 220, 210]);
-    y += 2;
-  }
-  if (r.key_themes?.length) {
-    addLine('Key Themes', 13, [200, 200, 200], true);
-    r.key_themes.forEach(t => {
-      addLine(`• ${t.theme} (${t.trajectory})`, 10, [220, 220, 210], true);
-      addLine(t.description, 10, [180, 180, 170]);
-    });
-    y += 2;
-  }
-  if (r.inflection_points?.length) {
-    addLine('Inflection Points', 13, [200, 200, 200], true);
-    r.inflection_points.forEach(p => {
-      addLine(`${p.date}: ${p.event}`, 10, [220, 220, 210], true);
-      addLine(p.significance, 10, [180, 180, 170]);
-    });
-    y += 2;
-  }
-  if (r.outlook) {
-    addLine('Outlook', 13, [200, 200, 200], true);
-    addLine(r.outlook, 10, [220, 220, 210]);
-  }
-
-  doc.save(`${savedReport.digest_name}-report-${savedReport.start_date}.pdf`);
+async function downloadReportAsPdf(savedReport) {
+  await generatePremiumPdf(savedReport);
 }
 
 function SavedReportsList({ userEmail }) {
