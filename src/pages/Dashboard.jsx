@@ -448,16 +448,13 @@ export default function Dashboard() {
 
       {/* Latest Articles */}
       <div className="bg-stone-900 border border-stone-800 flex flex-col mb-6">
-        <div className="flex flex-row items-center justify-between p-4 pb-2">
+        <div className="flex flex-row items-center p-4 pb-2">
           <div className="flex items-center gap-2">
             <span className="text-base font-semibold text-stone-100">Latest Articles</span>
             {unreadCount > 0 && (
               <span className="bg-[hsl(var(--primary))] text-stone-900 text-xs font-bold px-2 py-0.5">{unreadCount} unread</span>
             )}
           </div>
-          <button onClick={() => setExpandedArticles(true)} className="text-sm text-stone-500 hover:text-[hsl(var(--primary))] flex items-center gap-1 cursor-pointer transition-colors">
-            View all <ArrowRight className="w-3 h-3" />
-          </button>
         </div>
         {categories.length > 1 && (
           <div className="px-4 pb-2 flex gap-1.5 flex-wrap">
@@ -479,7 +476,7 @@ export default function Dashboard() {
             ))}
           </div>
         )}
-        <div className="p-0 flex-1">
+        <div className="overflow-y-auto" style={{ maxHeight: '600px' }}>
           {filteredArticles.length === 0 ? (
             <div className="p-6 text-center text-stone-500">
               {allArticles.length === 0 ? 'No items yet. Add feeds to start aggregating content.' : 'All caught up! 🎉'}
@@ -487,7 +484,7 @@ export default function Dashboard() {
           ) : (
             <div className="p-4">
               <GroupedArticles
-                articles={filteredArticles.slice(0, 5)}
+                articles={filteredArticles}
                 feeds={feeds}
                 onExpand={(item) => setExpandedItem(mergeItem(item))}
                 onMarkAsRead={markAsRead}
