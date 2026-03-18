@@ -44,9 +44,10 @@ export default function ArticleVisualBadge({ item, onVisualReady }) {
       <div className="relative">
         <button
           onClick={(e) => { e.stopPropagation(); setShowPreview(!showPreview); }}
-          className="flex items-center gap-1 text-xs text-[hsl(var(--primary))] hover:opacity-80 transition"
+          className="flex items-center gap-1 text-xs text-green-500 hover:opacity-80 transition"
           title="View AI visual"
         >
+          <CheckCircle2 className="w-3 h-3 text-green-500" />
           <Eye className="w-3 h-3" />
           <span>Visual</span>
         </button>
