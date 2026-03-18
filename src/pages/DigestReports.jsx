@@ -71,14 +71,20 @@ export default function DigestReports() {
     }
   };
 
+  const toggleDigest = (id) => {
+    setSelectedDigestIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
+
   const runReport = async () => {
-    if (!selectedDigestId) return;
+    if (!selectedDigestIds.length) return;
     setLoading(true);
     setError(null);
     setReport(null);
     try {
       const res = await base44.functions.invoke('generateDigestReport', {
-        digest_id: selectedDigestId,
+        digest_ids: selectedDigestIds,
         start_date: startDate,
         end_date: endDate,
         period_label: periodLabel,
@@ -90,8 +96,6 @@ export default function DigestReports() {
       setLoading(false);
     }
   };
-
-  const selectedDigest = digests.find(d => d.id === selectedDigestId);
 
   return (
     <div className="p-6 lg:p-8 max-w-5xl mx-auto">
