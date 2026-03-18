@@ -46,6 +46,7 @@ const navigation = [
   { name: 'Search', href: 'ArticleSearch', icon: Search },
   { name: 'Directory', href: 'Directory', icon: Globe },
   { name: 'Team', href: 'Team', icon: Users },
+  { name: 'Digest Reports', href: 'DigestReports', icon: BarChart3 },
   { name: 'Integrations', href: 'Integrations', icon: Link2 },
   { name: 'Settings', href: 'Settings', icon: Settings },
 ];
