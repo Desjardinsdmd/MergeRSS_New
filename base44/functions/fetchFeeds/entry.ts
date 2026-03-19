@@ -335,6 +335,7 @@ async function fetchFeedsWithThrottling(feeds, base44, batchSize = 10, delayBetw
                                                 method: 'POST',
                                                 headers: { 'Content-Type': 'application/json' },
                                                 body: JSON.stringify({ text, mrkdwn: true }),
+                                                signal: AbortSignal.timeout(8000),
                                             });
                                             delivered = res.ok;
                                             if (!delivered) console.warn(`[fetchFeeds] Slack alert failed — alert=${alert.id} item=${newItem.id} status=${res.status}`);
@@ -344,9 +345,12 @@ async function fetchFeedsWithThrottling(feeds, base44, batchSize = 10, delayBetw
                                                 method: 'POST',
                                                 headers: { 'Content-Type': 'application/json' },
                                                 body: JSON.stringify({ content: content.slice(0, 2000) }),
+                                                signal: AbortSignal.timeout(8000),
                                             });
                                             delivered = res.ok || res.status === 204;
                                             if (!delivered) console.warn(`[fetchFeeds] Discord alert failed — alert=${alert.id} item=${newItem.id} status=${res.status}`);
+                                        } else {
+                                            console.warn(`[fetchFeeds] Unrecognized alert channel_type="${alert.channel_type}" — alert=${alert.id}`);
                                         }
                                         // Only stamp last_sent after confirmed delivery
                                         if (delivered) {
