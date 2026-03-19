@@ -11,6 +11,7 @@ import IntelligenceSidebar from './IntelligenceSidebar';
 import WhatChanged from './WhatChanged';
 import EmergingSignals from './EmergingSignals';
 import NarrativeGrouping from './NarrativeGrouping';
+import DailyBriefingSummary from './DailyBriefingSummary';
 
 export default function IntelligenceDashboard({ user, feeds = [], digests = [], unreadDeliveries = [] }) {
     const queryClient = useQueryClient();
