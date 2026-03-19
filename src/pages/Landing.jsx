@@ -371,9 +371,9 @@ export default function Landing() {
           </FadeIn>
           <div className="grid md:grid-cols-3 gap-px bg-stone-800/40">
             {[
-              { quote: 'Saves me an hour every morning. My whole team uses it now.', author: 'Sarah K.', role: 'CRE Analyst' },
-              { quote: 'I actually know what matters now. Deleted four news apps.', author: 'Marcus T.', role: 'Investment Manager' },
-              { quote: 'Set it up in 5 minutes. Never missed a market move since.', author: 'Priya M.', role: 'Fintech Founder' },
+              { quote: 'Replaced my morning routine completely — I don\'t check anything else now.', author: 'Sarah K.', role: 'CRE Analyst' },
+              { quote: 'I used to scan everything. Now I just read this.', author: 'Marcus T.', role: 'Investment Manager' },
+              { quote: 'I catch what matters in minutes — not after it\'s already obvious.', author: 'Priya M.', role: 'Fintech Founder' },
             ].map((t, i) => (
               <FadeIn key={i} delay={i * 70}>
                 <div className="bg-[#0d0a06] hover:bg-stone-900/40 transition-colors p-8 h-full flex flex-col">
