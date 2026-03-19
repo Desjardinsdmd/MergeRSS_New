@@ -247,7 +247,7 @@ export default function Integrations() {
           </div>
           <div className="flex-1">
             <p className="font-semibold text-stone-200">Upgrade to Premium</p>
-            <p className="text-sm text-stone-500">Unlock Slack and Discord integrations</p>
+            <p className="text-sm text-stone-500">Unlock Slack, Discord, and Microsoft Teams integrations</p>
           </div>
           <Link to={createPageUrl('Pricing')}>
             <Button className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold rounded-lg text-sm">
