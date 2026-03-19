@@ -9,14 +9,17 @@ const STOP_WORDS = new Set([
     'more','also','than','into','over','about','just','your','our','its','has','had','said','news',
     'after','before','under','each','between','other','some','very','most','such','even','only','while',
     'there','here','time','year','make','like','know','take','need','used','says','new','report',
+    'share','data','week','month','show','says','amid','first','plan','million','billion',
 ]);
+
+const MIN_ARTICLES = 3; // minimum article count to show a topic
 
 function extractKeywords(text) {
     return text
         .toLowerCase()
         .replace(/[^a-z0-9\s]/g, ' ')
         .split(/\s+/)
-        .filter(w => w.length > 3 && !STOP_WORDS.has(w));
+        .filter(w => w.length > 4 && !STOP_WORDS.has(w));
 }
 
 export default function TrendingTopicsInline({ feedIds }) {
@@ -28,7 +31,7 @@ export default function TrendingTopicsInline({ feedIds }) {
         queryFn: () => base44.entities.FeedItem.filter(
             { feed_id: { $in: feedIds }, published_date: { $gte: since48h } },
             '-published_date',
-            200
+            300
         ),
         enabled: !!feedIds?.length,
         staleTime: 10 * 60 * 1000,
@@ -40,7 +43,7 @@ export default function TrendingTopicsInline({ feedIds }) {
         const last24 = recentItems.filter(i => i.published_date >= since24h);
         const prev24 = recentItems.filter(i => i.published_date < since24h);
 
-        const count = (items) => {
+        const countFreq = (items) => {
             const freq = {};
             items.forEach(item => {
                 const words = extractKeywords((item.title || '') + ' ' + (item.description || ''));
@@ -50,11 +53,11 @@ export default function TrendingTopicsInline({ feedIds }) {
             return freq;
         };
 
-        const freq24 = count(last24);
-        const freqPrev = count(prev24);
+        const freq24 = countFreq(last24);
+        const freqPrev = countFreq(prev24);
 
         return Object.entries(freq24)
-            .filter(([, n]) => n >= 2)
+            .filter(([, n]) => n >= MIN_ARTICLES) // only topics with strong clustering
             .map(([word, current]) => {
                 const previous = freqPrev[word] || 0;
                 const delta = previous > 0 ? ((current - previous) / previous) : 1;
@@ -64,6 +67,7 @@ export default function TrendingTopicsInline({ feedIds }) {
             .slice(0, 8);
     }, [recentItems]);
 
+    // Hide entirely if no topics meet the quality threshold
     if (!topics.length) return null;
 
     return (
@@ -71,16 +75,19 @@ export default function TrendingTopicsInline({ feedIds }) {
             <div className="flex items-center gap-2 px-5 py-4 border-b border-stone-800">
                 <TrendingUp className="w-4 h-4 text-[hsl(var(--primary))]" />
                 <h2 className="text-sm font-semibold text-stone-300 uppercase tracking-wider">Trending Topics</h2>
-                <span className="text-xs text-stone-600 ml-auto">last 24h</span>
+                <span className="text-xs text-stone-600 ml-auto">≥{MIN_ARTICLES} articles · last 24h</span>
             </div>
             <div className="flex flex-wrap gap-2 p-4">
                 {topics.map(({ word, current, delta }) => {
-                    const isUp = delta > 0.15;
-                    const isDown = delta < -0.15;
+                    const isUp = delta > 0.2;
+                    const isDown = delta < -0.2;
                     return (
-                        <div key={word} className="flex items-center gap-1.5 bg-stone-800 border border-stone-700 px-3 py-1.5 hover:border-stone-600 transition-colors">
+                        <div
+                            key={word}
+                            className="flex items-center gap-1.5 bg-stone-800 border border-stone-700 px-3 py-1.5 hover:border-stone-600 transition-colors"
+                        >
                             <span className="text-sm font-medium text-stone-200 capitalize">{word}</span>
-                            <span className="text-xs text-stone-500">{current}</span>
+                            <span className="text-xs text-stone-500 font-mono">{current}</span>
                             {isUp && <TrendingUp className="w-3 h-3 text-emerald-400" />}
                             {isDown && <TrendingDown className="w-3 h-3 text-red-400" />}
                             {!isUp && !isDown && <Minus className="w-3 h-3 text-stone-600" />}
