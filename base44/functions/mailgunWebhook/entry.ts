@@ -1,32 +1,43 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 async function verifyMailgunSignature(token, timestamp, signature) {
-  const apiKey = Deno.env.get('MAILGUN_API_KEY');
-  if (!apiKey) return false;
+  try {
+    const apiKey = Deno.env.get('MAILGUN_API_KEY');
+    if (!apiKey) return false;
 
-  // Replay protection: reject requests with a timestamp older than 5 minutes
-  const ts = parseInt(timestamp, 10);
-  if (isNaN(ts) || Math.abs(Date.now() / 1000 - ts) > 300) return false;
+    // Replay protection: reject requests with a timestamp older than 5 minutes
+    const ts = parseInt(timestamp, 10);
+    if (isNaN(ts) || Math.abs(Date.now() / 1000 - ts) > 300) return false;
 
-  const value = timestamp + token;
-  const key = await crypto.subtle.importKey(
-    'raw',
-    new TextEncoder().encode(apiKey),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  );
-  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(value));
-  const computed = new Uint8Array(sig);
+    // Reject malformed signatures before any parsing
+    if (!signature || typeof signature !== 'string') return false;
+    if (signature.length === 0 || signature.length % 2 !== 0) return false;
+    if (!/^[0-9a-fA-F]+$/.test(signature)) return false;
 
-  // Constant-time comparison to prevent timing attacks
-  const provided = new Uint8Array(
-    signature.match(/.{2}/g).map(b => parseInt(b, 16))
-  );
-  if (computed.length !== provided.length) return false;
-  let diff = 0;
-  for (let i = 0; i < computed.length; i++) diff |= computed[i] ^ provided[i];
-  return diff === 0;
+    const value = timestamp + token;
+    const key = await crypto.subtle.importKey(
+      'raw',
+      new TextEncoder().encode(apiKey),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    );
+    const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(value));
+    const computed = new Uint8Array(sig);
+
+    // Safe parse — guarded by regex above, but be explicit
+    const pairs = signature.match(/.{2}/g);
+    if (!pairs || pairs.length !== computed.length) return false;
+    const provided = new Uint8Array(pairs.map(b => parseInt(b, 16)));
+
+    // Constant-time comparison
+    let diff = 0;
+    for (let i = 0; i < computed.length; i++) diff |= computed[i] ^ provided[i];
+    return diff === 0;
+  } catch {
+    // Never propagate — always return false on unexpected errors
+    return false;
+  }
 }
 
 let base44;

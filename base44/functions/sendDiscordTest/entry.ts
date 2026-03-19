@@ -12,13 +12,11 @@ Deno.serve(async (req) => {
         let digest = null;
 
         if (digest_name) {
-            const digests = await base44.entities.Digest.filter({ name: digest_name });
+            // Filter by both name and owner to avoid fragile first-match behavior
+            // when multiple users share the same digest name
+            const digests = await base44.entities.Digest.filter({ name: digest_name, created_by: user.email });
             if (!digests || digests.length === 0) {
                 return Response.json({ error: `Digest "${digest_name}" not found` }, { status: 404 });
-            }
-            // Ownership check — prevent IDOR
-            if (digests[0].created_by !== user.email) {
-                return Response.json({ error: 'Forbidden' }, { status: 403 });
             }
             digest = digests[0];
             if (!url) {

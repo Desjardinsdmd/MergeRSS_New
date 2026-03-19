@@ -313,11 +313,31 @@ async function fetchFeedsWithThrottling(feeds, base44, batchSize = 10, delayBetw
                         const itemsNeedingAlerts = (Array.isArray(created) ? created : itemsToCreate)
                             .filter(i => i.id)
                             .slice(0, 10);
-                        Promise.allSettled(
-                            itemsNeedingAlerts.map(item =>
-                                base44.asServiceRole.functions.invoke('sendFeedAlerts', { feed_item_id: item.id })
-                            )
-                        ).catch(() => {});
+                        const internalSecret = Deno.env.get('INTERNAL_SECRET');
+                        const appUrl = Deno.env.get('BASE44_APP_URL');
+                        if (!internalSecret) {
+                            console.error('[fetchFeeds] INTERNAL_SECRET not set — feed alerts will not fire');
+                        } else if (!appUrl) {
+                            console.error('[fetchFeeds] BASE44_APP_URL not set — feed alerts will not fire');
+                        } else {
+                            Promise.allSettled(
+                                itemsNeedingAlerts.map(item =>
+                                    fetch(`${appUrl}/api/sendFeedAlerts`, {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'x-internal-secret': internalSecret,
+                                        },
+                                        body: JSON.stringify({ feed_item_id: item.id }),
+                                    }).then(async res => {
+                                        if (!res.ok) {
+                                            const text = await res.text().catch(() => '');
+                                            console.warn(`[fetchFeeds] sendFeedAlerts failed for item ${item.id}: ${res.status} ${text}`);
+                                        }
+                                    })
+                                )
+                            ).catch(err => console.warn('[fetchFeeds] sendFeedAlerts batch error:', err.message));
+                        }
                     }
                 } catch (bulkErr) {
                     console.warn(`[fetchFeeds] bulkCreate failed for ${feed.name} (non-fatal):`, bulkErr.message);
