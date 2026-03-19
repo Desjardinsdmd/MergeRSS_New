@@ -313,31 +313,38 @@ async function fetchFeedsWithThrottling(feeds, base44, batchSize = 10, delayBetw
                         const itemsNeedingAlerts = (Array.isArray(created) ? created : itemsToCreate)
                             .filter(i => i.id)
                             .slice(0, 10);
-                        const internalSecret = Deno.env.get('INTERNAL_SECRET');
-                        const appUrl = Deno.env.get('BASE44_APP_URL');
-                        if (!internalSecret) {
-                            console.error('[fetchFeeds] INTERNAL_SECRET not set — feed alerts will not fire');
-                        } else if (!appUrl) {
-                            console.error('[fetchFeeds] BASE44_APP_URL not set — feed alerts will not fire');
-                        } else {
-                            Promise.allSettled(
-                                itemsNeedingAlerts.map(item =>
-                                    fetch(`${appUrl}/api/sendFeedAlerts`, {
-                                        method: 'POST',
-                                        headers: {
-                                            'Content-Type': 'application/json',
-                                            'x-internal-secret': internalSecret,
-                                        },
-                                        body: JSON.stringify({ feed_item_id: item.id }),
-                                    }).then(async res => {
-                                        if (!res.ok) {
-                                            const text = await res.text().catch(() => '');
-                                            console.warn(`[fetchFeeds] sendFeedAlerts failed for item ${item.id}: ${res.status} ${text}`);
+                        // Inline alert dispatch — fire-and-forget, non-blocking
+                        Promise.allSettled(
+                            itemsNeedingAlerts.map(async newItem => {
+                                try {
+                                    const alerts = await base44.asServiceRole.entities.FeedAlert.filter({ feed_id: newItem.feed_id, is_active: true });
+                                    for (const alert of alerts) {
+                                        const title = newItem.title || 'New article';
+                                        const url = newItem.url || '';
+                                        const description = (newItem.description || '').slice(0, 200);
+                                        const category = newItem.category || '';
+                                        if (alert.channel_type === 'slack') {
+                                            const text = `*${title}*${category ? ` [${category}]` : ''}\n${description ? description + '\n' : ''}<${url}|Read more>`;
+                                            await fetch(alert.webhook_url, {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({ text, mrkdwn: true }),
+                                            });
+                                        } else if (alert.channel_type === 'discord') {
+                                            const content = `**${title}**${category ? ` \`${category}\`` : ''}\n${description ? description + '\n' : ''}${url}`;
+                                            await fetch(alert.webhook_url, {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({ content: content.slice(0, 2000) }),
+                                            });
                                         }
-                                    })
-                                )
-                            ).catch(err => console.warn('[fetchFeeds] sendFeedAlerts batch error:', err.message));
-                        }
+                                        base44.asServiceRole.entities.FeedAlert.update(alert.id, { last_sent: new Date().toISOString() }).catch(() => {});
+                                    }
+                                } catch (alertErr) {
+                                    console.warn(`[fetchFeeds] alert dispatch failed for item ${newItem.id}:`, alertErr.message);
+                                }
+                            })
+                        ).catch(err => console.warn('[fetchFeeds] alert batch error:', err.message));
                     }
                 } catch (bulkErr) {
                     console.warn(`[fetchFeeds] bulkCreate failed for ${feed.name} (non-fatal):`, bulkErr.message);
