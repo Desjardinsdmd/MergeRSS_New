@@ -42,7 +42,7 @@ const navigation = [
   { name: 'Digest Reports', href: 'DigestReports', icon: BarChart3 },
   { name: 'Inbox', href: 'Inbox', icon: Inbox },
   { name: 'Read Later', href: 'Bookmarks', icon: Bookmark },
-  { name: 'Email Feeds', href: 'EmailFeeds', icon: Rss },
+
   { name: 'RSS Generator', href: 'RssFeedGenerator', icon: Rss },
   { name: 'Search', href: 'ArticleSearch', icon: Search },
   { name: 'Directory', href: 'Directory', icon: Globe },
