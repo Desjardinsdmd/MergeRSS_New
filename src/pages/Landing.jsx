@@ -200,6 +200,10 @@ export default function Landing() {
                 Takes 2 minutes to set up
               </p>
 
+              <p style={{ animation: 'fadeSlideDown 0.6s ease 0.45s both' }} className="text-xs text-stone-600 mt-2">
+                Used instead of Twitter, newsletters, and 10+ tabs every morning
+              </p>
+
               {userLoaded && user && (
                 <div className="mt-5 inline-flex items-center gap-2 text-xs text-[hsl(var(--primary))]/80 border border-[hsl(var(--primary))]/20 bg-[hsl(var(--primary))]/5 px-3 py-2">
                   <CheckCircle className="w-3 h-3 flex-shrink-0" />
