@@ -33,7 +33,6 @@ import SourceCleanupDialog from './SourceCleanupDialog';
 import RepairEscalationPanel from './RepairEscalationPanel';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
 
 const categoryColors = {
   CRE: 'bg-blue-950 text-blue-400',
