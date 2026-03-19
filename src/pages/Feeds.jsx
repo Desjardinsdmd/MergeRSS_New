@@ -158,13 +158,13 @@ export default function Feeds() {
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-start justify-between gap-6">
         <div>
-          <h1 className="text-2xl font-bold text-stone-100">Feeds</h1>
-          <p className="text-stone-500">
-            Manage your RSS feed sources
+          <h1 className="text-3xl font-bold text-stone-100 mb-1">Sources</h1>
+          <p className="text-stone-500 text-sm">
+            Manage your RSS feeds and sources
             {!isPremium && (
-              <span className="text-sm text-stone-600 ml-2">
+              <span className="text-xs text-stone-600 ml-2">
                 ({feeds.length}/{maxFeeds} used)
               </span>
             )}
@@ -200,12 +200,12 @@ export default function Feeds() {
 
       {/* Free plan limit banner */}
       {!isPremium && feeds.length >= maxFeeds && (
-        <div className="mb-6 flex items-center justify-between gap-4 bg-stone-900 border border-stone-800 rounded-xl px-4 py-3">
+        <div className="mb-6 flex items-center justify-between gap-4 bg-stone-900/60 border border-stone-700 rounded-lg px-4 py-3">
           <p className="text-sm text-stone-400 font-medium">
-            You've reached the {maxFeeds}-feed limit on the Free plan. Upgrade to Premium for unlimited feeds.
+            You've reached the {maxFeeds}-source limit on the Free plan. Upgrade to Premium for unlimited sources.
           </p>
           <Link to={createPageUrl('Pricing')}>
-            <Button size="sm" className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 rounded-lg whitespace-nowrap font-bold">
+            <Button size="sm" className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 whitespace-nowrap font-bold">
               Upgrade
             </Button>
           </Link>
@@ -282,26 +282,26 @@ export default function Feeds() {
           <Loader2 className="w-6 h-6 animate-spin text-amber-400" />
         </div>
       ) : filteredFeeds.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="w-12 h-12 bg-stone-800 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Rss className="w-6 h-6 text-stone-600" />
-          </div>
-          <h3 className="text-lg font-medium text-stone-100 mb-1">
-            {feeds.length === 0 ? 'No feeds yet' : 'No feeds match your filters'}
-          </h3>
-          <p className="text-stone-500 mb-4">
-            {feeds.length === 0 
-              ? 'Add your first RSS feed to get started'
-              : 'Try adjusting your search or filters'
-            }
-          </p>
-          {feeds.length === 0 && (
-            <Button onClick={() => setShowAddDialog(true)} className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 rounded-lg font-bold">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Feed
-            </Button>
-          )}
-        </div>
+       <div className="border border-stone-700 bg-stone-900/60 p-8 text-center">
+         <div className="w-12 h-12 bg-stone-800 flex items-center justify-center mx-auto mb-4">
+           <Rss className="w-6 h-6 text-[hsl(var(--primary))]" />
+         </div>
+         <h3 className="text-lg font-semibold text-stone-100 mb-2">
+           {feeds.length === 0 ? 'No sources yet' : 'No sources match your filters'}
+         </h3>
+         <p className="text-stone-500 mb-6 max-w-sm mx-auto text-sm">
+           {feeds.length === 0 
+             ? 'Add your first RSS feed or website to get started'
+             : 'Try adjusting your search or filters'
+           }
+         </p>
+         {feeds.length === 0 && (
+           <Button onClick={() => setShowAddDialog(true)} className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-bold">
+             <Plus className="w-4 h-4 mr-2" />
+             Add Source
+           </Button>
+         )}
+       </div>
       ) : (
         <>
           {selectedFeeds.length > 0 && (
