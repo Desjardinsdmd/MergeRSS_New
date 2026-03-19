@@ -3,6 +3,16 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
+
+        // Only allow internal service-to-service calls
+        const internalSecret = req.headers.get('x-internal-secret');
+        const expectedSecret = Deno.env.get('INTERNAL_SECRET');
+        if (!expectedSecret || internalSecret !== expectedSecret) {
+            // Fall back to requiring an authenticated admin user
+            const user = await base44.auth.me().catch(() => null);
+            if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
         const body = await req.json().catch(() => ({}));
         const { feed_item_id } = body;
 

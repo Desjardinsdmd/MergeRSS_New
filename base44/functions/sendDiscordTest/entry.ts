@@ -14,6 +14,9 @@ Deno.serve(async (req) => {
             if (!digest || digest.length === 0) {
                 return Response.json({ error: `Digest "${digest_name}" not found` }, { status: 404 });
             }
+            if (digest[0].created_by !== user.email) {
+                return Response.json({ error: 'Forbidden' }, { status: 403 });
+            }
             url = digest[0].discord_webhook_url;
             if (!url) {
                 return Response.json({ error: `Digest "${digest_name}" has no Discord webhook configured` }, { status: 400 });

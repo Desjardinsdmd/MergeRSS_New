@@ -142,7 +142,7 @@ Deno.serve(async (req) => {
         const FREE_FEED_LIMIT = 50; // sync with lib/planLimits.js PLAN_LIMITS.free.feeds
         const isPremium = user.plan === 'premium';
         if (!isPremium) {
-          const existingFeeds = await base44.entities.Feed.filter({});
+          const existingFeeds = await base44.entities.Feed.filter({ created_by: user.email });
           const remaining = FREE_FEED_LIMIT - existingFeeds.length;
           if (remaining <= 0) {
             return Response.json({ error: `Feed limit reached. Free plan allows ${FREE_FEED_LIMIT} feeds. Upgrade to Premium for unlimited feeds.` }, { status: 403 });
