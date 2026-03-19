@@ -167,7 +167,7 @@ export default function Landing() {
                 className="text-lg text-stone-400 mb-8 max-w-lg leading-relaxed"
                 style={{ animation: 'fadeSlideDown 0.6s ease 0.2s both' }}
               >
-                MergeRSS turns hundreds of headlines into a clear daily briefing — so you know what matters in minutes.
+                MergeRSS turns hundreds of headlines into a clear daily briefing — so you know what matters before everyone else.
               </p>
 
               <div
