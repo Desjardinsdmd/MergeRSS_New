@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { Zap, ExternalLink, Loader2, TrendingUp, AlertTriangle, Lightbulb, Minus, ChevronDown, ChevronUp } from 'lucide-react';
+import { Zap, ExternalLink, Loader2, TrendingUp, AlertTriangle, Lightbulb, Minus, ChevronDown, ChevronUp, ArrowUp, ArrowDown } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { decodeHtml, safeUrl } from '@/components/utils/htmlUtils';
 import {
@@ -9,6 +9,7 @@ import {
     signalLevelStyle, confidenceFromCluster, decisionState,
     deduplicateItems, clusterItems
 } from './intelligenceUtils';
+import { updateAndGetEvolution, recordInteraction, getInteractionScore } from './storyMemory';
 
 const TAG_CONFIG = {
     Trending:    { textClass: 'text-blue-400',    icon: TrendingUp },
@@ -18,6 +19,12 @@ const TAG_CONFIG = {
 };
 
 const MACRO_BOOST_RE = /\b(fed|federal reserve|interest rate|inflation|gdp|earnings|capital markets|policy|regulation|oil|energy|geopolit|trade|tariff|acqui|merger|ipo|real estate|housing)\b/i;
+
+const LIFECYCLE_STYLE = {
+    Developing: 'text-emerald-400 border-emerald-800/50 bg-emerald-950/30',
+    Evolving:   'text-sky-400 border-sky-800/50 bg-sky-950/30',
+    Fading:     'text-stone-500 border-stone-700 bg-stone-800/30',
+};
 
 export default function TopFiveToday({ feedIds, feeds, onItemsLoaded }) {
     const [expanded, setExpanded] = useState(null);
@@ -38,7 +45,8 @@ export default function TopFiveToday({ feedIds, feeds, onItemsLoaded }) {
             const boosted = raw.map(item => {
                 const text = (item.title || '') + ' ' + (item.description || '');
                 const macroBoost = MACRO_BOOST_RE.test(text) ? 8 : 0;
-                return { ...item, _boostedScore: (item.importance_score ?? 0) + macroBoost };
+                const interactionBoost = Math.min(getInteractionScore(item.title) * 2, 10);
+                return { ...item, _boostedScore: (item.importance_score ?? 0) + macroBoost + interactionBoost };
             }).sort((a, b) => b._boostedScore - a._boostedScore);
 
             const clusterMap = new Map();
@@ -48,12 +56,9 @@ export default function TopFiveToday({ feedIds, feeds, onItemsLoaded }) {
             });
 
             const deduped = deduplicateItems(boosted, feedMap);
-
-            // Extra filter: penalize low-confidence single-source low-score items
             const filtered = deduped.filter(item => {
                 const cs = clusterMap.get(item.id) ?? 1;
                 const score = item.importance_score ?? 0;
-                // Drop single-source items below 50 score (low confidence + low signal = Low Priority)
                 return !(cs === 1 && score < 50);
             });
 
@@ -107,6 +112,12 @@ export default function TopFiveToday({ feedIds, feeds, onItemsLoaded }) {
                     const confidence = confidenceFromCluster(clusterSize);
                     const decision = decisionState(item, clusterSize);
 
+                    // Synthesize a fake cluster object for memory tracking
+                    const fakeCluster = useMemo(() => ({ primary: item, clusterSize }), [item.id, clusterSize]);
+                    const evolution = useMemo(() =>
+                        updateAndGetEvolution(fakeCluster, decision.label, confidence.label),
+                    [item.id, clusterSize, decision.label, confidence.label]);
+
                     return (
                         <div
                             key={item.id}
@@ -120,22 +131,32 @@ export default function TopFiveToday({ feedIds, feeds, onItemsLoaded }) {
                             ].join(' ')}
                         >
                             <div className="flex items-start gap-3">
-                                {/* Rank number */}
                                 <span className={[
                                     'flex-shrink-0 leading-none mt-0.5 tabular-nums',
                                     isTop2 ? 'text-2xl font-black w-7' : 'text-lg font-black w-6',
                                     idx === 0 ? 'text-[hsl(var(--primary))]' : idx === 1 ? 'text-stone-400' : 'text-stone-700',
-                                ].join(' ')}>
-                                    {idx + 1}
-                                </span>
+                                ].join(' ')}>{idx + 1}</span>
 
                                 <div className="flex-1 min-w-0">
-                                    {/* Decision state badge — first thing user sees */}
-                                    <div className="flex items-center gap-2 mb-1.5">
+                                    {/* Row 1: decision + evolution signals */}
+                                    <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
                                         <span className={`text-[10px] font-bold px-2 py-0.5 border ${decision.style}`}>
                                             {decision.label}
                                         </span>
-                                        <span className="inline-flex items-center gap-0.5 text-[10px] text-stone-600">
+                                        {evolution.lifecycle && (
+                                            <span className={`text-[10px] px-1.5 py-0.5 border ${LIFECYCLE_STYLE[evolution.lifecycle] || ''}`}>
+                                                {evolution.lifecycle}
+                                            </span>
+                                        )}
+                                        {evolution.stateProgression === 'Upgraded' && (
+                                            <span className="inline-flex items-center gap-0.5 text-[10px] text-emerald-400 font-semibold">
+                                                <ArrowUp className="w-2.5 h-2.5" />Upgraded
+                                            </span>
+                                        )}
+                                        {evolution.confidenceProgression && (
+                                            <span className="text-[10px] text-emerald-400 font-semibold">{evolution.confidenceProgression}</span>
+                                        )}
+                                        <span className="inline-flex items-center gap-0.5 text-[10px] text-stone-600 ml-auto">
                                             <Icon className="w-2.5 h-2.5" />{tag}
                                         </span>
                                     </div>
@@ -149,29 +170,19 @@ export default function TopFiveToday({ feedIds, feeds, onItemsLoaded }) {
                                         {decodeHtml(item.title)}
                                     </h3>
 
-                                    {/* What happened */}
-                                    {happened && (
-                                        <p className="text-xs text-stone-400 leading-snug mb-1 line-clamp-1">{happened}</p>
-                                    )}
+                                    {happened && <p className="text-xs text-stone-400 leading-snug mb-1 line-clamp-1">{happened}</p>}
+                                    {insight && <p className={`text-xs font-medium mb-2 line-clamp-1 ${tagCfg.textClass}`}>↳ {insight}</p>}
 
-                                    {/* Insight */}
-                                    {insight && (
-                                        <p className={`text-xs font-medium mb-2 line-clamp-1 ${tagCfg.textClass}`}>
-                                            ↳ {insight}
-                                        </p>
-                                    )}
-
-                                    {/* Signal · confidence · source · time */}
+                                    {/* Meta */}
                                     <div className="flex items-center gap-2 flex-wrap">
-                                        {signal && (
-                                            <span className={`text-[10px] px-1.5 py-0.5 border ${signal.class}`}>
-                                                {signal.label}
-                                            </span>
-                                        )}
+                                        {signal && <span className={`text-[10px] px-1.5 py-0.5 border ${signal.class}`}>{signal.label}</span>}
                                         <span className={`inline-flex items-center gap-1 text-[10px] ${confidence.class}`}>
                                             <span className={`w-1.5 h-1.5 rounded-full inline-block ${confidence.dot}`} />
                                             {confidence.label}
                                         </span>
+                                        {evolution.momentum === 'growing' && clusterSize > 1 && (
+                                            <span className="text-[10px] text-emerald-400 font-semibold">↑ {clusterSize} sources</span>
+                                        )}
                                         <span className="text-xs text-stone-600 ml-auto truncate">
                                             {source?.name}{item.published_date && <> · {formatDistanceToNow(new Date(item.published_date), { addSuffix: true })}</>}
                                         </span>
@@ -183,13 +194,18 @@ export default function TopFiveToday({ feedIds, feeds, onItemsLoaded }) {
                                                 href={safeUrl(item.url)}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                onClick={e => e.stopPropagation()}
+                                                onClick={e => { e.stopPropagation(); recordInteraction(item.title, 'click'); }}
                                                 className="inline-flex items-center gap-1 text-xs text-[hsl(var(--primary))] hover:opacity-80 transition font-medium"
                                             >
                                                 Read full article <ExternalLink className="w-3 h-3" />
                                             </a>
                                             {clusterSize > 1 && (
                                                 <span className="text-xs text-stone-600 ml-3">{clusterSize} sources covering this</span>
+                                            )}
+                                            {evolution.firstSeenAt && (
+                                                <span className="text-xs text-stone-700 ml-3">
+                                                    First seen {formatDistanceToNow(new Date(evolution.firstSeenAt), { addSuffix: true })}
+                                                </span>
                                             )}
                                         </div>
                                     )}
