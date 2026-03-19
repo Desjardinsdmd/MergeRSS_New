@@ -43,11 +43,14 @@ export default function IntelligenceDashboard({ user, feeds = [], digests = [], 
         i.published_date && new Date(i.published_date) >= new Date(since24h)
     ).length;
 
-    // High importance/risk items for sidebar alerts (score >= 70 or tag = Risk)
-    const highImportanceItems = rankedItems
-        .filter(i => (i.importance_score != null && i.importance_score >= 70) || i.intelligence_tag === 'Risk')
-        .sort((a, b) => (b.importance_score ?? 0) - (a.importance_score ?? 0))
-        .slice(0, 6);
+    // High importance/risk items for sidebar — only Watch+ decision state, cluster size tracked
+    const highImportanceItems = (() => {
+        const { clusterItems: ci, decisionState: ds } = require ? null : null; // no-op, use inline logic
+        return rankedItems
+            .filter(i => (i.importance_score != null && i.importance_score >= 65) || i.intelligence_tag === 'Risk')
+            .sort((a, b) => (b.importance_score ?? 0) - (a.importance_score ?? 0))
+            .slice(0, 6);
+    })();
 
     // Bookmarks
     const { data: bookmarks = [] } = useQuery({

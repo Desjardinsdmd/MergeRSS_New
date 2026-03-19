@@ -3,42 +3,39 @@ import { Radio } from 'lucide-react';
 import { clusterItems, confidenceFromCluster, decisionState, generateInsight } from './intelligenceUtils';
 import { buildNarratives } from './storyMemory';
 
-// Synthesize a narrative theme into a decisive, opinionated sentence
-function synthesizeNarrative(label, stories) {
+// ─── Narrative synthesis ───────────────────────────────────────────────────────
+// Each template produces a specific, time-anchored sentence with a forward implication.
+function synthesizeNarrative(label, stories, isLead = false) {
     const s = stories.length;
     const TEMPLATES = {
-        'Interest Rate Pressure':       () => `Rate pressure is ${s >= 3 ? 'broadly confirmed across multiple signals' : 'building'} — refinancing windows are closing and capital costs are rising`,
-        'Capital Markets Activity':     () => `Capital markets ${s >= 3 ? 'are showing clear recovery signs' : 'are selectively reopening'} — risk appetite is returning to quality-first deals`,
-        'Real Estate Dynamics':         () => `Institutional capital is ${s >= 2 ? 'actively repositioning' : 'beginning to shift'} in real estate as rate sensitivity reshapes the landscape`,
-        'AI & Technology Shift':        () => `AI disruption is ${s >= 3 ? 'accelerating faster than incumbents can adapt' : 'creating measurable competitive differentiation'} — margin compression is next`,
-        'Regulatory & Policy Pressure': () => `Regulatory tightening is ${s >= 2 ? 'intensifying on multiple fronts' : 'emerging'} — compliance costs and operational constraints will rise`,
-        'Energy & Commodities':         () => `Energy costs ${s >= 2 ? 'are becoming a systemic constraint' : 'are adding margin pressure'} — downstream inflation effects are already feeding through`,
-        'Credit & Banking Risk':        () => `Credit conditions are ${s >= 2 ? 'tightening broadly' : 'showing early stress signals'} — capital access will narrow faster than rate moves suggest`,
-        'Labor & Employment':           () => `Labor market ${s >= 2 ? 'softening is accelerating' : 'is showing early stress'} — workforce rationalization is becoming the primary cost lever`,
-        'Geopolitical Tensions':        () => `Geopolitical risk is ${s >= 2 ? 'compressing premiums across multiple markets' : 'adding a meaningful uncertainty discount'} — supply chains are most exposed`,
-        'Crypto & Digital Assets':      () => `Digital assets are ${s >= 2 ? 'moving in coordination with macro signals' : 'reacting to broader risk sentiment'} — institutional positioning is the tell`,
+        'Interest Rate Pressure':       () => `Rate pressure is ${s >= 3 ? 'broadly confirmed' : 'building'} — borrowing costs are rising and capital formation is being directly constrained`,
+        'Capital Markets Activity':     () => `Capital markets are ${s >= 3 ? 'reopening selectively to quality deals' : 'showing early signs of recovery'} — risk appetite is returning cautiously`,
+        'Real Estate Dynamics':         () => `Institutional capital is ${s >= 2 ? 'actively repositioning' : 'shifting'} in real estate — rate sensitivity is compressing valuations and slowing deployment`,
+        'AI & Technology Shift':        () => `AI disruption is ${s >= 3 ? 'accelerating across sectors' : 'driving measurable competitive shifts'} — incumbent cost structures are under direct pressure`,
+        'Regulatory & Policy Pressure': () => `Policy and regulatory tightening is ${s >= 2 ? 'intensifying on multiple fronts' : 'emerging'} — compliance burden and operational friction are set to increase`,
+        'Energy & Commodities':         () => `Energy cost pressure is ${s >= 2 ? 'feeding through to downstream inflation' : 'building'} — operating margins in exposed sectors are narrowing`,
+        'Credit & Banking Risk':        () => `Credit conditions are ${s >= 2 ? 'tightening broadly' : 'showing early stress'} — lending pullback will slow growth faster than rate signals suggest`,
+        'Labor & Employment':           () => `Labor costs are being met with workforce rationalization — ${s >= 2 ? 'the trend is accelerating across multiple sectors' : 'early signs point to broader cuts ahead'}`,
+        'Geopolitical Tensions':        () => `Geopolitical friction is ${s >= 2 ? 'compressing risk premiums and disrupting supply chains' : 'adding meaningful uncertainty to capital allocation decisions'}`,
+        'Crypto & Digital Assets':      () => `Digital assets are ${s >= 2 ? 'moving in coordination with macro risk signals' : 'responding to broader sentiment shifts'} — institutional positioning is the tell`,
     };
     const fn = TEMPLATES[label];
-    return fn ? fn() : `${label} is emerging as a significant cross-source signal — ${s} stories are converging`;
+    return fn ? fn() : `${label} is converging across ${s} sources — a cross-sector signal forming`;
 }
 
-// Derive the single clearest key signal — must be high conviction only
+// ─── Key Signal derivation ─────────────────────────────────────────────────────
+// Produces a specific, non-generic, time-anchored sentence.
+// Falls back through: validated cluster → important cluster → dominant narrative → null
 function deriveKeySignal(clusters, narratives) {
-    // First try: find a validated, high-importance cluster
+    // Tier 1: Validated + Important
     const validated = clusters.find(c => {
         const d = decisionState(c.primary, c.clusterSize);
         const conf = confidenceFromCluster(c.clusterSize);
         return d.priority >= 3 && conf.label === 'Validated';
     });
 
-    // Second try: Important decision state with building confidence
-    const important = clusters.find(c => {
-        const d = decisionState(c.primary, c.clusterSize);
-        return d.priority >= 3;
-    });
-
-    // Third try: dominant narrative with strong count
-    const dominantNarrative = narratives.find(n => n.count >= 3);
+    // Tier 2: Important decision state (any confidence)
+    const important = clusters.find(c => decisionState(c.primary, c.clusterSize).priority >= 3);
 
     const top = validated || important;
 
@@ -46,65 +43,101 @@ function deriveKeySignal(clusters, narratives) {
         const insight = generateInsight(top.primary);
         const conf = confidenceFromCluster(top.clusterSize);
         const title = top.primary.title || '';
-        const entityMatch = title.match(/^([A-Z][a-zA-Z&\s]{2,30}?)(?:\s+(?:is|are|says|reports|warns|raises|cuts|plans|faces|hits|sees))/);
+
+        // Extract subject entity from title (first capitalized phrase before a verb)
+        const entityMatch = title.match(/^([A-Z][a-zA-Z&\s]{2,28}?)(?:\s+(?:is|are|says|reports|warns|raises|cuts|plans|faces|hits|sees|posts|beats|misses|surges|drops|jumps|falls))/);
         const subject = entityMatch ? entityMatch[1].trim() : null;
 
-        if (conf.label === 'Validated' && subject) {
-            return `${subject}: ${insight || 'now confirmed across multiple independent sources — treat as high-conviction signal'}`;
-        }
-        if (insight) {
-            return subject ? `${subject}: ${insight}` : insight;
+        // Avoid all generic fallback phrases — only output if we have a specific insight
+        const isGeneric = !insight ||
+            insight.startsWith('Downside signal') ||
+            insight.startsWith('Upside signal') ||
+            insight.startsWith('Broad coverage') ||
+            insight.startsWith('Downside') ||
+            insight === 'Monitor closely';
+
+        if (!isGeneric) {
+            const confSuffix = conf.label === 'Validated' ? ` — confirmed across ${top.clusterSize} independent sources` : '';
+            return subject ? `${subject}: ${insight}${confSuffix}` : `${insight}${confSuffix}`;
         }
     }
 
+    // Tier 3: Strong narrative as key signal
+    const dominantNarrative = narratives.find(n => n.count >= 3);
     if (dominantNarrative) {
-        return synthesizeNarrative(dominantNarrative.label, dominantNarrative.stories);
+        return synthesizeNarrative(dominantNarrative.label, dominantNarrative.stories, true);
+    }
+
+    // Tier 4: Any narrative with ≥2 stories
+    if (narratives[0]?.count >= 2) {
+        return synthesizeNarrative(narratives[0].label, narratives[0].stories);
     }
 
     return null;
 }
 
-// Generate briefing bullets — only from high-quality signals
-// Never generates generic filler. Returns 0–4 bullets.
+// ─── Bullet generation ─────────────────────────────────────────────────────────
+// Enforces structural diversity: Macro driver → Supporting signal → Forward implication
+// Never all-identical sentence structures. Max 4 bullets.
 function generateBullets(clusters, narratives) {
     const bullets = [];
 
-    // Lead with strongest narratives (≥2 stories = meaningful cross-source theme)
-    for (const narrative of narratives.slice(0, 3)) {
-        if (bullets.length >= 4) break;
-        if (narrative.count < 2) continue;
-        bullets.push(synthesizeNarrative(narrative.label, narrative.stories));
+    // SLOT 1 — Macro driver: the biggest cross-source theme (narrative-level)
+    const leadNarrative = narratives.find(n => n.count >= 2);
+    if (leadNarrative) {
+        bullets.push({ role: 'macro', text: synthesizeNarrative(leadNarrative.label, leadNarrative.stories) });
     }
 
-    // Fill with high-conviction cluster insights not already covered
-    const highClusters = clusters.filter(c => {
-        const d = decisionState(c.primary, c.clusterSize);
-        const insight = generateInsight(c.primary);
-        // Only include if: strong decision state AND has a specific (non-generic) insight
-        return (
-            d.priority >= 2 &&
-            (c.primary.importance_score ?? 0) >= 60 &&
-            insight &&
-            !insight.startsWith('Downside signal') &&
-            !insight.startsWith('Upside signal') &&
-            !insight.startsWith('Broad coverage')
-        );
-    });
-
-    for (const cluster of highClusters) {
-        if (bullets.length >= 4) break;
-        const insight = generateInsight(cluster.primary);
-        const d = decisionState(cluster.primary, cluster.clusterSize);
-        const prefix = d.label === 'Important' ? '' : 'Watch: ';
-        const candidate = `${prefix}${insight}`;
-        // Avoid near-duplicates
-        if (!bullets.some(b => b.includes(insight.slice(0, 40)))) {
-            bullets.push(candidate);
+    // SLOT 2 — Supporting signal: a second distinct narrative or high-confidence cluster event
+    const secondNarrative = narratives.find(n => n !== leadNarrative && n.count >= 2);
+    if (secondNarrative) {
+        bullets.push({ role: 'support', text: synthesizeNarrative(secondNarrative.label, secondNarrative.stories) });
+    } else {
+        // Fall back to a high-conviction cluster insight as the supporting data point
+        const supportCluster = clusters.find(c => {
+            const d = decisionState(c.primary, c.clusterSize);
+            const insight = generateInsight(c.primary);
+            const isGeneric = !insight || insight.startsWith('Downside signal') || insight.startsWith('Upside signal') || insight.startsWith('Broad coverage');
+            return d.priority >= 2 && (c.primary.importance_score ?? 0) >= 65 && !isGeneric &&
+                !bullets.some(b => b.text.includes(insight.slice(0, 35)));
+        });
+        if (supportCluster) {
+            const insight = generateInsight(supportCluster.primary);
+            const d = decisionState(supportCluster.primary, supportCluster.clusterSize);
+            bullets.push({ role: 'support', text: `${d.label === 'Important' ? '' : 'Watch: '}${insight}` });
         }
     }
 
-    return [...new Set(bullets)].slice(0, 4);
+    // SLOT 3 — Forward implication: what the combined signals mean for what happens next
+    if (bullets.length >= 2) {
+        const FORWARD_IMPLICATIONS = {
+            'Interest Rate Pressure':       'Expect tighter credit conditions and extended hold-off in discretionary capital deployment over the next quarter',
+            'Capital Markets Activity':     'Deal velocity will accelerate for quality assets — distressed and speculative positions will remain sidelined',
+            'Real Estate Dynamics':         'Selective buyer-side leverage will emerge in segments where sellers face refinancing pressure',
+            'AI & Technology Shift':        'Expect forced strategic pivots from incumbents and accelerated consolidation as the capability gap widens',
+            'Regulatory & Policy Pressure': 'Compliance-light operators face disproportionate exposure — regulatory arbitrage windows are closing',
+            'Energy & Commodities':         'Input cost pressure will persist — sectors with limited pricing power face the sharpest margin contraction',
+            'Credit & Banking Risk':        'Capital access will narrow sharply for below-investment-grade borrowers — refinancing risk is building',
+            'Labor & Employment':           'Consumer spending softness will follow — downstream demand signals will lag workforce cuts by one to two quarters',
+            'Geopolitical Tensions':        'Nearshoring and supply chain diversification will accelerate — cost efficiency will be traded for resilience',
+            'Crypto & Digital Assets':      'Liquidity positioning will drive short-term moves — watch for institutional flows as the directional tell',
+        };
+        const leadLabel = leadNarrative?.label || narratives[0]?.label;
+        const implication = FORWARD_IMPLICATIONS[leadLabel];
+        if (implication && !bullets.some(b => b.text.includes(implication.slice(0, 30)))) {
+            bullets.push({ role: 'forward', text: implication });
+        }
+    }
+
+    return [...new Map(bullets.map(b => [b.text.slice(0, 40), b])).values()].slice(0, 4);
 }
+
+// Role labels shown inline before each bullet
+const ROLE_LABEL = {
+    macro:   { text: 'Driver',      cls: 'text-[hsl(var(--primary))] border-[hsl(var(--primary))]/40 bg-[hsl(var(--primary))]/10' },
+    support: { text: 'Signal',      cls: 'text-sky-400 border-sky-800/50 bg-sky-950/30' },
+    forward: { text: 'Implication', cls: 'text-stone-400 border-stone-700 bg-stone-800/50' },
+};
 
 export default function DailyBriefingSummary({ items = [], feeds = [] }) {
     const feedMap = Object.fromEntries(feeds.map(f => [f.id, f]));
@@ -114,12 +147,8 @@ export default function DailyBriefingSummary({ items = [], feeds = [] }) {
 
         const clusters = clusterItems(items, feedMap);
 
-        // ONLY use high-signal clusters for the briefing — exclude weak/low-priority content
-        const significant = clusters.filter(c => {
-            const d = decisionState(c.primary, c.clusterSize);
-            return d.priority >= 2; // Watch or above
-        });
-
+        // Only include Watch-or-above clusters in the briefing
+        const significant = clusters.filter(c => decisionState(c.primary, c.clusterSize).priority >= 2);
         if (!significant.length) return { bullets: [], keySignal: null };
 
         const narratives = buildNarratives(significant);
@@ -129,37 +158,41 @@ export default function DailyBriefingSummary({ items = [], feeds = [] }) {
         };
     }, [items, feeds]);
 
-    // Only render if we have genuine signal — never show empty state
     if (!keySignal && !bullets.length) return null;
 
     const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
     return (
-        <div className="border-2 border-[hsl(var(--primary))]/40 bg-[hsl(var(--primary))]/[0.04]">
+        <div className="border-2 border-[hsl(var(--primary))]/50 bg-[hsl(var(--primary))]/[0.03] shadow-[0_0_40px_-8px_hsl(var(--primary)/0.15)]">
             {/* Header */}
-            <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-[hsl(var(--primary))]/25 bg-[hsl(var(--primary))]/[0.06]">
+            <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-[hsl(var(--primary))]/25 bg-[hsl(var(--primary))]/[0.07]">
                 <Radio className="w-3.5 h-3.5 text-[hsl(var(--primary))]" />
                 <span className="text-sm font-bold text-[hsl(var(--primary))] uppercase tracking-widest">Intelligence Briefing</span>
                 <span className="text-xs text-stone-500 ml-auto">{today}</span>
             </div>
 
-            {/* Today's Key Signal — the single clearest takeaway */}
+            {/* Today's Key Signal */}
             {keySignal && (
-                <div className="px-5 py-4 border-b border-[hsl(var(--primary))]/20">
-                    <div className="text-[10px] font-black text-stone-500 uppercase tracking-widest mb-2">Today's Key Signal</div>
-                    <p className="text-[0.95rem] font-bold text-stone-100 leading-snug">{keySignal}</p>
+                <div className="px-5 py-5 border-b border-[hsl(var(--primary))]/20 bg-[hsl(var(--primary))]/[0.04]">
+                    <div className="text-[10px] font-black text-[hsl(var(--primary))]/70 uppercase tracking-[0.2em] mb-2">Today's Key Signal</div>
+                    <p className="text-[1rem] font-bold text-stone-100 leading-snug">{keySignal}</p>
                 </div>
             )}
 
-            {/* Synthesized bullets — only if they add genuine insight beyond the key signal */}
+            {/* Structured bullets — Macro / Signal / Implication */}
             {bullets.length > 0 && (
-                <div className="px-5 py-4 space-y-2.5">
-                    {bullets.map((bullet, i) => (
-                        <div key={i} className="flex items-start gap-3">
-                            <span className="text-[hsl(var(--primary))] font-black text-sm flex-shrink-0 mt-0 leading-snug">·</span>
-                            <p className="text-sm text-stone-400 leading-snug">{bullet}</p>
-                        </div>
-                    ))}
+                <div className="px-5 py-4 space-y-3">
+                    {bullets.map((bullet, i) => {
+                        const role = ROLE_LABEL[bullet.role] || ROLE_LABEL.support;
+                        return (
+                            <div key={i} className="flex items-start gap-3">
+                                <span className={`text-[9px] font-black px-1.5 py-0.5 border flex-shrink-0 mt-0.5 uppercase tracking-wider ${role.cls}`}>
+                                    {role.text}
+                                </span>
+                                <p className="text-sm text-stone-300 leading-snug">{bullet.text}</p>
+                            </div>
+                        );
+                    })}
                 </div>
             )}
         </div>

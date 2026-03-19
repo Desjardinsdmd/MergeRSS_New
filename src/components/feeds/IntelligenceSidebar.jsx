@@ -1,9 +1,63 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { FileText, Rss, Bookmark, Inbox, AlertTriangle, ChevronRight } from 'lucide-react';
+import { FileText, Rss, Bookmark, Inbox, Zap, ChevronRight, ExternalLink } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { decodeHtml, safeUrl } from '@/components/utils/htmlUtils';
+import { decisionState, confidenceFromCluster, generateInsight, inferTag } from './intelligenceUtils';
+
+function HighSignalItem({ item }) {
+    const clusterSize = item._clusterSize ?? 1;
+    const decision = decisionState(item, clusterSize);
+    const confidence = confidenceFromCluster(clusterSize);
+    const insight = generateInsight(item);
+    const tag = item.intelligence_tag || inferTag((item.title || '') + ' ' + (item.description || ''));
+
+    // Only use specific insights — skip generic fallbacks
+    const isGenericInsight = !insight ||
+        insight.startsWith('Downside signal') ||
+        insight.startsWith('Upside signal') ||
+        insight.startsWith('Broad coverage');
+
+    return (
+        <a
+            href={safeUrl(item.url)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block group py-2.5 border-b border-stone-800/60 last:border-0"
+        >
+            {/* Decision + Confidence badges */}
+            <div className="flex items-center gap-1.5 mb-1.5">
+                <span className={`text-[9px] font-bold px-1.5 py-0.5 border ${decision.style}`}>
+                    {decision.label}
+                </span>
+                <span className={`inline-flex items-center gap-1 text-[9px] ${confidence.class}`}>
+                    <span className={`w-1 h-1 rounded-full inline-block ${confidence.dot}`} />
+                    {confidence.label}
+                </span>
+                {item.published_date && (
+                    <span className="text-[9px] text-stone-700 ml-auto">
+                        {formatDistanceToNow(new Date(item.published_date), { addSuffix: true })}
+                    </span>
+                )}
+            </div>
+
+            {/* Headline */}
+            <p className="text-xs text-stone-300 leading-snug line-clamp-1 group-hover:text-[hsl(var(--primary))] transition-colors mb-1">
+                {decodeHtml(item.title)}
+            </p>
+
+            {/* Specific insight only */}
+            {!isGenericInsight && (
+                <p className={`text-[10px] leading-snug line-clamp-1 ${
+                    tag === 'Risk' ? 'text-red-400/70' :
+                    tag === 'Opportunity' ? 'text-emerald-400/70' :
+                    'text-stone-500'
+                }`}>↳ {insight}</p>
+            )}
+        </a>
+    );
+}
 
 export default function IntelligenceSidebar({ digests = [], stats = {}, highImportanceItems = [] }) {
     return (
@@ -36,39 +90,17 @@ export default function IntelligenceSidebar({ digests = [], stats = {}, highImpo
                 </div>
             </div>
 
-            {/* High Importance Alerts */}
+            {/* High Signal — upgraded intelligence list */}
             {highImportanceItems.length > 0 && (
                 <div className="bg-stone-900 border border-stone-800 p-4">
                     <div className="flex items-center gap-2 mb-3">
-                        <AlertTriangle className="w-3.5 h-3.5 text-red-400" />
-                        <h3 className="text-xs font-semibold text-stone-500 uppercase tracking-wider">High Signal</h3>
+                        <Zap className="w-3.5 h-3.5 text-[hsl(var(--primary))]" />
+                        <h3 className="text-xs font-semibold text-stone-400 uppercase tracking-wider">High Signal</h3>
+                        <span className="text-[9px] text-stone-600 ml-auto">{highImportanceItems.slice(0, 5).length} items</span>
                     </div>
-                    <div className="space-y-3">
-                        {highImportanceItems.slice(0, 4).map(item => (
-                            <a
-                                key={item.id}
-                                href={safeUrl(item.url)}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="block group"
-                            >
-                                <p className="text-xs text-stone-300 leading-snug line-clamp-2 group-hover:text-[hsl(var(--primary))] transition-colors">
-                                    {decodeHtml(item.title)}
-                                </p>
-                                <div className="flex items-center gap-1.5 mt-1">
-                                    {item.importance_score != null && (
-                                        <span className="text-[10px] text-red-500 font-bold">{item.importance_score}</span>
-                                    )}
-                                    {item.intelligence_tag === 'Risk' && (
-                                        <span className="text-[10px] text-red-400">Risk</span>
-                                    )}
-                                    {item.published_date && (
-                                        <span className="text-[10px] text-stone-600">
-                                            {formatDistanceToNow(new Date(item.published_date), { addSuffix: true })}
-                                        </span>
-                                    )}
-                                </div>
-                            </a>
+                    <div>
+                        {highImportanceItems.slice(0, 5).map(item => (
+                            <HighSignalItem key={item.id} item={item} />
                         ))}
                     </div>
                 </div>
