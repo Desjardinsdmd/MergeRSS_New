@@ -89,6 +89,7 @@ Deno.serve(async (req) => {
                 continue;
             }
 
+            console.log(`[generateDigests] Processing digest="${digest.name}" id=${digest.id}`);
             try {
                 // Day-of-week / day-of-month schedule check
                 if (!force && digest.frequency === 'weekly' && digest.schedule_day_of_week !== undefined) {
