@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 
 const CATEGORY_MAP = {
   'Technology': 'Tech', 'Science': 'Tech', 'Programming': 'Tech', 'Coding': 'Tech',
@@ -71,6 +71,57 @@ function parseUrlList(text) {
     .map(url => ({ url, name: url, category: 'Other', rawCategory: 'Other', source_url: url }));
 }
 
+const detectRssFeedUrl = async (url) => {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; RSSBot/1.0; +https://mergerss.com)' },
+      redirect: 'follow'
+    });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) return null;
+    const html = await response.text();
+
+    // Look for RSS/Atom feed links in HTML head
+    const feedLinkRegex = /<link[^>]*(rel=["']?(alternate|feed)["']?)[^>]*(href=["']([^"']+)["'])[^>]*\/?>/gi;
+    const typeRegex = /type=["']?application\/(rss|atom)\+xml["']?/i;
+    
+    let match;
+    while ((match = feedLinkRegex.exec(html)) !== null) {
+      if (typeRegex.test(match[0])) {
+        let feedUrl = match[4];
+        if (feedUrl.startsWith('/')) {
+          const base = new URL(url);
+          feedUrl = `${base.protocol}//${base.host}${feedUrl}`;
+        } else if (!feedUrl.startsWith('http')) {
+          feedUrl = new URL(feedUrl, url).href;
+        }
+        return feedUrl;
+      }
+    }
+
+    // Common feed paths
+    const commonPaths = ['/feed', '/rss', '/feed.xml', '/rss.xml', '/atom.xml', '/index.xml'];
+    const baseUrl = new URL(url);
+    for (const path of commonPaths) {
+      const testUrl = `${baseUrl.origin}${path}`;
+      const testRes = await fetch(testUrl, { signal: AbortSignal.timeout(3000), headers: { 'User-Agent': 'Mozilla/5.0' } });
+      if (testRes.ok) {
+        const content = await testRes.text();
+        if (content.includes('<rss') || content.includes('<feed') || content.includes('<?xml')) {
+          return testUrl;
+        }
+      }
+    }
+    return null;
+  } catch (e) {
+    return null;
+  }
+};
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -100,6 +151,25 @@ Deno.serve(async (req) => {
 
     if (parsedFeeds.length === 0) {
       return Response.json({ error: 'No feeds found in the provided content.' }, { status: 400 });
+    }
+
+    // Auto-discover RSS feeds from website URLs (only for URL list format)
+    if (format === 'urls') {
+      const discovered = [];
+      for (const feed of parsedFeeds) {
+        const feedUrl = feed.source_url;
+        if (feedUrl && !feedUrl.includes('/feed') && !feedUrl.includes('/rss') && !feedUrl.endsWith('.xml')) {
+          const rssUrl = await detectRssFeedUrl(feedUrl);
+          if (rssUrl) {
+            discovered.push({ ...feed, url: rssUrl });
+          } else {
+            discovered.push(feed);
+          }
+        } else {
+          discovered.push(feed);
+        }
+      }
+      parsedFeeds = discovered;
     }
 
     if (mode === 'digest') {
