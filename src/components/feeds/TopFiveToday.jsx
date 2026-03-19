@@ -177,45 +177,42 @@ function BriefingCard({ item, idx, feedMap, expanded, onToggle, totalCount }) {
             onClick={() => onToggle(item.id)}
             className={[
                 'cursor-pointer transition-colors',
-                isReadFirst ? 'px-5 py-5' : isSkim ? 'px-5 py-3 opacity-75' : 'px-5 py-4',
+                isReadFirst ? 'px-5 py-5' : isSkim ? 'px-5 py-3 opacity-60' : 'px-5 py-4 opacity-90',
                 isReadFirst
-                    ? 'border-l-[3px] border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/[0.05] hover:bg-[hsl(var(--primary))]/[0.08]'
-                    : isHigh
-                    ? 'border-l-[2px] border-[hsl(var(--primary))]/40 bg-[hsl(var(--primary))]/[0.02] hover:bg-[hsl(var(--primary))]/[0.04]'
-                    : 'hover:bg-stone-800/30',
+                    ? 'border-l-[4px] border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/[0.06] hover:bg-[hsl(var(--primary))]/[0.09]'
+                    : idx === 1
+                    ? 'border-l-[2px] border-stone-600 hover:bg-stone-800/40'
+                    : idx === 2
+                    ? 'border-l border-stone-700/50 hover:bg-stone-800/30'
+                    : 'hover:bg-stone-800/20',
             ].join(' ')}
         >
             <div className="flex items-start gap-3">
-                {/* Index number */}
+                {/* Index number — dominance decreases by position */}
                 <span className={[
                     'flex-shrink-0 leading-none mt-0.5 tabular-nums',
-                    isReadFirst ? 'text-2xl font-black w-7' : 'text-base font-black w-6',
-                    idx === 0 ? 'text-[hsl(var(--primary))]' : idx === 1 ? 'text-stone-400' : 'text-stone-700',
+                    isReadFirst ? 'text-2xl font-black w-7' : idx === 1 ? 'text-lg font-black w-6' : 'text-base font-bold w-6',
+                    idx === 0 ? 'text-[hsl(var(--primary))]' : idx === 1 ? 'text-stone-500' : 'text-stone-700',
                 ].join(' ')}>{idx + 1}</span>
 
                 <div className="flex-1 min-w-0">
-                    {/* Priority signal row */}
+                    {/* Badge row */}
                     <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
-                        {/* READ FIRST / SKIM label */}
                         {isReadFirst && (
                             <span className="inline-flex items-center gap-1 text-[10px] font-black text-stone-900 bg-[hsl(var(--primary))] px-2 py-0.5 tracking-wider uppercase">
                                 <Flame className="w-2.5 h-2.5" /> Read First
                             </span>
                         )}
                         {isSkim && (
-                            <span className="text-[10px] font-semibold text-stone-600 border border-stone-800 px-1.5 py-0.5 uppercase tracking-wider">
+                            <span className="text-[10px] font-semibold text-stone-700 border border-stone-800 px-1.5 py-0.5 uppercase tracking-wider">
                                 Skim
                             </span>
                         )}
-
-                        {/* Decision state */}
-                        {!isReadFirst && (
+                        {!isReadFirst && !isSkim && (
                             <span className={`text-[10px] font-bold px-2 py-0.5 border ${decision.style}`}>
                                 {decision.label}
                             </span>
                         )}
-
-                        {/* Urgency tag */}
                         {urgency && (
                             <span className={`text-[10px] font-bold px-1.5 py-0.5 ${
                                 urgency === 'Now Confirmed' ? 'text-emerald-400 border border-emerald-800/50 bg-emerald-950/30' :
@@ -223,29 +220,44 @@ function BriefingCard({ item, idx, feedMap, expanded, onToggle, totalCount }) {
                                                              'text-amber-400 border border-amber-800/50 bg-amber-950/30'
                             }`}>{urgency}</span>
                         )}
-
-                        {/* Evolution signals — kept muted */}
-                        <div className="ml-auto flex items-center gap-1.5 opacity-30">
-                            {evolution.lifecycle && <span className="text-[9px] text-stone-500">{evolution.lifecycle}</span>}
+                        <div className="ml-auto flex items-center gap-1.5 opacity-25">
+                            {evolution.lifecycle && <span className="text-[9px] text-stone-600">{evolution.lifecycle}</span>}
                         </div>
                     </div>
 
-                    {/* Headline */}
+                    {/* Headline — weight drops with position */}
                     <h3 className={[
-                        'leading-snug mb-1',
-                        isReadFirst ? 'text-[0.95rem]' : 'text-sm',
-                        isReadFirst ? 'font-bold text-white' : isHigh ? 'font-semibold text-stone-100' : 'font-medium text-stone-300',
+                        'leading-snug mb-1.5',
+                        isReadFirst ? 'text-[1rem] font-black text-white' :
+                        idx === 1   ? 'text-[0.9rem] font-bold text-stone-100' :
+                        idx === 2   ? 'text-sm font-semibold text-stone-200' :
+                                      'text-sm font-medium text-stone-400',
                     ].join(' ')}>{decodeHtml(item.title)}</h3>
 
-                    {/* Decisive insight — skip generic */}
+                    {/* Decisive insight */}
                     {!isGenericInsight && (
-                        <p className={`text-xs font-medium mb-2 line-clamp-1 ${tagCfg.textClass}`}>↳ {insight}</p>
+                        <p className={`text-xs font-semibold mb-2 line-clamp-1 ${tagCfg.textClass}`}>↳ {insight}</p>
                     )}
 
-                    {/* Why this matters — #1 item only */}
+                    {/* Why this matters — #1 only, short and direct */}
                     {whyItMatters && (
-                        <p className="text-xs text-stone-400 italic mb-2 line-clamp-2 border-l border-[hsl(var(--primary))]/40 pl-2">
-                            Why this matters: {whyItMatters}
+                        <p className="text-[11px] text-stone-300 mb-2 border-l-2 border-[hsl(var(--primary))]/60 pl-2.5 leading-snug">
+                            <span className="text-[hsl(var(--primary))]/70 font-bold text-[10px] uppercase tracking-wider">Why this matters · </span>
+                            {whyItMatters}
+                        </p>
+                    )}
+
+                    {/* Forward implication — top 2–3 items */}
+                    {forwardImplication && (
+                        <p className="text-[11px] text-stone-500 mb-2 leading-snug line-clamp-1">
+                            → {forwardImplication}
+                        </p>
+                    )}
+
+                    {/* Bottom line — #1 only, bold summary */}
+                    {bottomLine && (
+                        <p className="text-[11px] font-black text-[hsl(var(--primary))]/80 mb-2 uppercase tracking-wide">
+                            Bottom line: {bottomLine}
                         </p>
                     )}
 
@@ -263,7 +275,7 @@ function BriefingCard({ item, idx, feedMap, expanded, onToggle, totalCount }) {
                         </span>
                     </div>
 
-                    {/* Expanded — read article */}
+                    {/* Expanded */}
                     {isOpen && (
                         <div className="mt-3 pt-3 border-t border-stone-800">
                             <a
