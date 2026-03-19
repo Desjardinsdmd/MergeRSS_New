@@ -51,6 +51,9 @@ const navigation = [
   { name: 'Settings', href: 'Settings', icon: Settings },
 ];
 
+// Hidden admin routes — removed from main navigation
+// { name: 'RSS Generator', href: 'RssFeedGenerator', icon: Rss }, // → now backend-only via addSource()
+
 const adminNav = [
   { name: 'System Health', href: 'AdminHealth', icon: Activity },
   { name: 'Problem Reports', href: 'AdminReports', icon: AlertCircle },
