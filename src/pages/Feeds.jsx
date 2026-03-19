@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus, Search, Filter, Rss, Loader2, RefreshCw, Upload, Grid3x3, List, Trash2, ArrowUpDown } from 'lucide-react';
+import { Plus, Search, Filter, Rss, Loader2, RefreshCw, Upload, Grid3x3, List, Trash2, ArrowUpDown, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import SourcesControl from '@/components/feeds/SourcesControl';
 import {
   Select,
   SelectContent,
@@ -41,6 +42,7 @@ export default function Feeds() {
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
+  const [healthFilter, setHealthFilter] = useState('all'); // all, healthy, needs-attention
   const [sortBy, setSortBy] = useState('name-asc');
   const [fetching, setFetching] = useState(false);
   const [showBulkImport, setShowBulkImport] = useState(false);
@@ -82,7 +84,16 @@ export default function Feeds() {
       const matchesSearch = feed.name.toLowerCase().includes(search.toLowerCase()) ||
                             feed.url.toLowerCase().includes(search.toLowerCase());
       const matchesCategory = categoryFilter === 'All' || feed.category === categoryFilter;
-      return matchesSearch && matchesCategory;
+      
+      // Health filter
+      let matchesHealth = true;
+      if (healthFilter === 'healthy') {
+        matchesHealth = feed.status !== 'error' && (feed.consecutive_errors || 0) <= 1;
+      } else if (healthFilter === 'needs-attention') {
+        matchesHealth = feed.status === 'error' || (feed.consecutive_errors || 0) > 1;
+      }
+      
+      return matchesSearch && matchesCategory && matchesHealth;
     });
     return list.sort((a, b) => {
       if (sortBy === 'name-asc') return a.name.localeCompare(b.name);
@@ -93,7 +104,7 @@ export default function Feeds() {
       if (sortBy === 'last-fetched') return new Date(b.last_fetched || 0) - new Date(a.last_fetched || 0);
       return 0;
     });
-  }, [feeds, search, categoryFilter, sortBy]);
+  }, [feeds, search, categoryFilter, healthFilter, sortBy]);
 
   const handleDelete = async () => {
     if (deleteConfirm) {
@@ -157,6 +168,11 @@ export default function Feeds() {
 
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto">
+      {/* Summary Control Panel */}
+      <div className="mb-8">
+        <SourcesControl feeds={feeds} />
+      </div>
+
       {/* Header */}
       <div className="mb-8 flex flex-col sm:flex-row sm:items-start justify-between gap-6">
         <div>
@@ -223,6 +239,17 @@ export default function Feeds() {
             className="pl-9 bg-stone-900 border-stone-800 text-stone-200 placeholder-stone-600"
           />
         </div>
+        <Select value={healthFilter} onValueChange={setHealthFilter}>
+          <SelectTrigger className="w-full sm:w-40">
+            <Filter className="w-4 h-4 mr-2" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="healthy">Healthy</SelectItem>
+            <SelectItem value="needs-attention">Needs Attention</SelectItem>
+          </SelectContent>
+        </Select>
         <Select value={categoryFilter} onValueChange={setCategoryFilter}>
           <SelectTrigger className="w-full sm:w-40">
             <Filter className="w-4 h-4 mr-2" />
