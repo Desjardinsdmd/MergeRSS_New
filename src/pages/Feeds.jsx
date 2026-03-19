@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { getLimit } from '@/lib/planLimits';
-import AddFeedDialog from '@/components/feeds/AddFeedDialog';
+import AddSourceDialog from '@/components/feeds/AddSourceDialog';
 import FeedCard from '@/components/feeds/FeedCard';
 import FeedListView from '@/components/feeds/FeedListView';
 import FeedCompactView from '@/components/feeds/FeedCompactView';
@@ -189,11 +189,11 @@ export default function Feeds() {
           <Button 
             onClick={() => canAddMore ? setShowAddDialog(true) : null}
             disabled={!canAddMore}
-            title={!canAddMore ? 'Upgrade to Premium to add more feeds' : ''}
+            title={!canAddMore ? 'Upgrade to Premium to add more sources' : ''}
             className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 rounded-lg disabled:opacity-60 font-bold"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Add Feed
+            Add Source
           </Button>
         </div>
       </div>
@@ -389,7 +389,7 @@ export default function Feeds() {
       />
 
       {/* Add/Edit Dialog */}
-       <AddFeedDialog
+       <AddSourceDialog
          open={showAddDialog}
          onOpenChange={(open) => {
            setShowAddDialog(open);
