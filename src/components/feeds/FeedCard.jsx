@@ -26,7 +26,12 @@ import {
 import { cn } from '@/lib/utils';
 import { safeUrl, decodeHtml } from '@/components/utils/htmlUtils';
 import FeedAlertsDialog from '@/components/feeds/FeedAlertsDialog';
+import SourceHealthBadge from './SourceHealthBadge';
+import SourceActivityMetrics from './SourceActivityMetrics';
+import SourceIssueIndicator from './SourceIssueIndicator';
+import SourceCleanupDialog from './SourceCleanupDialog';
 import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
 
 const categoryColors = {
   CRE: 'bg-blue-950 text-blue-400',
@@ -39,11 +44,21 @@ const categoryColors = {
   Other: 'bg-stone-800 text-stone-300',
 };
 
-export default function FeedCard({ feed, onEdit, onDelete, onToggleStatus }) {
+export default function FeedCard({ feed, onEdit, onDelete, onToggleStatus, onRefresh }) {
   const [showAlerts, setShowAlerts] = useState(false);
+  const [cleanupOpen, setCleanupOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [articles, setArticles] = useState([]);
   const [loadingArticles, setLoadingArticles] = useState(false);
+
+  const { data: health } = useQuery({
+    queryKey: ['source-health', feed.id],
+    queryFn: () => base44.entities.SourceHealth.filter({ feed_id: feed.id }, '-created_date', 1),
+    enabled: !!feed.id,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const currentHealth = health?.[0] || null;
 
   const toggleArticles = async (e) => {
     e.stopPropagation();
@@ -77,34 +92,46 @@ export default function FeedCard({ feed, onEdit, onDelete, onToggleStatus }) {
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0 flex-1">
-                <h3 className="font-semibold text-stone-200 truncate">
-                  {feed.name}
-                </h3>
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="font-semibold text-stone-200 truncate">
+                    {feed.name}
+                  </h3>
+                  {currentHealth && <SourceHealthBadge health={currentHealth} compact />}
+                </div>
                 <a 
                   href={safeUrl(feed.url)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-stone-500 hover:text-[hsl(var(--primary))] truncate block"
+                  className="text-xs text-stone-500 hover:text-[hsl(var(--primary))] truncate block mb-2"
                 >
                   {feed.url}
                 </a>
+                {currentHealth && <SourceActivityMetrics health={currentHealth} feed={feed} />}
               </div>
               
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <MoreVertical className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => onEdit(feed)}>
-                    <Pencil className="w-4 h-4 mr-2" />
-                    Edit
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setShowAlerts(true)}>
-                    <Bell className="w-4 h-4 mr-2" />
-                    Alerts
-                  </DropdownMenuItem>
+              <div className="flex items-center gap-1">
+                {currentHealth && <SourceIssueIndicator issues={currentHealth.issues} />}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <MoreVertical className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => onEdit(feed)}>
+                      <Pencil className="w-4 h-4 mr-2" />
+                      Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setShowAlerts(true)}>
+                      <Bell className="w-4 h-4 mr-2" />
+                      Alerts
+                    </DropdownMenuItem>
+                    {currentHealth && (
+                      <DropdownMenuItem onClick={() => setCleanupOpen(true)}>
+                        <AlertCircle className="w-4 h-4 mr-2" />
+                        Health
+                      </DropdownMenuItem>
+                    )}
                   <DropdownMenuItem onClick={() => window.open(safeUrl(feed.url), '_blank')}>
                     <ExternalLink className="w-4 h-4 mr-2" />
                     Open Feed
@@ -129,7 +156,7 @@ export default function FeedCard({ feed, onEdit, onDelete, onToggleStatus }) {
                     <Trash2 className="w-4 h-4 mr-2" />
                     Delete
                   </DropdownMenuItem>
-                </DropdownMenuContent>
+                  </DropdownMenuContent>
                 </DropdownMenu>
               </div>
             </div>
@@ -211,6 +238,13 @@ export default function FeedCard({ feed, onEdit, onDelete, onToggleStatus }) {
     </Card>
 
     <FeedAlertsDialog feed={feed} open={showAlerts} onOpenChange={setShowAlerts} />
+    <SourceCleanupDialog
+      feed={feed}
+      health={currentHealth}
+      open={cleanupOpen}
+      onOpenChange={setCleanupOpen}
+      onComplete={onRefresh}
+    />
     </>
   );
 }
