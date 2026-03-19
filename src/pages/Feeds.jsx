@@ -196,6 +196,13 @@ export default function Feeds() {
         onFilter={setHealthFilter}
       />
 
+      {/* Needs Attention Summary */}
+      <NeedsAttentionSummary
+        failingCount={failingCount}
+        degradingCount={degradingCount}
+        onFilter={setHealthFilter}
+      />
+
       {/* Summary Control Panel */}
       <div className="mb-8">
         <SourcesControl feeds={feeds} />
