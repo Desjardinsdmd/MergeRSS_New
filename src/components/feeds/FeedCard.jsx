@@ -33,6 +33,7 @@ import SourceCleanupDialog from './SourceCleanupDialog';
 import RepairEscalationPanel from './RepairEscalationPanel';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 
 const categoryColors = {
   CRE: 'bg-blue-950 text-blue-400',
@@ -74,6 +75,7 @@ export default function FeedCard({ feed, onEdit, onDelete, onToggleStatus, onRef
 
   return (
     <>
+    <RepairEscalationPanel feed={feed} />
     <Card className={cn(
       "border-stone-800 bg-stone-900 transition-all hover:shadow-md",
       feed.status === 'error' && "border-red-900 bg-red-950/30"
