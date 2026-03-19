@@ -99,9 +99,6 @@ export default function IntelligenceDashboard({ user, feeds = [], digests = [], 
                 {/* Emerging Signals */}
                 <EmergingSignals feedIds={feedIds} feeds={feeds} top5Ids={top5Ids} />
 
-                {/* Key Narratives */}
-                <NarrativeGrouping items={rankedItems} feeds={feeds} />
-
                 {/* Trending Topics */}
                 <TrendingTopicsInline feedIds={feedIds} />
 
