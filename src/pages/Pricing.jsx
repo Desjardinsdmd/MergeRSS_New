@@ -76,10 +76,7 @@ export default function Pricing() {
     }
     // Premium - go to Stripe Checkout
     setLoading(true);
-    const response = await base44.functions.invoke('createCheckoutSession', {
-      success_url: window.location.origin + createPageUrl('Dashboard') + '?upgraded=true',
-      cancel_url: window.location.href,
-    });
+    const response = await base44.functions.invoke('createCheckoutSession', {});
     setLoading(false);
     if (response.data?.url) {
       base44.analytics.track({ eventName: 'upgrade_checkout_opened', properties: { plan: 'premium' } });
