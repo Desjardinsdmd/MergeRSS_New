@@ -215,133 +215,16 @@ export default function TopFiveToday({ feedIds, feeds, onItemsLoaded }) {
                 <span className="text-xs text-stone-600 ml-auto">start here</span>
             </div>
             <div className="divide-y divide-stone-800/80">
-                {items.map((item, idx) => {
-                    const source = feedMap[item.feed_id];
-                    const isOpen = expanded === item.id;
-                    const clusterSize = item._clusterSize ?? 1;
-                    const score = item.importance_score ?? 0;
-                    const isTop2 = idx < 2;
-                    const isHigh = score >= 72;
-
-                    const tag = item.intelligence_tag || inferTag((item.title || '') + ' ' + (item.description || '')) || 'Neutral';
-                    const tagCfg = TAG_CONFIG[tag] || TAG_CONFIG.Neutral;
-                    const Icon = tagCfg.icon;
-
-                    const happened = whatHappened(item);
-                    const insight = generateInsight(item);
-                    const signal = signalLevelStyle(score);
-                    const confidence = confidenceFromCluster(clusterSize);
-                    const decision = decisionState(item, clusterSize);
-
-                    // Synthesize a fake cluster object for memory tracking
-                    const fakeCluster = useMemo(() => ({ primary: item, clusterSize }), [item.id, clusterSize]);
-                    const evolution = useMemo(() =>
-                        updateAndGetEvolution(fakeCluster, decision.label, confidence.label),
-                    [item.id, clusterSize, decision.label, confidence.label]);
-
-                    return (
-                        <div
-                            key={item.id}
-                            onClick={() => setExpanded(isOpen ? null : item.id)}
-                            className={[
-                                'cursor-pointer transition-colors',
-                                isTop2 ? 'px-5 py-5' : 'px-5 py-3.5',
-                                isHigh
-                                    ? 'border-l-[3px] border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/[0.03] hover:bg-[hsl(var(--primary))]/[0.06]'
-                                    : 'hover:bg-stone-800/40',
-                            ].join(' ')}
-                        >
-                            <div className="flex items-start gap-3">
-                                <span className={[
-                                    'flex-shrink-0 leading-none mt-0.5 tabular-nums',
-                                    isTop2 ? 'text-2xl font-black w-7' : 'text-lg font-black w-6',
-                                    idx === 0 ? 'text-[hsl(var(--primary))]' : idx === 1 ? 'text-stone-400' : 'text-stone-700',
-                                ].join(' ')}>{idx + 1}</span>
-
-                                <div className="flex-1 min-w-0">
-                                    {/* Row 1: decision + evolution signals */}
-                                    <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
-                                        <span className={`text-[10px] font-bold px-2 py-0.5 border ${decision.style}`}>
-                                            {decision.label}
-                                        </span>
-                                        {evolution.lifecycle && (
-                                            <span className={`text-[10px] px-1.5 py-0.5 border ${LIFECYCLE_STYLE[evolution.lifecycle] || ''}`}>
-                                                {evolution.lifecycle}
-                                            </span>
-                                        )}
-                                        {evolution.stateProgression === 'Upgraded' && (
-                                            <span className="inline-flex items-center gap-0.5 text-[10px] text-emerald-400 font-semibold">
-                                                <ArrowUp className="w-2.5 h-2.5" />Upgraded
-                                            </span>
-                                        )}
-                                        {evolution.confidenceProgression && (
-                                            <span className="text-[10px] text-emerald-400 font-semibold">{evolution.confidenceProgression}</span>
-                                        )}
-                                        <span className="inline-flex items-center gap-0.5 text-[10px] text-stone-600 ml-auto">
-                                            <Icon className="w-2.5 h-2.5" />{tag}
-                                        </span>
-                                    </div>
-
-                                    {/* Headline */}
-                                    <h3 className={[
-                                        'leading-snug mb-1',
-                                        isTop2 ? 'text-[0.9rem]' : 'text-sm',
-                                        isHigh ? 'font-bold text-white' : 'font-semibold text-stone-100',
-                                    ].join(' ')}>
-                                        {decodeHtml(item.title)}
-                                    </h3>
-
-                                    {happened && <p className="text-xs text-stone-400 leading-snug mb-1 line-clamp-1">{happened}</p>}
-                                    {insight && <p className={`text-xs font-medium mb-2 line-clamp-1 ${tagCfg.textClass}`}>↳ {insight}</p>}
-
-                                    {/* Meta */}
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                        {signal && <span className={`text-[10px] px-1.5 py-0.5 border ${signal.class}`}>{signal.label}</span>}
-                                        <span className={`inline-flex items-center gap-1 text-[10px] ${confidence.class}`}>
-                                            <span className={`w-1.5 h-1.5 rounded-full inline-block ${confidence.dot}`} />
-                                            {confidence.label}
-                                        </span>
-                                        {evolution.momentum === 'growing' && clusterSize > 1 && (
-                                            <span className="text-[10px] text-emerald-400 font-semibold">↑ {clusterSize} sources</span>
-                                        )}
-                                        <span className="text-xs text-stone-600 ml-auto truncate">
-                                            {source?.name}{item.published_date && <> · {formatDistanceToNow(new Date(item.published_date), { addSuffix: true })}</>}
-                                        </span>
-                                    </div>
-
-                                    {isOpen && (
-                                        <div className="mt-3 pt-3 border-t border-stone-800">
-                                            <a
-                                                href={safeUrl(item.url)}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                onClick={e => { e.stopPropagation(); recordInteraction(item.title, 'click'); }}
-                                                className="inline-flex items-center gap-1 text-xs text-[hsl(var(--primary))] hover:opacity-80 transition font-medium"
-                                            >
-                                                Read full article <ExternalLink className="w-3 h-3" />
-                                            </a>
-                                            {clusterSize > 1 && (
-                                                <span className="text-xs text-stone-600 ml-3">{clusterSize} sources covering this</span>
-                                            )}
-                                            {evolution.firstSeenAt && (
-                                                <span className="text-xs text-stone-700 ml-3">
-                                                    First seen {formatDistanceToNow(new Date(evolution.firstSeenAt), { addSuffix: true })}
-                                                </span>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-
-                                <button
-                                    className="text-stone-700 hover:text-stone-400 transition flex-shrink-0 mt-1"
-                                    onClick={e => { e.stopPropagation(); setExpanded(isOpen ? null : item.id); }}
-                                >
-                                    {isOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                                </button>
-                            </div>
-                        </div>
-                    );
-                })}
+                {items.map((item, idx) => (
+                    <BriefingCard
+                        key={item.id}
+                        item={item}
+                        idx={idx}
+                        feedMap={feedMap}
+                        expanded={expanded}
+                        onToggle={id => setExpanded(expanded === id ? null : id)}
+                    />
+                ))}
             </div>
         </div>
     );
