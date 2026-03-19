@@ -21,16 +21,51 @@ const TAG_CONFIG = {
 const MACRO_BOOST_RE = /\b(fed|federal reserve|interest rate|inflation|gdp|earnings|capital markets|policy|regulation|oil|energy|geopolit|trade|tariff|acqui|merger|ipo|real estate|housing)\b/i;
 
 // HARD RULE: Low Priority items never appear in Today's Briefing
-// An item qualifies if decisionState priority >= 1 (Watch or above)
-// AND it's not a single-source weak signal (score < 50 with no cluster)
 function qualifiesForBriefing(item, clusterSize) {
     const score = item.importance_score ?? 0;
     const d = decisionState(item, clusterSize);
-    // Exclude Low Priority entirely
     if (d.label === 'Low Priority') return false;
-    // Exclude weak single-source items unless score is meaningful
     if (clusterSize === 1 && score < 55) return false;
     return true;
+}
+
+// Urgency tag — only when justified by multi-source, recency, or high score
+function getUrgencyTag(item, clusterSize) {
+    const score = item.importance_score ?? 0;
+    const ageHours = item.published_date
+        ? (Date.now() - new Date(item.published_date).getTime()) / 3600000
+        : 99;
+    if (clusterSize >= 3 && score >= 72) return 'Now Confirmed';
+    if (clusterSize >= 2 && ageHours < 6) return 'Developing';
+    if (score >= 85) return 'Escalating';
+    if (clusterSize >= 2 && score >= 72) return 'Developing';
+    return null;
+}
+
+// Why this matters — top-1 item only, decisive and non-generic
+const WHY_IT_MATTERS = [
+    { re: /\b(interest rate|fed|federal reserve|rate hike|rate cut)\b/i,   why: 'Rate decisions ripple across every asset class — early positioning now determines Q-end outcomes' },
+    { re: /\b(inflation|cpi|pce)\b/i,                                       why: 'Early margin compression signals tend to precede broader earnings resets by one to two quarters' },
+    { re: /\b(layoff|job cut|workforce)\b/i,                                why: 'Workforce cuts signal structural cost-shift, not cyclical — consumer demand softness follows within 60 days' },
+    { re: /\b(acqui|merger|takeover|buyout)\b/i,                            why: 'Consolidation events reset competitive positioning for the entire sector — peer exposure is immediate' },
+    { re: /\b(ai |artificial intelligence|llm)\b/i,                         why: 'Capability gaps widen faster than markets price in — delayed strategic response becomes a structural disadvantage' },
+    { re: /\b(regulation|regulator|sec |compliance|legislation)\b/i,        why: 'Regulatory windows close fast — operators who move early capture significant compliance arbitrage' },
+    { re: /\b(real estate|reit|commercial property|housing|mortgage)\b/i,   why: 'Property market inflection points are rare — missed entry timing is costly and hard to recover' },
+    { re: /\b(energy|oil|gas|electricity)\b/i,                              why: 'Energy cost shifts pass through to inflation within one quarter — exposed sectors reprice accordingly' },
+    { re: /\b(earnings|revenue|profit|quarterly results)\b/i,               why: 'Guidance resets create repricing cascades — the first mover on re-rating captures the spread' },
+    { re: /\b(gdp|recession|contraction)\b/i,                               why: 'Macro cycle turns are asymmetric — the cost of being late is disproportionately high' },
+    { re: /\b(bank|credit|lending|loan|default)\b/i,                        why: 'Credit contraction spreads faster than rate data suggests — capital access risk is already building' },
+    { re: /\b(tariff|trade war|sanction)\b/i,                               why: 'Trade friction embeds in cost structures quickly — supply chain rewiring decisions cannot be deferred' },
+    { re: /\b(crypto|bitcoin|ethereum)\b/i,                                  why: 'Institutional positioning shifts are directional tells — retail flows confirm, not lead' },
+    { re: /\b(funding|series [a-e]|raise|venture)\b/i,                      why: 'Capital concentration signals are early market structure tells — follow-on activity confirms within weeks' },
+];
+
+function getWhyItMatters(item) {
+    const text = ((item.title || '') + ' ' + (item.description || '')).toLowerCase();
+    for (const { re, why } of WHY_IT_MATTERS) {
+        if (re.test(text)) return why;
+    }
+    return null;
 }
 
 // Score item quality for ranking inside the briefing
