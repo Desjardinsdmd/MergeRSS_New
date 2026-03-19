@@ -271,8 +271,8 @@ export default function Landing() {
           <div className="space-y-px bg-stone-800/40">
             {[
               { n: '01', title: 'Add your sources', desc: 'Paste any RSS or newsletter URL. Done.' },
-              { n: '02', title: 'We extract the signal', desc: 'AI reads everything, ranks what matters, and filters out the noise.' },
-              { n: '03', title: 'You get a daily briefing', desc: 'A clear, ranked briefing in your inbox every morning.' },
+              { n: '02', title: 'We cut through the noise', desc: 'AI reads everything and surfaces what actually matters — nothing else gets through.' },
+              { n: '03', title: 'You get a clear, ranked briefing every morning', desc: 'Structured, prioritized, and ready before your day starts.' },
             ].map(({ n, title, desc }, i) => (
               <FadeIn key={n} delay={i * 80}>
                 <div className="bg-[#0d0a06] hover:bg-stone-900/50 transition-colors px-8 py-6 flex items-center gap-6 group">
