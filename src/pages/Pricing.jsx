@@ -14,10 +14,8 @@ const plans = [
     features: [
       { text: `Up to ${PLAN_LIMITS.free.feeds} RSS feeds`, included: true },
       { text: `Up to ${PLAN_LIMITS.free.digests} digests`, included: true },
-      { text: 'Web inbox delivery', included: true },
-      { text: 'Email delivery', included: true },
-
-      { text: 'Daily AI summaries', included: true },
+       { text: 'Web inbox delivery', included: true },
+       { text: 'Daily AI summaries', included: true },
       { text: 'Slack integration', included: false },
       { text: 'Discord integration', included: false },
       { text: 'Unlimited digests', included: false },
@@ -31,9 +29,9 @@ const plans = [
     description: 'For professionals who need more',
     features: [
       { text: 'Unlimited RSS feeds', included: true },
-      { text: 'Unlimited digests', included: true },
-      { text: 'Web inbox & email delivery', included: true },
-      { text: 'Daily, weekly & monthly AI summaries', included: true },
+       { text: 'Unlimited digests', included: true },
+       { text: 'Web inbox delivery', included: true },
+       { text: 'Daily, weekly & monthly AI summaries', included: true },
       { text: 'Slack integration', included: true },
       { text: 'Discord integration', included: true },
       { text: 'Custom scheduling & timezones', included: true },
