@@ -82,12 +82,13 @@ function briefingQualityScore(item, clusterSize) {
     return score + clusterBonus + priorityBonus + insightBonus;
 }
 
-function BriefingCard({ item, idx, feedMap, expanded, onToggle }) {
+function BriefingCard({ item, idx, feedMap, expanded, onToggle, totalCount }) {
     const source = feedMap[item.feed_id];
     const isOpen = expanded === item.id;
     const clusterSize = item._clusterSize ?? 1;
     const score = item.importance_score ?? 0;
-    const isTop2 = idx < 2;
+    const isReadFirst = idx === 0;   // #1 = READ FIRST
+    const isSkim = idx >= 3;         // #4+ = SKIM
     const isHigh = score >= 72;
 
     const tag = item.intelligence_tag || inferTag((item.title || '') + ' ' + (item.description || '')) || 'Neutral';
@@ -98,65 +99,104 @@ function BriefingCard({ item, idx, feedMap, expanded, onToggle }) {
     const signal = signalLevelStyle(score);
     const confidence = confidenceFromCluster(clusterSize);
     const decision = decisionState(item, clusterSize);
+    const urgency = getUrgencyTag(item, clusterSize);
+    const whyItMatters = isReadFirst ? getWhyItMatters(item) : null;
 
     const fakeCluster = useMemo(() => ({ primary: item, clusterSize }), [item.id, clusterSize]);
     const evolution = useMemo(() =>
         updateAndGetEvolution(fakeCluster, decision.label, confidence.label),
     [item.id, clusterSize, decision.label, confidence.label]);
 
+    // Suppress generic insights
+    const isGenericInsight = !insight ||
+        insight.startsWith('Downside signal') ||
+        insight.startsWith('Upside signal') ||
+        insight.startsWith('Broad coverage');
+
     return (
         <div
             onClick={() => onToggle(item.id)}
             className={[
                 'cursor-pointer transition-colors',
-                isTop2 ? 'px-5 py-5' : 'px-5 py-3.5',
-                isHigh
-                    ? 'border-l-[3px] border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/[0.03] hover:bg-[hsl(var(--primary))]/[0.06]'
-                    : 'hover:bg-stone-800/40',
+                isReadFirst ? 'px-5 py-5' : isSkim ? 'px-5 py-3 opacity-75' : 'px-5 py-4',
+                isReadFirst
+                    ? 'border-l-[3px] border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/[0.05] hover:bg-[hsl(var(--primary))]/[0.08]'
+                    : isHigh
+                    ? 'border-l-[2px] border-[hsl(var(--primary))]/40 bg-[hsl(var(--primary))]/[0.02] hover:bg-[hsl(var(--primary))]/[0.04]'
+                    : 'hover:bg-stone-800/30',
             ].join(' ')}
         >
             <div className="flex items-start gap-3">
+                {/* Index number */}
                 <span className={[
                     'flex-shrink-0 leading-none mt-0.5 tabular-nums',
-                    isTop2 ? 'text-2xl font-black w-7' : 'text-lg font-black w-6',
+                    isReadFirst ? 'text-2xl font-black w-7' : 'text-base font-black w-6',
                     idx === 0 ? 'text-[hsl(var(--primary))]' : idx === 1 ? 'text-stone-400' : 'text-stone-700',
                 ].join(' ')}>{idx + 1}</span>
 
                 <div className="flex-1 min-w-0">
+                    {/* Priority signal row */}
                     <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
-                        <span className={`text-[10px] font-bold px-2 py-0.5 border ${decision.style}`}>
-                            {decision.label}
-                        </span>
-                        {evolution.stateProgression === 'Upgraded' && (
-                            <span className="inline-flex items-center gap-0.5 text-[10px] text-emerald-400 font-semibold">
-                                <ArrowUp className="w-2.5 h-2.5" />Upgraded
+                        {/* READ FIRST / SKIM label */}
+                        {isReadFirst && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-black text-stone-900 bg-[hsl(var(--primary))] px-2 py-0.5 tracking-wider uppercase">
+                                <Flame className="w-2.5 h-2.5" /> Read First
                             </span>
                         )}
-                        {evolution.confidenceProgression && (
-                            <span className="text-[10px] text-emerald-400 font-semibold">{evolution.confidenceProgression}</span>
+                        {isSkim && (
+                            <span className="text-[10px] font-semibold text-stone-600 border border-stone-800 px-1.5 py-0.5 uppercase tracking-wider">
+                                Skim
+                            </span>
                         )}
-                        <div className="ml-auto flex items-center gap-1.5 opacity-40">
+
+                        {/* Decision state */}
+                        {!isReadFirst && (
+                            <span className={`text-[10px] font-bold px-2 py-0.5 border ${decision.style}`}>
+                                {decision.label}
+                            </span>
+                        )}
+
+                        {/* Urgency tag */}
+                        {urgency && (
+                            <span className={`text-[10px] font-bold px-1.5 py-0.5 ${
+                                urgency === 'Now Confirmed' ? 'text-emerald-400 border border-emerald-800/50 bg-emerald-950/30' :
+                                urgency === 'Escalating'   ? 'text-red-400 border border-red-800/50 bg-red-950/30' :
+                                                             'text-amber-400 border border-amber-800/50 bg-amber-950/30'
+                            }`}>{urgency}</span>
+                        )}
+
+                        {/* Evolution signals — kept muted */}
+                        <div className="ml-auto flex items-center gap-1.5 opacity-30">
                             {evolution.lifecycle && <span className="text-[9px] text-stone-500">{evolution.lifecycle}</span>}
-                            <span className="text-[9px] text-stone-600">{tag}</span>
                         </div>
                     </div>
 
+                    {/* Headline */}
                     <h3 className={[
                         'leading-snug mb-1',
-                        isTop2 ? 'text-[0.9rem]' : 'text-sm',
-                        isHigh ? 'font-bold text-white' : 'font-semibold text-stone-100',
+                        isReadFirst ? 'text-[0.95rem]' : 'text-sm',
+                        isReadFirst ? 'font-bold text-white' : isHigh ? 'font-semibold text-stone-100' : 'font-medium text-stone-300',
                     ].join(' ')}>{decodeHtml(item.title)}</h3>
 
-                    {happened && <p className="text-xs text-stone-400 leading-snug mb-1 line-clamp-1">{happened}</p>}
-                    {insight && <p className={`text-xs font-medium mb-2 line-clamp-1 ${tagCfg.textClass}`}>↳ {insight}</p>}
+                    {/* Decisive insight — skip generic */}
+                    {!isGenericInsight && (
+                        <p className={`text-xs font-medium mb-2 line-clamp-1 ${tagCfg.textClass}`}>↳ {insight}</p>
+                    )}
 
+                    {/* Why this matters — #1 item only */}
+                    {whyItMatters && (
+                        <p className="text-xs text-stone-400 italic mb-2 line-clamp-2 border-l border-[hsl(var(--primary))]/40 pl-2">
+                            Why this matters: {whyItMatters}
+                        </p>
+                    )}
+
+                    {/* Meta row */}
                     <div className="flex items-center gap-2 flex-wrap">
-                        {signal && <span className={`text-[10px] px-1.5 py-0.5 border ${signal.class}`}>{signal.label}</span>}
                         <span className={`inline-flex items-center gap-1 text-[10px] ${confidence.class}`}>
                             <span className={`w-1.5 h-1.5 rounded-full inline-block ${confidence.dot}`} />
                             {confidence.label}
                         </span>
-                        {evolution.momentum === 'growing' && clusterSize > 1 && (
+                        {clusterSize > 1 && (
                             <span className="text-[10px] text-emerald-400 font-semibold">↑ {clusterSize} sources</span>
                         )}
                         <span className="text-xs text-stone-600 ml-auto truncate">
@@ -164,6 +204,7 @@ function BriefingCard({ item, idx, feedMap, expanded, onToggle }) {
                         </span>
                     </div>
 
+                    {/* Expanded — read article */}
                     {isOpen && (
                         <div className="mt-3 pt-3 border-t border-stone-800">
                             <a
@@ -177,11 +218,6 @@ function BriefingCard({ item, idx, feedMap, expanded, onToggle }) {
                             </a>
                             {clusterSize > 1 && (
                                 <span className="text-xs text-stone-600 ml-3">{clusterSize} sources covering this</span>
-                            )}
-                            {evolution.firstSeenAt && (
-                                <span className="text-xs text-stone-700 ml-3">
-                                    First seen {formatDistanceToNow(new Date(evolution.firstSeenAt), { addSuffix: true })}
-                                </span>
                             )}
                         </div>
                     )}
