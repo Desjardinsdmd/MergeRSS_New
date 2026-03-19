@@ -72,11 +72,6 @@ function BriefingCard({ item, idx, feedMap, expanded, onToggle }) {
                         <span className={`text-[10px] font-bold px-2 py-0.5 border ${decision.style}`}>
                             {decision.label}
                         </span>
-                        {evolution.lifecycle && (
-                            <span className={`text-[10px] px-1.5 py-0.5 border ${LIFECYCLE_STYLE[evolution.lifecycle] || ''}`}>
-                                {evolution.lifecycle}
-                            </span>
-                        )}
                         {evolution.stateProgression === 'Upgraded' && (
                             <span className="inline-flex items-center gap-0.5 text-[10px] text-emerald-400 font-semibold">
                                 <ArrowUp className="w-2.5 h-2.5" />Upgraded
@@ -85,9 +80,11 @@ function BriefingCard({ item, idx, feedMap, expanded, onToggle }) {
                         {evolution.confidenceProgression && (
                             <span className="text-[10px] text-emerald-400 font-semibold">{evolution.confidenceProgression}</span>
                         )}
-                        <span className="inline-flex items-center gap-0.5 text-[10px] text-stone-600 ml-auto">
-                            <Icon className="w-2.5 h-2.5" />{tag}
-                        </span>
+                        {/* Lifecycle + tag de-emphasized */}
+                        <div className="ml-auto flex items-center gap-1.5 opacity-40">
+                            {evolution.lifecycle && <span className="text-[9px] text-stone-500">{evolution.lifecycle}</span>}
+                            <span className="text-[9px] text-stone-600">{tag}</span>
+                        </div>
                     </div>
 
                     <h3 className={[
