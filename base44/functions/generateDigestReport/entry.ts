@@ -19,6 +19,12 @@ Deno.serve(async (req) => {
     const digestDocs = await Promise.all(digestIds.map(id => base44.entities.Digest.get(id)));
     const validDigests = digestDocs.filter(Boolean);
     if (!validDigests.length) return Response.json({ error: 'No valid digests found' }, { status: 404 });
+
+    // Ownership check — prevent cross-user data access (IDOR)
+    const unauthorized = validDigests.filter(d => d.created_by !== user.email);
+    if (unauthorized.length > 0) {
+        return Response.json({ error: 'Forbidden: one or more digest IDs do not belong to you' }, { status: 403 });
+    }
     const digestNames = validDigests.map(d => d.name);
 
     // Fetch all web deliveries for all selected digests

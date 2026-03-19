@@ -15,6 +15,23 @@ Deno.serve(async (req) => {
         const body = await req.json().catch(() => ({}));
         const { digest_id, force } = body;
 
+        // Allowlist for outbound webhook fetches — prevents SSRF
+        const ALLOWED_WEBHOOK_HOSTS = [
+            'hooks.slack.com',
+            'discord.com',
+            'discordapp.com',
+            'outlook.office.com',
+            'outlook.office365.com',
+            'webhook.office.com',
+        ];
+        function isAllowedWebhookUrl(url) {
+            try {
+                const { hostname, protocol } = new URL(url);
+                if (!['https:', 'http:'].includes(protocol)) return false;
+                return ALLOWED_WEBHOOK_HOSTS.some(h => hostname === h || hostname.endsWith('.' + h));
+            } catch { return false; }
+        }
+
         // Auth check
         let callerEmail = null;
         try {
@@ -225,6 +242,10 @@ Write a well-organized, professional digest. Group related stories where appropr
                         const slackIntegrations = await base44.asServiceRole.entities.Integration.filter({ type: 'slack', status: 'connected', created_by: digest.created_by });
                         const slackInt = slackIntegrations[0];
                         if (!slackInt?.webhook_url) return;
+                        if (!isAllowedWebhookUrl(slackInt.webhook_url)) {
+                            console.warn(`[generateDigests] Blocked Slack webhook to disallowed host: ${slackInt.webhook_url}`);
+                            return;
+                        }
                         const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                         const slackContent = content.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<$2|$1>');
                         const slackMsg = `*📰 ${digest.name}*\n_${dateStr} • ${items.length} articles_\n\n${slackContent.slice(0, 2600)}${slackContent.length > 2600 ? '...' : ''}\n\n<${inboxUrl}|📥 View full digest & article list in MergeRSS>`;
@@ -253,6 +274,10 @@ Write a well-organized, professional digest. Group related stories where appropr
                         const teamsIntegrations = await base44.asServiceRole.entities.Integration.filter({ type: 'teams', status: 'connected' });
                         const teamsInt = teamsIntegrations.find(i => i.created_by === digest.created_by) || teamsIntegrations[0];
                         if (!teamsInt?.webhook_url) return;
+                        if (!isAllowedWebhookUrl(teamsInt.webhook_url)) {
+                            console.warn(`[generateDigests] Blocked Teams webhook to disallowed host: ${teamsInt.webhook_url}`);
+                            return;
+                        }
                         const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                         const teamsBody = {
                             type: 'message',
@@ -278,6 +303,10 @@ Write a well-organized, professional digest. Group related stories where appropr
                     // Discord
                     (async () => {
                         if (!digest.delivery_discord || !digest.discord_webhook_url) return;
+                        if (!isAllowedWebhookUrl(digest.discord_webhook_url)) {
+                            console.warn(`[generateDigests] Blocked Discord webhook to disallowed host: ${digest.discord_webhook_url}`);
+                            return;
+                        }
                         const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                         const footerLink = `\n\n[📥 View full digest in MergeRSS](${inboxUrl})`;
                         const header = `**📰 ${digest.name}**\n*${dateStr} • ${items.length} articles*\n\n`;
