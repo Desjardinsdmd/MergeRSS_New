@@ -68,7 +68,7 @@ function parseUrlList(text) {
     .split(/[\n,]+/)
     .map(l => l.trim())
     .filter(l => l.startsWith('http'))
-    .map(url => ({ url, name: url, category: 'Other', rawCategory: 'Other' }));
+    .map(url => ({ url, name: url, category: 'Other', rawCategory: 'Other', source_url: url }));
 }
 
 Deno.serve(async (req) => {
