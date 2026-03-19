@@ -343,7 +343,7 @@ async function fetchFeedsWithThrottling(feeds, base44, batchSize = 10, delayBetw
     return results;
 }
 
-const MAX_CONSECUTIVE_ERRORS = 5;
+const MAX_CONSECUTIVE_ERRORS = 3;
 
 Deno.serve(async (req) => {
     try {
@@ -452,7 +452,7 @@ Deno.serve(async (req) => {
         const overdueFeeds = allFeeds.filter(f =>
             !f.last_fetched || (Date.now() - new Date(f.last_fetched).getTime()) > overdueThreshMs
         );
-        const feeds = overdueFeeds.slice(0, 50);
+        const feeds = overdueFeeds.slice(0, 120);
         const skippedCount = allFeeds.length - feeds.length;
 
         if (skippedCount > 0) {
@@ -461,7 +461,7 @@ Deno.serve(async (req) => {
         console.log(`[fetchFeeds] Starting — processing ${feeds.length} of ${allFeeds.length} feeds this run`);
         let results = [];
         try {
-            results = await fetchFeedsWithThrottling(feeds, base44, 10, 200);
+            results = await fetchFeedsWithThrottling(feeds, base44, 15, 100);
             console.log(`[fetchFeeds] Batch processing complete — ${results.length} results`);
         } catch (batchErr) {
             console.error('[fetchFeeds] Fatal error in fetchFeedsWithThrottling:', batchErr.message);
