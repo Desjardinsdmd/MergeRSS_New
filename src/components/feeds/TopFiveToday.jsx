@@ -279,9 +279,17 @@ export default function TopFiveToday({ feedIds, feeds, onItemsLoaded }) {
                 })
                 .sort((a, b) => b._qualityScore - a._qualityScore);
 
-            // Show 2–5 items — only as many as genuinely qualify
-            // If fewer than 2 qualify at this threshold, relax slightly but keep Low Priority excluded
-            const topItems = ranked.slice(0, 5);
+            // Cap at 4 items — deduplicate items with nearly identical insights
+            const topItems = [];
+            const seenInsights = new Set();
+            for (const item of ranked) {
+                const insight = generateInsight(item);
+                const insightKey = insight ? insight.slice(0, 50) : `score:${item.importance_score}`;
+                if (seenInsights.has(insightKey)) continue;
+                seenInsights.add(insightKey);
+                topItems.push(item);
+                if (topItems.length >= 4) break;
+            }
             return topItems;
         },
         enabled: !!feedIds?.length,
