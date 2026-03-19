@@ -53,8 +53,17 @@ export default function Pricing() {
         if (isAuth) {
           const userData = await base44.auth.me();
           setUser(userData);
+
+          // Handle payment success redirect
+          const params = new URLSearchParams(window.location.search);
+          if (params.get('payment') === 'success' && userData?.plan === 'premium') {
+            console.log('[Pricing] Payment successful, user is premium. Redirecting to Dashboard...');
+            setTimeout(() => window.location.href = createPageUrl('Dashboard'), 1500);
+          }
         }
-      } catch (e) {}
+      } catch (e) {
+        console.error('[Pricing] Error loading user:', e);
+      }
     };
     loadUser();
   }, []);
