@@ -69,6 +69,8 @@ Deno.serve(async (req) => {
             return hoursSince >= minHours;
         });
 
+        console.log(`[generateDigests] Total active digests=${digests.length} due=${dueDigests.length}`);
+
         // Cap to MAX_DIGESTS_PER_RUN — oldest last_sent gets priority
         const toProcess = dueDigests
             .sort((a, b) => {
