@@ -29,24 +29,10 @@ const categoryColors = {
   AI: 'bg-pink-950 text-pink-400',
   Other: 'bg-stone-800 text-stone-300',
 };
-import ArticleSummarizeButton from '@/components/feeds/ArticleSummarizeButton';
-import ArticleCard from '@/components/feeds/ArticleCard';
-import { decodeHtml, safeUrl } from '@/components/utils/htmlUtils';
-import TrendingArticles from '@/components/feeds/TrendingArticles';
-import RelatedArticles from '@/components/feeds/RelatedArticles';
 import OnboardingTour from '@/components/OnboardingTour';
 import SetupWalkthrough from '@/components/SetupWalkthrough';
-import DailySnapshot from '@/components/dashboard/DailySnapshot';
 import StreakCounter from '@/components/dashboard/StreakCounter';
-import BookmarkButton from '@/components/dashboard/BookmarkButton';
-import FeedHealthWidget from '@/components/dashboard/FeedHealthWidget';
-import DigestQuickActions from '@/components/dashboard/DigestQuickActions';
-import DigestDeliveryHistory from '@/components/dashboard/DigestDeliveryHistory';
-import ContextualTips from '@/components/dashboard/ContextualTips';
-import WidgetCustomizer from '@/components/dashboard/WidgetCustomizer';
-import FeaturedDigestHero from '@/components/dashboard/FeaturedDigestHero';
-import GroupedArticles from '@/components/dashboard/GroupedArticles';
-import ArticleDetailVisual from '@/components/feeds/ArticleDetailVisual';
+import IntelligenceDashboard from '@/components/feeds/IntelligenceDashboard';
 
 export default function Dashboard() {
   const queryClient = useQueryClient();
