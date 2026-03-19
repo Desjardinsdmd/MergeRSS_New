@@ -22,7 +22,21 @@ Deno.serve(async (req) => {
 
         const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
 
-        const origin = req.headers.get('origin') || 'https://mergerss.app';
+        // Use env-configured canonical origin; never trust caller-supplied origin header
+        const APP_ORIGIN = Deno.env.get('BASE44_APP_URL') || 'https://mergerss.app';
+
+        function isSafeAppUrl(url) {
+            if (!url) return false;
+            try { return new URL(url).origin === APP_ORIGIN; } catch { return false; }
+        }
+
+        if (success_url && !isSafeAppUrl(success_url)) {
+            return Response.json({ error: 'Invalid success_url' }, { status: 400 });
+        }
+        if (cancel_url && !isSafeAppUrl(cancel_url)) {
+            return Response.json({ error: 'Invalid cancel_url' }, { status: 400 });
+        }
+
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             line_items: [{
@@ -30,8 +44,8 @@ Deno.serve(async (req) => {
                 quantity: 1,
             }],
             mode: 'subscription',
-            success_url: success_url || `${origin}${createPageUrl('Pricing')}?payment=success`,
-            cancel_url: cancel_url || `${origin}${createPageUrl('Pricing')}`,
+            success_url: success_url || `${APP_ORIGIN}${createPageUrl('Pricing')}?payment=success`,
+            cancel_url: cancel_url || `${APP_ORIGIN}${createPageUrl('Pricing')}`,
             customer_email: user.email,
             metadata: {
                 user_id: user.id,

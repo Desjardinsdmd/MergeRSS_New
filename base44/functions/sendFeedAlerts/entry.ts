@@ -1,18 +1,25 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
+/**
+ * sendFeedAlerts — internal-only endpoint.
+ * Called exclusively by the fetchFeeds automation via x-internal-secret header.
+ * All external calls are rejected regardless of authentication state.
+ */
 Deno.serve(async (req) => {
     try {
-        const base44 = createClientFromRequest(req);
-
-        // Only allow internal service-to-service calls
-        const internalSecret = req.headers.get('x-internal-secret');
+        // Fail closed: if INTERNAL_SECRET is not configured, reject all requests.
         const expectedSecret = Deno.env.get('INTERNAL_SECRET');
-        if (!expectedSecret || internalSecret !== expectedSecret) {
-            // Fall back to requiring an authenticated admin user
-            const user = await base44.auth.me().catch(() => null);
-            if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+        if (!expectedSecret) {
+            console.error('[sendFeedAlerts] INTERNAL_SECRET is not set — rejecting all requests');
+            return Response.json({ error: 'Service not configured' }, { status: 503 });
         }
 
+        const internalSecret = req.headers.get('x-internal-secret');
+        if (internalSecret !== expectedSecret) {
+            return Response.json({ error: 'Forbidden' }, { status: 403 });
+        }
+
+        const base44 = createClientFromRequest(req);
         const body = await req.json().catch(() => ({}));
         const { feed_item_id } = body;
 
@@ -20,14 +27,12 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'feed_item_id required' }, { status: 400 });
         }
 
-        // Get the feed item by ID directly
         const feedItems = await base44.asServiceRole.entities.FeedItem.filter({ id: feed_item_id }, '-created_date', 1);
         const feedItem = feedItems[0];
         if (!feedItem) {
             return Response.json({ error: 'Feed item not found' }, { status: 404 });
         }
 
-        // Get active alerts for this feed
         const alerts = await base44.asServiceRole.entities.FeedAlert.filter({ feed_id: feedItem.feed_id, is_active: true });
 
         if (alerts.length === 0) {

@@ -3,6 +3,11 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 async function verifyMailgunSignature(token, timestamp, signature) {
   const apiKey = Deno.env.get('MAILGUN_API_KEY');
   if (!apiKey) return false;
+
+  // Replay protection: reject requests with a timestamp older than 5 minutes
+  const ts = parseInt(timestamp, 10);
+  if (isNaN(ts) || Math.abs(Date.now() / 1000 - ts) > 300) return false;
+
   const value = timestamp + token;
   const key = await crypto.subtle.importKey(
     'raw',
@@ -12,8 +17,16 @@ async function verifyMailgunSignature(token, timestamp, signature) {
     ['sign']
   );
   const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(value));
-  const hex = Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
-  return hex === signature;
+  const computed = new Uint8Array(sig);
+
+  // Constant-time comparison to prevent timing attacks
+  const provided = new Uint8Array(
+    signature.match(/.{2}/g).map(b => parseInt(b, 16))
+  );
+  if (computed.length !== provided.length) return false;
+  let diff = 0;
+  for (let i = 0; i < computed.length; i++) diff |= computed[i] ^ provided[i];
+  return diff === 0;
 }
 
 let base44;

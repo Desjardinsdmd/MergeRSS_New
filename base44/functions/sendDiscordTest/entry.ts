@@ -9,32 +9,54 @@ Deno.serve(async (req) => {
         const { digest_name, webhook_url } = await req.json();
 
         let url = webhook_url;
-        if (!url && digest_name) {
-            const digest = await base44.entities.Digest.filter({ name: digest_name });
-            if (!digest || digest.length === 0) {
+        let digest = null;
+
+        if (digest_name) {
+            const digests = await base44.entities.Digest.filter({ name: digest_name });
+            if (!digests || digests.length === 0) {
                 return Response.json({ error: `Digest "${digest_name}" not found` }, { status: 404 });
             }
-            if (digest[0].created_by !== user.email) {
+            // Ownership check — prevent IDOR
+            if (digests[0].created_by !== user.email) {
                 return Response.json({ error: 'Forbidden' }, { status: 403 });
             }
-            url = digest[0].discord_webhook_url;
+            digest = digests[0];
             if (!url) {
-                return Response.json({ error: `Digest "${digest_name}" has no Discord webhook configured` }, { status: 400 });
+                url = digest.discord_webhook_url;
+                if (!url) {
+                    return Response.json({ error: `Digest "${digest_name}" has no Discord webhook configured` }, { status: 400 });
+                }
             }
         }
 
         if (!url) return Response.json({ error: 'webhook_url or digest_name required' }, { status: 400 });
 
-        let digest = null;
-        if (digest_name) {
-            const digests = await base44.entities.Digest.filter({ name: digest_name });
-            digest = digests && digests.length > 0 ? digests[0] : null;
-        }
-
         let content = `✅ **MergeRSS Test Message**\nYour Discord integration is working correctly! Digests will be delivered here.`;
 
+        // Only include article content from feed items the authenticated user owns
         if (digest) {
-            const recentItems = await base44.asServiceRole.entities.FeedItem.list('-published_date', 10);
+            let recentItems = [];
+
+            if (digest.feed_ids?.length > 0) {
+                // Fetch items only from this digest's configured feeds (user-scoped)
+                recentItems = await base44.entities.FeedItem.filter(
+                    { feed_id: { $in: digest.feed_ids } },
+                    '-published_date',
+                    10
+                );
+            } else {
+                // Fall back to the user's own feeds
+                const userFeeds = await base44.entities.Feed.filter({ created_by: user.email, status: 'active' });
+                const feedIds = userFeeds.map(f => f.id);
+                if (feedIds.length > 0) {
+                    recentItems = await base44.entities.FeedItem.filter(
+                        { feed_id: { $in: feedIds } },
+                        '-published_date',
+                        10
+                    );
+                }
+            }
+
             if (recentItems.length > 0) {
                 let itemList = '';
                 for (const item of recentItems) {
@@ -49,9 +71,7 @@ Deno.serve(async (req) => {
         const res = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                content: content,
-            }),
+            body: JSON.stringify({ content }),
         });
 
         if (!res.ok) {

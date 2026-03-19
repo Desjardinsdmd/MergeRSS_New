@@ -22,10 +22,21 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'No active subscription found' }, { status: 404 });
         }
 
-        const origin = req.headers.get('origin') || 'https://mergerss.app';
+        // Use env-configured canonical origin; never trust caller-supplied origin header
+        const APP_ORIGIN = Deno.env.get('BASE44_APP_URL') || 'https://mergerss.app';
+
+        function isSafeAppUrl(url) {
+            if (!url) return false;
+            try { return new URL(url).origin === APP_ORIGIN; } catch { return false; }
+        }
+
+        if (return_url && !isSafeAppUrl(return_url)) {
+            return Response.json({ error: 'Invalid return_url' }, { status: 400 });
+        }
+
         const session = await stripe.billingPortal.sessions.create({
             customer: subs[0].stripe_customer_id,
-            return_url: return_url || `${origin}/Settings`
+            return_url: return_url || `${APP_ORIGIN}/Settings`,
         });
 
         return Response.json({ url: session.url });
