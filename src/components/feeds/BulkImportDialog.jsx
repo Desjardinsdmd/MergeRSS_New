@@ -114,29 +114,64 @@ export default function BulkImportDialog({ open, onOpenChange, onSuccess, curren
 
         {result ? (
           /* Success screen */
-          <div className="py-4 text-center space-y-4">
+          <div className="py-4 space-y-4">
             <div className="w-14 h-14 bg-emerald-50 rounded-full flex items-center justify-center mx-auto">
               <CheckCircle className="w-7 h-7 text-emerald-600" />
             </div>
-            {result.mode === 'feeds' ? (
-              <>
-                <p className="text-lg font-semibold text-stone-100">Import complete!</p>
-                <p className="text-stone-400 text-sm">
-                  <span className="font-bold text-stone-100">{result.created}</span> feeds added
-                  {result.skipped > 0 && (
-                    <>, <span className="font-bold">{result.skipped}</span> already existed and were skipped</>
-                  )}.
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="text-lg font-semibold text-stone-100">Digest created!</p>
-                <p className="text-stone-400 text-sm">
-                  "<span className="font-bold">{result.digest_name}</span>" was created with{' '}
-                  <span className="font-bold">{result.feeds_count}</span> feeds.
-                </p>
-              </>
+            <div className="text-center">
+              <p className="text-lg font-semibold text-stone-100">Import complete!</p>
+              <p className="text-stone-400 text-sm mt-1">
+                <span className="font-bold text-emerald-400">{result.summary.created}</span> of{' '}
+                <span className="font-bold">{result.summary.total}</span> sources ingested
+              </p>
+            </div>
+            
+            {result.summary.created > 0 && (
+              <div className="bg-stone-800 rounded-lg p-3 space-y-2 text-sm">
+                {result.summary.rss_native > 0 && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-stone-300">Native RSS feeds:</span>
+                    <span className="font-bold text-emerald-400">{result.summary.rss_native}</span>
+                  </div>
+                )}
+                {result.summary.rss_discovered > 0 && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-stone-300">Discovered feeds:</span>
+                    <span className="font-bold text-blue-400">{result.summary.rss_discovered}</span>
+                  </div>
+                )}
+                {result.summary.generated > 0 && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-stone-300">Generated sources:</span>
+                    <span className="font-bold text-purple-400">{result.summary.generated}</span>
+                  </div>
+                )}
+              </div>
             )}
+
+            {result.summary.failed > 0 && (
+              <div className="bg-red-950 border border-red-800 rounded-lg p-3 space-y-2">
+                <p className="text-sm font-medium text-red-300">
+                  <span className="font-bold">{result.summary.failed}</span> sources failed to import
+                </p>
+                <div className="max-h-40 overflow-y-auto text-xs text-red-200 space-y-1">
+                  {result.results.filter(r => r.status === 'failed').map((r, idx) => (
+                    <div key={idx} className="text-red-300">
+                      {r.url}: {r.reason}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {result.digest && (
+              <div className="bg-stone-800 rounded-lg p-3">
+                <p className="text-sm text-stone-300">
+                  Digest created: <span className="font-bold text-[hsl(var(--primary))]">{result.digest.name}</span>
+                </p>
+              </div>
+            )}
+
             <Button onClick={() => handleClose(false)} className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 w-full">
               Done
             </Button>
