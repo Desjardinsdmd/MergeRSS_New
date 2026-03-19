@@ -319,7 +319,8 @@ export default function Landing() {
       <section className="py-24 bg-[#0d0a06] border-t border-stone-800">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <FadeIn className="mb-12">
-            <h2 className="text-4xl md:text-5xl font-black tracking-tight text-stone-100">Built for people who make decisions.</h2>
+            <h2 className="text-4xl md:text-5xl font-black tracking-tight text-stone-100 mb-3">Built for people who make decisions.</h2>
+            <p className="text-stone-500 text-base">If you're responsible for making decisions, this is your morning briefing.</p>
           </FadeIn>
           <FadeIn delay={80}>
             <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-px bg-stone-800/40">
