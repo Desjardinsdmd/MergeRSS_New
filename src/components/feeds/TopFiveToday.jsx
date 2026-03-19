@@ -157,6 +157,9 @@ function BriefingCard({ item, idx, feedMap, expanded, onToggle, totalCount }) {
     const decision = decisionState(item, clusterSize);
     const urgency = getUrgencyTag(item, clusterSize);
     const whyItMatters = isReadFirst ? getWhyItMatters(item) : null;
+    const bottomLine = isReadFirst ? getBottomLine(item) : null;
+    const isTop3 = idx < 3;
+    const forwardImplication = isTop3 && !isReadFirst ? getForwardImplication(item) : null;
 
     const fakeCluster = useMemo(() => ({ primary: item, clusterSize }), [item.id, clusterSize]);
     const evolution = useMemo(() =>
