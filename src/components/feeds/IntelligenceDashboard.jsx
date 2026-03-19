@@ -14,6 +14,7 @@ import EmergingSignals from './EmergingSignals';
 export default function IntelligenceDashboard({ user, feeds = [], digests = [], unreadDeliveries = [] }) {
     const queryClient = useQueryClient();
     const [bookmarkedIds, setBookmarkedIds] = useState(new Set());
+    const [top5Ids, setTop5Ids] = useState(new Set());
 
     const feedIds = feeds.map(f => f.id);
     const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
