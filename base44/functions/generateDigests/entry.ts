@@ -349,9 +349,11 @@ Write a well-organized, professional digest. Group related stories where appropr
                     })(),
                 ]);
 
+                console.log(`[generateDigests] Delivered digest="${digest.name}" via ${deliveryTypes.join(',')}`);
                 results.push({ digest: digest.name, items_included: items.length, deliveries: deliveryTypes, status: 'ok' });
 
             } catch (err) {
+                console.error(`[generateDigests] Error processing digest="${digest.name}":`, err.message);
                 results.push({ digest: digest.name, error: err.message, status: 'error' });
             }
         }
