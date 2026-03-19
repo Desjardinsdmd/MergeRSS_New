@@ -398,9 +398,9 @@ export default function Landing() {
         <div className="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <FadeIn>
             <h2 className="text-5xl md:text-6xl font-black tracking-tight leading-[0.93] mb-4">
-              <span className="text-stone-100">Know what matters.</span>
+              <span className="text-stone-100">Know what matters</span>
               <br />
-              <span className="bg-gradient-to-r from-[hsl(var(--primary))] via-[hsl(var(--primary))]/80 to-[hsl(var(--primary))]/50 bg-clip-text text-transparent">Every morning.</span>
+              <span className="bg-gradient-to-r from-[hsl(var(--primary))] via-[hsl(var(--primary))]/80 to-[hsl(var(--primary))]/50 bg-clip-text text-transparent">before your day starts.</span>
             </h2>
             <p className="text-stone-400 text-lg mb-8 max-w-md mx-auto">
               Start your daily briefing in minutes.
