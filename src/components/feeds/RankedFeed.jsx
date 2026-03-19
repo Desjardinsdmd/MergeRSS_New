@@ -55,39 +55,31 @@ function ClusterCard({ cluster, feedMap, bookmarkedIds, onBookmark }) {
                 ? 'border-l-[3px] border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/[0.03] hover:bg-[hsl(var(--primary))]/[0.06]'
                 : 'hover:bg-stone-800/30',
         ].join(' ')}>
-            {/* Row 1: decision state + evolution signals */}
+            {/* Row 1: primary labels — decision state + confidence progression only */}
             <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
                 <span className={`text-[10px] font-bold px-1.5 py-0.5 border ${decision.style}`}>
                     {decision.label}
                 </span>
 
-                {/* Lifecycle label */}
-                {evolution.lifecycle && (
-                    <span className={`text-[10px] px-1.5 py-0.5 border ${LIFECYCLE_STYLE[evolution.lifecycle] || ''}`}>
-                        {evolution.lifecycle}
-                    </span>
-                )}
-
-                {/* State progression */}
+                {/* Progression signals — high value, always show */}
                 {evolution.stateProgression === 'Upgraded' && (
                     <span className="inline-flex items-center gap-0.5 text-[10px] text-emerald-400 font-semibold">
                         <ArrowUp className="w-2.5 h-2.5" />Upgraded
                     </span>
                 )}
-                {evolution.stateProgression === 'Downgraded' && (
-                    <span className="inline-flex items-center gap-0.5 text-[10px] text-stone-500">
-                        <ArrowDown className="w-2.5 h-2.5" />Downgraded
-                    </span>
-                )}
-
-                {/* Confidence progression */}
                 {evolution.confidenceProgression && (
                     <span className="text-[10px] text-emerald-400 font-semibold">{evolution.confidenceProgression}</span>
                 )}
 
-                <span className="inline-flex items-center gap-0.5 text-[10px] text-stone-600 ml-auto">
-                    <Icon className="w-2.5 h-2.5" />{tag}
-                </span>
+                {/* Lifecycle + tag — de-emphasized, right-aligned */}
+                <div className="ml-auto flex items-center gap-1.5 opacity-50">
+                    {evolution.lifecycle && (
+                        <span className="text-[9px] text-stone-500">{evolution.lifecycle}</span>
+                    )}
+                    <span className="inline-flex items-center gap-0.5 text-[9px] text-stone-600">
+                        <Icon className="w-2 h-2" />{tag}
+                    </span>
+                </div>
             </div>
 
             {/* Headline */}
