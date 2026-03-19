@@ -200,6 +200,10 @@ export default function Feeds() {
         failingCount={failingCount}
         degradingCount={degradingCount}
         onFilter={setHealthFilter}
+        onRepairComplete={() => {
+          queryClient.invalidateQueries({ queryKey: ['feeds'] });
+          queryClient.invalidateQueries({ queryKey: ['source-health'] });
+        }}
       />
 
       {/* Summary Control Panel */}
