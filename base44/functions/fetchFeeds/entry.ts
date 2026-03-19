@@ -319,7 +319,10 @@ async function fetchFeedsWithThrottling(feeds, base44, batchSize = 10, delayBetw
                     const createdIds = (Array.isArray(created) ? created : itemsToCreate)
                         .filter(i => i.id).map(i => i.id).slice(0, 20);
                     if (createdIds.length > 0) {
-                        base44.asServiceRole.functions.invoke('enrichFeedItems', { item_ids: createdIds }).catch(e => {
+                        // Pass internal secret so enrichFeedItems accepts the server-to-server call
+                        base44.asServiceRole.functions.invoke('enrichFeedItems', { item_ids: createdIds }, {
+                            headers: { 'x-internal-secret': Deno.env.get('INTERNAL_SECRET') || '' }
+                        }).catch(e => {
                             console.warn(`[fetchFeeds] enrichFeedItems failed for ${feed.name}:`, e.message);
                         });
                     }
