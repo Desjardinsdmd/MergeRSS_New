@@ -11,6 +11,7 @@ import { MoreVertical, Edit, Trash2, Pause, Play, ExternalLink, ChevronDown, Che
 import { Button } from '@/components/ui/button';
 import { safeUrl, decodeHtml } from '@/components/utils/htmlUtils';
 import { base44 } from '@/api/base44Client';
+import SourceHealthIndicator from './SourceHealthIndicator';
 
 export default function FeedListView({ feeds, selectedIds, onSelectionChange, onEdit, onDelete, onToggleStatus }) {
   const [expandedFeedId, setExpandedFeedId] = useState(null);
@@ -65,10 +66,11 @@ export default function FeedListView({ feeds, selectedIds, onSelectionChange, on
                 onCheckedChange={handleSelectAll}
               />
             </th>
-            <th className="px-4 py-3 text-left text-sm font-semibold text-stone-200">Name</th>
+            <th className="px-4 py-3 text-left text-sm font-semibold text-stone-200">Source</th>
             <th className="px-4 py-3 text-left text-sm font-semibold text-stone-200">Category</th>
+            <th className="px-4 py-3 text-left text-sm font-semibold text-stone-200">Health</th>
             <th className="px-4 py-3 text-left text-sm font-semibold text-stone-200">Status</th>
-            <th className="px-4 py-3 text-left text-sm font-semibold text-stone-200">Items</th>
+            <th className="px-4 py-3 text-left text-sm font-semibold text-stone-200">Activity</th>
             <th className="w-10 px-4 py-3"></th>
           </tr>
         </thead>
@@ -87,17 +89,20 @@ export default function FeedListView({ feeds, selectedIds, onSelectionChange, on
                 <div>
                   <p className="font-medium text-stone-200">{feed.name}</p>
                    <a
-                     href={safeUrl(feed.url)}
-                     target="_blank"
-                     rel="noopener noreferrer"
-                     className="text-xs text-stone-500 hover:text-stone-400 truncate block max-w-xs"
-                   >
-                     {feed.url}
-                   </a>
+                      href={safeUrl(feed.url)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-stone-500 hover:text-stone-400 truncate block max-w-sm"
+                    >
+                      {feed.url}
+                    </a>
                 </div>
               </td>
               <td className="px-4 py-3">
                 <Badge className={categoryColors[feed.category]}>{feed.category}</Badge>
+              </td>
+              <td className="px-4 py-3">
+                <SourceHealthIndicator feed={feed} />
               </td>
               <td className="px-4 py-3">
                 <Badge variant={feed.status === 'active' ? 'default' : 'secondary'}>
@@ -110,7 +115,7 @@ export default function FeedListView({ feeds, selectedIds, onSelectionChange, on
                   className="flex items-center gap-1 hover:text-[hsl(var(--primary))] transition-colors"
                 >
                   {expandedFeedId === feed.id ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                  {feed.item_count || 0}
+                  {feed.item_count || 0} items
                 </button>
               </td>
               <td className="px-4 py-3">
@@ -157,7 +162,7 @@ export default function FeedListView({ feeds, selectedIds, onSelectionChange, on
             </tr>
             {expandedFeedId === feed.id && (
               <tr className="bg-stone-950">
-                <td colSpan={6} className="px-6 py-3">
+                <td colSpan={7} className="px-6 py-3">
                   {loadingFeedId === feed.id ? (
                     <div className="flex items-center gap-2 text-xs text-stone-500 py-1">
                       <Loader2 className="w-3 h-3 animate-spin" />
