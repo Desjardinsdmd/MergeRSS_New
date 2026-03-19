@@ -327,6 +327,7 @@ export default function TopFiveToday({ feedIds, feeds, onItemsLoaded }) {
                         feedMap={feedMap}
                         expanded={expanded}
                         onToggle={id => setExpanded(expanded === id ? null : id)}
+                        totalCount={items.length}
                     />
                 ))}
             </div>
