@@ -358,12 +358,18 @@ Write a well-organized, professional digest. Group related stories where appropr
             }
         }
 
+        const okCount = results.filter(r => r.status === 'ok').length;
+        const errorCount = results.filter(r => r.status === 'error').length;
+        const skippedCount = results.filter(r => r.skipped).length;
+
+        console.log(`[generateDigests] Run complete — ok=${okCount} errors=${errorCount} skipped=${skippedCount}`);
+
         await base44.asServiceRole.entities.SystemHealth.create({
             job_type: 'digest_generation',
-            status: 'completed',
+            status: errorCount > 0 && okCount === 0 ? 'failed' : 'completed',
             started_at: startedAt,
             completed_at: new Date().toISOString(),
-            metadata: { total: digests.length, processed: toProcess.length, results },
+            metadata: { total: digests.length, processed: toProcess.length, ok: okCount, errors: errorCount, skipped: skippedCount, results },
         });
 
         return Response.json({ success: true, results });
