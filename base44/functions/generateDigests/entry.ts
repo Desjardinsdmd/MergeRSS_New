@@ -140,8 +140,11 @@ Deno.serve(async (req) => {
                     items = items.filter(i => i.tags?.some(t => digest.tags.includes(t)));
                 }
 
+                console.log(`[generateDigests] digest="${digest.name}" — ${items.length} item(s) after filtering`);
+
                 if (items.length === 0) {
                     if (!force) {
+                        console.log(`[generateDigests] Skipping digest="${digest.name}" — no new items`);
                         results.push({ digest: digest.name, skipped: true, reason: 'No new items in time window' });
                         continue;
                     }
