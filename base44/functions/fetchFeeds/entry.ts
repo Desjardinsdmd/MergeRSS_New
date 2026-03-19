@@ -314,42 +314,50 @@ async function fetchFeedsWithThrottling(feeds, base44, batchSize = 10, delayBetw
             if (newCount > 0) {
                 try {
                     const created = await base44.asServiceRole.entities.FeedItem.bulkCreate(itemsToCreate);
-                    if (alertFeedIds.has(feed.id)) {
+                    const feedAlerts = alertsByFeedId[feed.id];
+                    if (feedAlerts?.length) {
                         const itemsNeedingAlerts = (Array.isArray(created) ? created : itemsToCreate)
                             .filter(i => i.id)
                             .slice(0, 10);
-                        // Inline alert dispatch — fire-and-forget, non-blocking
+                        // Fire-and-forget: alert dispatch must not block feed processing
                         Promise.allSettled(
-                            itemsNeedingAlerts.map(async newItem => {
-                                try {
-                                    const alerts = await base44.asServiceRole.entities.FeedAlert.filter({ feed_id: newItem.feed_id, is_active: true });
-                                    for (const alert of alerts) {
-                                        const title = newItem.title || 'New article';
-                                        const url = newItem.url || '';
-                                        const description = (newItem.description || '').slice(0, 200);
-                                        const category = newItem.category || '';
+                            itemsNeedingAlerts.flatMap(newItem =>
+                                feedAlerts.map(async alert => {
+                                    const title = newItem.title || 'New article';
+                                    const url = newItem.url || '';
+                                    const description = (newItem.description || '').slice(0, 200);
+                                    const category = newItem.category || '';
+                                    let delivered = false;
+                                    try {
                                         if (alert.channel_type === 'slack') {
                                             const text = `*${title}*${category ? ` [${category}]` : ''}\n${description ? description + '\n' : ''}<${url}|Read more>`;
-                                            await fetch(alert.webhook_url, {
+                                            const res = await fetch(alert.webhook_url, {
                                                 method: 'POST',
                                                 headers: { 'Content-Type': 'application/json' },
                                                 body: JSON.stringify({ text, mrkdwn: true }),
                                             });
+                                            delivered = res.ok;
+                                            if (!delivered) console.warn(`[fetchFeeds] Slack alert failed — alert=${alert.id} item=${newItem.id} status=${res.status}`);
                                         } else if (alert.channel_type === 'discord') {
                                             const content = `**${title}**${category ? ` \`${category}\`` : ''}\n${description ? description + '\n' : ''}${url}`;
-                                            await fetch(alert.webhook_url, {
+                                            const res = await fetch(alert.webhook_url, {
                                                 method: 'POST',
                                                 headers: { 'Content-Type': 'application/json' },
                                                 body: JSON.stringify({ content: content.slice(0, 2000) }),
                                             });
+                                            delivered = res.ok || res.status === 204;
+                                            if (!delivered) console.warn(`[fetchFeeds] Discord alert failed — alert=${alert.id} item=${newItem.id} status=${res.status}`);
                                         }
-                                        base44.asServiceRole.entities.FeedAlert.update(alert.id, { last_sent: new Date().toISOString() }).catch(() => {});
+                                        // Only stamp last_sent after confirmed delivery
+                                        if (delivered) {
+                                            base44.asServiceRole.entities.FeedAlert.update(alert.id, { last_sent: new Date().toISOString() }).catch(() => {});
+                                        }
+                                    } catch (alertErr) {
+                                        console.warn(`[fetchFeeds] Alert dispatch threw — alert=${alert.id} item=${newItem.id}:`, alertErr.message);
                                     }
-                                } catch (alertErr) {
-                                    console.warn(`[fetchFeeds] alert dispatch failed for item ${newItem.id}:`, alertErr.message);
-                                }
-                            })
-                        ).catch(err => console.warn('[fetchFeeds] alert batch error:', err.message));
+                                })
+                            )
+                        ).catch(() => {}); // allSettled never rejects; this is just a safety net
                     }
                 } catch (bulkErr) {
                     console.warn(`[fetchFeeds] bulkCreate failed for ${feed.name} (non-fatal):`, bulkErr.message);
