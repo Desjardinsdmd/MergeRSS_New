@@ -85,7 +85,7 @@ export default function Integrations() {
   
   const checkIntegrationLimit = () => {
     if (!isPremium) {
-      toast.error('Integrations are premium only. Upgrade to connect Slack, Discord, and Email.');
+      toast.error('Integrations are premium only. Upgrade to connect Slack, Discord, and Microsoft Teams.');
       return false;
     }
     return true;
@@ -235,7 +235,7 @@ export default function Integrations() {
        <div className="mb-8">
          <h1 className="text-2xl font-bold text-stone-100">Integrations</h1>
          <p className="text-stone-500">
-           Connect your favorite apps to deliver digests
+           Connect your favorite apps to deliver digests to Slack, Discord, and Microsoft Teams
          </p>
        </div>
 
