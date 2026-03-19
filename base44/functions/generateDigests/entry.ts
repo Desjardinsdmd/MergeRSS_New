@@ -15,6 +15,8 @@ Deno.serve(async (req) => {
         const body = await req.json().catch(() => ({}));
         const { digest_id, force } = body;
 
+        console.log(`[generateDigests] Run started — digest_id=${digest_id || 'all'} force=${force || false}`);
+
         // Allowlist for outbound webhook fetches — prevents SSRF
         const ALLOWED_WEBHOOK_HOSTS = [
             'hooks.slack.com',
