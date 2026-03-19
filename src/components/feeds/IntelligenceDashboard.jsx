@@ -90,17 +90,17 @@ export default function IntelligenceDashboard({ user, feeds = [], digests = [], 
                 {/* Daily Intelligence Briefing — top anchor */}
                 <DailyBriefingSummary items={rankedItems} feeds={feeds} />
 
-                {/* What Changed Since Last Visit */}
+                {/* Since Your Last Visit — secondary prominence */}
                 <WhatChanged feedIds={feedIds} feeds={feeds} />
 
-                {/* Top 5 Today */}
+                {/* Today's Briefing — supporting */}
                 <TopFiveToday feedIds={feedIds} feeds={feeds} onItemsLoaded={setTop5Ids} />
 
-                {/* Emerging Signals */}
-                <EmergingSignals feedIds={feedIds} feeds={feeds} top5Ids={top5Ids} />
-
-                {/* Trending Topics */}
-                <TrendingTopicsInline feedIds={feedIds} />
+                {/* Supporting sections — visually receded */}
+                <div className="opacity-90 space-y-6">
+                    <EmergingSignals feedIds={feedIds} feeds={feeds} top5Ids={top5Ids} />
+                    <TrendingTopicsInline feedIds={feedIds} />
+                </div>
 
                 {/* Ranked Feed */}
                 <div>
