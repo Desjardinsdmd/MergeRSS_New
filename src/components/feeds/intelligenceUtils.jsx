@@ -40,9 +40,9 @@ export function generateInsight(item) {
         if (re.test(text)) return insight;
     }
     const tag = item.intelligence_tag || inferTag(text);
-    if (tag === 'Risk')        return 'Downside signal — assess exposure and watch for confirmation';
-    if (tag === 'Opportunity') return 'Upside signal — monitor for follow-through';
-    if (tag === 'Trending')    return 'Broad coverage suggests emerging consensus';
+    if (tag === 'Risk')        return null;
+    if (tag === 'Opportunity') return null;
+    if (tag === 'Trending')    return null;
     return null;
 }
 
