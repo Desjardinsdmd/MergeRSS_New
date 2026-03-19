@@ -42,28 +42,84 @@ function getUrgencyTag(item, clusterSize) {
     return null;
 }
 
-// Why this matters — top-1 item only, decisive and non-generic
+// Why this matters — ≤15 words, no hedging, direct consequence, conclusion not observation
 const WHY_IT_MATTERS = [
-    { re: /\b(interest rate|fed|federal reserve|rate hike|rate cut)\b/i,   why: 'Rate decisions ripple across every asset class — early positioning now determines Q-end outcomes' },
-    { re: /\b(inflation|cpi|pce)\b/i,                                       why: 'Early margin compression signals tend to precede broader earnings resets by one to two quarters' },
-    { re: /\b(layoff|job cut|workforce)\b/i,                                why: 'Workforce cuts signal structural cost-shift, not cyclical — consumer demand softness follows within 60 days' },
-    { re: /\b(acqui|merger|takeover|buyout)\b/i,                            why: 'Consolidation events reset competitive positioning for the entire sector — peer exposure is immediate' },
-    { re: /\b(ai |artificial intelligence|llm)\b/i,                         why: 'Capability gaps widen faster than markets price in — delayed strategic response becomes a structural disadvantage' },
-    { re: /\b(regulation|regulator|sec |compliance|legislation)\b/i,        why: 'Regulatory windows close fast — operators who move early capture significant compliance arbitrage' },
-    { re: /\b(real estate|reit|commercial property|housing|mortgage)\b/i,   why: 'Property market inflection points are rare — missed entry timing is costly and hard to recover' },
-    { re: /\b(energy|oil|gas|electricity)\b/i,                              why: 'Energy cost shifts pass through to inflation within one quarter — exposed sectors reprice accordingly' },
-    { re: /\b(earnings|revenue|profit|quarterly results)\b/i,               why: 'Guidance resets create repricing cascades — the first mover on re-rating captures the spread' },
-    { re: /\b(gdp|recession|contraction)\b/i,                               why: 'Macro cycle turns are asymmetric — the cost of being late is disproportionately high' },
-    { re: /\b(bank|credit|lending|loan|default)\b/i,                        why: 'Credit contraction spreads faster than rate data suggests — capital access risk is already building' },
-    { re: /\b(tariff|trade war|sanction)\b/i,                               why: 'Trade friction embeds in cost structures quickly — supply chain rewiring decisions cannot be deferred' },
-    { re: /\b(crypto|bitcoin|ethereum)\b/i,                                  why: 'Institutional positioning shifts are directional tells — retail flows confirm, not lead' },
-    { re: /\b(funding|series [a-e]|raise|venture)\b/i,                      why: 'Capital concentration signals are early market structure tells — follow-on activity confirms within weeks' },
+    { re: /\b(interest rate|fed|federal reserve|rate hike|rate cut)\b/i,   why: 'Rate moves now determine capital access — positioning this week sets Q-end outcomes' },
+    { re: /\b(inflation|cpi|pce)\b/i,                                       why: 'Inflation above target forces Fed action — margin compression hits earnings next quarter' },
+    { re: /\b(layoff|job cut|workforce)\b/i,                                why: 'Structural cuts precede demand destruction — consumer softness is 60 days behind this' },
+    { re: /\b(acqui|merger|takeover|buyout)\b/i,                            why: 'Consolidation resets the competitive map — peer valuations reprice immediately' },
+    { re: /\b(ai |artificial intelligence|llm)\b/i,                         why: 'AI is breaking cost structures now — delayed response becomes a permanent disadvantage' },
+    { re: /\b(regulation|regulator|sec |compliance|legislation)\b/i,        why: 'Regulatory windows close fast — early movers capture the compliance arbitrage' },
+    { re: /\b(real estate|reit|commercial property|housing|mortgage)\b/i,   why: 'Rate-forced sellers are building — missed entry now is expensive to recover' },
+    { re: /\b(energy|oil|gas|electricity)\b/i,                              why: 'Energy costs pass through to inflation in one quarter — exposed sectors reprice now' },
+    { re: /\b(earnings|revenue|profit|quarterly results)\b/i,               why: 'Guidance resets cascade into multiple compression — first re-rater captures the spread' },
+    { re: /\b(gdp|recession|contraction)\b/i,                               why: 'Cycle turns are asymmetric — cost of being late is always disproportionately high' },
+    { re: /\b(bank|credit|lending|loan|default)\b/i,                        why: 'Credit tightening restricts capital access within one quarter — risk is already building' },
+    { re: /\b(tariff|trade war|sanction)\b/i,                               why: 'Trade friction embeds in cost structures fast — rewiring decisions cannot wait' },
+    { re: /\b(crypto|bitcoin|ethereum)\b/i,                                  why: 'Institutional flows lead direction — retail confirms it, never leads it' },
+    { re: /\b(funding|series [a-e]|raise|venture)\b/i,                      why: 'Capital concentration is a market structure signal — follow-on rounds confirm within weeks' },
+    { re: /\b(supply chain|shortage|inventory|logistics)\b/i,               why: 'Supply disruption hits end-market pricing in weeks — margin compression follows directly' },
+    { re: /\b(geopolit|election|government|political)\b/i,                  why: 'Political uncertainty delays capital deployment — risk premiums are rising now' },
+];
+
+// Bottom line — ≤12 words, memorable, core takeaway for #1 item only
+const BOTTOM_LINE = [
+    { re: /\b(interest rate|fed|federal reserve|rate hike|rate cut)\b/i,   line: 'Rate risk is now a capital access problem, not just a policy debate' },
+    { re: /\b(inflation|cpi|pce)\b/i,                                       line: 'Cost pressure is now hitting margins, not just prices' },
+    { re: /\b(layoff|job cut|workforce)\b/i,                                line: 'Structural cuts are in — demand weakness is next' },
+    { re: /\b(acqui|merger|takeover|buyout)\b/i,                            line: 'The deal changes the competitive map permanently' },
+    { re: /\b(ai |artificial intelligence|llm)\b/i,                         line: 'AI is breaking incumbents now — not eventually' },
+    { re: /\b(regulation|regulator|sec |compliance|legislation)\b/i,        line: 'The window to act before enforcement is closing' },
+    { re: /\b(real estate|reit|commercial property|housing|mortgage)\b/i,   line: 'Forced sellers are emerging — buyers hold the leverage now' },
+    { re: /\b(energy|oil|gas|electricity)\b/i,                              line: 'Energy costs are now an earnings problem across sectors' },
+    { re: /\b(earnings|revenue|profit|quarterly results)\b/i,               line: 'Guidance is being cut — multiples are following it down' },
+    { re: /\b(gdp|recession|contraction)\b/i,                               line: 'The macro turn is in — risk assets are mispriced' },
+    { re: /\b(bank|credit|lending|loan|default)\b/i,                        line: 'Credit is tightening now — capital access narrows next quarter' },
+    { re: /\b(tariff|trade war|sanction)\b/i,                               line: 'Trade friction is structural — margins absorb it permanently' },
+    { re: /\b(crypto|bitcoin|ethereum)\b/i,                                  line: 'Institutional flows are moving — direction is being set now' },
+    { re: /\b(funding|series [a-e]|raise|venture)\b/i,                      line: 'Smart capital moved first — follow-on confirms the thesis' },
 ];
 
 function getWhyItMatters(item) {
     const text = ((item.title || '') + ' ' + (item.description || '')).toLowerCase();
     for (const { re, why } of WHY_IT_MATTERS) {
         if (re.test(text)) return why;
+    }
+    return null;
+}
+
+function getBottomLine(item) {
+    const text = ((item.title || '') + ' ' + (item.description || '')).toLowerCase();
+    for (const { re, line } of BOTTOM_LINE) {
+        if (re.test(text)) return line;
+    }
+    return null;
+}
+
+// Forward implication for top-3 items — what happens next
+const FORWARD_IMPLICATION = [
+    { re: /\b(interest rate|fed|federal reserve|rate hike|rate cut)\b/i,   fwd: 'Watch for credit spread widening and deal pipeline freezes in the next 30 days' },
+    { re: /\b(inflation|cpi|pce)\b/i,                                       fwd: 'Earnings guidance revisions are the next signal — watch sector by sector' },
+    { re: /\b(layoff|job cut|workforce)\b/i,                                fwd: 'Consumer spending data in 60 days will confirm whether this is cyclical or structural' },
+    { re: /\b(acqui|merger|takeover|buyout)\b/i,                            fwd: 'Peer stocks will move on forced re-rating — expect sector repricing within days' },
+    { re: /\b(ai |artificial intelligence|llm)\b/i,                         fwd: 'Watch which incumbents respond strategically vs. defensively — that gap compounds fast' },
+    { re: /\b(regulation|regulator|sec |compliance|legislation)\b/i,        fwd: 'Enforcement action follows guidance — operators without compliance plans are exposed now' },
+    { re: /\b(real estate|reit|commercial property|housing|mortgage)\b/i,   fwd: 'Distressed inventory is building — transaction volume picks up when sellers capitulate' },
+    { re: /\b(energy|oil|gas|electricity)\b/i,                              fwd: 'Input cost pressure reaches end-market pricing within one quarter — watch margin reports' },
+    { re: /\b(earnings|revenue|profit|quarterly results)\b/i,               fwd: 'Multiple compression cascades through the sector — the first analyst downgrade triggers the move' },
+    { re: /\b(gdp|recession|contraction)\b/i,                               fwd: 'Risk asset repricing follows GDP revision — equity and credit spreads move together' },
+    { re: /\b(bank|credit|lending|loan|default)\b/i,                        fwd: 'Credit rationing hits real economy activity within two quarters — watch SME lending data' },
+    { re: /\b(tariff|trade war|sanction)\b/i,                               fwd: 'Cost pass-through to end markets happens in weeks — watch CPI components for confirmation' },
+    { re: /\b(crypto|bitcoin|ethereum)\b/i,                                  fwd: 'Retail sentiment follows institutional positioning by 2–4 weeks — direction is being set now' },
+    { re: /\b(funding|series [a-e]|raise|venture)\b/i,                      fwd: 'Follow-on activity confirms the thesis — watch for syndicate expansion in 30–60 days' },
+    { re: /\b(supply chain|shortage|inventory|logistics)\b/i,               fwd: 'Price pass-through hits consumers in weeks — inflation data will reflect this next cycle' },
+    { re: /\b(geopolit|election|government|political)\b/i,                  fwd: 'Capital sits on the sidelines until uncertainty resolves — expect deployment to lag by a quarter' },
+];
+
+function getForwardImplication(item) {
+    const text = ((item.title || '') + ' ' + (item.description || '')).toLowerCase();
+    for (const { re, fwd } of FORWARD_IMPLICATION) {
+        if (re.test(text)) return fwd;
     }
     return null;
 }
