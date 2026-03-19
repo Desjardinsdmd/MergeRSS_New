@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Zap, LayoutGrid, List, RefreshCw } from 'lucide-react';
 import TopFiveToday from './TopFiveToday';
-import TrendingTopics from './TrendingTopics';
+import TrendingTopicsInline from './TrendingTopicsInline';
 import RankedFeed from './RankedFeed';
 import IntelligenceSidebar from './IntelligenceSidebar';
 
@@ -86,7 +86,7 @@ export default function IntelligenceDashboard({ user, feeds = [], digests = [], 
                 <TopFiveToday feedIds={feedIds} feeds={feeds} />
 
                 {/* Trending Topics */}
-                <TrendingTopics feedIds={feedIds} />
+                <TrendingTopicsInline feedIds={feedIds} />
 
                 {/* Ranked Feed */}
                 <div>
