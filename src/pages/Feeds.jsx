@@ -80,6 +80,12 @@ export default function Feeds() {
     enabled: !!user,
   });
 
+  const { data: healthData = [], refetch } = useQuery({
+    queryKey: ['source-health'],
+    queryFn: () => base44.entities.SourceHealth.list('-evaluated_at', 1000),
+    staleTime: 5 * 60 * 1000,
+  });
+
   // Build health lookup map
   const healthMap = React.useMemo(() => {
     const map = {};
