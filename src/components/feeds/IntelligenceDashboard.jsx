@@ -89,7 +89,10 @@ export default function IntelligenceDashboard({ user, feeds = [], digests = [], 
                 <WhatChanged feedIds={feedIds} feeds={feeds} />
 
                 {/* Top 5 Today */}
-                <TopFiveToday feedIds={feedIds} feeds={feeds} />
+                <TopFiveToday feedIds={feedIds} feeds={feeds} onItemsLoaded={setTop5Ids} />
+
+                {/* Emerging Signals */}
+                <EmergingSignals feedIds={feedIds} feeds={feeds} top5Ids={top5Ids} />
 
                 {/* Trending Topics */}
                 <TrendingTopicsInline feedIds={feedIds} />
