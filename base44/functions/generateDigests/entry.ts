@@ -1,9 +1,9 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 
 // Hard wall-clock budget — stop before Deno's CPU limit hits
-const WALL_BUDGET_MS = 50000;
-// Max digests to process per scheduled run
-const MAX_DIGESTS_PER_RUN = 10;
+const WALL_BUDGET_MS = 45000;
+// Max digests to process per scheduled run (lower cap to stay under budget)
+const MAX_DIGESTS_PER_RUN = 8;
 
 Deno.serve(async (req) => {
     try {
