@@ -83,6 +83,9 @@ export default function IntelligenceDashboard({ user, feeds = [], digests = [], 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Main column */}
             <div className="lg:col-span-2 space-y-6">
+                {/* What Changed Since Last Visit */}
+                <WhatChanged feedIds={feedIds} feeds={feeds} />
+
                 {/* Top 5 Today */}
                 <TopFiveToday feedIds={feedIds} feeds={feeds} />
 
