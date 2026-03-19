@@ -155,13 +155,20 @@ export default function Landing() {
               </div>
 
               <h1
-                className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tight leading-[0.93] mb-6"
+                className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tight leading-[0.93] mb-4"
                 style={{ animation: 'fadeSlideDown 0.6s ease 0.1s both' }}
               >
                 <span className="text-stone-100">Stop scanning.</span>
                 <br />
                 <span className="bg-gradient-to-r from-[hsl(var(--primary))] via-[hsl(var(--primary))]/80 to-[hsl(var(--primary))]/60 bg-clip-text text-transparent">Start knowing.</span>
               </h1>
+
+              <p
+                className="text-sm text-stone-500 italic mb-5"
+                style={{ animation: 'fadeSlideDown 0.6s ease 0.15s both' }}
+              >
+                Most people read more. You just need to know better.
+              </p>
 
               <p
                 className="text-lg text-stone-400 mb-8 max-w-lg leading-relaxed"
