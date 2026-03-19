@@ -194,12 +194,17 @@ async function recoverFeedUrl(originalUrl) {
 async function fetchFeedsWithThrottling(feeds, base44, batchSize = 10, delayBetweenBatches = 200) {
     const results = [];
 
-    // Hoist the alerts query once — avoid repeating it per-feed
-    let alertFeedIds = new Set();
+    // Hoist the alerts query once — build a map of feed_id → alert[] to avoid N+1 queries per item
+    let alertsByFeedId = {};
     try {
         const allAlerts = await base44.asServiceRole.entities.FeedAlert.filter({ is_active: true });
-        alertFeedIds = new Set((allAlerts || []).map(a => a.feed_id));
-    } catch {}
+        for (const alert of (allAlerts || [])) {
+            if (!alertsByFeedId[alert.feed_id]) alertsByFeedId[alert.feed_id] = [];
+            alertsByFeedId[alert.feed_id].push(alert);
+        }
+    } catch (alertLoadErr) {
+        console.warn('[fetchFeeds] Could not load FeedAlerts (non-fatal):', alertLoadErr.message);
+    }
     
     for (let i = 0; i < feeds.length; i += batchSize) {
         const batch = feeds.slice(i, i + batchSize);
