@@ -43,7 +43,6 @@ const navigation = [
   { name: 'Inbox', href: 'Inbox', icon: Inbox },
   { name: 'Read Later', href: 'Bookmarks', icon: Bookmark },
 
-  { name: 'RSS Generator', href: 'RssFeedGenerator', icon: Rss },
   { name: 'Search', href: 'ArticleSearch', icon: Search },
   { name: 'Directory', href: 'Directory', icon: Globe },
   { name: 'Team', href: 'Team', icon: Users },
