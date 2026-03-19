@@ -42,6 +42,28 @@ Deno.serve(async (req) => {
             });
         }
 
+        if (event.type === 'customer.subscription.updated') {
+            const subscription = event.data.object;
+            const subs = await base44.asServiceRole.entities.Subscription.filter({
+                stripe_subscription_id: subscription.id
+            });
+            if (subs.length > 0) {
+                const sub = subs[0];
+                const newStatus = subscription.status; // active, past_due, canceled, trialing, etc.
+                const isPremium = newStatus === 'active' || newStatus === 'trialing';
+                await base44.asServiceRole.entities.Subscription.update(sub.id, {
+                    status: newStatus,
+                    plan: isPremium ? 'premium' : 'free',
+                    current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+                    current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+                    cancel_at_period_end: subscription.cancel_at_period_end || false,
+                });
+                if (sub.user_id) {
+                    await base44.asServiceRole.entities.User.update(sub.user_id, { plan: isPremium ? 'premium' : 'free' });
+                }
+            }
+        }
+
         if (event.type === 'customer.subscription.deleted') {
             const subscription = event.data.object;
             const subs = await base44.asServiceRole.entities.Subscription.filter({
