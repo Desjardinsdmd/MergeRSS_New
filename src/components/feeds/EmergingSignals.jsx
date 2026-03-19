@@ -31,9 +31,18 @@ export default function EmergingSignals({ feedIds = [], feeds = [], top5Ids = ne
             const clusters = clusterItems(raw, feedMap);
 
             return clusters
-                .filter(c => c.clusterSize <= 2 && (c.primary.importance_score ?? 0) >= 60 && !top5Ids.has(c.primary.id))
+                .filter(c => {
+                    const score = c.primary.importance_score ?? 0;
+                    const insight = generateInsight(c.primary);
+                    const hasSpecificInsight = insight &&
+                        !insight.startsWith('Downside signal') &&
+                        !insight.startsWith('Upside signal') &&
+                        !insight.startsWith('Broad coverage');
+                    // Require score >= 65, not already in top5, and a specific insight
+                    return c.clusterSize <= 2 && score >= 65 && !top5Ids.has(c.primary.id) && hasSpecificInsight;
+                })
                 .sort((a, b) => (b.primary.importance_score ?? 0) - (a.primary.importance_score ?? 0))
-                .slice(0, 4)
+                .slice(0, 3)
                 .map(c => ({ ...c.primary, _clusterSize: c.clusterSize }));
         },
         enabled: !!feedIds.length,
