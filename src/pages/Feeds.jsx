@@ -7,6 +7,7 @@ import { Plus, Search, Filter, Rss, Loader2, RefreshCw, Upload, Grid3x3, List, T
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import SourcesControl from '@/components/feeds/SourcesControl';
+import NeedsAttentionSummary from '@/components/feeds/NeedsAttentionSummary';
 import {
   Select,
   SelectContent,
@@ -79,6 +80,25 @@ export default function Feeds() {
     enabled: !!user,
   });
 
+  // Build health lookup map
+  const healthMap = React.useMemo(() => {
+    const map = {};
+    healthData.forEach(h => {
+      map[h.feed_id] = h;
+    });
+    return map;
+  }, [healthData]);
+
+  // Count issues for summary
+  const { failingCount, degradingCount } = React.useMemo(() => {
+    let failing = 0, degrading = 0;
+    healthData.forEach(h => {
+      if (h.health_state === 'failing') failing++;
+      else if (h.health_state === 'degrading') degrading++;
+    });
+    return { failingCount: failing, degradingCount: degrading };
+  }, [healthData]);
+
   const filteredFeeds = React.useMemo(() => {
     const list = feeds.filter((feed) => {
       const matchesSearch = feed.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -87,10 +107,11 @@ export default function Feeds() {
       
       // Health filter
       let matchesHealth = true;
+      const feedHealth = healthMap[feed.id];
       if (healthFilter === 'healthy') {
-        matchesHealth = feed.status !== 'error' && (feed.consecutive_errors || 0) <= 1;
+        matchesHealth = !feedHealth || feedHealth.health_state === 'healthy';
       } else if (healthFilter === 'needs-attention') {
-        matchesHealth = feed.status === 'error' || (feed.consecutive_errors || 0) > 1;
+        matchesHealth = feedHealth && (feedHealth.health_state === 'failing' || feedHealth.health_state === 'degrading');
       }
       
       return matchesSearch && matchesCategory && matchesHealth;
@@ -104,7 +125,7 @@ export default function Feeds() {
       if (sortBy === 'last-fetched') return new Date(b.last_fetched || 0) - new Date(a.last_fetched || 0);
       return 0;
     });
-  }, [feeds, search, categoryFilter, healthFilter, sortBy]);
+  }, [feeds, search, categoryFilter, healthFilter, sortBy, healthMap]);
 
   const handleDelete = async () => {
     if (deleteConfirm) {
@@ -168,6 +189,13 @@ export default function Feeds() {
 
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto">
+      {/* Needs Attention Summary */}
+      <NeedsAttentionSummary
+        failingCount={failingCount}
+        degradingCount={degradingCount}
+        onFilter={setHealthFilter}
+      />
+
       {/* Summary Control Panel */}
       <div className="mb-8">
         <SourcesControl feeds={feeds} />
