@@ -4,13 +4,13 @@ import { useQuery } from '@tanstack/react-query';
 import { Zap, ExternalLink, TrendingUp, AlertTriangle, Lightbulb, Minus } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { decodeHtml, safeUrl } from '@/components/utils/htmlUtils';
-import { inferTag, whatHappened, generateInsight, signalLevelStyle, clusterItems } from './intelligenceUtils';
+import { inferTag, whatHappened, generateInsight, signalLevelStyle, decisionState, clusterItems } from './intelligenceUtils';
 
 const TAG_CONFIG = {
-    Trending:    { color: 'bg-blue-950 text-blue-400 border-blue-800', icon: TrendingUp },
-    Risk:        { color: 'bg-red-950 text-red-400 border-red-800',    icon: AlertTriangle },
-    Opportunity: { color: 'bg-emerald-950 text-emerald-400 border-emerald-800', icon: Lightbulb },
-    Neutral:     { color: 'bg-stone-800 text-stone-400 border-stone-700', icon: Minus },
+    Trending:    { textClass: 'text-blue-400',    icon: TrendingUp },
+    Risk:        { textClass: 'text-red-400',     icon: AlertTriangle },
+    Opportunity: { textClass: 'text-emerald-400', icon: Lightbulb },
+    Neutral:     { textClass: 'text-stone-500',   icon: Minus },
 };
 
 export default function EmergingSignals({ feedIds = [], feeds = [], top5Ids = new Set() }) {
@@ -28,15 +28,13 @@ export default function EmergingSignals({ feedIds = [], feeds = [], top5Ids = ne
             );
             if (!raw?.length) return [];
 
-            // Cluster to get cluster sizes
             const clusters = clusterItems(raw, feedMap);
 
-            // Emerging = solo or duo signals (cluster size 1–2) with score >= 60, not in top5
             return clusters
                 .filter(c => c.clusterSize <= 2 && (c.primary.importance_score ?? 0) >= 60 && !top5Ids.has(c.primary.id))
                 .sort((a, b) => (b.primary.importance_score ?? 0) - (a.primary.importance_score ?? 0))
-                .slice(0, 5)
-                .map(c => c.primary);
+                .slice(0, 4)
+                .map(c => ({ ...c.primary, _clusterSize: c.clusterSize }));
         },
         enabled: !!feedIds.length,
         staleTime: 5 * 60 * 1000,
@@ -45,54 +43,66 @@ export default function EmergingSignals({ feedIds = [], feeds = [], top5Ids = ne
     if (!emerging.length) return null;
 
     return (
-        <div className="bg-stone-900 border border-stone-800">
-            <div className="flex items-center gap-2 px-5 py-4 border-b border-stone-800">
-                <Zap className="w-4 h-4 text-amber-400" />
-                <h2 className="text-sm font-semibold text-stone-300 uppercase tracking-wider">Emerging Signals</h2>
-                <span className="text-xs text-stone-600 ml-auto">single-source · last 24h</span>
+        <div className="bg-stone-900 border border-amber-900/40">
+            <div className="flex items-center gap-2 px-5 py-3.5 border-b border-amber-900/40">
+                <Zap className="w-3.5 h-3.5 text-amber-400" />
+                <h2 className="text-sm font-semibold text-stone-300 uppercase tracking-wider">Early Trends</h2>
+                <span className="text-xs text-stone-600 ml-1">worth watching early</span>
+                <span className="text-[10px] text-amber-600 bg-amber-950/50 border border-amber-900/50 px-1.5 py-0.5 ml-auto">
+                    low confirmation · high potential
+                </span>
             </div>
-            <div className="divide-y divide-stone-800/80">
+            <div className="divide-y divide-stone-800/60">
                 {emerging.map((item) => {
                     const tag = item.intelligence_tag || inferTag((item.title || '') + ' ' + (item.description || '')) || 'Neutral';
                     const tagCfg = TAG_CONFIG[tag] || TAG_CONFIG.Neutral;
                     const Icon = tagCfg.icon;
                     const signal = signalLevelStyle(item.importance_score);
+                    const clusterSize = item._clusterSize ?? 1;
                     const happened = whatHappened(item);
                     const insight = generateInsight(item);
                     const source = feedMap[item.feed_id];
+                    const decision = decisionState(item, clusterSize);
 
                     return (
                         <div key={item.id} className="px-5 py-3.5 hover:bg-stone-800/30 transition-colors">
+                            {/* Decision state */}
+                            <div className="flex items-center gap-2 mb-1.5">
+                                <span className={`text-[10px] font-bold px-1.5 py-0.5 border ${decision.style}`}>
+                                    {decision.label}
+                                </span>
+                                <span className="inline-flex items-center gap-0.5 text-[10px] text-stone-600">
+                                    <Icon className="w-2.5 h-2.5" />{tag}
+                                </span>
+                                <span className="text-[10px] text-amber-600 ml-auto">Early · {clusterSize === 1 ? '1 source' : `${clusterSize} sources`}</span>
+                            </div>
+
                             {/* Headline */}
-                            <a href={safeUrl(item.url)} target="_blank" rel="noopener noreferrer" className="group block mb-1.5">
-                                <h3 className="text-sm font-semibold text-stone-100 leading-snug line-clamp-2 group-hover:text-[hsl(var(--primary))] transition-colors">
+                            <a href={safeUrl(item.url)} target="_blank" rel="noopener noreferrer" className="group block mb-1">
+                                <h3 className="text-sm font-semibold text-stone-200 leading-snug line-clamp-1 group-hover:text-[hsl(var(--primary))] transition-colors">
                                     {decodeHtml(item.title)}
                                 </h3>
                             </a>
 
                             {/* What happened */}
                             {happened && (
-                                <p className="text-xs text-stone-400 leading-snug mb-1 line-clamp-1">{happened}</p>
+                                <p className="text-xs text-stone-500 leading-snug mb-1 line-clamp-1">{happened}</p>
                             )}
 
                             {/* Insight */}
                             {insight && (
-                                <p className={`text-xs font-medium mb-2 line-clamp-1 ${tagCfg.color.split(' ').find(c => c.startsWith('text-'))}`}>
+                                <p className={`text-xs font-medium mb-2 line-clamp-1 ${tagCfg.textClass}`}>
                                     ↳ {insight}
                                 </p>
                             )}
 
-                            {/* Tag · signal · source · time */}
-                            <div className="flex items-center gap-2 flex-wrap">
-                                <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 border ${tagCfg.color}`}>
-                                    <Icon className="w-2.5 h-2.5" />{tag}
-                                </span>
+                            {/* Signal · source · time */}
+                            <div className="flex items-center gap-2">
                                 {signal && (
                                     <span className={`text-[10px] px-1.5 py-0.5 border ${signal.class}`}>
                                         {signal.label}
                                     </span>
                                 )}
-                                <span className="text-[10px] text-stone-600 italic">unconfirmed</span>
                                 {source && <span className="text-xs text-stone-600">{source.name}</span>}
                                 <span className="text-xs text-stone-700 ml-auto">
                                     {item.published_date && formatDistanceToNow(new Date(item.published_date), { addSuffix: true })}
