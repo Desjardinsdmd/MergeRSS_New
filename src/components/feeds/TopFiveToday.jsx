@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { Zap, ExternalLink, Loader2, TrendingUp, AlertTriangle, Lightbulb, Minus, ChevronDown, ChevronUp, ArrowUp, ArrowDown } from 'lucide-react';
+import { Zap, ExternalLink, Loader2, TrendingUp, AlertTriangle, Lightbulb, Minus, ChevronDown, ChevronUp, ArrowUp } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { decodeHtml, safeUrl } from '@/components/utils/htmlUtils';
 import {
@@ -20,11 +20,32 @@ const TAG_CONFIG = {
 
 const MACRO_BOOST_RE = /\b(fed|federal reserve|interest rate|inflation|gdp|earnings|capital markets|policy|regulation|oil|energy|geopolit|trade|tariff|acqui|merger|ipo|real estate|housing)\b/i;
 
-const LIFECYCLE_STYLE = {
-    Developing: 'text-emerald-400 border-emerald-800/50 bg-emerald-950/30',
-    Evolving:   'text-sky-400 border-sky-800/50 bg-sky-950/30',
-    Fading:     'text-stone-500 border-stone-700 bg-stone-800/30',
-};
+// HARD RULE: Low Priority items never appear in Today's Briefing
+// An item qualifies if decisionState priority >= 1 (Watch or above)
+// AND it's not a single-source weak signal (score < 50 with no cluster)
+function qualifiesForBriefing(item, clusterSize) {
+    const score = item.importance_score ?? 0;
+    const d = decisionState(item, clusterSize);
+    // Exclude Low Priority entirely
+    if (d.label === 'Low Priority') return false;
+    // Exclude weak single-source items unless score is meaningful
+    if (clusterSize === 1 && score < 55) return false;
+    return true;
+}
+
+// Score item quality for ranking inside the briefing
+function briefingQualityScore(item, clusterSize) {
+    const score = item.importance_score ?? 0;
+    const d = decisionState(item, clusterSize);
+    const insight = generateInsight(item);
+    // Bonus for validated/building confidence
+    const clusterBonus = clusterSize >= 3 ? 15 : clusterSize === 2 ? 8 : 0;
+    // Bonus for high-conviction decision state
+    const priorityBonus = d.priority * 12;
+    // Bonus for having a specific macro insight (not generic)
+    const insightBonus = insight && !insight.startsWith('Downside signal') && !insight.startsWith('Upside signal') && !insight.startsWith('Broad coverage') ? 10 : 0;
+    return score + clusterBonus + priorityBonus + insightBonus;
+}
 
 function BriefingCard({ item, idx, feedMap, expanded, onToggle }) {
     const source = feedMap[item.feed_id];
@@ -36,7 +57,6 @@ function BriefingCard({ item, idx, feedMap, expanded, onToggle }) {
 
     const tag = item.intelligence_tag || inferTag((item.title || '') + ' ' + (item.description || '')) || 'Neutral';
     const tagCfg = TAG_CONFIG[tag] || TAG_CONFIG.Neutral;
-    const Icon = tagCfg.icon;
 
     const happened = whatHappened(item);
     const insight = generateInsight(item);
@@ -80,7 +100,6 @@ function BriefingCard({ item, idx, feedMap, expanded, onToggle }) {
                         {evolution.confidenceProgression && (
                             <span className="text-[10px] text-emerald-400 font-semibold">{evolution.confidenceProgression}</span>
                         )}
-                        {/* Lifecycle + tag de-emphasized */}
                         <div className="ml-auto flex items-center gap-1.5 opacity-40">
                             {evolution.lifecycle && <span className="text-[9px] text-stone-500">{evolution.lifecycle}</span>}
                             <span className="text-[9px] text-stone-600">{tag}</span>
@@ -174,16 +193,25 @@ export default function TopFiveToday({ feedIds, feeds, onItemsLoaded }) {
             });
 
             const deduped = deduplicateItems(boosted, feedMap);
-            const filtered = deduped.filter(item => {
+
+            // HARD RULE: filter out Low Priority items
+            const qualified = deduped.filter(item => {
                 const cs = clusterMap.get(item.id) ?? 1;
-                const score = item.importance_score ?? 0;
-                return !(cs === 1 && score < 50);
+                return qualifiesForBriefing(item, cs);
             });
 
-            return (filtered.length >= 3 ? filtered : deduped).slice(0, 5).map(item => ({
-                ...item,
-                _clusterSize: clusterMap.get(item.id) ?? 1,
-            }));
+            // Sort by briefing quality score (conviction + specificity + cluster)
+            const ranked = qualified
+                .map(item => {
+                    const cs = clusterMap.get(item.id) ?? 1;
+                    return { ...item, _clusterSize: cs, _qualityScore: briefingQualityScore(item, cs) };
+                })
+                .sort((a, b) => b._qualityScore - a._qualityScore);
+
+            // Show 2–5 items — only as many as genuinely qualify
+            // If fewer than 2 qualify at this threshold, relax slightly but keep Low Priority excluded
+            const topItems = ranked.slice(0, 5);
+            return topItems;
         },
         enabled: !!feedIds?.length,
         staleTime: 5 * 60 * 1000,
@@ -209,7 +237,7 @@ export default function TopFiveToday({ feedIds, feeds, onItemsLoaded }) {
             <div className="flex items-center gap-2 px-5 py-4 border-b border-stone-800">
                 <Zap className="w-4 h-4 text-[hsl(var(--primary))]" />
                 <h2 className="text-sm font-semibold text-stone-300 uppercase tracking-wider">Today's Briefing</h2>
-                <span className="text-xs text-stone-600 ml-auto">start here</span>
+                <span className="text-xs text-stone-600 ml-auto">{items.length} high-signal {items.length === 1 ? 'story' : 'stories'}</span>
             </div>
             <div className="divide-y divide-stone-800/80">
                 {items.map((item, idx) => (
