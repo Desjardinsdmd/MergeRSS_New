@@ -314,6 +314,16 @@ async function fetchFeedsWithThrottling(feeds, base44, batchSize = 10, delayBetw
             if (newCount > 0) {
                 try {
                     const created = await base44.asServiceRole.entities.FeedItem.bulkCreate(itemsToCreate);
+
+                    // Fire-and-forget AI enrichment for new items (ai_summary, importance_score, intelligence_tag)
+                    const createdIds = (Array.isArray(created) ? created : itemsToCreate)
+                        .filter(i => i.id).map(i => i.id).slice(0, 20);
+                    if (createdIds.length > 0) {
+                        base44.asServiceRole.functions.invoke('enrichFeedItems', { item_ids: createdIds }).catch(e => {
+                            console.warn(`[fetchFeeds] enrichFeedItems failed for ${feed.name}:`, e.message);
+                        });
+                    }
+
                     const feedAlerts = alertsByFeedId[feed.id];
                     if (feedAlerts?.length) {
                         const itemsNeedingAlerts = (Array.isArray(created) ? created : itemsToCreate)
