@@ -8,16 +8,16 @@ import { buildNarratives } from './storyMemory';
 function synthesizeNarrative(label, stories, isLead = false) {
     const s = stories.length;
     const TEMPLATES = {
-        'Interest Rate Pressure':       () => `Rate pressure is ${s >= 3 ? 'broadly confirmed' : 'building'} — borrowing costs are rising and capital formation is being directly constrained`,
-        'Capital Markets Activity':     () => `Capital markets are ${s >= 3 ? 'reopening selectively to quality deals' : 'showing early signs of recovery'} — risk appetite is returning cautiously`,
-        'Real Estate Dynamics':         () => `Institutional capital is ${s >= 2 ? 'actively repositioning' : 'shifting'} in real estate — rate sensitivity is compressing valuations and slowing deployment`,
-        'AI & Technology Shift':        () => `AI disruption is ${s >= 3 ? 'accelerating across sectors' : 'driving measurable competitive shifts'} — incumbent cost structures are under direct pressure`,
-        'Regulatory & Policy Pressure': () => `Policy and regulatory tightening is ${s >= 2 ? 'intensifying on multiple fronts' : 'emerging'} — compliance burden and operational friction are set to increase`,
-        'Energy & Commodities':         () => `Energy cost pressure is ${s >= 2 ? 'feeding through to downstream inflation' : 'building'} — operating margins in exposed sectors are narrowing`,
-        'Credit & Banking Risk':        () => `Credit conditions are ${s >= 2 ? 'tightening broadly' : 'showing early stress'} — lending pullback will slow growth faster than rate signals suggest`,
-        'Labor & Employment':           () => `Labor costs are being met with workforce rationalization — ${s >= 2 ? 'the trend is accelerating across multiple sectors' : 'early signs point to broader cuts ahead'}`,
-        'Geopolitical Tensions':        () => `Geopolitical friction is ${s >= 2 ? 'compressing risk premiums and disrupting supply chains' : 'adding meaningful uncertainty to capital allocation decisions'}`,
-        'Crypto & Digital Assets':      () => `Digital assets are ${s >= 2 ? 'moving in coordination with macro risk signals' : 'responding to broader sentiment shifts'} — institutional positioning is the tell`,
+        'Interest Rate Pressure':       () => `Rate pressure is ${s >= 3 ? 'now confirmed across sources' : 'building'} — borrowing costs are forcing capital deployment to the sidelines`,
+        'Capital Markets Activity':     () => `Capital markets are ${s >= 3 ? 'reopening for quality assets only' : 'showing selective recovery'} — risk appetite is returning at the top of the quality stack`,
+        'Real Estate Dynamics':         () => `Institutional capital is ${s >= 2 ? 'actively repositioning' : 'beginning to shift'} in real estate — rate pressure is now forcing sellers to the table`,
+        'AI & Technology Shift':        () => `AI is ${s >= 3 ? 'breaking cost structures across sectors' : 'beginning to break incumbent cost models'} — delayed response is becoming a structural disadvantage`,
+        'Regulatory & Policy Pressure': () => `Regulatory tightening is ${s >= 2 ? 'narrowing the compliance window fast' : 'beginning to close the compliance window'} — exposed operators face disproportionate friction`,
+        'Energy & Commodities':         () => `Energy cost pressure is ${s >= 2 ? 'now feeding into downstream inflation' : 'beginning to hit operating margins'} — sectors with limited pricing power are most exposed`,
+        'Credit & Banking Risk':        () => `Credit conditions are ${s >= 2 ? 'tightening broadly' : 'beginning to tighten'} — lending pullback is restricting capital access faster than rate signals indicate`,
+        'Labor & Employment':           () => `Workforce rationalization is ${s >= 2 ? 'accelerating across sectors' : 'beginning'} — consumer demand softness is 60 days behind this signal`,
+        'Geopolitical Tensions':        () => `Geopolitical friction is ${s >= 2 ? 'now compressing risk premiums and disrupting supply chains' : 'beginning to delay capital deployment decisions'}`,
+        'Crypto & Digital Assets':      () => `Institutional flows are ${s >= 2 ? 'now setting directional moves in digital assets' : 'beginning to move'} — retail sentiment is following, not leading`,
     };
     const fn = TEMPLATES[label];
     return fn ? fn() : `${label} is converging across ${s} sources — a cross-sector signal forming`;
