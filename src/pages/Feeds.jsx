@@ -404,6 +404,7 @@ export default function Feeds() {
                   onEdit={(f) => { setEditFeed(f); setShowAddDialog(true); }}
                   onDelete={(f) => setDeleteConfirm(f)}
                   onToggleStatus={handleToggleStatus}
+                  onRefresh={refetch}
                 />
               ))}
             </div>
