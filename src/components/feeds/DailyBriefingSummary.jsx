@@ -111,16 +111,16 @@ function generateBullets(clusters, narratives) {
     // SLOT 3 — Forward implication: what the combined signals mean for what happens next
     if (bullets.length >= 2) {
         const FORWARD_IMPLICATIONS = {
-            'Interest Rate Pressure':       'Expect tighter credit conditions and extended hold-off in discretionary capital deployment over the next quarter',
-            'Capital Markets Activity':     'Deal velocity will accelerate for quality assets — distressed and speculative positions will remain sidelined',
-            'Real Estate Dynamics':         'Selective buyer-side leverage will emerge in segments where sellers face refinancing pressure',
-            'AI & Technology Shift':        'Expect forced strategic pivots from incumbents and accelerated consolidation as the capability gap widens',
-            'Regulatory & Policy Pressure': 'Compliance-light operators face disproportionate exposure — regulatory arbitrage windows are closing',
-            'Energy & Commodities':         'Input cost pressure will persist — sectors with limited pricing power face the sharpest margin contraction',
-            'Credit & Banking Risk':        'Capital access will narrow sharply for below-investment-grade borrowers — refinancing risk is building',
-            'Labor & Employment':           'Consumer spending softness will follow — downstream demand signals will lag workforce cuts by one to two quarters',
-            'Geopolitical Tensions':        'Nearshoring and supply chain diversification will accelerate — cost efficiency will be traded for resilience',
-            'Crypto & Digital Assets':      'Liquidity positioning will drive short-term moves — watch for institutional flows as the directional tell',
+            'Interest Rate Pressure':       'Credit conditions tighten next — discretionary capital deployment pauses within the quarter',
+            'Capital Markets Activity':     'Quality deal flow accelerates — distressed and speculative positions stay sidelined',
+            'Real Estate Dynamics':         'Buyer leverage emerges where sellers face refinancing pressure — distressed inventory is building now',
+            'AI & Technology Shift':        'Incumbents face forced pivots — the capability gap compounds and consolidation accelerates',
+            'Regulatory & Policy Pressure': 'Compliance-light operators are most exposed — the arbitrage window is closing now',
+            'Energy & Commodities':         'Input cost pressure embeds in pricing — sectors without pricing power absorb it directly in margins',
+            'Credit & Banking Risk':        'Below-investment-grade borrowers face restricted access within one quarter — refinancing risk is real',
+            'Labor & Employment':           'Consumer demand softness follows in 60 days — downstream signals lag workforce cuts by one quarter',
+            'Geopolitical Tensions':        'Supply chain rewiring accelerates — cost efficiency is being traded for resilience at speed',
+            'Crypto & Digital Assets':      'Institutional flows are the directional tell — retail confirms direction, never sets it',
         };
         const leadLabel = leadNarrative?.label || narratives[0]?.label;
         const implication = FORWARD_IMPLICATIONS[leadLabel];
