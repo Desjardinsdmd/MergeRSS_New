@@ -8,6 +8,7 @@ import TopFiveToday from './TopFiveToday';
 import TrendingTopicsInline from './TrendingTopicsInline';
 import RankedFeed from './RankedFeed';
 import IntelligenceSidebar from './IntelligenceSidebar';
+import WhatChanged from './WhatChanged';
 
 export default function IntelligenceDashboard({ user, feeds = [], digests = [], unreadDeliveries = [] }) {
     const queryClient = useQueryClient();
