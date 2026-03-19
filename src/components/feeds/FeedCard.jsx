@@ -130,7 +130,8 @@ export default function FeedCard({ feed, onEdit, onDelete, onToggleStatus }) {
                     Delete
                   </DropdownMenuItem>
                 </DropdownMenuContent>
-              </DropdownMenu>
+                </DropdownMenu>
+              </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-2 mt-3">
