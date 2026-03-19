@@ -1,73 +1,97 @@
 /**
- * Shared intelligence utilities for the dashboard components.
+ * Intelligence utilities — insight generation, clustering, signal scoring.
  */
 
-/** Infer an intelligence tag from title/description text when AI hasn't enriched yet */
+// ─── Tag inference ────────────────────────────────────────────────────────────
+
 export function inferTag(text = '') {
     const t = text.toLowerCase();
-    if (/\b(rise|rising|growth|grow|funding|launch|surge|gain|profit|opportu|upside|expand|acqui|deal|partner|ipo|raise)\b/.test(t)) return 'Opportunity';
-    if (/\b(decline|drop|fall|risk|crash|loss|warn|danger|threat|vulnerab|breach|bankrupt|layoff|cut|recall|fine|sanction|fraud)\b/.test(t)) return 'Risk';
+    if (/\b(rise|rising|growth|grow|funding|launch|surge|gain|profit|opportu|upside|expand|acqui|deal|partner|ipo|raise|record|beat|exceed)\b/.test(t)) return 'Opportunity';
+    if (/\b(decline|drop|fall|risk|crash|loss|warn|danger|threat|vulnerab|breach|bankrupt|layoff|cut|recall|fine|sanction|fraud|miss|below)\b/.test(t)) return 'Risk';
     return null;
 }
 
-/** Derive a short "Why it matters" line from an ai_summary or description */
-export function whyItMatters(item) {
-    const source = item.ai_summary || item.description || '';
-    if (!source) return null;
-    const clean = source.replace(/<[^>]+>/g, '').trim();
-    // Try second sentence for "why" context, else first
-    const sentences = clean.split(/[.!?]/).map(s => s.trim()).filter(s => s.length > 20);
-    const candidate = sentences[1] || sentences[0];
-    if (!candidate) return null;
-    return candidate.length > 100 ? candidate.slice(0, 100) + '…' : candidate;
+// ─── Insight layer ("Why it matters") ────────────────────────────────────────
+// Rules: must NOT restate the summary. Must answer: what changes, what signal,
+// what might happen next, why it matters to someone.
+
+const MACRO_PATTERNS = [
+    { re: /\b(interest rate|fed|federal reserve|central bank|rate hike|rate cut)\b/i,       insight: 'Signals potential shift in borrowing costs and capital allocation' },
+    { re: /\b(inflation|cpi|pce|price index)\b/i,                                           insight: 'Could influence Fed policy trajectory and consumer spending outlook' },
+    { re: /\b(gdp|recession|contraction|economic growth)\b/i,                               insight: 'Indicates macro cycle positioning and risk appetite across markets' },
+    { re: /\b(layoff|job cut|workforce reduction|reduct)\b/i,                               insight: 'Signals cost-pressure response — watch for sector contagion' },
+    { re: /\b(ipo|public offering|listing)\b/i,                                             insight: 'Tests risk appetite and may set valuation benchmarks for peers' },
+    { re: /\b(acqui|merger|takeover|buyout)\b/i,                                            insight: 'Could reshape competitive dynamics and trigger re-rating of peers' },
+    { re: /\b(funding|series [a-e]|raise|venture|investment round)\b/i,                     insight: 'Signals investor conviction in the sector — watch for follow-on activity' },
+    { re: /\b(regulation|regulator|sec |fca |compliance|policy change|legislation)\b/i,     insight: 'Indicates regulatory tightening trend — compliance costs likely to rise' },
+    { re: /\b(sanction|tariff|trade war|export control)\b/i,                                insight: 'Supply chain and margin pressure likely; watch for geopolitical escalation' },
+    { re: /\b(ai |artificial intelligence|llm|model release|foundation model)\b/i,          insight: 'May compress incumbent margins and accelerate platform disruption' },
+    { re: /\b(real estate|reit|commercial property|housing|rent|mortgage)\b/i,              insight: 'Demand-supply imbalance indicator — rate sensitivity will determine direction' },
+    { re: /\b(crypto|bitcoin|ethereum|blockchain|defi|token)\b/i,                           insight: 'Reflects risk-on sentiment and institutional positioning in digital assets' },
+    { re: /\b(earnings|revenue|profit|quarterly results|beat|miss)\b/i,                     insight: 'Sets near-term guidance expectations and sector multiple revisions' },
+    { re: /\b(supply chain|shortage|inventory|logistics)\b/i,                               insight: 'Input cost and delivery time pressure signals downstream pricing risk' },
+    { re: /\b(climate|carbon|esg|sustainability|net zero)\b/i,                              insight: 'Regulatory and capital allocation shifts likely to accelerate here' },
+    { re: /\b(election|government|political|geopolit)\b/i,                                  insight: 'Political uncertainty typically compresses risk premiums — monitor closely' },
+    { re: /\b(bank|credit|lending|loan|default)\b/i,                                        insight: 'Credit cycle indicator — tightening conditions affect broad capital access' },
+    { re: /\b(energy|oil|gas|power grid|electricity)\b/i,                                   insight: 'Energy cost shifts feed through to inflation and operating margins broadly' },
+];
+
+/**
+ * Generate a sharp, non-redundant insight for why a story matters.
+ * Prioritizes pattern matching on macro themes, falls back to tag-based inference.
+ * Never repeats the summary.
+ */
+export function generateInsight(item) {
+    const text = ((item.title || '') + ' ' + (item.description || '') + ' ' + (item.ai_summary || '')).toLowerCase();
+
+    // Try macro pattern matching first (most decisive)
+    for (const { re, insight } of MACRO_PATTERNS) {
+        if (re.test(text)) return insight;
+    }
+
+    // Tag-based fallback — still decisive, not generic
+    const tag = item.intelligence_tag || inferTag(text);
+    if (tag === 'Risk')        return 'Downside signal — assess exposure and watch for confirmation';
+    if (tag === 'Opportunity') return 'Early-stage upside signal — monitor for follow-through';
+    if (tag === 'Trending')    return 'Broad coverage suggests emerging consensus forming';
+
+    return null; // show nothing if we can't be precise
 }
 
-/** Get a short "what happened" summary — max 1 tight line */
+// ─── What happened (1-line summary) ──────────────────────────────────────────
+
 export function whatHappened(item) {
-    if (item.ai_summary) {
-        const clean = item.ai_summary.replace(/<[^>]+>/g, '').trim();
-        const first = clean.split(/[.!?]/)[0]?.trim();
-        if (first && first.length > 15) return first.length > 120 ? first.slice(0, 120) + '…' : first;
-    }
-    if (item.description) {
-        const clean = item.description.replace(/<[^>]+>/g, '').trim();
-        const first = clean.split(/[.!?]/)[0]?.trim();
-        if (first && first.length > 15) return first.length > 120 ? first.slice(0, 120) + '…' : first;
-    }
-    return null;
+    const src = item.ai_summary || item.description || '';
+    if (!src) return null;
+    const clean = src.replace(/<[^>]+>/g, '').trim();
+    const first = clean.split(/[.!?]/)[0]?.trim();
+    if (!first || first.length < 15) return null;
+    return first.length > 140 ? first.slice(0, 140) + '…' : first;
 }
 
-/** Truncate to ~2 lines of readable text */
-export function summaryText(item) {
-    if (item.ai_summary) return item.ai_summary;
-    if (item.description) {
-        const clean = item.description.replace(/<[^>]+>/g, '').trim();
-        return clean.length > 240 ? clean.slice(0, 240) + '…' : clean;
-    }
-    return null;
-}
-
-/** Signal level label from importance score */
-export function signalLevel(score) {
-    if (score == null) return null;
-    if (score >= 72) return 'HIGH';
-    if (score >= 40) return 'MED';
-    return 'LOW';
-}
+// ─── Signal level styling ─────────────────────────────────────────────────────
 
 export function signalLevelStyle(score) {
     if (score == null) return null;
-    if (score >= 72) return { label: 'HIGH', class: 'text-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 border-[hsl(var(--primary))]/30' };
-    if (score >= 40) return { label: 'MED',  class: 'text-blue-400 bg-blue-950 border-blue-800' };
+    if (score >= 72) return { label: 'HIGH', class: 'text-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 border-[hsl(var(--primary))]/40 font-black' };
+    if (score >= 40) return { label: 'MED',  class: 'text-blue-400 bg-blue-950 border-blue-800 font-bold' };
     return                  { label: 'LOW',  class: 'text-stone-500 bg-stone-800 border-stone-700' };
 }
 
-/** Normalize a title for similarity comparison */
+// ─── Signal confidence (from cluster size) ────────────────────────────────────
+
+export function confidenceFromCluster(clusterSize = 1) {
+    if (clusterSize >= 3) return { label: 'HIGH CONF', class: 'text-emerald-400' };
+    if (clusterSize === 2) return { label: 'MED CONF',  class: 'text-stone-400' };
+    return                         { label: 'LOW CONF',  class: 'text-stone-600' };
+}
+
+// ─── Title normalization & clustering ────────────────────────────────────────
+
 function normalizeTitle(title = '') {
     return title.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
-/** Jaccard similarity between two normalized title strings */
 function titleSimilarity(a, b) {
     const setA = new Set(a.split(' ').filter(w => w.length > 3));
     const setB = new Set(b.split(' ').filter(w => w.length > 3));
@@ -78,17 +102,14 @@ function titleSimilarity(a, b) {
 }
 
 /**
- * Cluster items by similar titles. Returns an array of clusters:
- * [{ primary: item, duplicates: item[], allSources: string[] }]
- * Primary = highest importance_score in cluster.
- * Threshold: 0.45 for clustering (fairly aggressive — catches same story across sources).
+ * Cluster items by title similarity.
+ * Returns: [{ primary, duplicates, allSources, clusterSize }]
  */
 export function clusterItems(items, feedMap = {}) {
     const THRESHOLD = 0.45;
     const clusters = [];
     const assigned = new Set();
 
-    // Sort by score desc so the best article becomes the cluster primary
     const sorted = [...items].sort((a, b) => (b.importance_score ?? 0) - (a.importance_score ?? 0));
 
     for (const item of sorted) {
@@ -100,19 +121,15 @@ export function clusterItems(items, feedMap = {}) {
 
         for (const other of sorted) {
             if (assigned.has(other.id)) continue;
-            const normB = normalizeTitle(other.title);
-            if (titleSimilarity(normA, normB) >= THRESHOLD) {
+            if (titleSimilarity(normA, normalizeTitle(other.title)) >= THRESHOLD) {
                 cluster.duplicates.push(other);
                 assigned.add(other.id);
             }
         }
 
-        // Collect source names
         const allItems = [item, ...cluster.duplicates];
-        cluster.allSources = [...new Set(
-            allItems.map(i => feedMap[i.feed_id]?.name).filter(Boolean)
-        )];
-
+        cluster.clusterSize = allItems.length;
+        cluster.allSources = [...new Set(allItems.map(i => feedMap[i.feed_id]?.name).filter(Boolean))];
         clusters.push(cluster);
     }
 
@@ -120,19 +137,17 @@ export function clusterItems(items, feedMap = {}) {
 }
 
 /**
- * Simple dedup for Top 5 — keep highest-scored item per cluster.
- * Also enforces source diversity: max 2 items per feed source.
+ * Deduplicate for Top 5: max 1 per cluster, max 1 per source.
  */
 export function deduplicateItems(items, feedMap = {}) {
     const clusters = clusterItems(items, feedMap);
-    const sourceCounts = {};
+    const sourceSeen = new Set();
     const result = [];
 
     for (const { primary } of clusters) {
         const sourceName = feedMap[primary.feed_id]?.name || primary.feed_id;
-        const count = sourceCounts[sourceName] || 0;
-        if (count >= 2) continue; // source diversity cap
-        sourceCounts[sourceName] = count + 1;
+        if (sourceSeen.has(sourceName)) continue;
+        sourceSeen.add(sourceName);
         result.push(primary);
     }
 

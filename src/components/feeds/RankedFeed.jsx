@@ -2,70 +2,70 @@ import React, { useState, useMemo } from 'react';
 import { ExternalLink, Bookmark, BookmarkCheck, TrendingUp, AlertTriangle, Lightbulb, Minus, ChevronDown, ChevronUp, LayoutList } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { decodeHtml, safeUrl } from '@/components/utils/htmlUtils';
-import { inferTag, whatHappened, whyItMatters, signalLevelStyle, clusterItems } from './intelligenceUtils';
+import { inferTag, whatHappened, generateInsight, signalLevelStyle, confidenceFromCluster, clusterItems } from './intelligenceUtils';
 
 const TAG_CONFIG = {
-    Trending:    { color: 'bg-blue-950 text-blue-400 border-blue-800',          icon: TrendingUp },
-    Risk:        { color: 'bg-red-950 text-red-400 border-red-800',             icon: AlertTriangle },
-    Opportunity: { color: 'bg-emerald-950 text-emerald-400 border-emerald-800', icon: Lightbulb },
-    Neutral:     { color: 'bg-stone-800 text-stone-400 border-stone-700',       icon: Minus },
+    Trending:    { color: 'bg-blue-950 text-blue-400 border-blue-800',          textClass: 'text-blue-400',    icon: TrendingUp },
+    Risk:        { color: 'bg-red-950 text-red-400 border-red-800',             textClass: 'text-red-400',     icon: AlertTriangle },
+    Opportunity: { color: 'bg-emerald-950 text-emerald-400 border-emerald-800', textClass: 'text-emerald-400', icon: Lightbulb },
+    Neutral:     { color: 'bg-stone-800 text-stone-400 border-stone-700',       textClass: 'text-stone-400',   icon: Minus },
 };
-
-function SignalBadge({ score }) {
-    const signal = signalLevelStyle(score);
-    if (!signal) return null;
-    return (
-        <span className={`text-[10px] font-bold px-1.5 py-0.5 border ${signal.class}`}>
-            {signal.label}
-        </span>
-    );
-}
 
 function ClusterCard({ cluster, feedMap, bookmarkedIds, onBookmark }) {
     const [showSources, setShowSources] = useState(false);
-    const { primary: item, duplicates, allSources } = cluster;
+    const { primary: item, duplicates, clusterSize } = cluster;
 
     const tag = item.intelligence_tag || inferTag((item.title || '') + ' ' + (item.description || '')) || 'Neutral';
     const tagCfg = TAG_CONFIG[tag] || TAG_CONFIG.Neutral;
     const Icon = tagCfg.icon;
     const source = feedMap[item.feed_id];
     const isBookmarked = bookmarkedIds.has(item.id);
+    const isHigh = (item.importance_score ?? 0) >= 72;
+
     const happened = whatHappened(item);
-    const why = whyItMatters(item);
-    const isHighSignal = (item.importance_score ?? 0) >= 72;
+    const insight = generateInsight(item);
+    const signal = signalLevelStyle(item.importance_score);
+    const confidence = confidenceFromCluster(clusterSize);
 
     return (
-        <div className={`p-4 hover:bg-stone-800/30 transition-colors group ${isHighSignal ? 'border-l-2 border-[hsl(var(--primary))]/60' : ''}`}>
-            {/* Headline */}
-            <a
-                href={safeUrl(item.url)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group/link block mb-1.5"
-            >
-                <h3 className={`text-sm font-semibold leading-snug group-hover/link:text-[hsl(var(--primary))] transition-colors ${isHighSignal ? 'text-stone-50' : 'text-stone-100'}`}>
+        <div className={`
+            p-4 transition-colors group
+            ${isHigh
+                ? 'border-l-[3px] border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/[0.03] hover:bg-[hsl(var(--primary))]/[0.06]'
+                : 'hover:bg-stone-800/30'}
+        `}>
+            {/* 1. Headline */}
+            <a href={safeUrl(item.url)} target="_blank" rel="noopener noreferrer" className="group/link block mb-1.5">
+                <h3 className={`text-sm leading-snug group-hover/link:text-[hsl(var(--primary))] transition-colors ${isHigh ? 'font-bold text-white' : 'font-semibold text-stone-100'}`}>
                     {decodeHtml(item.title)}
                 </h3>
             </a>
 
-            {/* What happened */}
+            {/* 2. What happened */}
             {happened && (
                 <p className="text-xs text-stone-400 leading-snug mb-1 line-clamp-1">{happened}</p>
             )}
 
-            {/* Why it matters */}
-            {why && (
-                <p className={`text-xs font-medium mb-2 line-clamp-1 ${tagCfg.color.split(' ').find(c => c.startsWith('text-'))}`}>
-                    ↳ {why}
+            {/* 3. Insight */}
+            {insight && (
+                <p className={`text-xs font-semibold mb-2 line-clamp-1 ${tagCfg.textClass}`}>
+                    ↳ {insight}
                 </p>
             )}
 
-            {/* Meta row: tag · signal · source · time */}
-            <div className="flex items-center gap-2 flex-wrap">
+            {/* 4. Tag · Signal · Confidence */}
+            <div className="flex items-center gap-1.5 flex-wrap mb-2">
                 <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 border ${tagCfg.color}`}>
                     <Icon className="w-2.5 h-2.5" />{tag}
                 </span>
-                <SignalBadge score={item.importance_score} />
+                {signal && (
+                    <span className={`text-[10px] px-1.5 py-0.5 border ${signal.class}`}>
+                        {signal.label}
+                    </span>
+                )}
+                <span className={`text-[10px] ${confidence.class}`}>{confidence.label}</span>
+
+                {/* 5. Source · time */}
                 {source && <span className="text-xs text-stone-500">{source.name}</span>}
                 {item.published_date && (
                     <span className="text-xs text-stone-600 ml-auto">
@@ -74,8 +74,8 @@ function ClusterCard({ cluster, feedMap, bookmarkedIds, onBookmark }) {
                 )}
             </div>
 
-            {/* Cluster indicator + actions */}
-            <div className="flex items-center gap-3 mt-2">
+            {/* 6. Cluster info + actions */}
+            <div className="flex items-center gap-3">
                 <a
                     href={safeUrl(item.url)}
                     target="_blank"
@@ -101,7 +101,7 @@ function ClusterCard({ cluster, feedMap, bookmarkedIds, onBookmark }) {
                         className="ml-auto flex items-center gap-1 text-xs text-stone-500 hover:text-stone-300 transition"
                     >
                         <LayoutList className="w-3 h-3" />
-                        {duplicates.length + 1} sources
+                        {clusterSize} sources
                         {showSources ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                     </button>
                 )}
@@ -148,13 +148,11 @@ export default function RankedFeed({ items = [], feeds = [], bookmarkedIds = new
         return clusterItems(sorted, feedMap);
     }, [items, feeds]);
 
-    if (!clusters.length) {
-        return (
-            <div className="bg-stone-900 border border-stone-800 p-6 text-center text-stone-600 text-sm">
-                No articles yet. Add feeds to start seeing your intelligence feed.
-            </div>
-        );
-    }
+    if (!clusters.length) return (
+        <div className="bg-stone-900 border border-stone-800 p-6 text-center text-stone-600 text-sm">
+            No articles yet. Add feeds to start seeing your intelligence feed.
+        </div>
+    );
 
     return (
         <div className="bg-stone-900 border border-stone-800 divide-y divide-stone-800/80">
