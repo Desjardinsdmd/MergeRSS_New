@@ -104,8 +104,17 @@ export function decisionState(item, clusterSize = 1) {
 
 // ─── Clustering ───────────────────────────────────────────────────────────────
 
+const PUBLISHER_SUFFIX_RE = /[\|\-–—]\s*[A-Z][a-zA-Z\s&\.]{2,40}$/;
+const BOILERPLATE_OPENER_RE = /^(exclusive|breaking|watch|listen|read|analysis|opinion|explainer)[:\s]+/i;
+
 function normalizeTitle(title = '') {
-    return title.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+    return title
+        .replace(PUBLISHER_SUFFIX_RE, '')
+        .replace(BOILERPLATE_OPENER_RE, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
 }
 
 function titleSimilarity(a, b) {
