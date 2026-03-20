@@ -98,7 +98,7 @@ export default function FeedCard({ feed, onEdit, onDelete, onToggleStatus, onRef
                   <h3 className="font-semibold text-stone-200 truncate">
                     {feed.name}
                   </h3>
-                  {currentHealth && <SourceHealthBadge health={currentHealth} compact />}
+                  {(currentHealth || feed.paused_by_system) && <SourceHealthBadge health={currentHealth} feed={feed} compact />}
                 </div>
                 <a 
                   href={safeUrl(feed.url)}
