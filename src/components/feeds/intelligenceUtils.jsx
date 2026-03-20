@@ -121,7 +121,31 @@ export function clusterItems(items, feedMap = {}) {
     const THRESHOLD = 0.45;
     const clusters = [];
     const assigned = new Set();
-    const sorted = [...items].sort((a, b) => (b.importance_score ?? 0) - (a.importance_score ?? 0));
+
+    // Phase 1: group by persisted cluster_id if available (from clusterStories backend)
+    const byClusterId = {};
+    for (const item of items) {
+        if (item.cluster_id) {
+            if (!byClusterId[item.cluster_id]) byClusterId[item.cluster_id] = [];
+            byClusterId[item.cluster_id].push(item);
+            assigned.add(item.id);
+        }
+    }
+    for (const [, members] of Object.entries(byClusterId)) {
+        const primary = members.reduce((b, c) => ((c.importance_score ?? 0) > (b.importance_score ?? 0) ? c : b), members[0]);
+        const allItems = members;
+        clusters.push({
+            primary,
+            duplicates: allItems.filter(i => i.id !== primary.id),
+            clusterSize: allItems.length,
+            allSources: [...new Set(allItems.map(i => feedMap[i.feed_id]?.name).filter(Boolean))],
+        });
+    }
+
+    // Phase 2: fall back to title-similarity for items without a cluster_id
+    const sorted = [...items]
+        .filter(i => !assigned.has(i.id))
+        .sort((a, b) => (b.importance_score ?? 0) - (a.importance_score ?? 0));
 
     for (const item of sorted) {
         if (assigned.has(item.id)) continue;

@@ -317,6 +317,9 @@ export default function AdminHealth() {
         )}
       </Card>
 
+      {/* Story Clusters — downstream dedup/clustering layer */}
+      <StoryClustersPanel />
+
       {/* Feed Engine Status — execution lanes, lock state, paused feed visibility */}
       <FeedEngineStatus onRefresh={handleRefresh} />
 
