@@ -460,14 +460,27 @@ async function runFeedBatches(feeds, alertsByFeedId, base44) {
                     };
                 } else {
                     // ── Success path: dedup + write ──────────────────────────────
+                    // Multi-signal dedup: guid, url, AND normalized-title+date composite
+                    // This catches duplicates even when guids are missing or urls differ slightly
                     const existingGuids = new Set(existingItems.map(i => i.guid).filter(Boolean));
                     const existingUrls  = new Set(existingItems.map(i => i.url).filter(Boolean));
+                    const existingTitleKeys = new Set(
+                        existingItems
+                            .filter(i => i.title && i.published_date)
+                            .map(i => `${i.title.toLowerCase().replace(/\s+/g, ' ').trim().slice(0, 80)}|${i.published_date?.slice(0, 10)}`)
+                    );
                     const itemsToCreate = [];
                     let duplicatesSkipped = 0;
 
                     for (const item of items.slice(0, 50)) {
                         if (!item.guid && !item.url) continue;
-                        if (existingGuids.has(item.guid) || existingUrls.has(item.url)) { duplicatesSkipped++; continue; }
+                        if (item.guid && existingGuids.has(item.guid)) { duplicatesSkipped++; continue; }
+                        if (item.url && existingUrls.has(item.url)) { duplicatesSkipped++; continue; }
+                        // Composite title+date check as a fallback for feeds with unstable guids/urls
+                        const titleKey = item.title && item.published_date
+                            ? `${item.title.toLowerCase().replace(/\s+/g, ' ').trim().slice(0, 80)}|${item.published_date.slice(0, 10)}`
+                            : null;
+                        if (titleKey && existingTitleKeys.has(titleKey)) { duplicatesSkipped++; continue; }
                         itemsToCreate.push({
                             feed_id: feed.id,
                             title: String(item.title || '').slice(0, 500),
