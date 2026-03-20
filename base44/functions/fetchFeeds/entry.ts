@@ -518,7 +518,7 @@ Deno.serve(async (req) => {
         console.log(`[fetchFeeds] Starting — processing ${feeds.length} of ${allFeeds.length} feeds this run`);
         let results = [];
         try {
-            results = await fetchFeedsWithThrottling(feeds, base44, 15, 100);
+            results = await fetchFeedsWithThrottling(feeds, base44, 8, 400);
             console.log(`[fetchFeeds] Batch processing complete — ${results.length} results`);
         } catch (batchErr) {
             console.error('[fetchFeeds] Fatal error in fetchFeedsWithThrottling:', batchErr.message);
