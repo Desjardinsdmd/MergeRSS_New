@@ -751,19 +751,20 @@ Deno.serve(async (req) => {
         run_duration_ms: runDurationMs,
     };
 
-    console.log(`[fetchFeeds] DONE — ${JSON.stringify(finalSummary)}`);
+    console.log(`[fetchFeeds][${instanceId}] DONE — ${JSON.stringify(finalSummary)}`);
 
-    // Update lock to completed
+    // Clear heartbeat and mark lock completed
+    clearInterval(heartbeatTimer);
     if (lockRecord?.id) {
         await base44.asServiceRole.entities.SystemHealth.update(lockRecord.id, {
             status: 'completed',
             completed_at: new Date().toISOString(),
-            metadata: finalSummary,
+            metadata: { ...finalSummary, instance_id: instanceId, run_type: 'main' },
         }).catch(() => {});
     }
 
     // ── Always return 200 ──────────────────────────────────────────────────────
     // The scheduler should NEVER be disabled due to feed-level failures.
     // Only true boot errors (SDK init) return 500.
-    return Response.json({ success: true, ...finalSummary });
+    return Response.json({ success: true, instance_id: instanceId, ...finalSummary });
 });
