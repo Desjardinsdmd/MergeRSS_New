@@ -384,9 +384,10 @@ async function runFeedBatches(feeds, alertsByFeedId, base44) {
         const fetchResults = await withConcurrency(fetchTasks, FEED_FETCH_CONCURRENCY);
 
         // ── Phase B: Fetch existing items for dedup (batched DB read) ──────────
+        // Fetch last 300 items (up from 100) to widen the dedup window for high-volume feeds
         const dedupResults = await Promise.allSettled(
             batch.map(feed =>
-                base44.asServiceRole.entities.FeedItem.filter({ feed_id: feed.id }, '-created_date', 100)
+                base44.asServiceRole.entities.FeedItem.filter({ feed_id: feed.id }, '-created_date', 300)
                     .then(existing => ({ feed_id: feed.id, existing: existing || [] }))
                     .catch(() => ({ feed_id: feed.id, existing: [] }))
             )
