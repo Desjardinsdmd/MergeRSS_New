@@ -3,6 +3,7 @@ import { ExternalLink, Bookmark, BookmarkCheck, TrendingUp, AlertTriangle, Light
 import { formatDistanceToNow } from 'date-fns';
 import { decodeHtml, safeUrl } from '@/components/utils/htmlUtils';
 import { inferTag, whatHappened, generateInsight, signalLevelStyle, confidenceFromCluster, decisionState, clusterItems } from './intelligenceUtils';
+import { rankClusters, explainTrendScore } from '@/lib/trendScoring';
 import { updateAndGetEvolution, recordInteraction } from './storyMemory';
 
 const TAG_CONFIG = {
