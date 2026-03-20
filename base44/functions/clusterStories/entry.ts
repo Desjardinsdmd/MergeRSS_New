@@ -164,8 +164,19 @@ Deno.serve(async (req) => {
             '-published_date',
             MAX_ITEMS_TO_CLUSTER
         );
-        // Guard: API may return a paginated object instead of array for very large result sets
-        items = Array.isArray(raw) ? raw : (raw?.items ?? raw?.data ?? []);
+        // Guard: API may return a paginated envelope or plain array
+        if (Array.isArray(raw)) {
+            items = raw;
+        } else if (raw && typeof raw === 'object') {
+            // Try common envelope shapes
+            items = Array.isArray(raw.items) ? raw.items
+                  : Array.isArray(raw.data)  ? raw.data
+                  : Array.isArray(raw.results) ? raw.results
+                  : [];
+            if (items.length === 0 && raw.total > 0) {
+                console.warn(`[clusterStories] API returned envelope with total=${raw.total} but no extractable array — check response shape`);
+            }
+        }
     } catch (e) {
         return Response.json({ error: `Failed to load items: ${e.message}` }, { status: 500 });
     }
