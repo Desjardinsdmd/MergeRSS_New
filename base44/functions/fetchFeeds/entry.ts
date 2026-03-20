@@ -711,7 +711,7 @@ Deno.serve(async (req) => {
     const overdueFeeds = allFeeds.filter(f => !f.last_fetched || (Date.now() - new Date(f.last_fetched).getTime()) > overdueThreshMs);
     const feeds = overdueFeeds.slice(0, 120);
 
-    console.log(`[fetchFeeds] total=${allFeeds.length} overdue=${overdueFeeds.length} processing=${feeds.length} p50=${p50lag}min p95=${p95lag}min max=${maxLagMin}min`);
+    console.log(`[fetchFeeds][${instanceId}] total=${allFeeds.length} overdue=${overdueFeeds.length} processing=${feeds.length} p50=${p50lag}min p95=${p95lag}min max=${maxLagMin}min`);
 
     // ── Load alerts once ───────────────────────────────────────────────────────
     let alertsByFeedId = {};
