@@ -611,42 +611,76 @@ Deno.serve(async (req) => {
 
     const startedAt = new Date().toISOString();
     const runStartMs = Date.now();
+    const instanceId = makeRunId();
 
-    // ── Overlap lock ───────────────────────────────────────────────────────────
+    // ── Hardened run lock ──────────────────────────────────────────────────────
+    // Each run has an instanceId. We refuse to start if any run with a different
+    // instanceId is still active and has sent a heartbeat recently.
     let recentRuns = [];
     try {
         recentRuns = await base44.asServiceRole.entities.SystemHealth.filter(
             { job_type: 'feed_fetch', status: 'running' }, '-started_at', 5
         ) || [];
     } catch (lockErr) {
-        console.warn('[fetchFeeds] Could not query lock (non-fatal):', lockErr.message);
+        console.warn(`[fetchFeeds][${instanceId}] Could not query lock (non-fatal):`, lockErr.message);
     }
 
+    // Expire zombie locks — any lock older than ZOMBIE_TTL with no recent heartbeat
     for (const stale of recentRuns) {
         const age = Date.now() - new Date(stale.started_at).getTime();
-        if (age >= ZOMBIE_TTL_MS) {
+        const lastHeartbeat = stale.metadata?.last_heartbeat_at
+            ? Date.now() - new Date(stale.metadata.last_heartbeat_at).getTime()
+            : age;
+        const isZombie = age >= ZOMBIE_TTL_MS || lastHeartbeat > ZOMBIE_TTL_MS;
+        if (isZombie) {
+            console.warn(`[fetchFeeds][${instanceId}] Reclaiming zombie lock ${stale.id} (owner=${stale.metadata?.instance_id}, age=${Math.round(age/60000)}min, last_heartbeat=${Math.round(lastHeartbeat/60000)}min ago)`);
             await base44.asServiceRole.entities.SystemHealth.update(stale.id, {
                 status: 'failed', completed_at: new Date().toISOString(),
-                error_message: `Zombie lock expired after ${Math.round(age/60000)}min`,
+                error_message: `Zombie lock reclaimed by ${instanceId} after ${Math.round(age/60000)}min — last heartbeat ${Math.round(lastHeartbeat/60000)}min ago`,
             }).catch(() => {});
         }
     }
 
-    const overlapping = recentRuns.find(r => {
+    // After expiry, re-check for active live locks
+    const activeLock = recentRuns.find(r => {
         const age = Date.now() - new Date(r.started_at).getTime();
-        return age < LOCK_WINDOW_MS && age < ZOMBIE_TTL_MS;
+        const lastHeartbeat = r.metadata?.last_heartbeat_at
+            ? Date.now() - new Date(r.metadata.last_heartbeat_at).getTime()
+            : age;
+        return age < LOCK_WINDOW_MS && lastHeartbeat < ZOMBIE_TTL_MS;
     });
-    if (overlapping) {
-        return Response.json({ skipped: true, reason: 'Another run in progress', running_since: overlapping.started_at });
+    if (activeLock) {
+        console.warn(`[fetchFeeds][${instanceId}] Lock REFUSED — active owner: ${activeLock.metadata?.instance_id || activeLock.id} started ${activeLock.started_at}`);
+        return Response.json({
+            skipped: true,
+            reason: 'Another run is actively in progress',
+            active_owner: activeLock.metadata?.instance_id || activeLock.id,
+            running_since: activeLock.started_at,
+        });
     }
 
+    // Acquire lock with instance metadata
     let lockRecord = null;
     try {
         lockRecord = await base44.asServiceRole.entities.SystemHealth.create({
-            job_type: 'feed_fetch', status: 'running', started_at: startedAt,
+            job_type: 'feed_fetch',
+            status: 'running',
+            started_at: startedAt,
+            metadata: { instance_id: instanceId, last_heartbeat_at: startedAt, run_type: 'main' },
         });
+        console.log(`[fetchFeeds][${instanceId}] Lock ACQUIRED — id=${lockRecord.id}`);
     } catch (e) {
-        console.warn('[fetchFeeds] Could not create lock:', e.message);
+        console.warn(`[fetchFeeds][${instanceId}] Could not create lock:`, e.message);
+    }
+
+    // Start heartbeat — updates lock every HEARTBEAT_INTERVAL_MS to prove liveness
+    let heartbeatTimer = null;
+    if (lockRecord?.id) {
+        heartbeatTimer = setInterval(() => {
+            base44.asServiceRole.entities.SystemHealth.update(lockRecord.id, {
+                metadata: { instance_id: instanceId, last_heartbeat_at: new Date().toISOString(), run_type: 'main' },
+            }).catch(() => {});
+        }, HEARTBEAT_INTERVAL_MS);
     }
 
     // ── Load feeds ─────────────────────────────────────────────────────────────
