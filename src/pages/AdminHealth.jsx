@@ -41,6 +41,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import RepairJobPanel from '@/components/admin/RepairJobPanel';
 import FeedEngineStatus from '@/components/admin/FeedEngineStatus';
+import StoryClustersPanel from '@/components/admin/StoryClustersPanel';
 
 const jobTypeIcons = {
   feed_fetch: Rss,
