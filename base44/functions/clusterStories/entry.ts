@@ -157,35 +157,34 @@ Deno.serve(async (req) => {
     const staleWindowStart = new Date(Date.now() - STALE_WINDOW_HOURS * 3600 * 1000).toISOString();
 
     // ── 1. Load recent feed items ─────────────────────────────────────────────
+    // NOTE: We use a much tighter window (PRIMARY_WINDOW_HOURS) for the initial fetch,
+    // not the extended 48h window. 4M+ items is way too large and causes the SDK to
+    // return a non-array paginated object that breaks downstream .map() calls.
+    // Clustering quality is maintained by the stale-reactivation path.
+    const FETCH_LIMIT = 500; // hard cap — process most recent articles only
     let items = [];
     try {
         const raw = await base44.asServiceRole.entities.FeedItem.filter(
-            { published_date: { $gte: extendedWindowStart } },
+            { published_date: { $gte: windowStart } },
             '-published_date',
-            MAX_ITEMS_TO_CLUSTER
+            FETCH_LIMIT
         );
-        // Guard: API may return a paginated envelope or plain array
+        // Robust array extraction regardless of response shape
         if (Array.isArray(raw)) {
             items = raw;
         } else if (raw && typeof raw === 'object') {
-            // Try common envelope shapes
-            items = Array.isArray(raw.items) ? raw.items
-                  : Array.isArray(raw.data)  ? raw.data
-                  : Array.isArray(raw.results) ? raw.results
-                  : [];
-            if (items.length === 0 && raw.total > 0) {
-                console.warn(`[clusterStories] API returned envelope with total=${raw.total} but no extractable array — check response shape`);
-            }
+            items = raw.items ?? raw.data ?? raw.results ?? Object.values(raw).find(v => Array.isArray(v)) ?? [];
+            console.warn(`[clusterStories] Non-array response shape: keys=${Object.keys(raw).join(',')}, extracted ${items.length} items`);
         }
     } catch (e) {
         return Response.json({ error: `Failed to load items: ${e.message}` }, { status: 500 });
     }
 
     if (!Array.isArray(items)) {
-        return Response.json({ error: 'FeedItem query returned unexpected format — aborting' }, { status: 500 });
+        return Response.json({ error: 'FeedItem query returned unexpected non-array format — aborting' }, { status: 500 });
     }
 
-    console.log(`[clusterStories] Loaded ${items.length} items from last ${EXTENDED_WINDOW_HOURS}h`);
+    console.log(`[clusterStories] Loaded ${items.length} items from last ${PRIMARY_WINDOW_HOURS}h (cap=${FETCH_LIMIT})`);
     if (items.length === 0) {
         return Response.json({ success: true, message: 'No items in window' });
     }
