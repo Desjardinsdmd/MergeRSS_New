@@ -35,6 +35,7 @@ function ClusterCard({ cluster, feedMap, bookmarkedIds, onBookmark }) {
     const signal = signalLevelStyle(item.importance_score);
     const confidence = confidenceFromCluster(clusterSize);
     const decision = decisionState(item, clusterSize);
+    const trendComponents = useMemo(() => explainTrendScore(cluster), [cluster]);
 
     // Evolution signals from persistent memory
     const evolution = useMemo(() =>
@@ -157,7 +158,8 @@ export default function RankedFeed({ items = [], feeds = [], bookmarkedIds = new
             const diff = (b.importance_score ?? 0) - (a.importance_score ?? 0);
             return diff !== 0 ? diff : new Date(b.published_date) - new Date(a.published_date);
         });
-        return clusterItems(sorted, feedMap);
+        const raw = clusterItems(sorted, feedMap);
+        return rankClusters(raw); // sort by authority-weighted trend_score
     }, [items, feeds]);
 
     if (!clusters.length) return (
