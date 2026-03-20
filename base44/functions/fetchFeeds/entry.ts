@@ -683,30 +683,21 @@ Deno.serve(async (req) => {
         }, HEARTBEAT_INTERVAL_MS);
     }
 
-    // ── Load feeds ─────────────────────────────────────────────────────────────
-    // Include paused_by_system feeds that are past their retry_after_at cooldown
+    // ── Load feeds — MAIN RUN ONLY: active and error feeds ────────────────────
+    // Recovery (system-paused) feeds are handled by the separate recoverFeeds function.
+    // This guarantees that healthy active feeds always have the full capacity of this run.
     let allFeeds = [];
     try {
-        const [activeFeeds, cooldownFeeds] = await Promise.all([
-            base44.asServiceRole.entities.Feed.filter({ status: { $in: ['active', 'error'] } }, 'last_fetched', 2000),
-            base44.asServiceRole.entities.Feed.filter({ status: 'paused', paused_by_system: true }, 'last_fetched', 200),
-        ]);
-        const now = Date.now();
-        const retryableFeeds = (cooldownFeeds || []).filter(f =>
-            !f.retry_after_at || new Date(f.retry_after_at).getTime() <= now
-        );
-        if (retryableFeeds.length > 0) {
-            console.log(`[fetchFeeds] ${retryableFeeds.length} system-paused feeds are past cooldown — retrying`);
-        }
-        allFeeds = [...(activeFeeds || []), ...retryableFeeds];
+        allFeeds = await base44.asServiceRole.entities.Feed.filter(
+            { status: { $in: ['active', 'error'] } }, 'last_fetched', 2000
+        ) || [];
     } catch (feedErr) {
         // If we can't load feeds at all, that's a system-level failure worth reporting
-        console.error('[fetchFeeds] Failed to load feeds:', feedErr.message);
+        clearInterval(heartbeatTimer);
+        console.error(`[fetchFeeds][${instanceId}] Failed to load feeds:`, feedErr.message);
         await base44.asServiceRole.entities.SystemHealth.update(lockRecord?.id, {
             status: 'failed', completed_at: new Date().toISOString(), error_message: feedErr.message,
         }).catch(() => {});
-        // Return 500 — unable to load feeds is a true system failure, not a feed-level failure.
-        // This is intentional: the scheduler SHOULD surface this as a job failure so the admin knows.
         return Response.json({ success: false, error: `Feed load failed: ${feedErr.message}`, feeds_processed: 0 }, { status: 500 });
     }
 
