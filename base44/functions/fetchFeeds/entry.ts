@@ -651,8 +651,9 @@ Deno.serve(async (req) => {
         await base44.asServiceRole.entities.SystemHealth.update(lockRecord?.id, {
             status: 'failed', completed_at: new Date().toISOString(), error_message: feedErr.message,
         }).catch(() => {});
-        // Still return 200 — scheduler should not be disabled for a DB hiccup
-        return Response.json({ success: true, error: `Feed load failed: ${feedErr.message}`, feeds_processed: 0 });
+        // Return 500 — unable to load feeds is a true system failure, not a feed-level failure.
+        // This is intentional: the scheduler SHOULD surface this as a job failure so the admin knows.
+        return Response.json({ success: false, error: `Feed load failed: ${feedErr.message}`, feeds_processed: 0 }, { status: 500 });
     }
 
     // ── Telemetry ──────────────────────────────────────────────────────────────
