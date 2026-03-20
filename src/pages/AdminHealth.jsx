@@ -42,6 +42,8 @@ import { toast } from 'sonner';
 import RepairJobPanel from '@/components/admin/RepairJobPanel';
 import FeedEngineStatus from '@/components/admin/FeedEngineStatus';
 import StoryClustersPanel from '@/components/admin/StoryClustersPanel';
+import SourceAuthorityPanel from '@/components/admin/SourceAuthorityPanel';
+import TrendScorePanel from '@/components/admin/TrendScorePanel';
 
 const jobTypeIcons = {
   feed_fetch: Rss,
@@ -316,6 +318,12 @@ export default function AdminHealth() {
           </CardContent>
         )}
       </Card>
+
+      {/* Source Authority — domain tier management and overrides */}
+      <SourceAuthorityPanel />
+
+      {/* Trend Scores — authority-weighted cluster ranking inspection */}
+      <TrendScorePanel />
 
       {/* Story Clusters — downstream dedup/clustering layer */}
       <StoryClustersPanel />
