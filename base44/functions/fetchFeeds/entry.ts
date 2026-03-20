@@ -10,6 +10,12 @@ const BATCH_DELAY_MS = 300;            // delay between processing batches
 const RUN_INTERVAL_MINUTES = 10;
 const LOCK_WINDOW_MS = 8 * 60 * 1000;
 const ZOMBIE_TTL_MS  = 15 * 60 * 1000;
+const HEARTBEAT_INTERVAL_MS = 60 * 1000; // update lock every 60s to prove liveness
+
+// Generate a short run instance ID for lock ownership tracking
+function makeRunId() {
+    return `run_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
