@@ -1,17 +1,22 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Verify admin access
-    const user = await base44.auth.me();
-    if (!user || user.role !== 'admin') {
-      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
-    }
+    // Verify admin access — allow scheduler (no user) to proceed
+    try {
+      const user = await base44.auth.me();
+      if (user && user.role !== 'admin') {
+        return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+      }
+    } catch { /* scheduled run — allow */ }
 
     // Fetch all feeds
-    const feeds = await base44.asServiceRole.entities.Feed.list(undefined, 1000);
+    const rawFeeds = await base44.asServiceRole.entities.Feed.list(undefined, 1000);
+    const feeds = Array.isArray(rawFeeds) ? rawFeeds : (rawFeeds?.items ?? rawFeeds?.data ?? []);
     console.log(`[SourceHealth] Evaluating ${feeds.length} feeds`);
 
     const results = [];
@@ -32,6 +37,9 @@ Deno.serve(async (req) => {
         await base44.asServiceRole.entities.SourceHealth.create(health);
       }
 
+      // Rate-limit guard: space out DB reads to avoid 429s across 174 feeds
+      await sleep(300);
+
       results.push({
         feed_id: feed.id,
         feed_name: feed.name,
@@ -39,7 +47,7 @@ Deno.serve(async (req) => {
         health_state: health.health_state,
         issues: health.issues
       });
-    }
+    }  // end for loop
 
     // Log summary
     const healthy = results.filter(r => r.health_state === 'healthy').length;

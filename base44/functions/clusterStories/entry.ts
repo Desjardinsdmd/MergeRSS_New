@@ -159,13 +159,19 @@ Deno.serve(async (req) => {
     // ── 1. Load recent feed items ─────────────────────────────────────────────
     let items = [];
     try {
-        items = await base44.asServiceRole.entities.FeedItem.filter(
+        const raw = await base44.asServiceRole.entities.FeedItem.filter(
             { published_date: { $gte: extendedWindowStart } },
             '-published_date',
             MAX_ITEMS_TO_CLUSTER
-        ) || [];
+        );
+        // Guard: API may return a paginated object instead of array for very large result sets
+        items = Array.isArray(raw) ? raw : (raw?.items ?? raw?.data ?? []);
     } catch (e) {
         return Response.json({ error: `Failed to load items: ${e.message}` }, { status: 500 });
+    }
+
+    if (!Array.isArray(items)) {
+        return Response.json({ error: 'FeedItem query returned unexpected format — aborting' }, { status: 500 });
     }
 
     console.log(`[clusterStories] Loaded ${items.length} items from last ${EXTENDED_WINDOW_HOURS}h`);
