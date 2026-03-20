@@ -316,6 +316,9 @@ export default function AdminHealth() {
         )}
       </Card>
 
+      {/* Feed Engine Status — execution lanes, lock state, paused feed visibility */}
+      <FeedEngineStatus onRefresh={handleRefresh} />
+
       {/* Repair Errored Feeds Panel */}
       <RepairJobPanel errorFeedCount={errorFeeds} />
 
