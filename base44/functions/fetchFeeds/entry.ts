@@ -728,8 +728,7 @@ Deno.serve(async (req) => {
     // ── Run batches ────────────────────────────────────────────────────────────
     // This function absorbs ALL per-feed errors internally and NEVER throws
     const summary = await runFeedBatches(feeds, alertsByFeedId, base44).catch(batchErr => {
-        // runFeedBatches itself should never throw, but if it does — log and continue
-        console.error('[fetchFeeds] runFeedBatches threw unexpectedly:', batchErr.message);
+        console.error(`[fetchFeeds][${instanceId}] runFeedBatches threw unexpectedly:`, batchErr.message);
         return { ok: 0, error: feeds.length, auto_paused: 0, rate_limited: 0, new_items: 0, duplicates: 0, db_write_errors: 1 };
     });
 
