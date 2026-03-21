@@ -323,6 +323,9 @@ export default function AdminHealth() {
       {/* Pipeline Status — observability for all major backend pipelines */}
       <PipelineStatusPanel />
 
+      {/* Pipeline Status — real-time observability for all backend pipelines */}
+      <PipelineStatusPanel />
+
       {/* Source Authority — domain tier management and overrides */}
       <SourceAuthorityPanel />
 
