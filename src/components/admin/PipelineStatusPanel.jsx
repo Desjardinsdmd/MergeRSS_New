@@ -28,9 +28,12 @@ const PIPELINES = [
         description: 'Fetches all active RSS feeds',
         healthRules: (meta) => {
             if (!meta) return 'unknown';
-            if (meta.feeds_ok > 0) return 'healthy';
-            if (meta.feeds_attempted > 0) return 'degraded';
-            return 'stale';
+            if (!meta.feeds_attempted) return 'unknown';
+            // Degraded if error rate > 25% or more than 10 errors
+            const errorRate = meta.feeds_attempted > 0 ? (meta.feeds_error || 0) / meta.feeds_attempted : 0;
+            if (meta.feeds_ok === 0) return 'degraded';
+            if (errorRate > 0.25 || (meta.feeds_error || 0) > 10) return 'degraded';
+            return 'healthy';
         },
         keyMetrics: (meta) => meta ? [
             { label: 'Feeds OK', value: meta.feeds_ok ?? '—' },
