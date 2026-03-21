@@ -68,8 +68,9 @@ const PIPELINES = [
         healthRules: (meta, ageMinutes) => {
             if (!meta) return 'unknown';
             if (ageMinutes > 120) return 'stale';
-            if ((meta.total_items_processed ?? 0) > 0) return 'healthy';
-            if ((meta.clusters_created ?? 0) + (meta.clusters_updated ?? 0) > 0) return 'healthy';
+            // All-singleton run is degraded — no meaningful grouping occurred
+            if ((meta.multi_article_clusters ?? 0) > 0) return 'healthy';
+            if ((meta.total_items_processed ?? 0) > 0) return 'degraded';
             return 'degraded';
         },
         keyMetrics: (meta) => meta ? [
