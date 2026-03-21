@@ -47,6 +47,8 @@ function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 // ─────────────────────────────────────────────────────────────────────────────
 
+function makeRunId() { return `health_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`; }
+
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
@@ -54,11 +56,31 @@ Deno.serve(async (req) => {
         const { error: authError } = await requireAdminOrScheduler(base44);
         if (authError) return authError;
 
+        const instanceId = makeRunId();
+        const runStart = Date.now();
+
+        // ── Acquire SystemHealth lock so PipelineStatusPanel can track this job ─
+        let lockRecord = null;
+        try {
+            lockRecord = await base44.asServiceRole.entities.SystemHealth.create({
+                job_type: 'source_health',
+                status: 'running',
+                started_at: new Date().toISOString(),
+                metadata: { instance_id: instanceId, last_heartbeat_at: new Date().toISOString() },
+            });
+        } catch {}
+
         // ── Load all feeds ────────────────────────────────────────────────────
         const feeds = await safeList(base44.asServiceRole.entities.Feed, undefined, 1000);
         console.log(`[SourceHealth] Evaluating ${feeds.length} feeds`);
 
         if (feeds.length === 0) {
+            if (lockRecord?.id) {
+                await base44.asServiceRole.entities.SystemHealth.update(lockRecord.id, {
+                    status: 'completed', completed_at: new Date().toISOString(),
+                    metadata: { instance_id: instanceId, evaluated_count: 0, pipeline_health: 'degraded', run_duration_ms: Date.now() - runStart },
+                }).catch(() => {});
+            }
             return Response.json({ status: 'completed', evaluated_count: 0, pipeline_health: 'degraded', message: 'No feeds found' });
         }
 
@@ -130,13 +152,23 @@ Deno.serve(async (req) => {
 
         console.log(`[SourceHealth] Summary: ${healthy} healthy, ${degrading} degrading, ${failing} failing`);
 
-        return Response.json({
-            status: 'completed',
+        const finalMeta = {
+            instance_id: instanceId,
             evaluated_count: results.length,
             pipeline_health: results.length > 0 ? 'healthy' : 'degraded',
             summary: { healthy, degrading, failing },
             write_errors: writeErrors,
-        });
+            run_duration_ms: Date.now() - runStart,
+        };
+
+        if (lockRecord?.id) {
+            await base44.asServiceRole.entities.SystemHealth.update(lockRecord.id, {
+                status: 'completed', completed_at: new Date().toISOString(),
+                metadata: finalMeta,
+            }).catch(() => {});
+        }
+
+        return Response.json({ status: 'completed', ...finalMeta });
 
     } catch (error) {
         console.error('[SourceHealth] Error:', error);

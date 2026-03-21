@@ -13,6 +13,18 @@ function extractItems(raw) {
     return found || [];
 }
 
+async function requireAdminOrScheduler(base44) {
+    try {
+        const user = await base44.auth.me();
+        if (user && user.role !== 'admin') {
+            return { error: Response.json({ error: 'Forbidden' }, { status: 403 }) };
+        }
+        return { user: user || null };
+    } catch {
+        return { user: null }; // scheduler context — allow
+    }
+}
+
 // ─── Constants ────────────────────────────────────────────────────────────────
 const MAX_CONSECUTIVE_ERRORS = 5;      // failures before auto-pause
 const COOLDOWN_HOURS = 2;              // hours before paused feed is retried
@@ -400,7 +412,7 @@ async function runFeedBatches(feeds, alertsByFeedId, base44) {
         const dedupResults = await Promise.allSettled(
             batch.map(feed =>
                 base44.asServiceRole.entities.FeedItem.filter({ feed_id: feed.id }, '-created_date', 300)
-                    .then(existing => ({ feed_id: feed.id, existing: existing || [] }))
+                    .then(existing => ({ feed_id: feed.id, existing: extractItems(existing) }))
                     .catch(() => ({ feed_id: feed.id, existing: [] }))
             )
         );
@@ -729,8 +741,8 @@ Deno.serve(async (req) => {
     // ── Load alerts once ───────────────────────────────────────────────────────
     let alertsByFeedId = {};
     try {
-        const allAlerts = await base44.asServiceRole.entities.FeedAlert.filter({ is_active: true });
-        for (const alert of (allAlerts || [])) {
+        const allAlerts = extractItems(await base44.asServiceRole.entities.FeedAlert.filter({ is_active: true }));
+        for (const alert of allAlerts) {
             if (!alertsByFeedId[alert.feed_id]) alertsByFeedId[alert.feed_id] = [];
             alertsByFeedId[alert.feed_id].push(alert);
         }

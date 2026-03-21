@@ -35,12 +35,21 @@ Deno.serve(async (req) => {
 
         console.log(`[enrichFeedItems] Starting enrichment for ${item_ids.length} item(s)`);
 
+        // Safe array extraction — handles both direct array and envelope responses
+        function extractItems(raw) {
+            if (!raw) return [];
+            if (Array.isArray(raw)) return raw;
+            if (Array.isArray(raw?.items)) return raw.items;
+            if (Array.isArray(raw?.data)) return raw.data;
+            return [];
+        }
+
         // Fetch items (up to 20 at a time to stay within LLM context)
-        const items = await base44.asServiceRole.entities.FeedItem.filter(
+        const items = extractItems(await base44.asServiceRole.entities.FeedItem.filter(
             { id: { $in: item_ids.slice(0, 20) } },
             '-created_date',
             20
-        );
+        ));
 
         if (!items || items.length === 0) {
             console.warn('[enrichFeedItems] No items found for provided IDs');
