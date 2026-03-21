@@ -1,45 +1,70 @@
 /**
  * scoreClusters — authority-weighted trend scoring for StoryClusters.
  *
- * Runs after clusterStories (or independently).
- * Reads active StoryCluster records + SourceAuthority table,
- * computes trend_score per cluster with full explainability,
- * and writes results back to StoryCluster.
- *
- * Also seeds/refreshes SourceAuthority records for any new domains.
- *
- * trend_score formula:
- *   importance_contrib  = importance_score × 0.35
- *   authority_contrib   = authority_weighted_source_count (normalized 0-25) × 0.30
- *   velocity_contrib    = velocity_score (0-100, normalized) × 0.20
- *   recency_contrib     = recency_factor (0-100, normalized) × 0.15
- *   raw = sum of above (0-100)
- *   penalty = low_authority_penalty (reduces score when cluster is repost-heavy but low-auth)
- *   trend_score = clamp(raw - penalty, 0, 100)
+ * Architecture patterns enforced (see functions/lib.js):
+ *   [1] extractItems / safeFilter — safe array extraction
+ *   [2] requireAdminOrScheduler   — consistent auth
+ *   [3] Lock + heartbeat           — job execution framework
+ *   [4] Pipeline health classification — zero scored ≠ success if clusters exist
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 
-// ── Authority tiers → scores ─────────────────────────────────────────────────
+// ── Shared utilities (inlined — see functions/lib.js) ─────────────────────────
+
+function extractItems(raw) {
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw;
+    if (typeof raw !== 'object') return [];
+    if (Array.isArray(raw.items))   return raw.items;
+    if (Array.isArray(raw.data))    return raw.data;
+    if (Array.isArray(raw.results)) return raw.results;
+    const found = Object.values(raw).find(v => Array.isArray(v));
+    return found || [];
+}
+
+async function safeFilter(entity, query, sort, limit = 500) {
+    return extractItems(await entity.filter(query, sort, limit));
+}
+
+async function safeList(entity, sort, limit = 500) {
+    return extractItems(await entity.list(sort, limit));
+}
+
+async function requireAdminOrScheduler(base44) {
+    try {
+        const user = await base44.auth.me();
+        if (user && user.role !== 'admin') {
+            return { error: Response.json({ error: 'Forbidden' }, { status: 403 }) };
+        }
+        return { user: user || null };
+    } catch {
+        return { user: null };
+    }
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+function makeRunId() { return `score_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`; }
+
+const LOCK_WINDOW_MS = 8 * 60 * 1000;
+const ZOMBIE_TTL_MS  = 15 * 60 * 1000;
+
+// ── Authority tiers ───────────────────────────────────────────────────────────
 const TIER_SCORES = { tier1: 100, tier2: 50, tier3: 15 };
 const DEFAULT_SCORE = 50;
 
-// ── Known authority domains (auto-seeded, no manual setup required) ───────────
-// tier1: established wire services, major financial/tech publishers
 const TIER1_DOMAINS = new Set([
-    'reuters.com', 'bloomberg.com', 'ft.com', 'wsj.com', 'economist.com',
-    'nytimes.com', 'washingtonpost.com', 'apnews.com', 'bbc.com', 'bbc.co.uk',
-    'cnbc.com', 'forbes.com', 'businessinsider.com', 'marketwatch.com',
-    'theguardian.com', 'axios.com', 'theatlantic.com', 'nature.com',
-    'science.org', 'techcrunch.com', 'wired.com', 'arstechnica.com',
-    'theinformation.com', 'morningstar.com', 'seekingalpha.com',
-    'financialpost.com', 'theglobeandmail.com', 'cbc.ca', 'globeandmail.com',
+    'reuters.com','bloomberg.com','ft.com','wsj.com','economist.com',
+    'nytimes.com','washingtonpost.com','apnews.com','bbc.com','bbc.co.uk',
+    'cnbc.com','forbes.com','businessinsider.com','marketwatch.com',
+    'theguardian.com','axios.com','theatlantic.com','nature.com',
+    'science.org','techcrunch.com','wired.com','arstechnica.com',
+    'theinformation.com','morningstar.com','seekingalpha.com',
+    'financialpost.com','theglobeandmail.com','cbc.ca','globeandmail.com',
 ]);
-
-// tier3: known aggregators, content farms, social reposts
 const TIER3_DOMAINS = new Set([
-    'feedburner.com', 'yahoo.com', 'msn.com', 'aol.com', 'flipboard.com',
-    'pocket.co', 'feedly.com', 'alltop.com', 'paperli.com', 'scoop.it',
-    'tumblr.com', 'medium.com', 'substack.com', 'beehiiv.com',
+    'feedburner.com','yahoo.com','msn.com','aol.com','flipboard.com',
+    'pocket.co','feedly.com','alltop.com','paperli.com','scoop.it',
+    'tumblr.com','medium.com','substack.com','beehiiv.com',
 ]);
 
 function domainToTier(domain) {
@@ -48,43 +73,29 @@ function domainToTier(domain) {
     return 'tier2';
 }
 
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-// ── Velocity score ────────────────────────────────────────────────────────────
-// Articles per hour since first_seen_at, normalized to 0-100.
-// Cap: 10+ articles/hour = score 100.
 function computeVelocity(cluster) {
     if (!cluster.first_seen_at || !cluster.last_updated_at) return 0;
     const spanHours = Math.max(0.5,
         (new Date(cluster.last_updated_at).getTime() - new Date(cluster.first_seen_at).getTime()) / 3600000
     );
-    const articlesPerHour = (cluster.article_count || 1) / spanHours;
-    return Math.min(100, articlesPerHour * 10); // 10 art/hr → score 100
+    return Math.min(100, ((cluster.article_count || 1) / spanHours) * 10);
 }
 
-// ── Recency factor ────────────────────────────────────────────────────────────
-// Based on last_updated_at. 0h old = 100, 48h old = 0. Linear decay.
 function computeRecency(cluster) {
     if (!cluster.last_updated_at) return 0;
     const hoursOld = (Date.now() - new Date(cluster.last_updated_at).getTime()) / 3600000;
     return Math.max(0, 100 - (hoursOld / 48) * 100);
 }
 
-// ── Authority-weighted source count ──────────────────────────────────────────
-// Each source contributes: tier1=1.0, tier2=0.5, tier3=0.15
-// This is the effective source count preventing low-auth repost amplification.
 function computeAuthorityWeightedCount(sourceDomains, authorityMap) {
     let weighted = 0;
     for (const domain of (sourceDomains || [])) {
-        const auth = authorityMap[domain];
-        const tier = auth?.tier || domainToTier(domain);
+        const tier = authorityMap[domain]?.tier || domainToTier(domain);
         weighted += tier === 'tier1' ? 1.0 : tier === 'tier3' ? 0.15 : 0.5;
     }
     return weighted;
 }
 
-// ── Low-authority penalty ─────────────────────────────────────────────────────
-// If >70% of sources are tier3, apply a score penalty proportional to the excess.
 function computeLowAuthPenalty(sourceDomains, authorityMap) {
     if (!sourceDomains?.length) return 0;
     const tier3Count = sourceDomains.filter(d => {
@@ -93,27 +104,22 @@ function computeLowAuthPenalty(sourceDomains, authorityMap) {
     }).length;
     const tier3Ratio = tier3Count / sourceDomains.length;
     if (tier3Ratio <= 0.7) return 0;
-    // Max penalty 25 points when 100% tier3 sources
     return Math.round((tier3Ratio - 0.7) / 0.3 * 25);
 }
 
-// ── Final trend score ─────────────────────────────────────────────────────────
 function computeTrendScore(cluster, authorityMap) {
     const importance = cluster.importance_score ?? 50;
     const velocity = computeVelocity(cluster);
     const recency = computeRecency(cluster);
     const weightedCount = computeAuthorityWeightedCount(cluster.source_domains, authorityMap);
-    // Normalize weighted count: cap at 5 effective sources = full contribution
-    const authorityNorm = Math.min(100, weightedCount * 20); // 5 tier1 sources → 100
+    const authorityNorm = Math.min(100, weightedCount * 20);
     const penalty = computeLowAuthPenalty(cluster.source_domains, authorityMap);
-
-    const importance_contrib  = importance  * 0.35;
+    const importance_contrib  = importance    * 0.35;
     const authority_contrib   = authorityNorm * 0.30;
-    const velocity_contrib    = velocity    * 0.20;
-    const recency_contrib     = recency     * 0.15;
+    const velocity_contrib    = velocity      * 0.20;
+    const recency_contrib     = recency       * 0.15;
     const raw = importance_contrib + authority_contrib + velocity_contrib + recency_contrib;
     const trend_score = Math.round(Math.max(0, Math.min(100, raw - penalty)));
-
     return {
         trend_score,
         authority_weighted_source_count: Math.round(weightedCount * 100) / 100,
@@ -140,56 +146,108 @@ Deno.serve(async (req) => {
         base44 = createClient();
     }
 
-    try {
-        const user = await base44.auth.me();
-        if (user && user.role !== 'admin') {
-            return Response.json({ error: 'Forbidden' }, { status: 403 });
-        }
-    } catch { /* scheduler */ }
+    const { error: authError } = await requireAdminOrScheduler(base44);
+    if (authError) return authError;
 
     let body = {};
     try { body = await req.json(); } catch {}
     const dryRun = body.dry_run === true;
-
+    const instanceId = makeRunId();
     const runStart = Date.now();
 
-    // ── 1. Load active clusters ───────────────────────────────────────────────
-    let clusters = [];
-    try {
-        clusters = await base44.asServiceRole.entities.StoryCluster.filter(
-            { status: 'active' }, '-last_updated_at', 500
-        ) || [];
-    } catch (e) {
-        return Response.json({ error: `Failed to load clusters: ${e.message}` }, { status: 500 });
+    // ── Lock ──────────────────────────────────────────────────────────────────
+    if (!dryRun) {
+        const activeLocks = await safeFilter(
+            base44.asServiceRole.entities.SystemHealth,
+            { job_type: 'scoring', status: 'running' },
+            '-started_at', 5
+        );
+        for (const stale of activeLocks) {
+            const age = Date.now() - new Date(stale.started_at).getTime();
+            if (age >= ZOMBIE_TTL_MS) {
+                await base44.asServiceRole.entities.SystemHealth.update(stale.id, {
+                    status: 'failed', completed_at: new Date().toISOString(),
+                    error_message: `Zombie reclaimed by ${instanceId}`,
+                }).catch(() => {});
+            }
+        }
+        const liveLock = activeLocks.find(r => {
+            const age = Date.now() - new Date(r.started_at).getTime();
+            return age < LOCK_WINDOW_MS;
+        });
+        if (liveLock) {
+            return Response.json({ skipped: true, reason: 'Another scoring run is active' });
+        }
     }
 
-    console.log(`[scoreClusters] Loaded ${clusters.length} active clusters`);
+    let lockRecord = null;
+    let heartbeatTimer = null;
+    if (!dryRun) {
+        try {
+            lockRecord = await base44.asServiceRole.entities.SystemHealth.create({
+                job_type: 'scoring', status: 'running',
+                started_at: new Date().toISOString(),
+                metadata: { instance_id: instanceId, last_heartbeat_at: new Date().toISOString() },
+            });
+            heartbeatTimer = setInterval(() => {
+                base44.asServiceRole.entities.SystemHealth.update(lockRecord.id, {
+                    metadata: { instance_id: instanceId, last_heartbeat_at: new Date().toISOString() },
+                }).catch(() => {});
+            }, 60000);
+        } catch {}
+    }
+
+    // ── 1. Load active clusters ───────────────────────────────────────────────
+    const clusters = await safeFilter(
+        base44.asServiceRole.entities.StoryCluster,
+        { status: 'active' }, '-last_updated_at', 500
+    );
+
+    console.log(`[scoreClusters][${instanceId}] Loaded ${clusters.length} active clusters`);
+
+    // ── Pipeline health: zero clusters is DEGRADED (upstream data issue) ──────
+    if (clusters.length === 0) {
+        clearInterval(heartbeatTimer);
+        if (lockRecord?.id) {
+            await base44.asServiceRole.entities.SystemHealth.update(lockRecord.id, {
+                status: 'completed', completed_at: new Date().toISOString(),
+                metadata: {
+                    instance_id: instanceId, clusters_scored: 0,
+                    pipeline_health: 'degraded',
+                    pipeline_note: 'No active clusters found — check clusterStories upstream',
+                },
+            }).catch(() => {});
+        }
+        return Response.json({
+            success: true,
+            pipeline_health: 'degraded',
+            message: 'No active clusters — check clusterStories upstream',
+            clusters_scored: 0,
+            clusters_failed: 0,
+            domains_seeded: 0,
+            run_duration_ms: Date.now() - runStart,
+        });
+    }
 
     // ── 2. Load existing SourceAuthority records ──────────────────────────────
-    let existingAuth = [];
-    try {
-        existingAuth = await base44.asServiceRole.entities.SourceAuthority.list('-created_date', 500) || [];
-    } catch {}
-
-    const authorityMap = {}; // domain → SourceAuthority record
+    const existingAuth = await safeList(base44.asServiceRole.entities.SourceAuthority, '-created_date', 500);
+    const authorityMap = {};
     for (const rec of existingAuth) {
         if (rec.domain) authorityMap[rec.domain] = rec;
     }
 
-    // ── 3. Seed missing domains with auto-scores ──────────────────────────────
+    // ── 3. Seed missing domains ───────────────────────────────────────────────
     const allDomains = new Set(clusters.flatMap(c => c.source_domains || []));
     const newDomains = [...allDomains].filter(d => !authorityMap[d]);
 
     if (!dryRun && newDomains.length > 0) {
-        console.log(`[scoreClusters] Seeding ${newDomains.length} new domain authority records`);
+        console.log(`[scoreClusters][${instanceId}] Seeding ${newDomains.length} new domain authority records`);
         for (const domain of newDomains) {
             const tier = domainToTier(domain);
-            const score = TIER_SCORES[tier] ?? DEFAULT_SCORE;
             try {
                 const rec = await base44.asServiceRole.entities.SourceAuthority.create({
-                    domain,
-                    tier,
-                    authority_score: score,
+                    domain, tier,
+                    authority_score: TIER_SCORES[tier] ?? DEFAULT_SCORE,
                     is_manual_override: false,
                     auto_score_basis: `known_${tier}`,
                     last_evaluated_at: new Date().toISOString(),
@@ -200,11 +258,8 @@ Deno.serve(async (req) => {
         }
     }
 
-    // ── 4. Score all clusters ─────────────────────────────────────────────────
-    const scored = clusters.map(cluster => ({
-        cluster,
-        scoring: computeTrendScore(cluster, authorityMap),
-    }));
+    // ── 4. Compute scores ─────────────────────────────────────────────────────
+    const scored = clusters.map(cluster => ({ cluster, scoring: computeTrendScore(cluster, authorityMap) }));
 
     if (dryRun) {
         const preview = scored
@@ -221,7 +276,7 @@ Deno.serve(async (req) => {
         return Response.json({ dry_run: true, total_clusters: clusters.length, preview });
     }
 
-    // ── 5. Write scores back ──────────────────────────────────────────────────
+    // ── 5. Write scores — sequential with delay to avoid rate limits ──────────
     let written = 0, failed = 0;
     for (const { cluster, scoring } of scored) {
         try {
@@ -236,12 +291,28 @@ Deno.serve(async (req) => {
         await sleep(60);
     }
 
+    // ── Pipeline health classification ────────────────────────────────────────
+    const pipelineHealth = written > 0 ? 'healthy' : 'degraded';
+
     const summary = {
         clusters_scored: written,
         clusters_failed: failed,
         domains_seeded: newDomains.length,
         run_duration_ms: Date.now() - runStart,
+        pipeline_health: pipelineHealth,
+        instance_id: instanceId,
     };
-    console.log(`[scoreClusters] DONE — ${JSON.stringify(summary)}`);
+
+    console.log(`[scoreClusters][${instanceId}] DONE — ${JSON.stringify(summary)}`);
+
+    clearInterval(heartbeatTimer);
+    if (lockRecord?.id) {
+        await base44.asServiceRole.entities.SystemHealth.update(lockRecord.id, {
+            status: written > 0 ? 'completed' : 'completed',
+            completed_at: new Date().toISOString(),
+            metadata: summary,
+        }).catch(() => {});
+    }
+
     return Response.json({ success: true, ...summary });
 });
