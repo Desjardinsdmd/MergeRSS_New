@@ -32,10 +32,22 @@ export default function IntelligenceDashboard({ user, feeds = [], digests = [], 
                 '-importance_score',
                 100
             );
-            return raw || [];
+            return Array.isArray(raw) ? raw : (raw?.items || raw?.data || []);
         },
         enabled: !!feedIds.length,
         staleTime: 3 * 60 * 1000,
+    });
+
+    // Backend StoryClusters — provides persisted trend_score for ranking
+    const { data: storyClusters = [] } = useQuery({
+        queryKey: ['story-clusters-active'],
+        queryFn: async () => {
+            const raw = await base44.entities.StoryCluster.filter(
+                { status: 'active' }, '-trend_score', 300
+            );
+            return Array.isArray(raw) ? raw : (raw?.items || raw?.data || []);
+        },
+        staleTime: 5 * 60 * 1000,
     });
 
     // Today's new items count
@@ -124,6 +136,7 @@ export default function IntelligenceDashboard({ user, feeds = [], digests = [], 
                         <RankedFeed
                             items={rankedItems}
                             feeds={feeds}
+                            storyClusters={storyClusters}
                             bookmarkedIds={bookmarkedIds}
                             onBookmark={handleBookmark}
                         />
