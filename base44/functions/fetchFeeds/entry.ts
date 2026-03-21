@@ -1,6 +1,18 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 import { XMLParser } from 'npm:fast-xml-parser@4.3.6';
 
+// ── Shared utility: normalize any SDK response to array (see functions/lib.js) ─
+function extractItems(raw) {
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw;
+    if (typeof raw !== 'object') return [];
+    if (Array.isArray(raw.items))   return raw.items;
+    if (Array.isArray(raw.data))    return raw.data;
+    if (Array.isArray(raw.results)) return raw.results;
+    const found = Object.values(raw).find(v => Array.isArray(v));
+    return found || [];
+}
+
 // ─── Constants ────────────────────────────────────────────────────────────────
 const MAX_CONSECUTIVE_ERRORS = 5;      // failures before auto-pause
 const COOLDOWN_HOURS = 2;              // hours before paused feed is retried
