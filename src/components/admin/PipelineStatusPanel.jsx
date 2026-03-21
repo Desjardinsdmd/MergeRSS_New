@@ -4,7 +4,7 @@
  * Shows: last run, last success, status, output counts, stale warnings.
  * Pipelines monitored: feed_fetch, feed_recovery, clustering, scoring, source_health
  */
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
