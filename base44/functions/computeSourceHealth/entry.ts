@@ -172,6 +172,8 @@ Deno.serve(async (req) => {
 
     } catch (error) {
         console.error('[SourceHealth] Error:', error);
+        // Best-effort: mark lock as failed if it was acquired
+        // (lockRecord is not in scope here — the outer catch is a last resort)
         return Response.json({ error: error.message }, { status: 500 });
     }
 });
