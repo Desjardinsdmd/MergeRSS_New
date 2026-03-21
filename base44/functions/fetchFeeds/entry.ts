@@ -633,6 +633,10 @@ Deno.serve(async (req) => {
         }
     }
 
+    // Auth: admin or scheduler only
+    const { error: authError } = await requireAdminOrScheduler(base44);
+    if (authError) return authError;
+
     const startedAt = new Date().toISOString();
     const runStartMs = Date.now();
     const instanceId = makeRunId();

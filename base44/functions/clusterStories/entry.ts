@@ -416,13 +416,19 @@ Deno.serve(async (req) => {
     }
 
     // ── Pipeline health classification ────────────────────────────────────────
-    const pipelineHealth = items.length > 0 && rawClusters.length > 0 ? 'healthy' : 'degraded';
+    // Healthy = at least some multi-article grouping occurred.
+    // All-singleton output (no grouping) is 'degraded' — it means clustering produced no signal.
+    const multiArticleCount = rawClusters.filter(c => c.members.length > 1).length;
+    const pipelineHealth = multiArticleCount > 0 ? 'healthy' : (items.length > 0 ? 'degraded' : 'degraded');
+    const pipelineNote = multiArticleCount === 0 && items.length > 0
+        ? `Processed ${items.length} items but all were singletons — no story grouping occurred`
+        : undefined;
 
     const summary = {
         total_items_processed: items.length,
         total_clusters: rawClusters.length,
         singletons: rawClusters.filter(c => c.members.length === 1).length,
-        multi_article_clusters: rawClusters.filter(c => c.members.length > 1).length,
+        multi_article_clusters: multiArticleCount,
         clusters_created: created,
         clusters_updated: updated,
         clusters_reactivated: reactivated,
@@ -432,6 +438,7 @@ Deno.serve(async (req) => {
         run_duration_ms: Date.now() - runStartMs,
         window_hours: windowHours,
         pipeline_health: pipelineHealth,
+        ...(pipelineNote ? { pipeline_note: pipelineNote } : {}),
         instance_id: instanceId,
     };
 

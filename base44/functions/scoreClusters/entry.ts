@@ -308,7 +308,7 @@ Deno.serve(async (req) => {
     clearInterval(heartbeatTimer);
     if (lockRecord?.id) {
         await base44.asServiceRole.entities.SystemHealth.update(lockRecord.id, {
-            status: written > 0 ? 'completed' : 'completed',
+            status: written > 0 ? 'completed' : 'failed',
             completed_at: new Date().toISOString(),
             metadata: summary,
         }).catch(() => {});
