@@ -18,9 +18,10 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+// job_type values must match what each function writes to SystemHealth
 const PIPELINES = [
     {
-        key: 'feed_fetch',
+        key: 'feed_fetch',       // matches job_type in fetchFeeds
         label: 'Feed Fetch',
         icon: Rss,
         functionName: 'fetchFeeds',
@@ -38,14 +39,13 @@ const PIPELINES = [
         ] : [],
     },
     {
-        key: 'feed_recovery',
+        key: 'feed_recovery',    // matches job_type in recoverFeeds
         label: 'Feed Recovery',
         icon: RefreshCw,
         functionName: 'recoverFeeds',
         description: 'Retries system-paused feeds',
         healthRules: (meta) => {
             if (!meta) return 'unknown';
-            // Recovery with 0 eligible is healthy (nothing to do)
             if ((meta.total_paused_eligible ?? 0) === 0) return 'healthy';
             if (meta.recovered > 0 || meta.re_paused > 0) return 'healthy';
             return 'degraded';
@@ -57,7 +57,7 @@ const PIPELINES = [
         ] : [],
     },
     {
-        key: 'clustering',
+        key: 'clustering',       // matches job_type in clusterStories
         label: 'Story Clustering',
         icon: GitMerge,
         functionName: 'clusterStories',
@@ -76,7 +76,7 @@ const PIPELINES = [
         ] : [],
     },
     {
-        key: 'scoring',
+        key: 'scoring',          // matches job_type in scoreClusters
         label: 'Trend Scoring',
         icon: TrendingUp,
         functionName: 'scoreClusters',
@@ -85,7 +85,8 @@ const PIPELINES = [
             if (!meta) return 'unknown';
             if (ageMinutes > 120) return 'stale';
             if ((meta.clusters_scored ?? 0) > 0) return 'healthy';
-            // 0 scored is only OK if there were 0 clusters to score
+            // degraded = ran but 0 scored (upstream data missing)
+            if (meta.pipeline_health === 'degraded') return 'degraded';
             return 'degraded';
         },
         keyMetrics: (meta) => meta ? [
@@ -95,6 +96,7 @@ const PIPELINES = [
         ] : [],
     },
     {
+        // source_health doesn't write a SystemHealth lock — queries by completed records
         key: 'source_health',
         label: 'Source Health',
         icon: Activity,
