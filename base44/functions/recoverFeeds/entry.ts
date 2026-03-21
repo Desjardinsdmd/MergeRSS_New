@@ -81,6 +81,31 @@ async function parseFeed(url) {
     throw new Error(`FEED_UNKNOWN_FORMAT: ${xml.substring(0, 80).replace(/\s+/g, ' ').trim()}`);
 }
 
+// Shared utilities
+function extractItems(raw) {
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw;
+    if (typeof raw !== 'object') return [];
+    if (Array.isArray(raw.items))   return raw.items;
+    if (Array.isArray(raw.data))    return raw.data;
+    if (Array.isArray(raw.results)) return raw.results;
+    const found = Object.values(raw).find(v => Array.isArray(v));
+    return found || [];
+}
+
+async function requireAdminOrScheduler(base44) {
+    try {
+        const user = await base44.auth.me();
+        if (user && user.role !== 'admin') {
+            return { error: Response.json({ error: 'Forbidden' }, { status: 403 }) };
+        }
+        return { user: user || null };
+    } catch {
+        // Scheduler context — no user, allow
+        return { user: null };
+    }
+}
+
 Deno.serve(async (req) => {
     let base44;
     try {
@@ -94,6 +119,10 @@ Deno.serve(async (req) => {
         }
     }
 
+    // Auth: admin or scheduler only — no public access
+    const { error: authError } = await requireAdminOrScheduler(base44);
+    if (authError) return authError;
+
     const instanceId = makeRunId();
     const startedAt = new Date().toISOString();
     const runStartMs = Date.now();
@@ -101,9 +130,9 @@ Deno.serve(async (req) => {
     // ── Lock check: refuse if main fetch OR another recovery run is active ─────
     let activeLocks = [];
     try {
-        activeLocks = await base44.asServiceRole.entities.SystemHealth.filter(
+        activeLocks = extractItems(await base44.asServiceRole.entities.SystemHealth.filter(
             { status: 'running' }, '-started_at', 10
-        ) || [];
+        ));
     } catch (e) {
         console.warn(`[recoverFeeds][${instanceId}] Could not query locks (non-fatal):`, e.message);
     }
@@ -168,9 +197,9 @@ Deno.serve(async (req) => {
     // ── Load system-paused feeds past cooldown ─────────────────────────────────
     let pausedFeeds = [];
     try {
-        const all = await base44.asServiceRole.entities.Feed.filter(
+        const all = extractItems(await base44.asServiceRole.entities.Feed.filter(
             { status: 'paused', paused_by_system: true }, 'retry_after_at', 200
-        ) || [];
+        ));
         const now = Date.now();
         pausedFeeds = all.filter(f => !f.retry_after_at || new Date(f.retry_after_at).getTime() <= now);
     } catch (e) {
@@ -239,14 +268,14 @@ Deno.serve(async (req) => {
                 }
             } else {
                 // Success — write items with dedup, restore feed to active
-                const existing = await base44.asServiceRole.entities.FeedItem.filter(
+                const existing = extractItems(await base44.asServiceRole.entities.FeedItem.filter(
                     { feed_id: feed.id }, '-created_date', 300
-                ).catch(() => []);
+                ).catch(() => []));
 
-                const existingGuids = new Set((existing || []).map(i => i.guid).filter(Boolean));
-                const existingUrls  = new Set((existing || []).map(i => i.url).filter(Boolean));
+                const existingGuids = new Set(existing.map(i => i.guid).filter(Boolean));
+                const existingUrls  = new Set(existing.map(i => i.url).filter(Boolean));
                 const existingTitleKeys = new Set(
-                    (existing || []).filter(i => i.title && i.published_date)
+                    existing.filter(i => i.title && i.published_date)
                         .map(i => `${i.title.toLowerCase().replace(/\s+/g, ' ').trim().slice(0, 80)}|${i.published_date?.slice(0, 10)}`)
                 );
 
