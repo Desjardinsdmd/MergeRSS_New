@@ -44,6 +44,7 @@ import FeedEngineStatus from '@/components/admin/FeedEngineStatus';
 import StoryClustersPanel from '@/components/admin/StoryClustersPanel';
 import SourceAuthorityPanel from '@/components/admin/SourceAuthorityPanel';
 import TrendScorePanel from '@/components/admin/TrendScorePanel';
+import PipelineStatusPanel from '@/components/admin/PipelineStatusPanel';
 
 const jobTypeIcons = {
   feed_fetch: Rss,
@@ -318,6 +319,9 @@ export default function AdminHealth() {
           </CardContent>
         )}
       </Card>
+
+      {/* Pipeline Status — observability for all major backend pipelines */}
+      <PipelineStatusPanel />
 
       {/* Source Authority — domain tier management and overrides */}
       <SourceAuthorityPanel />

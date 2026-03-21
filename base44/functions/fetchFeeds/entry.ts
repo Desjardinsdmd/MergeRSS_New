@@ -691,7 +691,7 @@ Deno.serve(async (req) => {
         const rawFeeds = await base44.asServiceRole.entities.Feed.filter(
             { status: { $in: ['active', 'error'] } }, 'last_fetched', 2000
         );
-        allFeeds = Array.isArray(rawFeeds) ? rawFeeds : (rawFeeds?.items ?? rawFeeds?.data ?? []);
+        allFeeds = extractItems(rawFeeds);
     } catch (feedErr) {
         // If we can't load feeds at all, that's a system-level failure worth reporting
         clearInterval(heartbeatTimer);
