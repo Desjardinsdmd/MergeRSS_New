@@ -150,8 +150,13 @@ function ClusterCard({ cluster, feedMap, bookmarkedIds, onBookmark }) {
     );
 }
 
-export default function RankedFeed({ items = [], feeds = [], bookmarkedIds = new Set(), onBookmark }) {
+export default function RankedFeed({ items = [], feeds = [], storyClusters = [], bookmarkedIds = new Set(), onBookmark }) {
     const feedMap = Object.fromEntries(feeds.map(f => [f.id, f]));
+
+    // Build a lookup: cluster_id → StoryCluster (for merging backend trend_score)
+    const clusterDataMap = useMemo(() =>
+        Object.fromEntries(storyClusters.map(c => [c.id, c])),
+    [storyClusters]);
 
     const clusters = useMemo(() => {
         const sorted = [...items].sort((a, b) => {
@@ -159,8 +164,29 @@ export default function RankedFeed({ items = [], feeds = [], bookmarkedIds = new
             return diff !== 0 ? diff : new Date(b.published_date) - new Date(a.published_date);
         });
         const raw = clusterItems(sorted, feedMap);
-        return rankClusters(raw); // sort by authority-weighted trend_score
-    }, [items, feeds]);
+
+        // Merge backend StoryCluster fields (trend_score, trend_score_components,
+        // velocity_score, source_domains) onto each client cluster object.
+        // This allows rankClusters() to use persisted trend_score as primary sort key.
+        const enriched = raw.map(cluster => {
+            const backendCluster = clusterDataMap[cluster.primary.cluster_id];
+            if (!backendCluster) return cluster;
+            return {
+                ...cluster,
+                trend_score: backendCluster.trend_score,
+                trend_score_components: backendCluster.trend_score_components,
+                velocity_score: backendCluster.velocity_score,
+                source_domains: backendCluster.source_domains,
+                // Prefer backend article_count for confidence signals
+                clusterSize: Math.max(cluster.clusterSize, backendCluster.article_count || 1),
+                first_seen_at: backendCluster.first_seen_at,
+                last_updated_at: backendCluster.last_updated_at,
+                importance_score: backendCluster.importance_score ?? cluster.primary.importance_score,
+            };
+        });
+
+        return rankClusters(enriched); // sort by persisted trend_score (falls back to estimate if absent)
+    }, [items, feeds, clusterDataMap]);
 
     if (!clusters.length) return (
         <div className="bg-stone-900 border border-stone-800 p-6 text-center text-stone-600 text-sm">
