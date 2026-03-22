@@ -108,12 +108,15 @@ const PIPELINES = [
         description: 'Evaluates per-feed health metrics',
         healthRules: (meta) => {
             if (!meta) return 'unknown';
-            if ((meta.evaluated_count ?? 0) > 0) return 'healthy';
-            return 'degraded';
+            if ((meta.evaluated_count ?? 0) === 0) return 'degraded';
+            // Degraded if write errors exceeded 20% of evaluated feeds
+            const writeErrorRate = meta.evaluated_count > 0 ? (meta.write_errors ?? 0) / meta.evaluated_count : 0;
+            if (writeErrorRate > 0.20) return 'degraded';
+            return 'healthy';
         },
         keyMetrics: (meta) => meta ? [
             { label: 'Evaluated', value: meta.evaluated_count ?? '—' },
-            { label: 'Healthy', value: meta.summary?.healthy ?? '—' },
+            { label: 'Write Errors', value: meta.write_errors ?? 0 },
             { label: 'Failing', value: meta.summary?.failing ?? '—' },
         ] : [],
     },
