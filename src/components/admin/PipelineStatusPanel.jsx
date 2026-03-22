@@ -89,9 +89,7 @@ const PIPELINES = [
             if (!meta) return 'unknown';
             if (ageMinutes > 120) return 'stale';
             if ((meta.clusters_scored ?? 0) > 0) return 'healthy';
-            // degraded = ran but 0 scored (upstream data missing)
-            if (meta.pipeline_health === 'degraded') return 'degraded';
-            return 'degraded';
+            return 'degraded'; // ran but 0 scored — either upstream gap or all writes failed
         },
         keyMetrics: (meta) => meta ? [
             { label: 'Scored', value: meta.clusters_scored ?? '—' },
