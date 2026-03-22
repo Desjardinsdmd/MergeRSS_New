@@ -113,18 +113,21 @@ ${JSON.stringify(articlesPayload, null, 2)}`,
                     required: ["results"]
                 }
             });
-            enrichments = result?.results || [];
+            enrichments = (result?.results || []).map(e => ({ ...e, _isFallback: false }));
             console.log(`[enrichFeedItems] LLM returned ${enrichments.length} enrichment(s)`);
         } catch (llmErr) {
             console.error('[enrichFeedItems] LLM call failed:', llmErr.message);
-            // Fallback: apply neutral defaults so items are not left empty
+            // Fallback: apply neutral defaults so items are not blocked.
+            // enrichment_status will be set to 'fallback' so downstream systems
+            // know these scores are defaults, not genuine LLM assessments.
             enrichments = needsEnrichment.map((_, idx) => ({
                 index: idx,
                 ai_summary: '',
                 importance_score: 50,
                 intelligence_tag: 'Neutral',
+                _isFallback: true,
             }));
-            console.warn(`[enrichFeedItems] Applied fallback defaults to ${enrichments.length} item(s)`);
+            console.warn(`[enrichFeedItems] Applied fallback defaults to ${enrichments.length} item(s) — enrichment_status will be 'fallback'`);
         }
 
         let enriched = 0;
@@ -139,6 +142,9 @@ ${JSON.stringify(articlesPayload, null, 2)}`,
                         ai_summary: e.ai_summary || '',
                         importance_score: Math.min(100, Math.max(0, Math.round(e.importance_score || 50))),
                         intelligence_tag: e.intelligence_tag || 'Neutral',
+                        // enrichment_status distinguishes genuine LLM scores from defaults.
+                        // 'done' = real LLM result, 'fallback' = LLM failed, scored at 50/Neutral.
+                        enrichment_status: e._isFallback ? 'fallback' : 'done',
                     });
                     enriched++;
                 } catch (updateErr) {
