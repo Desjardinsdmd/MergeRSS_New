@@ -4,6 +4,9 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 const WALL_BUDGET_MS = 45000;
 // Max digests to process per scheduled run (lower cap to stay under budget)
 const MAX_DIGESTS_PER_RUN = 8;
+// Lock constants — same pattern as other background jobs
+const LOCK_WINDOW_MS = 10 * 60 * 1000;
+const ZOMBIE_TTL_MS  = 15 * 60 * 1000;
 
 function extractItems(raw) {
     if (!raw) return [];
