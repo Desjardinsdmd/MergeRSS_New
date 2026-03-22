@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
             }
             digests = d ? [d] : [];
         } else {
-            digests = await base44.asServiceRole.entities.Digest.filter({ status: 'active' });
+            digests = extractItems(await base44.asServiceRole.entities.Digest.filter({ status: 'active' }));
         }
 
         // Filter to only digests that are due right now (skip obviously not-due ones early)
