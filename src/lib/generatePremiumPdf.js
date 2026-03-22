@@ -633,13 +633,11 @@ function rInflection(doc, y, pt, isLast) {
 }
 
 function rOutlookIntro(doc, y, text) {
-  // Lead paragraph — styled with a subtle left accent bar, no top rule artifact
-  const lines = D.split(doc, text, G.col - 10, false, 10);
-  const h = lines.length * LH.body + 6;
-  D.fill(doc, G.mX, y, 3, h, C.amberPale);
+  // Full-width body paragraph for prose outlook. No decorative bar — clean editorial style.
+  const lines = D.split(doc, text, G.col, false, 10);
   D.font(doc, false, 10); D.rgb(doc, C.inkSub);
-  lines.forEach((l, i) => doc.text(l, G.mX + 8, y + LH.body + i * LH.body));
-  return y + h + 8;
+  lines.forEach((l, i) => doc.text(l, G.mX, y + i * LH.body));
+  return y + lines.length * LH.body + 10;
 }
 
 function rSignal(doc, y, signal, index) {
