@@ -431,13 +431,26 @@ Write a well-organized, professional digest. Group related stories where appropr
 
         console.log(`[generateDigests] Run complete — ok=${okCount} errors=${errorCount} skipped=${skippedCount}`);
 
-        await base44.asServiceRole.entities.SystemHealth.create({
-            job_type: 'digest_generation',
-            status: errorCount > 0 && okCount === 0 ? 'failed' : 'completed',
-            started_at: startedAt,
-            completed_at: new Date().toISOString(),
-            metadata: { total: digests.length, processed: toProcess.length, ok: okCount, errors: errorCount, skipped: skippedCount, results },
-        });
+        const finalStatus = errorCount > 0 && okCount === 0 ? 'failed' : 'completed';
+        const finalMeta = { total: digests.length, processed: toProcess.length, ok: okCount, errors: errorCount, skipped: skippedCount, results };
+
+        // Close the lock record (if we acquired one) or create a log entry for single-digest runs
+        if (lockRecord?.id) {
+            await base44.asServiceRole.entities.SystemHealth.update(lockRecord.id, {
+                status: finalStatus,
+                completed_at: new Date().toISOString(),
+                metadata: finalMeta,
+            }).catch(() => {});
+        } else {
+            // Single-digest manual run — log a one-off record for admin visibility
+            await base44.asServiceRole.entities.SystemHealth.create({
+                job_type: 'digest_generation',
+                status: finalStatus,
+                started_at: startedAt,
+                completed_at: new Date().toISOString(),
+                metadata: { ...finalMeta, manual_digest_id: digest_id },
+            }).catch(() => {});
+        }
 
         return Response.json({ success: true, results });
     } catch (error) {
