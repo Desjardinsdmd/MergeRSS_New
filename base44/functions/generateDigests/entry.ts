@@ -5,6 +5,17 @@ const WALL_BUDGET_MS = 45000;
 // Max digests to process per scheduled run (lower cap to stay under budget)
 const MAX_DIGESTS_PER_RUN = 8;
 
+function extractItems(raw) {
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw;
+    if (typeof raw !== 'object') return [];
+    if (Array.isArray(raw.items))   return raw.items;
+    if (Array.isArray(raw.data))    return raw.data;
+    if (Array.isArray(raw.results)) return raw.results;
+    const found = Object.values(raw).find(v => Array.isArray(v));
+    return found || [];
+}
+
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
