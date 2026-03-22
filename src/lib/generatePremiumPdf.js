@@ -390,37 +390,45 @@ function buildPageTemplates(doc, r, mismatchMsg, deliveryCount, startDate, endDa
     const MAX_PER_PAGE = 3;
     let t = tpl();
     let countOnPage = 0;
+    let isFirstInflectionPage = true;
 
     // Pre-measure all heights
     const ptH = pts.map(p => mInflection(doc, p) + 5);
 
+    // Pre-assign entries to pages using a simple bin-packing pass.
+    // This lets us detect orphans before rendering.
+    const pages = [[]]; // array of arrays of indices
+    let pageUsed = BAR_H + 4; // bar + spacer
     for (let i = 0; i < pts.length; i++) {
       const h = ptH[i];
-      const isLast = i === pts.length - 1;
-
-      if (countOnPage === 0) {
-        add(t, barItem('04', 'INFLECTION POINTS', templates.length > 1));
-        add(t, { type: 'spacer', h: 4 });
+      if (pages[pages.length - 1].length >= MAX_PER_PAGE || pageUsed + h > USABLE - 4) {
+        pages.push([]);
+        pageUsed = BAR_H + 4;
       }
+      pages[pages.length - 1].push(i);
+      pageUsed += h;
+    }
 
-      const wouldOverflow = t.usedH + h > USABLE - 4;
-      const overLimit = countOnPage >= MAX_PER_PAGE;
+    // Anti-orphan: if the last page has only 1 entry AND there are 2+ pages,
+    // move the last entry of the previous page to join it.
+    if (pages.length >= 2 && pages[pages.length - 1].length === 1) {
+      const lastIdx = pages[pages.length - 2].pop();
+      pages[pages.length - 1].unshift(lastIdx);
+    }
 
-      if (wouldOverflow || overLimit) {
-        // Anti-orphan: check if this is the second-to-last entry and the last
-        // entry would also need a new page — if so, put both on the new page.
-        const lastEntryH = i === pts.length - 2 ? ptH[i + 1] : 0;
-        const lastWouldFitWithThis = !wouldOverflow && (t.usedH + h + lastEntryH <= USABLE - 4);
-        if (!lastWouldFitWithThis || overLimit) {
-          t = tpl();
-          add(t, barItem('04', 'INFLECTION POINTS', true));
-          add(t, { type: 'spacer', h: 4 });
-          countOnPage = 0;
-        }
+    // Now render using the pre-computed page assignments
+    for (let pi = 0; pi < pages.length; pi++) {
+      if (pi > 0) {
+        t = tpl();
+        countOnPage = 0;
       }
+      add(t, barItem('04', 'INFLECTION POINTS', pi > 0));
+      add(t, { type: 'spacer', h: 4 });
 
-      add(t, { type: 'inflection', pt: pts[i], isLast, index: i, h });
-      countOnPage++;
+      for (const i of pages[pi]) {
+        const isLast = i === pts.length - 1;
+        add(t, { type: 'inflection', pt: pts[i], isLast, index: i, h: ptH[i] });
+      }
     }
   }
 
