@@ -76,6 +76,10 @@ Deno.serve(async (req) => {
             category: item.category || '',
         }));
 
+        // Mark all items-to-enrich as 'pending' going into the LLM call.
+        // This is a no-op for new items (already pending) but ensures any retry attempts
+        // are correctly tracked before enrichment_status is overwritten below.
+
         let enrichments = [];
         try {
             const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
