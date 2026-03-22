@@ -332,14 +332,22 @@ function buildPageTemplates(doc, r, mismatchMsg, deliveryCount, startDate, endDa
 
     if (r.executive_summary) {
       const ktH = mKeyTakeaway(doc, r.executive_summary);
-      // Key takeaway + large spacer for editorial whitespace
       add(t, { type: 'keyTakeaway', summary: r.executive_summary, h: ktH + 8 });
-      add(t, { type: 'spacer', h: 6 });
+      add(t, { type: 'spacer', h: 8 });
 
-      const paras = r.executive_summary.split(/\n+/).map(p => p.trim()).filter(Boolean);
+      // Body paragraphs — split on newlines, skip any paragraph whose content
+      // is entirely contained within the key takeaway sentence (avoids duplication)
+      const firstSentence = r.executive_summary.split(/\.\s+/)[0] || '';
+      const paras = r.executive_summary.split(/\n+/).map(p => p.trim()).filter(p => {
+        if (!p) return false;
+        // Skip paragraph if it's just the first sentence (already shown as takeaway)
+        if (p.startsWith(firstSentence.slice(0, 60))) return false;
+        return true;
+      });
+
       for (const para of paras) {
         const h = D.split(doc, para, G.col, false, 9.5).length * LH.body + 5;
-        if (t.usedH + h > USABLE - 4) t = tpl(); // overflow to next page
+        if (t.usedH + h > USABLE - 4) t = tpl();
         add(t, { type: 'para', text: para, h });
       }
     }
