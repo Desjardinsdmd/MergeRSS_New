@@ -307,8 +307,11 @@ Deno.serve(async (req) => {
 
     clearInterval(heartbeatTimer);
     if (lockRecord?.id) {
+        // Distinguish execution failure (wrote 0 of N clusters) from degraded data state
+        // (all writes failed vs no clusters existed upstream — handled separately above)
+        const lockStatus = failed > 0 && written === 0 ? 'failed' : 'completed';
         await base44.asServiceRole.entities.SystemHealth.update(lockRecord.id, {
-            status: written > 0 ? 'completed' : 'failed',
+            status: lockStatus,
             completed_at: new Date().toISOString(),
             metadata: summary,
         }).catch(() => {});
