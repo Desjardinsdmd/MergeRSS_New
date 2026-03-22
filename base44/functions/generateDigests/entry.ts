@@ -29,6 +29,50 @@ Deno.serve(async (req) => {
         const body = await req.json().catch(() => ({}));
         const { digest_id, force } = body;
 
+        // ── Distributed lock — same SystemHealth-based pattern as other jobs ──────
+        // For single-digest manual runs (digest_id provided) skip the global lock,
+        // since those are user-triggered and not at risk of scheduler overlap.
+        let lockRecord = null;
+        if (!digest_id) {
+            const activeLocks = extractItems(await base44.asServiceRole.entities.SystemHealth.filter(
+                { job_type: 'digest_generation', status: 'running' }, '-started_at', 5
+            ).catch(() => []));
+
+            for (const stale of activeLocks) {
+                const age = Date.now() - new Date(stale.started_at).getTime();
+                const lastHb = stale.metadata?.last_heartbeat_at
+                    ? Date.now() - new Date(stale.metadata.last_heartbeat_at).getTime()
+                    : age;
+                if (age >= ZOMBIE_TTL_MS || lastHb > ZOMBIE_TTL_MS) {
+                    await base44.asServiceRole.entities.SystemHealth.update(stale.id, {
+                        status: 'failed', completed_at: new Date().toISOString(),
+                        error_message: `Zombie reclaimed by new digest run at ${startedAt}`,
+                    }).catch(() => {});
+                }
+            }
+
+            const liveLock = activeLocks.find(r => {
+                const age = Date.now() - new Date(r.started_at).getTime();
+                const lastHb = r.metadata?.last_heartbeat_at
+                    ? Date.now() - new Date(r.metadata.last_heartbeat_at).getTime()
+                    : age;
+                return age < LOCK_WINDOW_MS && lastHb < ZOMBIE_TTL_MS;
+            });
+            if (liveLock) {
+                console.warn(`[generateDigests] SKIPPED — another run is active since ${liveLock.started_at}`);
+                return Response.json({ skipped: true, reason: 'Another digest generation run is active' });
+            }
+
+            try {
+                lockRecord = await base44.asServiceRole.entities.SystemHealth.create({
+                    job_type: 'digest_generation',
+                    status: 'running',
+                    started_at: startedAt,
+                    metadata: { last_heartbeat_at: startedAt },
+                });
+            } catch {}
+        }
+
         console.log(`[generateDigests] Run started — digest_id=${digest_id || 'all'} force=${force || false}`);
 
         // Allowlist for outbound webhook fetches — prevents SSRF
