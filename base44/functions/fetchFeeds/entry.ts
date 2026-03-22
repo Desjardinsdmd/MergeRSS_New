@@ -1,7 +1,11 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 import { XMLParser } from 'npm:fast-xml-parser@4.3.6';
 
-// ── Shared utility: normalize any SDK response to array (see functions/lib.js) ─
+// ─── Infrastructure helpers ───────────────────────────────────────────────────
+// NOTE: Base44 does not support shared imports between function files.
+// These helpers are intentionally inlined here. Canonical versions are documented
+// in functions/lib.js. Keep these in sync with that reference when editing.
+
 function extractItems(raw) {
     if (!raw) return [];
     if (Array.isArray(raw)) return raw;
@@ -25,26 +29,21 @@ async function requireAdminOrScheduler(base44) {
     }
 }
 
+function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+function makeRunId() { return `run_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`; }
+
 // ─── Constants ────────────────────────────────────────────────────────────────
-const MAX_CONSECUTIVE_ERRORS = 5;      // failures before auto-pause
-const COOLDOWN_HOURS = 2;              // hours before paused feed is retried
-const FEED_FETCH_CONCURRENCY = 5;      // parallel HTTP fetches (not DB writes)
-const WRITE_DELAY_MS = 150;            // delay between sequential DB writes
-const BATCH_DELAY_MS = 300;            // delay between processing batches
-const RUN_INTERVAL_MINUTES = 10;
-const LOCK_WINDOW_MS = 8 * 60 * 1000;
-const ZOMBIE_TTL_MS  = 15 * 60 * 1000;
-const HEARTBEAT_INTERVAL_MS = 60 * 1000; // update lock every 60s to prove liveness
+const MAX_CONSECUTIVE_ERRORS   = 5;
+const COOLDOWN_HOURS           = 2;
+const FEED_FETCH_CONCURRENCY   = 5;
+const WRITE_DELAY_MS           = 150;
+const BATCH_DELAY_MS           = 300;
+const RUN_INTERVAL_MINUTES     = 10;
+const LOCK_WINDOW_MS           = 8 * 60 * 1000;
+const ZOMBIE_TTL_MS            = 15 * 60 * 1000;
+const HEARTBEAT_INTERVAL_MS    = 60 * 1000;
 
-// Generate a short run instance ID for lock ownership tracking
-function makeRunId() {
-    return `run_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
+// ─── HTML entity decoder ──────────────────────────────────────────────────────
 function decodeHtml(str) {
     if (!str || typeof str !== 'string') return str;
     return str
@@ -59,7 +58,10 @@ function decodeHtml(str) {
         .replace(/&trade;/g, '™').replace(/&bull;/g, '•').replace(/&amp;/g, '&');
 }
 
-// ─── Feed Parsing ─────────────────────────────────────────────────────────────
+// ─── Canonical feed parser ────────────────────────────────────────────────────
+// SINGLE SOURCE OF TRUTH for RSS/Atom/RDF parsing across the entire codebase.
+// recoverFeeds calls this function via base44.functions.invoke('fetchFeeds') — do not degrade it.
+// Supports: RSS 2.0, Atom, RDF/RSS 1.0
 async function parseFeed(url) {
     const response = await fetch(url, {
         headers: {
@@ -92,6 +94,7 @@ async function parseFeed(url) {
     });
     const parsed = parser.parse(xml);
 
+    // ── RSS 2.0 ──────────────────────────────────────────────────────────────
     if (parsed.rss?.channel) {
         const channel = parsed.rss.channel;
         const items = Array.isArray(channel.item) ? channel.item : (channel.item ? [channel.item] : []);
@@ -106,6 +109,7 @@ async function parseFeed(url) {
         }));
     }
 
+    // ── Atom ──────────────────────────────────────────────────────────────────
     if (parsed.feed) {
         const entries = Array.isArray(parsed.feed.entry) ? parsed.feed.entry : (parsed.feed.entry ? [parsed.feed.entry] : []);
         return entries.map(entry => {
@@ -123,6 +127,7 @@ async function parseFeed(url) {
         });
     }
 
+    // ── RDF / RSS 1.0 ─────────────────────────────────────────────────────────
     if (parsed['rdf:RDF'] || parsed.RDF) {
         const rdf = parsed['rdf:RDF'] || parsed.RDF;
         const items = Array.isArray(rdf.item) ? rdf.item : (rdf.item ? [rdf.item] : []);
@@ -133,11 +138,54 @@ async function parseFeed(url) {
             content: typeof item['content:encoded'] === 'string' ? item['content:encoded'] : '',
             author: item['dc:creator'] || '',
             published_date: item['dc:date'] ? new Date(item['dc:date']).toISOString() : new Date().toISOString(),
-            guid: item['@_rdf:about'] || typeof item.link === 'string' ? item.link : '',
+            guid: item['@_rdf:about'] || (typeof item.link === 'string' ? item.link : ''),
         }));
     }
 
     throw new Error(`FEED_UNKNOWN_FORMAT: ${xml.substring(0, 120).replace(/\s+/g, ' ').trim()}`);
+}
+
+// ─── Canonical dedup helper ───────────────────────────────────────────────────
+// SINGLE SOURCE OF TRUTH for article deduplication logic.
+// Used by both the main fetch path and the recovery path (via recoverFeeds calling this function).
+// Multi-signal: guid, url, AND normalized title+date composite.
+function buildDedupSets(existingItems) {
+    const guids = new Set(existingItems.map(i => i.guid).filter(Boolean));
+    const urls  = new Set(existingItems.map(i => i.url).filter(Boolean));
+    const titleKeys = new Set(
+        existingItems
+            .filter(i => i.title && i.published_date)
+            .map(i => `${i.title.toLowerCase().replace(/\s+/g, ' ').trim().slice(0, 80)}|${i.published_date?.slice(0, 10)}`)
+    );
+    return { guids, urls, titleKeys };
+}
+
+function isDuplicate(item, dedupSets) {
+    if (!item.guid && !item.url) return true;
+    if (item.guid && dedupSets.guids.has(item.guid)) return true;
+    if (item.url && dedupSets.urls.has(item.url)) return true;
+    if (item.title && item.published_date) {
+        const key = `${item.title.toLowerCase().replace(/\s+/g, ' ').trim().slice(0, 80)}|${item.published_date.slice(0, 10)}`;
+        if (dedupSets.titleKeys.has(key)) return true;
+    }
+    return false;
+}
+
+function buildFeedItemRecord(item, feed) {
+    return {
+        feed_id: feed.id,
+        title: String(item.title || '').slice(0, 500),
+        url: String(item.url || ''),
+        description: String(item.description || '').slice(0, 2000),
+        content: String(item.content || '').slice(0, 5000),
+        author: String(item.author || '').slice(0, 200),
+        published_date: item.published_date,
+        guid: String(item.guid || item.url || ''),
+        category: feed.category,
+        tags: feed.tags || [],
+        is_read: false,
+        enrichment_status: 'pending',
+    };
 }
 
 // ─── URL Recovery ─────────────────────────────────────────────────────────────
@@ -198,7 +246,6 @@ async function recoverFeedUrl(originalUrl) {
 }
 
 // ─── Concurrency helper ───────────────────────────────────────────────────────
-// Run tasks with a max concurrency limit (for HTTP fetches only)
 async function withConcurrency(tasks, limit) {
     const results = new Array(tasks.length);
     let idx = 0;
@@ -212,152 +259,98 @@ async function withConcurrency(tasks, limit) {
     return results;
 }
 
-// ─── Per-feed isolated processor ─────────────────────────────────────────────
-// This is the core isolation unit. Every feed is processed here.
-// It NEVER throws — all errors are caught and returned as a result object.
-async function processSingleFeed(feed, existingItems, alertsByFeedId, base44) {
+// ─── Per-feed write handlers ───────────────────────────────────────────────────
+// These are the two canonical write paths: one for fetch failures, one for success.
+// The batch runner calls these after pre-fetching all HTTP results concurrently.
+
+async function handleFeedError(feed, fetchError, summary, base44) {
     const now = new Date().toISOString();
-    const consecutiveErrors = (feed.consecutive_errors || 0);
+    const newConsecutive = (feed.consecutive_errors || 0) + 1;
+    const isRateLimit = fetchError.includes('429') || fetchError.toLowerCase().includes('rate limit');
+    const isRecoverable = fetchError.startsWith('FEED_HTML') || fetchError.includes('404') || fetchError.startsWith('FEED_UNKNOWN');
+    const shouldPause = newConsecutive >= MAX_CONSECUTIVE_ERRORS;
 
-    // ── Step 1: Fetch & parse (isolated) ──────────────────────────────────────
-    let items = [];
-    let fetchError = null;
-    try {
-        items = await parseFeed(feed.url);
-    } catch (err) {
-        fetchError = err.message;
+    if (isRecoverable && newConsecutive >= 2 && !shouldPause) {
+        recoverFeedUrl(feed.url).then(async newUrl => {
+            if (newUrl) {
+                await base44.asServiceRole.entities.Feed.update(feed.id, {
+                    url: newUrl, status: 'active', fetch_error: '', consecutive_errors: 0,
+                    paused_by_system: false,
+                }).catch(() => {});
+                console.log(`[fetchFeeds] Auto-recovered "${feed.name}" → ${newUrl}`);
+            }
+        }).catch(() => {});
     }
 
-    // ── Step 2: Handle fetch failure ──────────────────────────────────────────
-    if (fetchError) {
-        const newConsecutive = consecutiveErrors + 1;
-        const isRateLimit = fetchError.includes('429') || fetchError.toLowerCase().includes('rate limit');
-        const isRecoverable = fetchError.startsWith('FEED_HTML') || fetchError.includes('404') || fetchError.startsWith('FEED_UNKNOWN');
-        const shouldPause = newConsecutive >= MAX_CONSECUTIVE_ERRORS;
-
-        // Attempt URL recovery in background (fire-and-forget, doesn't block)
-        if (isRecoverable && newConsecutive >= 2 && !shouldPause) {
-            recoverFeedUrl(feed.url).then(async newUrl => {
-                if (newUrl) {
-                    await base44.asServiceRole.entities.Feed.update(feed.id, {
-                        url: newUrl, status: 'active', fetch_error: '', consecutive_errors: 0,
-                        last_failure_reason: null, paused_by_system: false,
-                    }).catch(() => {});
-                    console.log(`[fetchFeeds] Auto-recovered ${feed.name} → ${newUrl}`);
-                }
-            }).catch(() => {});
-        }
-
-        const feedUpdate = {
-            last_fetched: now,
-            fetch_error: fetchError.slice(0, 500),
-            consecutive_errors: newConsecutive,
-            last_failure_at: now,
-            last_failure_reason: fetchError.slice(0, 300),
-        };
-
-        if (shouldPause) {
-            feedUpdate.status = 'paused';
-            feedUpdate.paused_by_system = true;
-            feedUpdate.paused_reason = `Auto-paused after ${newConsecutive} consecutive failures: ${fetchError.slice(0, 200)}`;
-            feedUpdate.retry_after_at = new Date(Date.now() + COOLDOWN_HOURS * 3600 * 1000).toISOString();
-            console.warn(`[fetchFeeds] AUTO-PAUSED feed "${feed.name}" (${feed.id}) after ${newConsecutive} failures: ${fetchError}`);
-        } else {
-            feedUpdate.status = isRateLimit ? feed.status : 'error'; // don't escalate on rate-limit
-        }
-
-        // Write is isolated — failure here only loses this one feed update
-        await base44.asServiceRole.entities.Feed.update(feed.id, feedUpdate).catch(dbErr => {
-            console.warn(`[fetchFeeds] DB write failed for errored feed "${feed.name}": ${dbErr.message}`);
-        });
-
-        return {
-            feed_id: feed.id,
-            feed: feed.name,
-            status: shouldPause ? 'auto_paused' : (isRateLimit ? 'rate_limited' : 'error'),
-            error: fetchError,
-            consecutive_errors: newConsecutive,
-        };
+    const feedUpdate = {
+        last_fetched: now,
+        fetch_error: fetchError.slice(0, 500),
+        consecutive_errors: newConsecutive,
+        last_failure_at: now,
+        last_failure_reason: fetchError.slice(0, 300),
+    };
+    if (shouldPause) {
+        feedUpdate.status = 'paused';
+        feedUpdate.paused_by_system = true;
+        feedUpdate.paused_reason = `Auto-paused after ${newConsecutive} failures: ${fetchError.slice(0, 200)}`;
+        feedUpdate.retry_after_at = new Date(Date.now() + COOLDOWN_HOURS * 3600 * 1000).toISOString();
+        console.warn(`[fetchFeeds] AUTO-PAUSED "${feed.name}" after ${newConsecutive} failures`);
+        summary.auto_paused++;
+    } else {
+        feedUpdate.status = isRateLimit ? feed.status : 'error';
+        if (isRateLimit) summary.rate_limited++; else summary.error++;
     }
 
-    // ── Step 3: Deduplicate ───────────────────────────────────────────────────
-    const existingGuids = new Set((existingItems || []).map(i => i.guid).filter(Boolean));
-    const existingUrls  = new Set((existingItems || []).map(i => i.url).filter(Boolean));
+    await base44.asServiceRole.entities.Feed.update(feed.id, feedUpdate).catch(dbErr => {
+        console.warn(`[fetchFeeds] DB write failed for errored feed "${feed.name}": ${dbErr.message}`);
+        summary.db_write_errors++;
+    });
 
+    return {
+        feed_id: feed.id, feed: feed.name,
+        status: shouldPause ? 'auto_paused' : (isRateLimit ? 'rate_limited' : 'error'),
+        error: fetchError,
+    };
+}
+
+async function handleFeedSuccess(feed, items, existingItems, alertsByFeedId, summary, base44) {
+    const now = new Date().toISOString();
+
+    const dedupSets = buildDedupSets(existingItems);
     const itemsToCreate = [];
     let duplicatesSkipped = 0;
+
     for (const item of items.slice(0, 50)) {
-        if (!item.guid && !item.url) continue;
-        if (existingGuids.has(item.guid) || existingUrls.has(item.url)) {
-            duplicatesSkipped++;
-            continue;
-        }
-        itemsToCreate.push({
-            feed_id: feed.id,
-            title: String(item.title || '').slice(0, 500),
-            url: String(item.url || ''),
-            description: String(item.description || '').slice(0, 2000),
-            content: String(item.content || '').slice(0, 5000),
-            author: String(item.author || '').slice(0, 200),
-            published_date: item.published_date,
-            guid: String(item.guid || item.url || ''),
-            category: feed.category,
-            tags: feed.tags || [],
-            is_read: false,
-        });
+        if (isDuplicate(item, dedupSets)) { duplicatesSkipped++; continue; }
+        itemsToCreate.push(buildFeedItemRecord(item, feed));
     }
 
     const newCount = itemsToCreate.length;
-
-    // ── Step 4: Write new items (isolated) ───────────────────────────────────
     let created = [];
+
     if (newCount > 0) {
         try {
             created = await base44.asServiceRole.entities.FeedItem.bulkCreate(itemsToCreate);
         } catch (bulkErr) {
-            console.warn(`[fetchFeeds] bulkCreate failed for "${feed.name}" (non-fatal): ${bulkErr.message}`);
-            // Items lost this run but feed itself not broken — continue
+            console.warn(`[fetchFeeds] bulkCreate failed for "${feed.name}": ${bulkErr.message}`);
+            summary.db_write_errors++;
         }
     }
 
-    // ── Step 5: Fire-and-forget enrichment ───────────────────────────────────
+    // Enrichment fire-and-forget
     const createdIds = (Array.isArray(created) ? created : []).filter(i => i?.id).map(i => i.id).slice(0, 20);
     if (createdIds.length > 0) {
         base44.asServiceRole.functions.invoke('enrichFeedItems', { item_ids: createdIds }, {
             headers: { 'x-internal-secret': Deno.env.get('INTERNAL_SECRET') || '' }
-        }).catch(e => console.warn(`[fetchFeeds] enrichFeedItems fire-and-forget failed for "${feed.name}": ${e.message}`));
+        }).catch(() => {});
     }
 
-    // ── Step 6: Fire-and-forget alerts ───────────────────────────────────────
+    // Alerts fire-and-forget
     const feedAlerts = alertsByFeedId[feed.id];
     if (feedAlerts?.length && created.length > 0) {
-        const alertItems = (Array.isArray(created) ? created : itemsToCreate).filter(i => i?.id).slice(0, 10);
-        Promise.allSettled(
-            alertItems.flatMap(newItem =>
-                feedAlerts.map(async alert => {
-                    const title = newItem.title || 'New article';
-                    const url = newItem.url || '';
-                    const description = (newItem.description || '').slice(0, 200);
-                    const category = newItem.category || '';
-                    try {
-                        let delivered = false;
-                        if (alert.channel_type === 'slack') {
-                            const text = `*${title}*${category ? ` [${category}]` : ''}\n${description ? description + '\n' : ''}<${url}|Read more>`;
-                            const res = await fetch(alert.webhook_url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, mrkdwn: true }), signal: AbortSignal.timeout(8000) });
-                            delivered = res.ok;
-                        } else if (alert.channel_type === 'discord') {
-                            const content = `**${title}**${category ? ` \`${category}\`` : ''}\n${description ? description + '\n' : ''}${url}`;
-                            const res = await fetch(alert.webhook_url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: content.slice(0, 2000) }), signal: AbortSignal.timeout(8000) });
-                            delivered = res.ok || res.status === 204;
-                        }
-                        if (delivered) base44.asServiceRole.entities.FeedAlert.update(alert.id, { last_sent: now }).catch(() => {});
-                    } catch {}
-                })
-            )
-        ).catch(() => {});
+        dispatchAlerts(created, feedAlerts, feed, base44).catch(() => {});
     }
 
-    // ── Step 7: Update feed record (isolated) ─────────────────────────────────
     await base44.asServiceRole.entities.Feed.update(feed.id, {
         last_fetched: now,
         last_successful_fetch_at: now,
@@ -371,224 +364,17 @@ async function processSingleFeed(feed, existingItems, alertsByFeedId, base44) {
         retry_after_at: null,
     }).catch(dbErr => {
         console.warn(`[fetchFeeds] Feed status update failed for "${feed.name}": ${dbErr.message}`);
-        // Non-fatal — articles were still written
+        summary.db_write_errors++;
     });
 
-    return {
-        feed_id: feed.id,
-        feed: feed.name,
-        status: 'ok',
-        new_items: newCount,
-        duplicates_skipped: duplicatesSkipped,
-    };
+    summary.ok++;
+    summary.new_items += newCount;
+    summary.duplicates += duplicatesSkipped;
+
+    return { feed_id: feed.id, feed: feed.name, status: 'ok', new_items: newCount, duplicates_skipped: duplicatesSkipped };
 }
 
-// ─── Main batch runner ────────────────────────────────────────────────────────
-// Processes feeds in small batches:
-// - HTTP fetches run with FEED_FETCH_CONCURRENCY concurrency
-// - DB writes are sequential with WRITE_DELAY_MS between them
-// - Each feed is fully isolated — one failure cannot affect others
-async function runFeedBatches(feeds, alertsByFeedId, base44) {
-    const summary = { ok: 0, error: 0, auto_paused: 0, rate_limited: 0, new_items: 0, duplicates: 0, db_write_errors: 0 };
-    const BATCH_SIZE = 10;
-
-    for (let i = 0; i < feeds.length; i += BATCH_SIZE) {
-        const batch = feeds.slice(i, i + BATCH_SIZE);
-
-        // ── Phase A: Fetch all feeds in this batch concurrently ────────────────
-        // HTTP fetches are cheap on the DB; run them in parallel with a concurrency cap
-        const fetchTasks = batch.map(feed => async () => {
-            try {
-                const items = await parseFeed(feed.url);
-                return { feed, items, fetchError: null };
-            } catch (err) {
-                return { feed, items: [], fetchError: err.message };
-            }
-        });
-        const fetchResults = await withConcurrency(fetchTasks, FEED_FETCH_CONCURRENCY);
-
-        // ── Phase B: Fetch existing items for dedup (batched DB read) ──────────
-        // Fetch last 300 items (up from 100) to widen the dedup window for high-volume feeds
-        const dedupResults = await Promise.allSettled(
-            batch.map(feed =>
-                base44.asServiceRole.entities.FeedItem.filter({ feed_id: feed.id }, '-created_date', 300)
-                    .then(existing => ({ feed_id: feed.id, existing: extractItems(existing) }))
-                    .catch(() => ({ feed_id: feed.id, existing: [] }))
-            )
-        );
-        const dedupMap = {};
-        for (const r of dedupResults) {
-            if (r.status === 'fulfilled') dedupMap[r.value.feed_id] = r.value.existing;
-        }
-
-        // ── Phase C: Write results SEQUENTIALLY to avoid DB rate-limiting ──────
-        for (let j = 0; j < fetchResults.length; j++) {
-            const { feed, items, fetchError, __err } = fetchResults[j];
-            const existingItems = dedupMap[feed.id] || [];
-
-            // Guard: withConcurrency error wrapper
-            const effectiveFetchError = __err || fetchError;
-
-            // Inject pre-fetched items/error into a mock feed result for processSingleFeed
-            // We override parseFeed by passing pre-fetched data directly
-            let result;
-            try {
-                if (effectiveFetchError) {
-                    // Simulate the failure path of processSingleFeed
-                    const now = new Date().toISOString();
-                    const newConsecutive = (feed.consecutive_errors || 0) + 1;
-                    const isRateLimit = effectiveFetchError.includes('429') || effectiveFetchError.toLowerCase().includes('rate limit');
-                    const isRecoverable = effectiveFetchError.startsWith('FEED_HTML') || effectiveFetchError.includes('404') || effectiveFetchError.startsWith('FEED_UNKNOWN');
-                    const shouldPause = newConsecutive >= MAX_CONSECUTIVE_ERRORS;
-
-                    if (isRecoverable && newConsecutive >= 2 && !shouldPause) {
-                        recoverFeedUrl(feed.url).then(async newUrl => {
-                            if (newUrl) {
-                                await base44.asServiceRole.entities.Feed.update(feed.id, {
-                                    url: newUrl, status: 'active', fetch_error: '', consecutive_errors: 0,
-                                    paused_by_system: false,
-                                }).catch(() => {});
-                                console.log(`[fetchFeeds] Auto-recovered "${feed.name}" → ${newUrl}`);
-                            }
-                        }).catch(() => {});
-                    }
-
-                    const feedUpdate = {
-                        last_fetched: now,
-                        fetch_error: effectiveFetchError.slice(0, 500),
-                        consecutive_errors: newConsecutive,
-                        last_failure_at: now,
-                        last_failure_reason: effectiveFetchError.slice(0, 300),
-                    };
-                    if (shouldPause) {
-                        feedUpdate.status = 'paused';
-                        feedUpdate.paused_by_system = true;
-                        feedUpdate.paused_reason = `Auto-paused after ${newConsecutive} failures: ${effectiveFetchError.slice(0, 200)}`;
-                        feedUpdate.retry_after_at = new Date(Date.now() + COOLDOWN_HOURS * 3600 * 1000).toISOString();
-                        console.warn(`[fetchFeeds] AUTO-PAUSED "${feed.name}" after ${newConsecutive} failures`);
-                        summary.auto_paused++;
-                    } else {
-                        feedUpdate.status = isRateLimit ? feed.status : 'error';
-                        if (isRateLimit) summary.rate_limited++; else summary.error++;
-                    }
-
-                    await base44.asServiceRole.entities.Feed.update(feed.id, feedUpdate).catch(dbErr => {
-                        console.warn(`[fetchFeeds] DB write failed for errored feed "${feed.name}": ${dbErr.message}`);
-                        summary.db_write_errors++;
-                    });
-
-                    result = {
-                        feed_id: feed.id, feed: feed.name,
-                        status: shouldPause ? 'auto_paused' : (isRateLimit ? 'rate_limited' : 'error'),
-                        error: effectiveFetchError,
-                    };
-                } else {
-                    // ── Success path: dedup + write ──────────────────────────────
-                    // Multi-signal dedup: guid, url, AND normalized-title+date composite
-                    // This catches duplicates even when guids are missing or urls differ slightly
-                    const existingGuids = new Set(existingItems.map(i => i.guid).filter(Boolean));
-                    const existingUrls  = new Set(existingItems.map(i => i.url).filter(Boolean));
-                    const existingTitleKeys = new Set(
-                        existingItems
-                            .filter(i => i.title && i.published_date)
-                            .map(i => `${i.title.toLowerCase().replace(/\s+/g, ' ').trim().slice(0, 80)}|${i.published_date?.slice(0, 10)}`)
-                    );
-                    const itemsToCreate = [];
-                    let duplicatesSkipped = 0;
-
-                    for (const item of items.slice(0, 50)) {
-                        if (!item.guid && !item.url) continue;
-                        if (item.guid && existingGuids.has(item.guid)) { duplicatesSkipped++; continue; }
-                        if (item.url && existingUrls.has(item.url)) { duplicatesSkipped++; continue; }
-                        // Composite title+date check as a fallback for feeds with unstable guids/urls
-                        const titleKey = item.title && item.published_date
-                            ? `${item.title.toLowerCase().replace(/\s+/g, ' ').trim().slice(0, 80)}|${item.published_date.slice(0, 10)}`
-                            : null;
-                        if (titleKey && existingTitleKeys.has(titleKey)) { duplicatesSkipped++; continue; }
-                        itemsToCreate.push({
-                            feed_id: feed.id,
-                            title: String(item.title || '').slice(0, 500),
-                            url: String(item.url || ''),
-                            description: String(item.description || '').slice(0, 2000),
-                            content: String(item.content || '').slice(0, 5000),
-                            author: String(item.author || '').slice(0, 200),
-                            published_date: item.published_date,
-                            guid: String(item.guid || item.url || ''),
-                            category: feed.category,
-                            tags: feed.tags || [],
-                            is_read: false,
-                        });
-                    }
-
-                    const newCount = itemsToCreate.length;
-                    let created = [];
-
-                    if (newCount > 0) {
-                        try {
-                            created = await base44.asServiceRole.entities.FeedItem.bulkCreate(itemsToCreate);
-                        } catch (bulkErr) {
-                            console.warn(`[fetchFeeds] bulkCreate failed for "${feed.name}": ${bulkErr.message}`);
-                            summary.db_write_errors++;
-                        }
-                    }
-
-                    // Enrichment fire-and-forget
-                    const createdIds = (Array.isArray(created) ? created : []).filter(i => i?.id).map(i => i.id).slice(0, 20);
-                    if (createdIds.length > 0) {
-                        base44.asServiceRole.functions.invoke('enrichFeedItems', { item_ids: createdIds }, {
-                            headers: { 'x-internal-secret': Deno.env.get('INTERNAL_SECRET') || '' }
-                        }).catch(() => {});
-                    }
-
-                    // Alerts fire-and-forget
-                    const feedAlerts = alertsByFeedId[feed.id];
-                    if (feedAlerts?.length && created.length > 0) {
-                        dispatchAlerts(created, feedAlerts, feed, base44).catch(() => {});
-                    }
-
-                    // Update feed status
-                    const now = new Date().toISOString();
-                    await base44.asServiceRole.entities.Feed.update(feed.id, {
-                        last_fetched: now,
-                        last_successful_fetch_at: now,
-                        item_count: (feed.item_count || 0) + newCount,
-                        status: 'active',
-                        fetch_error: '',
-                        consecutive_errors: 0,
-                        last_failure_reason: null,
-                        paused_by_system: false,
-                        paused_reason: null,
-                        retry_after_at: null,
-                    }).catch(dbErr => {
-                        console.warn(`[fetchFeeds] Feed status update failed for "${feed.name}": ${dbErr.message}`);
-                        summary.db_write_errors++;
-                    });
-
-                    summary.ok++;
-                    summary.new_items += newCount;
-                    summary.duplicates += duplicatesSkipped;
-
-                    result = { feed_id: feed.id, feed: feed.name, status: 'ok', new_items: newCount, duplicates_skipped: duplicatesSkipped };
-                }
-            } catch (unexpectedErr) {
-                // Absolute last-resort catch — should never reach here
-                console.error(`[fetchFeeds] UNEXPECTED per-feed error for "${feed.name}": ${unexpectedErr.message}`);
-                summary.error++;
-                result = { feed_id: feed.id, feed: feed.name, status: 'error', error: `unexpected: ${unexpectedErr.message}` };
-            }
-
-            console.log(`[fetchFeeds] ${result.status.toUpperCase()} "${result.feed}" ${result.new_items ? `+${result.new_items} items` : result.error ? `— ${result.error.slice(0, 80)}` : ''}`);
-
-            // Controlled delay between sequential DB writes to avoid rate-limiting
-            if (j < fetchResults.length - 1) await sleep(WRITE_DELAY_MS);
-        }
-
-        if (i + BATCH_SIZE < feeds.length) await sleep(BATCH_DELAY_MS);
-    }
-
-    return summary;
-}
-
+// ─── Alert dispatcher ─────────────────────────────────────────────────────────
 async function dispatchAlerts(created, feedAlerts, feed, base44) {
     const alertItems = created.filter(i => i?.id).slice(0, 10);
     return Promise.allSettled(
@@ -616,10 +402,73 @@ async function dispatchAlerts(created, feedAlerts, feed, base44) {
     );
 }
 
+// ─── Main batch runner ────────────────────────────────────────────────────────
+// Phase A: concurrent HTTP fetches (FEED_FETCH_CONCURRENCY parallel)
+// Phase B: batched DB reads for dedup
+// Phase C: sequential DB writes (WRITE_DELAY_MS between each) to avoid rate-limiting
+async function runFeedBatches(feeds, alertsByFeedId, base44) {
+    const summary = { ok: 0, error: 0, auto_paused: 0, rate_limited: 0, new_items: 0, duplicates: 0, db_write_errors: 0 };
+    const BATCH_SIZE = 10;
+
+    for (let i = 0; i < feeds.length; i += BATCH_SIZE) {
+        const batch = feeds.slice(i, i + BATCH_SIZE);
+
+        // Phase A: fetch all feeds in batch concurrently
+        const fetchTasks = batch.map(feed => async () => {
+            try {
+                const items = await parseFeed(feed.url);
+                return { feed, items, fetchError: null };
+            } catch (err) {
+                return { feed, items: [], fetchError: err.message };
+            }
+        });
+        const fetchResults = await withConcurrency(fetchTasks, FEED_FETCH_CONCURRENCY);
+
+        // Phase B: fetch existing items for dedup (parallel DB reads)
+        const dedupResults = await Promise.allSettled(
+            batch.map(feed =>
+                base44.asServiceRole.entities.FeedItem.filter({ feed_id: feed.id }, '-created_date', 300)
+                    .then(existing => ({ feed_id: feed.id, existing: extractItems(existing) }))
+                    .catch(() => ({ feed_id: feed.id, existing: [] }))
+            )
+        );
+        const dedupMap = {};
+        for (const r of dedupResults) {
+            if (r.status === 'fulfilled') dedupMap[r.value.feed_id] = r.value.existing;
+        }
+
+        // Phase C: process results sequentially (controlled DB write rate)
+        for (let j = 0; j < fetchResults.length; j++) {
+            const { feed, items, fetchError, __err } = fetchResults[j];
+            const existingItems = dedupMap[feed.id] || [];
+            const effectiveFetchError = __err || fetchError;
+
+            let result;
+            try {
+                if (effectiveFetchError) {
+                    result = await handleFeedError(feed, effectiveFetchError, summary, base44);
+                } else {
+                    result = await handleFeedSuccess(feed, items, existingItems, alertsByFeedId, summary, base44);
+                }
+            } catch (unexpectedErr) {
+                console.error(`[fetchFeeds] UNEXPECTED per-feed error for "${feed.name}": ${unexpectedErr.message}`);
+                summary.error++;
+                result = { feed_id: feed.id, feed: feed.name, status: 'error', error: `unexpected: ${unexpectedErr.message}` };
+            }
+
+            console.log(`[fetchFeeds] ${result.status.toUpperCase()} "${result.feed}" ${result.new_items ? `+${result.new_items} items` : result.error ? `— ${result.error.slice(0, 80)}` : ''}`);
+
+            if (j < fetchResults.length - 1) await sleep(WRITE_DELAY_MS);
+        }
+
+        if (i + BATCH_SIZE < feeds.length) await sleep(BATCH_DELAY_MS);
+    }
+
+    return summary;
+}
+
 // ─── Main Handler ─────────────────────────────────────────────────────────────
 Deno.serve(async (req) => {
-    // ── Boot: initialize SDK ───────────────────────────────────────────────────
-    // Only a failure here can fail the whole job — everything else is isolated
     let base44;
     try {
         base44 = createClientFromRequest(req);
@@ -628,12 +477,10 @@ Deno.serve(async (req) => {
             const { createClient } = await import('npm:@base44/sdk@0.8.21');
             base44 = createClient();
         } catch (bootErr) {
-            // True boot failure — cannot proceed
             return Response.json({ error: `SDK boot failed: ${bootErr.message}` }, { status: 500 });
         }
     }
 
-    // Auth: admin or scheduler only
     const { error: authError } = await requireAdminOrScheduler(base44);
     if (authError) return authError;
 
@@ -641,35 +488,30 @@ Deno.serve(async (req) => {
     const runStartMs = Date.now();
     const instanceId = makeRunId();
 
-    // ── Hardened run lock ──────────────────────────────────────────────────────
-    // Each run has an instanceId. We refuse to start if any run with a different
-    // instanceId is still active and has sent a heartbeat recently.
+    // ── Distributed run lock ───────────────────────────────────────────────────
     let recentRuns = [];
     try {
-        recentRuns = await base44.asServiceRole.entities.SystemHealth.filter(
+        recentRuns = extractItems(await base44.asServiceRole.entities.SystemHealth.filter(
             { job_type: 'feed_fetch', status: 'running' }, '-started_at', 5
-        ) || [];
+        ));
     } catch (lockErr) {
         console.warn(`[fetchFeeds][${instanceId}] Could not query lock (non-fatal):`, lockErr.message);
     }
 
-    // Expire zombie locks — any lock older than ZOMBIE_TTL with no recent heartbeat
     for (const stale of recentRuns) {
         const age = Date.now() - new Date(stale.started_at).getTime();
         const lastHeartbeat = stale.metadata?.last_heartbeat_at
             ? Date.now() - new Date(stale.metadata.last_heartbeat_at).getTime()
             : age;
-        const isZombie = age >= ZOMBIE_TTL_MS || lastHeartbeat > ZOMBIE_TTL_MS;
-        if (isZombie) {
-            console.warn(`[fetchFeeds][${instanceId}] Reclaiming zombie lock ${stale.id} (owner=${stale.metadata?.instance_id}, age=${Math.round(age/60000)}min, last_heartbeat=${Math.round(lastHeartbeat/60000)}min ago)`);
+        if (age >= ZOMBIE_TTL_MS || lastHeartbeat > ZOMBIE_TTL_MS) {
+            console.warn(`[fetchFeeds][${instanceId}] Reclaiming zombie lock ${stale.id}`);
             await base44.asServiceRole.entities.SystemHealth.update(stale.id, {
                 status: 'failed', completed_at: new Date().toISOString(),
-                error_message: `Zombie lock reclaimed by ${instanceId} after ${Math.round(age/60000)}min — last heartbeat ${Math.round(lastHeartbeat/60000)}min ago`,
+                error_message: `Zombie lock reclaimed by ${instanceId} after ${Math.round(age/60000)}min`,
             }).catch(() => {});
         }
     }
 
-    // After expiry, re-check for active live locks
     const activeLock = recentRuns.find(r => {
         const age = Date.now() - new Date(r.started_at).getTime();
         const lastHeartbeat = r.metadata?.last_heartbeat_at
@@ -678,7 +520,6 @@ Deno.serve(async (req) => {
         return age < LOCK_WINDOW_MS && lastHeartbeat < ZOMBIE_TTL_MS;
     });
     if (activeLock) {
-        console.warn(`[fetchFeeds][${instanceId}] Lock REFUSED — active owner: ${activeLock.metadata?.instance_id || activeLock.id} started ${activeLock.started_at}`);
         return Response.json({
             skipped: true,
             reason: 'Another run is actively in progress',
@@ -687,7 +528,6 @@ Deno.serve(async (req) => {
         });
     }
 
-    // Acquire lock with instance metadata
     let lockRecord = null;
     try {
         lockRecord = await base44.asServiceRole.entities.SystemHealth.create({
@@ -701,7 +541,6 @@ Deno.serve(async (req) => {
         console.warn(`[fetchFeeds][${instanceId}] Could not create lock:`, e.message);
     }
 
-    // Start heartbeat — updates lock every HEARTBEAT_INTERVAL_MS to prove liveness
     let heartbeatTimer = null;
     if (lockRecord?.id) {
         heartbeatTimer = setInterval(() => {
@@ -711,17 +550,13 @@ Deno.serve(async (req) => {
         }, HEARTBEAT_INTERVAL_MS);
     }
 
-    // ── Load feeds — MAIN RUN ONLY: active and error feeds ────────────────────
-    // Recovery (system-paused) feeds are handled by the separate recoverFeeds function.
-    // This guarantees that healthy active feeds always have the full capacity of this run.
+    // ── Load feeds ─────────────────────────────────────────────────────────────
     let allFeeds = [];
     try {
-        const rawFeeds = await base44.asServiceRole.entities.Feed.filter(
+        allFeeds = extractItems(await base44.asServiceRole.entities.Feed.filter(
             { status: { $in: ['active', 'error'] } }, 'last_fetched', 2000
-        );
-        allFeeds = extractItems(rawFeeds);
+        ));
     } catch (feedErr) {
-        // If we can't load feeds at all, that's a system-level failure worth reporting
         clearInterval(heartbeatTimer);
         console.error(`[fetchFeeds][${instanceId}] Failed to load feeds:`, feedErr.message);
         await base44.asServiceRole.entities.SystemHealth.update(lockRecord?.id, {
@@ -755,14 +590,12 @@ Deno.serve(async (req) => {
     }
 
     // ── Run batches ────────────────────────────────────────────────────────────
-    // This function absorbs ALL per-feed errors internally and NEVER throws
     const summary = await runFeedBatches(feeds, alertsByFeedId, base44).catch(batchErr => {
         console.error(`[fetchFeeds][${instanceId}] runFeedBatches threw unexpectedly:`, batchErr.message);
         return { ok: 0, error: feeds.length, auto_paused: 0, rate_limited: 0, new_items: 0, duplicates: 0, db_write_errors: 1 };
     });
 
     const runDurationMs = Date.now() - runStartMs;
-
     const finalSummary = {
         feeds_attempted: feeds.length,
         feeds_ok: summary.ok,
@@ -782,7 +615,6 @@ Deno.serve(async (req) => {
 
     console.log(`[fetchFeeds][${instanceId}] DONE — ${JSON.stringify(finalSummary)}`);
 
-    // Clear heartbeat and mark lock completed
     clearInterval(heartbeatTimer);
     if (lockRecord?.id) {
         await base44.asServiceRole.entities.SystemHealth.update(lockRecord.id, {
@@ -792,8 +624,5 @@ Deno.serve(async (req) => {
         }).catch(() => {});
     }
 
-    // ── Always return 200 ──────────────────────────────────────────────────────
-    // The scheduler should NEVER be disabled due to feed-level failures.
-    // Only true boot errors (SDK init) return 500.
     return Response.json({ success: true, instance_id: instanceId, ...finalSummary });
 });
