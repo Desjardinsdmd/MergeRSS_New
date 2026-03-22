@@ -56,6 +56,49 @@
  * }
  *
  * ─────────────────────────────────────────────────────────────────────────────
+ * PATTERN 3b: Dedup helpers (fetchFeeds + recoverFeeds)
+ * ─────────────────────────────────────────────────────────────────────────────
+ *
+ * function buildDedupSets(existingItems) {
+ *     const guids = new Set(existingItems.map(i => i.guid).filter(Boolean));
+ *     const urls  = new Set(existingItems.map(i => i.url).filter(Boolean));
+ *     const titleKeys = new Set(
+ *         existingItems
+ *             .filter(i => i.title && i.published_date)
+ *             .map(i => `${i.title.toLowerCase().replace(/\s+/g, ' ').trim().slice(0, 80)}|${i.published_date?.slice(0, 10)}`)
+ *     );
+ *     return { guids, urls, titleKeys };
+ * }
+ *
+ * function isDuplicate(item, dedupSets) {
+ *     if (!item.guid && !item.url) return true;
+ *     if (item.guid && dedupSets.guids.has(item.guid)) return true;
+ *     if (item.url && dedupSets.urls.has(item.url)) return true;
+ *     if (item.title && item.published_date) {
+ *         const key = `${item.title.toLowerCase().replace(/\s+/g, ' ').trim().slice(0, 80)}|${item.published_date.slice(0, 10)}`;
+ *         if (dedupSets.titleKeys.has(key)) return true;
+ *     }
+ *     return false;
+ * }
+ *
+ * function buildFeedItemRecord(item, feed) {
+ *     return {
+ *         feed_id: feed.id,
+ *         title: String(item.title || '').slice(0, 500),
+ *         url: String(item.url || ''),
+ *         description: String(item.description || '').slice(0, 2000),
+ *         content: String(item.content || '').slice(0, 5000),
+ *         author: String(item.author || '').slice(0, 200),
+ *         published_date: item.published_date,
+ *         guid: String(item.guid || item.url || ''),
+ *         category: feed.category,
+ *         tags: feed.tags || [],
+ *         is_read: false,
+ *         enrichment_status: 'pending',   // set by enrichFeedItems to 'done' or 'fallback'
+ *     };
+ * }
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
  * PATTERN 4: Batch helpers
  * ─────────────────────────────────────────────────────────────────────────────
  *
