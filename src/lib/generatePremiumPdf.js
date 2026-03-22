@@ -450,11 +450,10 @@ function buildPageTemplates(doc, r, mismatchMsg, deliveryCount, startDate, endDa
     add(t, barItem('05', 'OUTLOOK AND FORWARD SIGNALS'));
     add(t, { type: 'spacer', h: 4 });
 
-    // Intro paragraph — rendered as body text, not a numbered signal
+    // Intro paragraph — rendered as clean body prose
     if (intro) {
-      const h = D.split(doc, intro, G.col, false, 9.5).length * LH.body + 8;
+      const h = D.split(doc, intro, G.col, false, 10).length * LH.body + 10;
       add(t, { type: 'outlookIntro', text: intro, h });
-      add(t, { type: 'spacer', h: 4 });
     }
 
     let sigsOnPage = 0;
