@@ -258,7 +258,7 @@ Write a well-organized, professional digest. Group related stories where appropr
                     // Slack
                     (async () => {
                         if (!digest.delivery_slack) return;
-                        const slackIntegrations = await base44.asServiceRole.entities.Integration.filter({ type: 'slack', status: 'connected', created_by: digest.created_by });
+                        const slackIntegrations = extractItems(await base44.asServiceRole.entities.Integration.filter({ type: 'slack', status: 'connected', created_by: digest.created_by }));
                         const slackInt = slackIntegrations[0];
                         if (!slackInt?.webhook_url) return;
                         if (!isAllowedWebhookUrl(slackInt.webhook_url)) {
