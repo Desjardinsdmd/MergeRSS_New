@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
 
         let digests;
         if (digest_id) {
-            const all = await base44.asServiceRole.entities.Digest.list();
+            const all = extractItems(await base44.asServiceRole.entities.Digest.list());
             const d = all.find(x => x.id === digest_id);
             if (d && callerEmail && d.created_by !== callerEmail) {
                 return Response.json({ error: 'Forbidden' }, { status: 403 });
