@@ -617,12 +617,13 @@ function rInflection(doc, y, pt, isLast) {
 }
 
 function rOutlookIntro(doc, y, text) {
-  // Rendered as a pull-quote / lead paragraph — slightly larger, muted
-  D.fill(doc, G.mX, y, G.col, 2, C.rule);
-  D.font(doc, false, 9.5); D.rgb(doc, C.inkSub);
-  const lines = D.split(doc, text, G.col, false, 9.5);
-  lines.forEach((l, i) => doc.text(l, G.mX, y + 8 + i * LH.body));
-  return y + lines.length * LH.body + 12;
+  // Lead paragraph — styled with a subtle left accent bar, no top rule artifact
+  const lines = D.split(doc, text, G.col - 10, false, 10);
+  const h = lines.length * LH.body + 6;
+  D.fill(doc, G.mX, y, 3, h, C.amberPale);
+  D.font(doc, false, 10); D.rgb(doc, C.inkSub);
+  lines.forEach((l, i) => doc.text(l, G.mX + 8, y + LH.body + i * LH.body));
+  return y + h + 8;
 }
 
 function rSignal(doc, y, signal, index) {
