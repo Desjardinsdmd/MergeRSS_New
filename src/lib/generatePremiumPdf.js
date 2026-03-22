@@ -247,7 +247,8 @@ function mKeyTakeaway(doc, summary) {
 function mTheme(doc, t) {
   const tH = D.split(doc, t.theme || '', THEME_TITLE_W, true, 11.5).length * LH.h2;
   const dH = D.split(doc, t.description || '', THEME_DESC_W, false, 9.5).length * LH.body;
-  return tH + dH + 26;
+  // Minimum card height ensures short-description themes feel substantial on page
+  return Math.max(tH + dH + 26, 52);
 }
 
 function mInflection(doc, pt) {
