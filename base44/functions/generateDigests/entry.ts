@@ -162,16 +162,16 @@ Deno.serve(async (req) => {
                     // Forced test: use most recent items regardless of date
                     let fallbackItems = [];
                     if (digest.feed_ids?.length > 0) {
-                        fallbackItems = await base44.asServiceRole.entities.FeedItem.filter({
+                        fallbackItems = extractItems(await base44.asServiceRole.entities.FeedItem.filter({
                             feed_id: { $in: digest.feed_ids }
-                        }, '-published_date', 50);
+                        }, '-published_date', 50));
                     } else {
-                        const ownerFeeds = await base44.asServiceRole.entities.Feed.filter({ created_by: digest.created_by });
+                        const ownerFeeds = extractItems(await base44.asServiceRole.entities.Feed.filter({ created_by: digest.created_by }));
                         const ownerFeedIds = ownerFeeds.map(f => f.id);
                         if (ownerFeedIds.length > 0) {
-                            fallbackItems = await base44.asServiceRole.entities.FeedItem.filter({
+                            fallbackItems = extractItems(await base44.asServiceRole.entities.FeedItem.filter({
                                 feed_id: { $in: ownerFeedIds }
-                            }, '-published_date', 50);
+                            }, '-published_date', 50));
                         }
                     }
                     if (digest.categories?.length > 0) {
