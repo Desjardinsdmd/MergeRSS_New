@@ -290,7 +290,7 @@ Write a well-organized, professional digest. Group related stories where appropr
                     // Teams
                     (async () => {
                         if (!digest.delivery_teams) return;
-                        const teamsIntegrations = await base44.asServiceRole.entities.Integration.filter({ type: 'teams', status: 'connected' });
+                        const teamsIntegrations = extractItems(await base44.asServiceRole.entities.Integration.filter({ type: 'teams', status: 'connected' }));
                         const teamsInt = teamsIntegrations.find(i => i.created_by === digest.created_by) || teamsIntegrations[0];
                         if (!teamsInt?.webhook_url) return;
                         if (!isAllowedWebhookUrl(teamsInt.webhook_url)) {
