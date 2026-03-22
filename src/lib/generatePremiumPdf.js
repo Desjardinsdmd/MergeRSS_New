@@ -351,15 +351,14 @@ function buildPageTemplates(doc, r, mismatchMsg, deliveryCount, startDate, endDa
     const MAX_PER_PAGE = 2;
     let t = tpl();
     let countOnPage = 0;
+    let isFirstThemePage = true;
+
+    // Add header for the first themes page
+    add(t, barItem('02', 'KEY THEMES AND EVOLUTION', false));
 
     for (let i = 0; i < r.key_themes.length; i++) {
       const theme = r.key_themes[i];
       const h = mTheme(doc, theme) + 5;
-      const isCont = countOnPage === 0 && templates.indexOf(t) > 0;
-
-      if (countOnPage === 0) {
-        add(t, barItem('02', 'KEY THEMES AND EVOLUTION', isCont));
-      }
 
       // Start new page if over per-page limit OR no space
       if (countOnPage >= MAX_PER_PAGE || t.usedH + h > USABLE - 4) {
