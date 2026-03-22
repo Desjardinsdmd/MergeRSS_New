@@ -1,688 +1,791 @@
+/**
+ * MergeRSS Premium PDF Report
+ * ───────────────────────────
+ * Architecture: page-template composition system.
+ * The report is assembled as a sequence of intentionally-designed page templates.
+ * Content flows within templates; templates never flow across pages.
+ *
+ * Glyph policy: ALL trajectory labels, section markers, and decorative symbols
+ * use ASCII-only strings. No Unicode arrows, bullets, or smart punctuation
+ * anywhere in rendered text to guarantee clean output across all PDF viewers.
+ */
+
 import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
 
-// ─── Page geometry & design tokens ───────────────────────────────────────────
-// US Letter, portrait. All units mm. 1" = 25.4mm.
+// ─── Geometry & tokens ───────────────────────────────────────────────────────
+// US Letter portrait. All measurements in mm.
 
-const P = {
-  pageW:      215.9,
-  pageH:      279.4,
-  marginX:    19.05,   // 0.75" side margins
-  marginY:    19.05,   // top margin on content pages
-  footerH:    13,      // reserved at bottom for footer
-  get col()        { return this.pageW - this.marginX * 2; },     // 177.8mm
-  get usableH()    { return this.pageH - this.marginY - this.footerH; }, // ~247mm per page
-  get bodyBottom() { return this.pageH - this.footerH; },
-
-  // Brand
-  amber:       [175, 115, 0],
-  amberLight:  [255, 248, 220],
-  amberBorder: [195, 145, 18],
-  accent:      [58, 38, 118],
-  accentLight: [240, 237, 250],
-
-  // Text
-  ink:         [18, 18, 18],
-  inkSub:      [55, 55, 55],
-  inkMuted:    [105, 105, 105],
-  inkFaint:    [158, 158, 158],
-
-  // Surfaces
-  white:       [255, 255, 255],
-  cardBg:      [248, 248, 248],
-  cardBorder:  [218, 218, 218],
-  ruleColor:   [205, 205, 205],
+const G = {
+  pageW:   215.9,
+  pageH:   279.4,
+  mX:      20.0,    // left/right margin (0.79")
+  mTop:    18.0,    // top margin on content pages
+  mBot:    18.0,    // bottom margin (footer zone)
+  get col()      { return this.pageW - this.mX * 2; },         // ~175.9mm
+  get bodyH()    { return this.pageH - this.mTop - this.mBot; }, // usable body height
+  get bodyBase() { return this.pageH - this.mBot; },             // y of footer line
 };
 
-// Typographic line heights (mm)
-const LH = { body: 6.2, small: 5.0, label: 4.5, large: 7.0 };
-
-// Section layout constraints
-const LAYOUT = {
-  THEMES_PER_PAGE:  3,   // max theme blocks per page
-  SIGNALS_PER_PAGE: 6,   // max outlook signals per page
-  SECTION_HEADER_H: 15,  // header bar + gap below
-  MIN_ORPHAN_H:     30,  // min usable space required to start a section on a page
+// Print-safe color palette — legible on white paper in all PDF viewers
+const C = {
+  ink:        [15,  15,  15],
+  inkSub:     [50,  50,  50],
+  inkMuted:   [100, 100, 100],
+  inkFaint:   [155, 155, 155],
+  white:      [255, 255, 255],
+  amber:      [170, 110,   0],
+  amberPale:  [255, 248, 215],
+  amberRule:  [190, 140,  15],
+  purple:     [ 55,  35, 115],
+  purplePale: [238, 235, 250],
+  cardBg:     [247, 247, 247],
+  cardEdge:   [215, 215, 215],
+  rule:       [200, 200, 200],
+  // Section-specific tints (print-safe)
+  greenPale:  [228, 248, 234],
+  greenInk:   [  0, 108,  55],
+  redPale:    [252, 228, 228],
+  redInk:     [150,  22,  22],
+  bluePale:   [225, 235, 255],
+  blueInk:    [ 18,  60, 160],
+  orangePale: [255, 238, 210],
+  orangeInk:  [148,  72,   0],
+  grayPale:   [235, 235, 235],
+  grayInk:    [ 85,  85,  85],
 };
 
-// Trajectory config — print-safe palette
+// Typographic line heights (mm) — generous for print readability
+const LH = { h1: 8.5, h2: 7.5, body: 6.4, small: 5.2, label: 4.6 };
+
+// ─── ASCII-only trajectory labels ────────────────────────────────────────────
+// NO Unicode arrows or symbols — guaranteed safe in Helvetica across all viewers.
+
 const TRAJ = {
-  rising:    { label: 'Rising \u2191',    fg: [0, 115, 65],   bg: [225, 248, 234] },
-  falling:   { label: 'Falling \u2193',   fg: [155, 25, 25],  bg: [252, 228, 228] },
-  stable:    { label: 'Stable \u2192',    fg: [88, 88, 88],   bg: [236, 236, 236] },
-  volatile:  { label: 'Volatile',         fg: [155, 75, 0],   bg: [255, 236, 208] },
-  peaked:    { label: 'Peaked',           fg: [155, 75, 0],   bg: [255, 236, 208] },
-  resolving: { label: 'Resolving \u2198', fg: [18, 65, 165],  bg: [222, 232, 255] },
+  rising:    { label: 'Rising',     fg: C.greenInk,  bg: C.greenPale  },
+  falling:   { label: 'Falling',    fg: C.redInk,    bg: C.redPale    },
+  stable:    { label: 'Stable',     fg: C.grayInk,   bg: C.grayPale   },
+  volatile:  { label: 'Volatile',   fg: C.orangeInk, bg: C.orangePale },
+  peaked:    { label: 'Peaked',     fg: C.orangeInk, bg: C.orangePale },
+  resolving: { label: 'Resolving',  fg: C.blueInk,   bg: C.bluePale   },
 };
 
-// ─── Primitive draw helpers ───────────────────────────────────────────────────
+// ─── Primitive draw layer ────────────────────────────────────────────────────
 
 const D = {
-  font(doc, bold, size)         { doc.setFont('helvetica', bold ? 'bold' : 'normal'); doc.setFontSize(size); },
-  color(doc, rgb)               { doc.setTextColor(...rgb); },
-  fill(doc, x, y, w, h, rgb)   { doc.setFillColor(...rgb); doc.rect(x, y, w, h, 'F'); },
-  stroke(doc, x, y, w, h, rgb, lw = 0.3) { doc.setDrawColor(...rgb); doc.setLineWidth(lw); doc.rect(x, y, w, h, 'S'); },
-  line(doc, x1, y1, x2, y2, rgb, lw = 0.3) { doc.setDrawColor(...rgb); doc.setLineWidth(lw); doc.line(x1, y1, x2, y2); },
-  circle(doc, x, y, r, rgb)    { doc.setFillColor(...rgb); doc.circle(x, y, r, 'F'); },
+  font(doc, bold, size) {
+    doc.setFont('helvetica', bold ? 'bold' : 'normal');
+    doc.setFontSize(size);
+  },
+  rgb(doc, arr)  { doc.setTextColor(...arr); },
+  fill(doc, x, y, w, h, arr) { doc.setFillColor(...arr); doc.rect(x, y, w, h, 'F'); },
+  stroke(doc, x, y, w, h, arr, lw = 0.3) {
+    doc.setDrawColor(...arr); doc.setLineWidth(lw); doc.rect(x, y, w, h, 'S');
+  },
+  line(doc, x1, y1, x2, y2, arr, lw = 0.3) {
+    doc.setDrawColor(...arr); doc.setLineWidth(lw); doc.line(x1, y1, x2, y2);
+  },
+  dot(doc, x, y, r, arr) { doc.setFillColor(...arr); doc.circle(x, y, r, 'F'); },
 
-  // Render wrapped text, return new Y
-  text(doc, str, x, y, { size = 9.5, rgb = P.ink, bold = false, maxW = P.col, lh, align = 'left' } = {}) {
+  // Render wrapped text, return new Y after last line
+  para(doc, str, x, y, { size = 9.5, rgb = C.ink, bold = false, maxW = G.col, lh } = {}) {
     this.font(doc, bold, size);
-    this.color(doc, rgb);
+    this.rgb(doc, rgb);
     const lineH = lh || LH.body;
     for (const l of doc.splitTextToSize(String(str || ''), maxW)) {
-      doc.text(l, x, y, { align });
+      doc.text(l, x, y);
       y += lineH;
     }
     return y;
   },
 
-  // Measure wrapped lines (no render)
-  lines(doc, str, maxW, bold = false, size = 9.5) {
+  // Measure wrapped lines array (no render)
+  split(doc, str, maxW, bold = false, size = 9.5) {
     this.font(doc, bold, size);
     return doc.splitTextToSize(String(str || ''), maxW);
   },
 
-  // Measure total height of wrapped text block
-  textH(doc, str, maxW, bold, size, lh) {
-    return this.lines(doc, str, maxW, bold, size).length * (lh || LH.body);
+  // Total height of a wrapped text block
+  blockH(doc, str, maxW, bold, size, lh) {
+    return this.split(doc, str, maxW, bold, size).length * (lh || LH.body);
   },
 };
 
-// ─── Page state ───────────────────────────────────────────────────────────────
+// ─── Page & footer ───────────────────────────────────────────────────────────
 
 function makeState(digestName, reportDate) {
   return { page: 1, digestName, reportDate };
 }
 
-function initPage(doc, state) {
-  D.fill(doc, 0, 0, P.pageW, P.pageH, P.white);
-  _drawFooter(doc, state.page, state.digestName, state.reportDate);
+function stampFooter(doc, state) {
+  const fy = G.pageH - 6;
+  D.line(doc, G.mX, G.pageH - 12, G.pageW - G.mX, G.pageH - 12, C.rule, 0.4);
+  D.font(doc, false, 6.5); D.rgb(doc, C.inkFaint);
+  doc.text('MergeRSS Intelligence Report', G.mX, fy);
+  if (state.reportDate) doc.text(state.reportDate, G.pageW / 2, fy, { align: 'center' });
+  doc.text(String(state.page), G.pageW - G.mX, fy, { align: 'right' });
 }
 
-function breakPage(doc, state) {
+function openPage(doc, state) {
+  D.fill(doc, 0, 0, G.pageW, G.pageH, C.white);
+  stampFooter(doc, state);
+}
+
+function nextPage(doc, state) {
   doc.addPage();
   state.page++;
-  initPage(doc, state);
-  return P.marginY;
+  openPage(doc, state);
+  return G.mTop;
 }
 
-// ─── Footer ───────────────────────────────────────────────────────────────────
+// ─── Section header ───────────────────────────────────────────────────────────
+// Full-bleed tinted bar with number pip + label. Returns Y after bar+gap.
 
-function _drawFooter(doc, pageNum, digestName, reportDate) {
-  const fy = P.pageH - 5.5;
-  D.line(doc, P.marginX, P.pageH - 11, P.pageW - P.marginX, P.pageH - 11, P.ruleColor, 0.4);
-  D.font(doc, false, 6.5);
-  D.color(doc, P.inkFaint);
-  doc.text(`MergeRSS Intelligence Report  \u00B7  ${digestName || ''}`, P.marginX, fy);
-  if (reportDate) doc.text(reportDate, P.pageW / 2, fy, { align: 'center' });
-  doc.text(String(pageNum), P.pageW - P.marginX, fy, { align: 'right' });
-}
-
-// ─── Section header bar ───────────────────────────────────────────────────────
-
-function drawSectionHeader(doc, y, num, label) {
+function sectionBar(doc, y, num, title, cont = false) {
   const barH = 10;
-  D.fill(doc, 0, y, P.pageW, barH, P.accentLight);
-  D.line(doc, 0, y + barH, P.pageW, y + barH, [198, 193, 220], 0.5);
-  D.font(doc, true, 7.5); D.color(doc, P.accent);
-  doc.text(num, P.marginX, y + barH - 2.5);
-  D.line(doc, P.marginX + 9, y + 2.8, P.marginX + 9, y + barH - 2.5, [178, 172, 210], 0.5);
-  D.font(doc, true, 7.5); D.color(doc, P.inkSub);
-  doc.text(label, P.marginX + 13, y + barH - 2.5);
-  return y + barH + 5;
+  const label = cont ? `${title} (cont.)` : title;
+  D.fill(doc, 0, y, G.pageW, barH, C.purplePale);
+  D.line(doc, 0, y + barH, G.pageW, y + barH, [195, 190, 218], 0.5);
+  D.font(doc, true, 7); D.rgb(doc, C.purple);
+  doc.text(num, G.mX, y + barH - 2.5);
+  D.line(doc, G.mX + 9, y + 3, G.mX + 9, y + barH - 2.5, [178, 172, 210], 0.4);
+  D.font(doc, true, 7); D.rgb(doc, C.inkSub);
+  doc.text(label, G.mX + 13, y + barH - 2.5);
+  return y + barH + 6;
 }
 
-function drawRule(doc, y) {
-  D.line(doc, P.marginX, y, P.marginX + P.col, y, P.ruleColor, 0.4);
-  return y + 8;
+function hRule(doc, y) {
+  D.line(doc, G.mX, y, G.mX + G.col, y, C.rule, 0.4);
+  return y + 7;
 }
 
-// ─── MEASUREMENT PASS ────────────────────────────────────────────────────────
-// All height calculations live here. Renderers use these same formulas.
-// This ensures the plan exactly matches what gets drawn.
+// ─── CONTENT PARSERS ─────────────────────────────────────────────────────────
+// Structured parsing happens here before any height measurement or rendering.
 
-function measureKeyTakeaway(doc, summary) {
-  const first = summary.split(/(?<=[.!?])\s+/)[0] || summary.slice(0, 350);
-  const lines = D.lines(doc, first, P.col - 14, false, 10);
-  return lines.length * LH.body + 18;
-}
+/**
+ * Parse the outlook text into { intro: string|null, signals: string[] }.
+ *
+ * Strategy:
+ * 1. Try to detect numbered items (lines starting with 1. 2. 3. or First, Second, etc.)
+ * 2. If found, first non-numbered block = intro, rest = signals
+ * 3. If not found, split on double-newline; first block = intro, rest = signals
+ * 4. Never split a signal by sentence punctuation
+ */
+function parseOutlook(rawOutlook) {
+  if (!rawOutlook || !rawOutlook.trim()) return { intro: null, signals: [] };
 
-function measureThemeBlock(doc, theme) {
-  const titleH = D.lines(doc, theme.theme || '', P.col - 55, true, 11).length * LH.large;
-  const descH  = D.lines(doc, theme.description || '', P.col - 10, false, 9).length * LH.body;
-  return titleH + descH + 22;
-}
+  const text = rawOutlook.trim();
 
-function measureInflectionEntry(doc, pt) {
-  const evH  = D.lines(doc, pt.event || '', P.col - 20, true, 10.5).length * LH.large;
-  const sigH = D.lines(doc, pt.significance || '', P.col - 20, false, 9).length * LH.body;
-  return evH + sigH + 18;
-}
+  // Try numbered list detection: lines starting with digit+period or ordinal words
+  const numberedPattern = /^(\d+[.)]\s|First[,:]?\s|Second[,:]?\s|Third[,:]?\s|Fourth[,:]?\s|Fifth[,:]?\s|Sixth[,:]?\s|Finally[,:]?\s)/im;
+  const lines = text.split(/\r?\n/);
 
-function measureSignal(doc, signal) {
-  return Math.max(D.lines(doc, signal.trim(), P.col - 16, false, 9.5).length * LH.body, 8) + 8;
-}
+  // Find where numbered items start
+  let numberedStart = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (numberedPattern.test(lines[i].trim())) { numberedStart = i; break; }
+  }
 
-function measureTrajBlock(doc, r) {
-  const colDefs = [
-    { items: r.escalating_topics || [] },
-    { items: r.deescalating_topics || [] },
-    { items: r.cyclical_topics || [] },
-  ];
-  const active = colDefs.filter(c => c.items.length > 0);
-  if (!active.length) return 0;
-  const gutter = 5;
-  const colW = Math.floor((P.col - gutter * (active.length - 1)) / active.length);
-  let maxH = 12;
-  for (const col of active) {
-    let h = 12;
-    for (const item of col.items) {
-      h += D.lines(doc, `\u2022  ${item}`, colW - 10, false, 9).length * LH.body + 2;
+  if (numberedStart > 0) {
+    // Everything before the first numbered line = intro paragraph
+    const intro = lines.slice(0, numberedStart).join(' ').trim() || null;
+    // Group numbered lines into signal blocks (accumulate until next numbered line)
+    const signalLines = lines.slice(numberedStart);
+    const signals = [];
+    let current = [];
+    for (const line of signalLines) {
+      if (numberedPattern.test(line.trim()) && current.length > 0) {
+        signals.push(current.join(' ').trim());
+        current = [line];
+      } else {
+        current.push(line);
+      }
     }
-    h += 8;
+    if (current.length > 0) signals.push(current.join(' ').trim());
+    return { intro, signals: signals.filter(s => s.length > 4) };
+  }
+
+  if (numberedStart === 0) {
+    // All numbered — no intro
+    const signals = [];
+    let current = [];
+    for (const line of lines) {
+      if (numberedPattern.test(line.trim()) && current.length > 0) {
+        signals.push(current.join(' ').trim());
+        current = [line];
+      } else {
+        current.push(line);
+      }
+    }
+    if (current.length > 0) signals.push(current.join(' ').trim());
+    return { intro: null, signals: signals.filter(s => s.length > 4) };
+  }
+
+  // No numbered structure — split on paragraph breaks
+  const paras = text.split(/\n{2,}/).map(p => p.replace(/\n/g, ' ').trim()).filter(p => p.length > 4);
+  if (paras.length <= 1) {
+    // Single block — treat whole thing as intro, no numbered signals
+    return { intro: paras[0] || null, signals: [] };
+  }
+  return { intro: paras[0], signals: paras.slice(1) };
+}
+
+// ─── HEIGHT MEASUREMENT ───────────────────────────────────────────────────────
+// Every block type has a matching measure function.
+// Render functions use identical parameters to guarantee plan accuracy.
+
+const THEME_TITLE_W = G.col - 55;
+const THEME_DESC_W  = G.col - 10;
+const INF_TEXT_W    = G.col - 22;
+const SIG_TEXT_W    = G.col - 20;
+
+function mKeyTakeaway(doc, summary) {
+  const first = summary.split(/\.\s+/)[0] || summary.slice(0, 400);
+  return D.split(doc, first, G.col - 14, false, 10.5).length * LH.body + 22;
+}
+
+function mTheme(doc, t) {
+  const tH = D.split(doc, t.theme || '', THEME_TITLE_W, true, 11.5).length * LH.h2;
+  const dH = D.split(doc, t.description || '', THEME_DESC_W, false, 9.5).length * LH.body;
+  return tH + dH + 26;
+}
+
+function mInflection(doc, pt) {
+  const eH = D.split(doc, pt.event || '', INF_TEXT_W, true, 11).length * LH.h2;
+  const sH = D.split(doc, pt.significance || '', INF_TEXT_W, false, 9.5).length * LH.body;
+  return eH + sH + 22;
+}
+
+function mSignal(doc, sig) {
+  return Math.max(D.split(doc, sig.trim(), SIG_TEXT_W, false, 10).length * LH.body, 8) + 12;
+}
+
+function mTraj(doc, r) {
+  const cols = [r.escalating_topics || [], r.deescalating_topics || [], r.cyclical_topics || []].filter(c => c.length > 0);
+  if (!cols.length) return 0;
+  const gutter = 5;
+  const colW = Math.floor((G.col - gutter * (cols.length - 1)) / cols.length);
+  let maxH = 14;
+  for (const items of cols) {
+    let h = 14;
+    for (const item of items) h += D.split(doc, item, colW - 12, false, 9).length * LH.small + 3;
+    h += 10;
     if (h > maxH) maxH = h;
   }
   return maxH;
 }
 
-function measureDataSummary() {
-  return 34; // fixed panel height
+// Elastic data summary: measure actual row heights for each stat
+function mDataSummaryRows(doc, ds, deliveryCount, startDate, endDate) {
+  const stats = buildDataStats(ds, deliveryCount, startDate, endDate);
+  const ROW_LABEL_H = LH.label + 3;
+  const ROW_PAD = 8;
+  return stats.map(s => ({
+    ...s,
+    h: ROW_LABEL_H + D.split(doc, s.val, G.col - 16, true, 11).length * LH.h2 + ROW_PAD,
+  }));
 }
 
-// ─── PAGE PLANNER ─────────────────────────────────────────────────────────────
-// Builds an ordered list of "page plans" before any rendering happens.
-// Each plan is: { forceNewPage, items: [ {type, data, height} ] }
-// The renderer iterates plans → pages → items in order.
+function buildDataStats(ds, deliveryCount, startDate, endDate) {
+  return [
+    { label: 'ISSUES ANALYZED', val: String(ds.digest_count || deliveryCount || 'N/A') },
+    { label: 'DATE RANGE',      val: ds.date_range || [startDate, endDate].filter(Boolean).join(' to ') || 'N/A' },
+    { label: 'MOST ACTIVE PERIOD', val: ds.most_active_period || 'N/A' },
+  ];
+}
 
-function planPages(doc, r, hasMismatch) {
-  const usable = P.usableH;
-  const pages = [];  // array of page plans: { startsSection, items }
+// ─── PAGE TEMPLATE PLANNER ────────────────────────────────────────────────────
+/**
+ * Produces a sequence of PageTemplates. Each template maps to exactly one
+ * physical page. Templates are explicit, not discovered by overflow detection.
+ *
+ * Template shape: { items: Array<{ type, ...data, h }> }
+ *
+ * The render pass iterates templates one-to-one with pages.
+ */
 
-  function newPlan() {
-    const plan = { items: [], usedH: 0 };
-    pages.push(plan);
-    return plan;
+function buildPageTemplates(doc, r, mismatchMsg, deliveryCount, startDate, endDate) {
+  const templates = [];
+  const USABLE = G.bodyH;  // mm available per content page
+  const BAR_H  = 16;       // section bar + gap
+  const RULE_H = 7;
+
+  function tpl() { const t = { items: [], usedH: 0 }; templates.push(t); return t; }
+  function add(t, item) { t.items.push(item); t.usedH += item.h; }
+  function barItem(num, title, cont = false) {
+    return { type: 'sectionBar', num, title, cont, h: BAR_H };
   }
+  function ruleItem() { return { type: 'rule', h: RULE_H }; }
 
-  function addItem(plan, item) {
-    plan.items.push(item);
-    plan.usedH += item.h;
-  }
+  // ── TEMPLATE: Executive Summary ───────────────────────────────────────────
+  // Always its own page(s). Key takeaway is hero element, then body paragraphs.
+  {
+    let t = tpl();
 
-  // Helper: start section header — always reserved with content, never alone
-  function sectionItem(num, label) {
-    return { type: 'sectionHeader', num, label, h: LAYOUT.SECTION_HEADER_H };
-  }
-  function ruleItem() { return { type: 'rule', h: 8 }; }
-  function spacerItem(h) { return { type: 'spacer', h }; }
+    if (mismatchMsg) {
+      const wh = D.split(doc, mismatchMsg, G.col - 14, false, 8.5).length * LH.small + 16;
+      add(t, { type: 'warning', msg: mismatchMsg, h: wh + 6 });
+    }
 
-  let cur = newPlan();
+    add(t, barItem('01', 'EXECUTIVE SUMMARY'));
 
-  // ── Range mismatch banner ──
-  if (hasMismatch) {
-    const h = 20; // approximate banner height
-    addItem(cur, { type: 'warning', h });
-    cur.usedH += 4;
-  }
+    if (r.executive_summary) {
+      const ktH = mKeyTakeaway(doc, r.executive_summary);
+      // Key takeaway + large spacer for editorial whitespace
+      add(t, { type: 'keyTakeaway', summary: r.executive_summary, h: ktH + 8 });
+      add(t, { type: 'spacer', h: 6 });
 
-  // ── 01 Executive Summary ──
-  // Always gets a fresh page for top-weighted presentation
-  if (cur.usedH > 0) cur = newPlan();  // force new page if anything above
-
-  addItem(cur, sectionItem('01', 'EXECUTIVE SUMMARY'));
-
-  if (r.executive_summary) {
-    const ktH = measureKeyTakeaway(doc, r.executive_summary);
-    addItem(cur, { type: 'keyTakeaway', summary: r.executive_summary, h: ktH + 6 });
-
-    const paras = r.executive_summary.split(/\n+/).filter(p => p.trim());
-    for (const para of paras) {
-      const h = D.lines(doc, para, P.col, false, 9.5).length * LH.body + 4;
-      if (cur.usedH + h > usable) cur = newPlan();
-      addItem(cur, { type: 'para', text: para, h });
+      const paras = r.executive_summary.split(/\n+/).map(p => p.trim()).filter(Boolean);
+      for (const para of paras) {
+        const h = D.split(doc, para, G.col, false, 9.5).length * LH.body + 5;
+        if (t.usedH + h > USABLE - 4) t = tpl(); // overflow to next page
+        add(t, { type: 'para', text: para, h });
+      }
     }
   }
 
-  addItem(cur, ruleItem());
-  cur.usedH += 3;
-
-  // ── 02 Key Themes ──
+  // ── TEMPLATE: Key Themes ──────────────────────────────────────────────────
+  // Max 2 per page for visual breathing room. Intentional, not overflow-driven.
   if (r.key_themes?.length > 0) {
-    // Themes always start on a new page if remaining space < MIN_ORPHAN_H
-    if (cur.usedH > usable - LAYOUT.MIN_ORPHAN_H) cur = newPlan();
-
-    // Decide: how many themes fit on first themes page?
-    // We group them into pages of max THEMES_PER_PAGE, but also respect height.
-    const themeHeights = r.key_themes.map(t => measureThemeBlock(doc, t) + 4);
-
-    let onFirstPage = true;
-    let themesOnCurrentPage = 0;
-    let pageThemeH = 0;
+    const MAX_PER_PAGE = 2;
+    let t = tpl();
+    let countOnPage = 0;
 
     for (let i = 0; i < r.key_themes.length; i++) {
-      const h = themeHeights[i];
+      const theme = r.key_themes[i];
+      const h = mTheme(doc, theme) + 5;
+      const isCont = countOnPage === 0 && templates.indexOf(t) > 0;
 
-      // Start new page if: over per-page limit OR not enough space
-      const overLimit = themesOnCurrentPage >= LAYOUT.THEMES_PER_PAGE;
-      const noSpace   = cur.usedH + h > usable - 4;
-
-      if (overLimit || noSpace) {
-        // Check for orphan: if this would be the only item left, pull it to a new page cleanly
-        cur = newPlan();
-        // Re-add section header if this is a continuation page
-        addItem(cur, { type: 'sectionHeader', num: '02', label: 'KEY THEMES & EVOLUTION (CONT.)', h: LAYOUT.SECTION_HEADER_H });
-        themesOnCurrentPage = 0;
-        pageThemeH = 0;
-        onFirstPage = false;
+      if (countOnPage === 0) {
+        add(t, barItem('02', 'KEY THEMES AND EVOLUTION', isCont));
       }
 
-      if (onFirstPage && themesOnCurrentPage === 0) {
-        addItem(cur, sectionItem('02', 'KEY THEMES & EVOLUTION'));
+      // Start new page if over per-page limit OR no space
+      if (countOnPage >= MAX_PER_PAGE || t.usedH + h > USABLE - 4) {
+        t = tpl();
+        add(t, barItem('02', 'KEY THEMES AND EVOLUTION', true));
+        countOnPage = 0;
       }
 
-      addItem(cur, { type: 'theme', theme: r.key_themes[i], index: i, h });
-      themesOnCurrentPage++;
-      pageThemeH += h;
+      add(t, { type: 'theme', theme, index: i, h });
+      countOnPage++;
     }
-
-    addItem(cur, ruleItem());
-    cur.usedH += 3;
   }
 
-  // ── 03 Trend Trajectories ──
+  // ── TEMPLATE: Trend Trajectories ─────────────────────────────────────────
+  // Always its own page — rendered as one complete designed block.
   if (r.escalating_topics?.length || r.deescalating_topics?.length || r.cyclical_topics?.length) {
-    const trajH = measureTrajBlock(doc, r);
-    const needed = LAYOUT.SECTION_HEADER_H + trajH + 12;
-
-    // Trajectories must render as a complete unit — move to new page if needed
-    if (cur.usedH + needed > usable) cur = newPlan();
-
-    addItem(cur, sectionItem('03', 'TREND TRAJECTORIES'));
-    addItem(cur, { type: 'trajectories', report: r, h: trajH });
-    addItem(cur, ruleItem());
-    cur.usedH += 3;
+    const t = tpl();
+    add(t, barItem('03', 'TREND TRAJECTORIES'));
+    add(t, { type: 'spacer', h: 4 });
+    const trajH = mTraj(doc, r);
+    add(t, { type: 'trajectories', report: r, h: trajH });
   }
 
-  // ── 04 Inflection Points ──
+  // ── TEMPLATE: Inflection Points ───────────────────────────────────────────
+  // Group entries 3–4 per page to maintain timeline readability.
   if (r.inflection_points?.length > 0) {
     const pts = r.inflection_points;
-    const ptHeights = pts.map(p => measureInflectionEntry(doc, p) + 4);
-
-    if (cur.usedH > usable - LAYOUT.MIN_ORPHAN_H) cur = newPlan();
-
-    let firstOnSection = true;
+    const MAX_PER_PAGE = 4;
+    let t = tpl();
+    let countOnPage = 0;
 
     for (let i = 0; i < pts.length; i++) {
-      const h = ptHeights[i];
+      const h = mInflection(doc, pts[i]) + 5;
       const isLast = i === pts.length - 1;
 
-      // Avoid orphan: if this is the last item and would be alone on next page
-      // and there's one more on current, just push both
-      if (cur.usedH + h > usable) {
-        cur = newPlan();
-        addItem(cur, { type: 'sectionHeader', num: '04', label: 'INFLECTION POINTS (CONT.)', h: LAYOUT.SECTION_HEADER_H });
-        firstOnSection = false;
+      if (countOnPage === 0) {
+        add(t, barItem('04', 'INFLECTION POINTS', countOnPage === 0 && templates.indexOf(t) > (r.key_themes ? 1 : 0)));
+        add(t, { type: 'spacer', h: 4 });
       }
 
-      if (firstOnSection) {
-        addItem(cur, sectionItem('04', 'INFLECTION POINTS'));
-        cur.usedH += 4;
-        firstOnSection = false;
+      if (countOnPage >= MAX_PER_PAGE || t.usedH + h > USABLE - 4) {
+        t = tpl();
+        add(t, barItem('04', 'INFLECTION POINTS', true));
+        add(t, { type: 'spacer', h: 4 });
+        countOnPage = 0;
       }
 
-      addItem(cur, { type: 'inflection', pt: pts[i], isLast, index: i, h });
+      add(t, { type: 'inflection', pt: pts[i], isLast, index: i, h });
+      countOnPage++;
     }
-
-    addItem(cur, ruleItem());
-    cur.usedH += 3;
   }
 
-  // ── 05 Outlook & Forward Signals ──
+  // ── TEMPLATE: Outlook ─────────────────────────────────────────────────────
+  // Parsed into intro + intact signal blocks. No sentence-splitting.
   if (r.outlook) {
-    const signals = r.outlook.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 8);
-    const sigHeights = signals.map(s => measureSignal(doc, s) + 2);
+    const { intro, signals } = parseOutlook(r.outlook);
+    const MAX_SIGS_PER_PAGE = 5;
 
-    if (cur.usedH > usable - LAYOUT.MIN_ORPHAN_H) cur = newPlan();
+    let t = tpl();
+    add(t, barItem('05', 'OUTLOOK AND FORWARD SIGNALS'));
+    add(t, { type: 'spacer', h: 4 });
 
-    let firstOnSection = true;
+    // Intro paragraph — rendered as body text, not a numbered signal
+    if (intro) {
+      const h = D.split(doc, intro, G.col, false, 9.5).length * LH.body + 8;
+      add(t, { type: 'outlookIntro', text: intro, h });
+      add(t, { type: 'spacer', h: 4 });
+    }
+
     let sigsOnPage = 0;
-
     for (let i = 0; i < signals.length; i++) {
-      const h = sigHeights[i];
+      const h = mSignal(doc, signals[i]);
 
-      const overLimit = sigsOnPage >= LAYOUT.SIGNALS_PER_PAGE;
-      const noSpace   = cur.usedH + h > usable - 4;
-
-      if (overLimit || noSpace) {
-        cur = newPlan();
-        addItem(cur, { type: 'sectionHeader', num: '05', label: 'OUTLOOK & FORWARD SIGNALS (CONT.)', h: LAYOUT.SECTION_HEADER_H });
-        firstOnSection = false;
+      if (sigsOnPage >= MAX_SIGS_PER_PAGE || t.usedH + h > USABLE - 4) {
+        t = tpl();
+        add(t, barItem('05', 'OUTLOOK AND FORWARD SIGNALS', true));
+        add(t, { type: 'spacer', h: 4 });
         sigsOnPage = 0;
       }
 
-      if (firstOnSection) {
-        addItem(cur, sectionItem('05', 'OUTLOOK & FORWARD SIGNALS'));
-        cur.usedH += 4;
-        firstOnSection = false;
-      }
-
-      addItem(cur, { type: 'signal', signal: signals[i], index: i, h });
+      add(t, { type: 'signal', signal: signals[i], index: i, h });
       sigsOnPage++;
     }
-
-    addItem(cur, ruleItem());
-    cur.usedH += 3;
   }
 
-  // ── 06 Data Summary ──
+  // ── TEMPLATE: Data Summary ────────────────────────────────────────────────
+  // Own page. Elastic rows — no fixed panel height, no clipping.
   if (r.data_summary) {
-    const dsH = LAYOUT.SECTION_HEADER_H + measureDataSummary() + 8;
-    // Always render as complete block; prefer top of page
-    if (cur.usedH + dsH > usable) cur = newPlan();
-    addItem(cur, sectionItem('06', 'DATA SUMMARY'));
-    addItem(cur, { type: 'dataSummary', data: r.data_summary, h: measureDataSummary() });
+    const t = tpl();
+    add(t, barItem('06', 'DATA SUMMARY'));
+    add(t, { type: 'spacer', h: 6 });
+    const rows = mDataSummaryRows(doc, r.data_summary, deliveryCount, startDate, endDate);
+    add(t, { type: 'dataSummary', rows, h: rows.reduce((s, r) => s + r.h, 0) + rows.length * 2 });
   }
 
-  return pages;
+  return templates;
 }
 
-// ─── RENDER HELPERS ───────────────────────────────────────────────────────────
-// Each draws exactly one logical block and returns new Y.
+// ─── BLOCK RENDERERS ─────────────────────────────────────────────────────────
+// Each renderer draws one block at y and returns new Y. Uses identical
+// font/size params as corresponding measure functions.
 
-function renderKeyTakeaway(doc, y, summary) {
-  const first = summary.split(/(?<=[.!?])\s+/)[0] || summary.slice(0, 350);
-  const innerW = P.col - 14;
-  const lines = D.lines(doc, first, innerW, false, 10);
-  const h = lines.length * LH.body + 18;
+function rKeyTakeaway(doc, y, summary) {
+  const first = summary.split(/\.\s+/)[0] || summary.slice(0, 400);
+  const innerW = G.col - 14;
+  const lines = D.split(doc, first, innerW, false, 10.5);
+  const h = lines.length * LH.body + 22;
 
-  D.fill(doc, P.marginX, y, P.col, h, P.amberLight);
-  D.fill(doc, P.marginX, y, 3, h, P.amber);
-  D.stroke(doc, P.marginX, y, P.col, h, P.amberBorder, 0.3);
-  D.font(doc, true, 7); D.color(doc, P.amber);
-  doc.text('KEY TAKEAWAY', P.marginX + 8, y + 7);
-  D.font(doc, false, 10); D.color(doc, P.ink);
-  lines.forEach((l, i) => doc.text(l, P.marginX + 8, y + 14 + i * LH.body));
+  D.fill(doc, G.mX, y, G.col, h, C.amberPale);
+  D.fill(doc, G.mX, y, 3.5, h, C.amber);
+  D.stroke(doc, G.mX, y, G.col, h, C.amberRule, 0.3);
+
+  D.font(doc, true, 7); D.rgb(doc, C.amber);
+  doc.text('KEY TAKEAWAY', G.mX + 9, y + 8);
+
+  D.font(doc, false, 10.5); D.rgb(doc, C.ink);
+  lines.forEach((l, i) => doc.text(l, G.mX + 9, y + 15.5 + i * LH.body));
+  return y + h + 8;
+}
+
+function rWarningBanner(doc, y, msg) {
+  const lines = D.split(doc, msg, G.col - 14, false, 8.5);
+  const h = lines.length * LH.small + 16;
+  D.fill(doc, G.mX, y, G.col, h, [255, 248, 215]);
+  D.fill(doc, G.mX, y, 3, h, C.amber);
+  D.stroke(doc, G.mX, y, G.col, h, C.amberRule, 0.3);
+  D.font(doc, false, 8.5); D.rgb(doc, [125, 75, 0]);
+  lines.forEach((l, i) => doc.text(l, G.mX + 10, y + 9 + i * LH.small));
   return y + h + 6;
 }
 
-function renderWarningBanner(doc, y, msg) {
-  const lines = D.lines(doc, msg, P.col - 14, false, 8.5);
-  const h = lines.length * LH.small + 12;
-  D.fill(doc, P.marginX, y, P.col, h, [255, 248, 218]);
-  D.fill(doc, P.marginX, y, 3, h, P.amber);
-  D.stroke(doc, P.marginX, y, P.col, h, P.amberBorder, 0.3);
-  D.font(doc, false, 8.5); D.color(doc, [128, 78, 0]);
-  lines.forEach((l, i) => doc.text(l, P.marginX + 10, y + 8 + i * LH.small));
-  return y + h + 5;
-}
-
-function renderThemeBlock(doc, y, theme, index) {
+function rTheme(doc, y, theme, index) {
   const num = String(index + 1).padStart(2, '0');
-  const titleLines = D.lines(doc, theme.theme || '', P.col - 55, true, 11);
-  const descLines  = D.lines(doc, theme.description || '', P.col - 10, false, 9);
-  const titleH = titleLines.length * LH.large;
+  const titleLines = D.split(doc, theme.theme || '', THEME_TITLE_W, true, 11.5);
+  const descLines  = D.split(doc, theme.description || '', THEME_DESC_W, false, 9.5);
+  const titleH = titleLines.length * LH.h2;
   const descH  = descLines.length * LH.body;
-  const blockH = titleH + descH + 22;
+  const blockH = titleH + descH + 26;
 
-  D.fill(doc, P.marginX, y, P.col, 1, P.amber);
-  D.fill(doc, P.marginX, y + 1, P.col, blockH - 1, P.cardBg);
-  D.stroke(doc, P.marginX, y, P.col, blockH, P.cardBorder, 0.25);
+  // Card chrome
+  D.fill(doc, G.mX, y, G.col, 2, C.amber);
+  D.fill(doc, G.mX, y + 2, G.col, blockH - 2, C.cardBg);
+  D.stroke(doc, G.mX, y, G.col, blockH, C.cardEdge, 0.25);
 
-  D.font(doc, true, 8); D.color(doc, P.accent);
-  doc.text(num, P.marginX + 5, y + 10);
+  // Number
+  D.font(doc, true, 9); D.rgb(doc, C.purple);
+  doc.text(num, G.mX + 5, y + 12);
 
-  D.font(doc, true, 11); D.color(doc, P.ink);
-  titleLines.forEach((l, i) => doc.text(l, P.marginX + 14, y + 10 + i * LH.large));
+  // Title
+  D.font(doc, true, 11.5); D.rgb(doc, C.ink);
+  titleLines.forEach((l, i) => doc.text(l, G.mX + 15, y + 12 + i * LH.h2));
 
+  // Trajectory pill — text-only label (no symbol), right-aligned in title row
   const cfg = TRAJ[theme.trajectory] || TRAJ.stable;
   D.font(doc, true, 7);
-  const pillW = doc.getTextWidth(cfg.label) + 8;
-  const pillX = P.marginX + P.col - pillW - 4;
-  D.fill(doc, pillX, y + 4, pillW, 7, cfg.bg);
-  D.color(doc, cfg.fg);
-  doc.text(cfg.label, pillX + 4, y + 9.5);
+  const pillW = doc.getTextWidth(cfg.label) + 9;
+  const pillX = G.mX + G.col - pillW - 4;
+  D.fill(doc, pillX, y + 5, pillW, 7.5, cfg.bg);
+  D.rgb(doc, cfg.fg);
+  doc.text(cfg.label, pillX + 4.5, y + 11);
 
-  const descY = y + titleH + 16;
-  D.font(doc, false, 9); D.color(doc, P.inkSub);
-  descLines.forEach((l, i) => doc.text(l, P.marginX + 14, descY + i * LH.body));
+  // Description
+  const descY = y + titleH + 18;
+  D.font(doc, false, 9.5); D.rgb(doc, C.inkSub);
+  descLines.forEach((l, i) => doc.text(l, G.mX + 15, descY + i * LH.body));
 
-  return y + blockH + 4;
+  return y + blockH + 5;
 }
 
-function renderTrajectoryColumns(doc, y, r) {
-  const colDefs = [
-    { items: r.escalating_topics   || [], label: 'ESCALATING \u2191',    fg: [0, 110, 60],  hdrBg: [212, 245, 225], bodyBg: [236, 250, 240] },
-    { items: r.deescalating_topics || [], label: 'DE-ESCALATING \u2193', fg: [18, 65, 165], hdrBg: [212, 226, 255], bodyBg: [232, 240, 255] },
-    { items: r.cyclical_topics     || [], label: 'CYCLICAL',             fg: [155, 78, 0],  hdrBg: [255, 236, 205], bodyBg: [255, 246, 228] },
+function rTrajectories(doc, y, r) {
+  const defs = [
+    { items: r.escalating_topics   || [], label: 'ESCALATING',    fg: C.greenInk,  hBg: [210, 245, 222], bBg: [234, 250, 240] },
+    { items: r.deescalating_topics || [], label: 'DE-ESCALATING', fg: C.blueInk,   hBg: [210, 226, 255], bBg: [230, 240, 255] },
+    { items: r.cyclical_topics     || [], label: 'CYCLICAL',       fg: C.orangeInk, hBg: [255, 236, 202], bBg: [255, 246, 228] },
   ];
-  const active = colDefs.filter(c => c.items.length > 0);
+  const active = defs.filter(c => c.items.length > 0);
   if (!active.length) return y;
 
-  const gutter = 5;
-  const colW = Math.floor((P.col - gutter * (active.length - 1)) / active.length);
+  const gutter = 6;
+  const colW = Math.floor((G.col - gutter * (active.length - 1)) / active.length);
 
-  // Compute max column height
-  let maxH = 12;
+  // Measure tallest column
+  let maxH = 14;
   for (const col of active) {
-    let h = 12;
-    for (const item of col.items) {
-      h += D.lines(doc, `\u2022  ${item}`, colW - 10, false, 9).length * LH.body + 2;
-    }
-    h += 8;
+    let h = 14;
+    for (const item of col.items) h += D.split(doc, item, colW - 12, false, 9).length * LH.small + 3;
+    h += 10;
     if (h > maxH) maxH = h;
   }
 
   active.forEach((col, ci) => {
-    const x = P.marginX + ci * (colW + gutter);
-    D.fill(doc, x, y, colW, 12, col.hdrBg);
-    D.fill(doc, x, y + 12, colW, maxH - 12, col.bodyBg);
-    D.stroke(doc, x, y, colW, maxH, P.cardBorder, 0.3);
-    D.font(doc, true, 7.5); D.color(doc, col.fg);
-    doc.text(col.label, x + 5, y + 8.5);
+    const x = G.mX + ci * (colW + gutter);
+    D.fill(doc, x, y, colW, 14, col.hBg);
+    D.fill(doc, x, y + 14, colW, maxH - 14, col.bBg);
+    D.stroke(doc, x, y, colW, maxH, C.cardEdge, 0.3);
 
-    D.font(doc, false, 9); D.color(doc, P.ink);
-    let iy = y + 21;
-    col.items.forEach(item => {
-      const ls = D.lines(doc, `\u2022  ${item}`, colW - 10, false, 9);
-      ls.forEach(l => {
-        if (iy < y + maxH - 2) { doc.text(l, x + 5, iy); iy += LH.body; }
-      });
-      iy += 2;
-    });
+    // Column heading — ASCII label only, no arrows
+    D.font(doc, true, 7.5); D.rgb(doc, col.fg);
+    doc.text(col.label, x + 5, y + 10);
+
+    D.font(doc, false, 9); D.rgb(doc, C.ink);
+    let iy = y + 23;
+    for (const item of col.items) {
+      const ls = D.split(doc, item, colW - 12, false, 9);
+      // Use a simple dash prefix (ASCII-safe) instead of bullet
+      const prefix = '- ';
+      const pls = D.split(doc, prefix + item, colW - 12, false, 9);
+      for (const l of pls) {
+        if (iy < y + maxH - 3) { doc.text(l, x + 5, iy); iy += LH.small; }
+      }
+      iy += 2.5;
+    }
   });
 
   return y + maxH + 8;
 }
 
-function renderInflectionEntry(doc, y, pt, isLast) {
-  const evLines  = D.lines(doc, pt.event || '', P.col - 20, true, 10.5);
-  const sigLines = D.lines(doc, pt.significance || '', P.col - 20, false, 9);
-  const entryH   = evLines.length * LH.large + sigLines.length * LH.body + 18;
+function rInflection(doc, y, pt, isLast) {
+  const evLines  = D.split(doc, pt.event || '', INF_TEXT_W, true, 11);
+  const sigLines = D.split(doc, pt.significance || '', INF_TEXT_W, false, 9.5);
+  const entryH   = evLines.length * LH.h2 + sigLines.length * LH.body + 22;
 
-  const dotX = P.marginX + 5.5;
-  D.circle(doc, dotX, y + 5, 2.8, P.amber);
-  if (!isLast) D.line(doc, dotX, y + 8, dotX, y + entryH + 4, P.ruleColor, 0.6);
+  const dotX = G.mX + 6;
+  D.dot(doc, dotX, y + 5.5, 3, C.amber);
+  if (!isLast) D.line(doc, dotX, y + 9, dotX, y + entryH + 5, C.rule, 0.6);
 
-  const textX = P.marginX + 16;
-  D.font(doc, true, 7.5); D.color(doc, P.amber);
-  doc.text((pt.date || '').toUpperCase(), textX, y + 6);
+  const tx = G.mX + 17;
 
-  D.font(doc, true, 10.5); D.color(doc, P.ink);
-  evLines.forEach((l, i) => doc.text(l, textX, y + 13 + i * LH.large));
+  // Date label
+  D.font(doc, true, 7); D.rgb(doc, C.amber);
+  doc.text((pt.date || '').toUpperCase(), tx, y + 7);
 
-  const sigY = y + 13 + evLines.length * LH.large + 2;
-  D.font(doc, false, 9); D.color(doc, P.inkSub);
-  sigLines.forEach((l, i) => doc.text(l, textX, sigY + i * LH.body));
+  // Event headline
+  D.font(doc, true, 11); D.rgb(doc, C.ink);
+  evLines.forEach((l, i) => doc.text(l, tx, y + 14 + i * LH.h2));
 
-  return y + entryH + 4;
+  // Significance
+  const sigY = y + 14 + evLines.length * LH.h2 + 2;
+  D.font(doc, false, 9.5); D.rgb(doc, C.inkSub);
+  sigLines.forEach((l, i) => doc.text(l, tx, sigY + i * LH.body));
+
+  return y + entryH + 5;
 }
 
-function renderSignal(doc, y, signal, index) {
-  const lines = D.lines(doc, signal.trim(), P.col - 16, false, 9.5);
-  const blockH = Math.max(lines.length * LH.body, 8) + 8;
+function rOutlookIntro(doc, y, text) {
+  // Rendered as a pull-quote / lead paragraph — slightly larger, muted
+  D.fill(doc, G.mX, y, G.col, 2, C.rule);
+  D.font(doc, false, 9.5); D.rgb(doc, C.inkSub);
+  const lines = D.split(doc, text, G.col, false, 9.5);
+  lines.forEach((l, i) => doc.text(l, G.mX, y + 8 + i * LH.body));
+  return y + lines.length * LH.body + 12;
+}
 
-  D.fill(doc, P.marginX, y, 8, 8, P.accentLight);
-  D.stroke(doc, P.marginX, y, 8, 8, [178, 172, 212], 0.35);
-  D.font(doc, true, 7); D.color(doc, P.accent);
-  doc.text(String(index + 1), P.marginX + 2.2, y + 5.8);
+function rSignal(doc, y, signal, index) {
+  const lines = D.split(doc, signal.trim(), SIG_TEXT_W, false, 10);
+  const blockH = Math.max(lines.length * LH.body, 9) + 12;
 
-  D.font(doc, false, 9.5); D.color(doc, P.ink);
-  lines.forEach((l, i) => doc.text(l, P.marginX + 13, y + 5.5 + i * LH.body));
+  // Number badge — square, no border glyph issues
+  D.fill(doc, G.mX, y, 9, 9, C.purplePale);
+  D.stroke(doc, G.mX, y, 9, 9, [175, 170, 210], 0.35);
+  D.font(doc, true, 7.5); D.rgb(doc, C.purple);
+  doc.text(String(index + 1), G.mX + 2.5, y + 6.5);
+
+  D.font(doc, false, 10); D.rgb(doc, C.ink);
+  lines.forEach((l, i) => doc.text(l, G.mX + 14, y + 6.5 + i * LH.body));
   return y + blockH + 2;
 }
 
-function renderDataSummary(doc, y, ds, deliveryCount, startDate, endDate) {
-  const stats = [
-    { label: 'ISSUES ANALYZED', val: String(ds.digest_count || deliveryCount || '\u2014') },
-    { label: 'DATE RANGE',      val: ds.date_range || `${startDate || ''} \u2013 ${endDate || ''}` },
-    { label: 'MOST ACTIVE',     val: ds.most_active_period || '\u2014' },
-  ];
-  const cellW = Math.floor(P.col / 3);
-  const panelH = 30;
+// Elastic data summary — stacked rows, no fixed cell width, no clipping
+function rDataSummary(doc, y, rows) {
+  let ry = y;
+  for (const row of rows) {
+    const valLines = D.split(doc, row.val, G.col - 16, true, 11);
+    const rowH = LH.label + 3 + valLines.length * LH.h2 + 8;
 
-  D.fill(doc, P.marginX, y, P.col, panelH, P.cardBg);
-  D.stroke(doc, P.marginX, y, P.col, panelH, P.cardBorder, 0.3);
+    D.fill(doc, G.mX, ry, G.col, rowH, C.cardBg);
+    D.stroke(doc, G.mX, ry, G.col, rowH, C.cardEdge, 0.25);
+    // Amber left accent
+    D.fill(doc, G.mX, ry, 3, rowH, C.amber);
 
-  stats.forEach(({ label, val }, ci) => {
-    const x = P.marginX + ci * cellW + 6;
-    if (ci > 0) D.line(doc, P.marginX + ci * cellW, y + 5, P.marginX + ci * cellW, y + panelH - 5, P.ruleColor, 0.3);
-    D.font(doc, false, 7); D.color(doc, P.inkFaint); doc.text(label, x, y + 9);
-    D.font(doc, true, 10); D.color(doc, P.ink);
-    D.lines(doc, val, cellW - 10, true, 10).slice(0, 2).forEach((l, li) => doc.text(l, x, y + 17 + li * 5.5));
-  });
+    D.font(doc, false, 7); D.rgb(doc, C.inkFaint);
+    doc.text(row.label, G.mX + 8, ry + 7);
 
-  return y + panelH + 4;
+    D.font(doc, true, 11); D.rgb(doc, C.ink);
+    valLines.forEach((l, i) => doc.text(l, G.mX + 8, ry + 13 + i * LH.h2));
+
+    ry += rowH + 3;
+  }
+  return ry;
 }
 
 // ─── COVER PAGE ───────────────────────────────────────────────────────────────
 
 function buildCover(doc, digestName, startDate, endDate, deliveryCount) {
-  D.fill(doc, 0, 0, P.pageW, P.pageH, P.white);
-  D.fill(doc, 0, 0, P.pageW, 3, P.amber);
+  D.fill(doc, 0, 0, G.pageW, G.pageH, C.white);
+
+  // Top accent stripe
+  D.fill(doc, 0, 0, G.pageW, 4, C.amber);
 
   // Wordmark
-  D.fill(doc, P.marginX, 16, 12, 12, P.amber);
-  D.font(doc, true, 8); D.color(doc, P.white); doc.text('M', P.marginX + 3.8, 24.5);
-  D.font(doc, true, 10); D.color(doc, P.ink);  doc.text('MergeRSS', P.marginX + 16, 24.5);
+  D.fill(doc, G.mX, 17, 13, 13, C.amber);
+  D.font(doc, true, 9); D.rgb(doc, C.white);
+  doc.text('M', G.mX + 4, 26.5);
+  D.font(doc, true, 10.5); D.rgb(doc, C.ink);
+  doc.text('MergeRSS', G.mX + 18, 26.5);
 
-  D.font(doc, false, 7); D.color(doc, P.inkMuted); doc.text('INTELLIGENCE REPORT', P.marginX, 50);
-  D.line(doc, P.marginX, 54, P.marginX + P.col, 54, P.ruleColor, 0.6);
+  D.font(doc, false, 7); D.rgb(doc, C.inkMuted);
+  doc.text('INTELLIGENCE REPORT', G.mX, 50);
+  D.line(doc, G.mX, 54, G.mX + G.col, 54, C.rule, 0.7);
 
-  // Title
-  D.font(doc, true, 26); D.color(doc, P.ink);
-  const tLines = doc.splitTextToSize(digestName, P.col);
-  let ty = 68;
-  tLines.slice(0, 4).forEach(l => { doc.text(l, P.marginX, ty); ty += 12; });
+  // Report title
+  D.font(doc, true, 27); D.rgb(doc, C.ink);
+  const tl = doc.splitTextToSize(digestName, G.col);
+  let ty = 69;
+  tl.slice(0, 4).forEach(l => { doc.text(l, G.mX, ty); ty += 13; });
 
-  D.font(doc, false, 12); D.color(doc, P.amber);
-  doc.text('Trend & Intelligence Report', P.marginX, ty + 4);
+  D.font(doc, false, 12); D.rgb(doc, C.amber);
+  doc.text('Trend and Intelligence Report', G.mX, ty + 5);
 
   let dateStr = '';
-  try { dateStr = `${format(new Date(startDate), 'MMMM d, yyyy')} \u2013 ${format(new Date(endDate), 'MMMM d, yyyy')}`; }
-  catch { dateStr = `${startDate || ''} \u2013 ${endDate || ''}`; }
-  D.font(doc, false, 9.5); D.color(doc, P.inkMuted); doc.text(dateStr, P.marginX, ty + 16);
+  try { dateStr = `${format(new Date(startDate), 'MMMM d, yyyy')} to ${format(new Date(endDate), 'MMMM d, yyyy')}`; }
+  catch { dateStr = [startDate, endDate].filter(Boolean).join(' to '); }
+  D.font(doc, false, 9.5); D.rgb(doc, C.inkMuted);
+  doc.text(dateStr, G.mX, ty + 17);
 
-  const statsY = ty + 32;
-  D.line(doc, P.marginX, statsY, P.marginX + P.col, statsY, P.ruleColor, 0.5);
-  D.font(doc, true, 28); D.color(doc, P.amber); doc.text(String(deliveryCount), P.marginX, statsY + 16);
-  D.font(doc, false, 8); D.color(doc, P.inkMuted); doc.text('DIGEST ISSUES ANALYZED', P.marginX + 22, statsY + 16);
-  D.line(doc, P.marginX, statsY + 22, P.marginX + P.col, statsY + 22, P.ruleColor, 0.5);
+  // Stats band
+  const sY = ty + 34;
+  D.line(doc, G.mX, sY, G.mX + G.col, sY, C.rule, 0.5);
+  D.font(doc, true, 30); D.rgb(doc, C.amber);
+  doc.text(String(deliveryCount), G.mX, sY + 18);
+  D.font(doc, false, 8); D.rgb(doc, C.inkMuted);
+  doc.text('DIGEST ISSUES ANALYZED', G.mX + 24, sY + 18);
+  D.line(doc, G.mX, sY + 24, G.mX + G.col, sY + 24, C.rule, 0.5);
 
-  const metaY = statsY + 32;
-  D.fill(doc, P.marginX, metaY, P.col, 30, P.cardBg);
-  D.stroke(doc, P.marginX, metaY, P.col, 30, P.cardBorder, 0.3);
-  D.font(doc, false, 7); D.color(doc, P.inkFaint); doc.text('PREPARED BY', P.marginX + 6, metaY + 7);
-  D.font(doc, true, 9.5); D.color(doc, P.ink); doc.text('MergeRSS Intelligence Engine', P.marginX + 6, metaY + 14);
-  D.font(doc, false, 7); D.color(doc, P.inkFaint); doc.text('GENERATED', P.marginX + 90, metaY + 7);
-  D.font(doc, true, 9.5); D.color(doc, P.ink); doc.text(format(new Date(), 'MMMM d, yyyy'), P.marginX + 90, metaY + 14);
+  // Metadata card
+  const mY = sY + 34;
+  D.fill(doc, G.mX, mY, G.col, 32, C.cardBg);
+  D.stroke(doc, G.mX, mY, G.col, 32, C.cardEdge, 0.3);
+  D.font(doc, false, 7); D.rgb(doc, C.inkFaint);
+  doc.text('PREPARED BY', G.mX + 7, mY + 8);
+  D.font(doc, true, 10); D.rgb(doc, C.ink);
+  doc.text('MergeRSS Intelligence Engine', G.mX + 7, mY + 16);
+  D.font(doc, false, 7); D.rgb(doc, C.inkFaint);
+  doc.text('GENERATED', G.mX + 95, mY + 8);
+  D.font(doc, true, 10); D.rgb(doc, C.ink);
+  doc.text(format(new Date(), 'MMMM d, yyyy'), G.mX + 95, mY + 16);
 
-  const discY = metaY + 40;
-  D.font(doc, false, 7.5); D.color(doc, P.inkFaint);
+  // Disclaimer
+  const dY = mY + 42;
+  D.font(doc, false, 7.5); D.rgb(doc, C.inkFaint);
   const disc = 'This report was generated by an AI-powered analysis engine from curated digest data. Content is for informational purposes only and reflects data available within the specified date range.';
-  doc.splitTextToSize(disc, P.col).forEach((l, i) => doc.text(l, P.marginX, discY + i * 4.6));
+  doc.splitTextToSize(disc, G.col).forEach((l, i) => doc.text(l, G.mX, dY + i * 4.7));
 
-  D.line(doc, P.marginX, P.pageH - 16, P.marginX + P.col, P.pageH - 16, P.ruleColor, 0.4);
-  D.font(doc, false, 7); D.color(doc, P.inkFaint);
-  doc.text('CONFIDENTIAL  \u00B7  MERGRESS INTELLIGENCE', P.marginX, P.pageH - 9);
-  doc.text('mergerss.com', P.pageW - P.marginX, P.pageH - 9, { align: 'right' });
+  // Cover footer
+  D.line(doc, G.mX, G.pageH - 17, G.mX + G.col, G.pageH - 17, C.rule, 0.4);
+  D.font(doc, false, 7); D.rgb(doc, C.inkFaint);
+  doc.text('CONFIDENTIAL', G.mX, G.pageH - 9);
+  doc.text('mergerss.com', G.pageW - G.mX, G.pageH - 9, { align: 'right' });
 }
 
 function buildBackPage(doc, state) {
-  breakPage(doc, state);
-  const cx = P.pageW / 2, cy = P.pageH / 2 - 15;
-  D.fill(doc, cx - 12, cy - 12, 24, 24, P.amber);
-  D.font(doc, true, 14); D.color(doc, P.white); doc.text('M', cx - 4, cy + 4);
-  D.font(doc, true, 18); D.color(doc, P.ink); doc.text('MergeRSS', cx, cy + 22, { align: 'center' });
-  D.font(doc, false, 10); D.color(doc, P.inkMuted); doc.text('Intelligence. Curated.', cx, cy + 31, { align: 'center' });
-  D.line(doc, cx - 35, cy + 38, cx + 35, cy + 38, P.ruleColor, 0.4);
-  D.font(doc, false, 8.5); D.color(doc, P.inkFaint); doc.text('mergerss.com', cx, cy + 46, { align: 'center' });
+  nextPage(doc, state);
+  const cx = G.pageW / 2, cy = G.pageH / 2 - 12;
+  D.fill(doc, cx - 13, cy - 13, 26, 26, C.amber);
+  D.font(doc, true, 15); D.rgb(doc, C.white);
+  doc.text('M', cx - 4.5, cy + 5);
+  D.font(doc, true, 19); D.rgb(doc, C.ink);
+  doc.text('MergeRSS', cx, cy + 24, { align: 'center' });
+  D.font(doc, false, 10); D.rgb(doc, C.inkMuted);
+  doc.text('Intelligence. Curated.', cx, cy + 33, { align: 'center' });
+  D.line(doc, cx - 36, cy + 40, cx + 36, cy + 40, C.rule, 0.4);
+  D.font(doc, false, 8.5); D.rgb(doc, C.inkFaint);
+  doc.text('mergerss.com', cx, cy + 48, { align: 'center' });
 }
 
-// ─── RENDER PASS ──────────────────────────────────────────────────────────────
-// Iterates the page plan. Each new plan entry = intentional page break.
+// ─── RENDER PASS ─────────────────────────────────────────────────────────────
+// One template = one page. No overflow logic here — the planner handles that.
 
-function renderPages(doc, plans, state, reportContext) {
-  const { r, deliveryCount, startDate, endDate, mismatchMsg } = reportContext;
-  let isFirstContentPage = true;
+function renderTemplates(doc, templates, state, ctx) {
+  const { deliveryCount, startDate, endDate } = ctx;
+  let firstPage = true;
 
-  for (const plan of plans) {
-    if (isFirstContentPage) {
-      doc.addPage();
-      state.page = 2;
-      initPage(doc, state);
-      isFirstContentPage = false;
+  for (const tpl of templates) {
+    if (firstPage) {
+      doc.addPage(); state.page = 2; openPage(doc, state); firstPage = false;
     } else {
-      breakPage(doc, state);
+      nextPage(doc, state);
     }
 
-    let y = P.marginY;
+    let y = G.mTop;
 
-    for (const item of plan.items) {
+    for (const item of tpl.items) {
       switch (item.type) {
+        case 'sectionBar':
+          y = sectionBar(doc, y, item.num, item.title, item.cont);
+          break;
         case 'warning':
-          y = renderWarningBanner(doc, y, mismatchMsg);
-          y += 2;
+          y = rWarningBanner(doc, y, item.msg);
           break;
-
-        case 'sectionHeader':
-          y = drawSectionHeader(doc, y, item.num, item.label);
-          break;
-
         case 'keyTakeaway':
-          y = renderKeyTakeaway(doc, y, item.summary);
+          y = rKeyTakeaway(doc, y, item.summary);
           break;
-
         case 'para':
-          y = D.text(doc, item.text, P.marginX, y, { size: 9.5, rgb: P.inkSub, maxW: P.col, lh: LH.body });
-          y += 4;
+          y = D.para(doc, item.text, G.mX, y, { size: 9.5, rgb: C.inkSub, lh: LH.body });
+          y += 5;
           break;
-
+        case 'outlookIntro':
+          y = rOutlookIntro(doc, y, item.text);
+          break;
         case 'theme':
-          y = renderThemeBlock(doc, y, item.theme, item.index);
+          y = rTheme(doc, y, item.theme, item.index);
           break;
-
         case 'trajectories':
-          y = renderTrajectoryColumns(doc, y, item.report);
+          y = rTrajectories(doc, y, item.report);
           break;
-
         case 'inflection':
-          y = renderInflectionEntry(doc, y, item.pt, item.isLast);
+          y = rInflection(doc, y, item.pt, item.isLast);
           break;
-
         case 'signal':
-          y = renderSignal(doc, y, item.signal, item.index);
+          y = rSignal(doc, y, item.signal, item.index);
           break;
-
         case 'dataSummary':
-          y = renderDataSummary(doc, y, item.data, deliveryCount, startDate, endDate);
+          y = rDataSummary(doc, y, item.rows);
           break;
-
         case 'rule':
-          y = drawRule(doc, y);
-          y += 3;
+          y = hRule(doc, y);
           break;
-
         case 'spacer':
           y += item.h;
           break;
@@ -709,30 +812,30 @@ export async function generatePremiumPdf(savedReport) {
 
   const state = makeState(digestName, reportDateStr);
 
-  // Build mismatch message if applicable
+  // Mismatch banner message
+  let mismatchMsg = '';
   const hasMismatch = actualStart && actualEnd && startDate && endDate &&
     (actualStart !== startDate || actualEnd !== endDate);
-  let mismatchMsg = '';
   if (hasMismatch) {
     let ds = actualStart, de = actualEnd;
     try { ds = format(new Date(actualStart), 'MMM d, yyyy'); } catch {}
     try { de = format(new Date(actualEnd), 'MMM d, yyyy'); } catch {}
-    mismatchMsg = `Note: Data is available for ${ds} \u2013 ${de} only. Analysis reflects available issues within the requested range.`;
+    mismatchMsg = `Note: Data is available for ${ds} to ${de} only. Analysis reflects available issues within the requested range.`;
   }
 
-  // ── Phase 1: Cover (no planning needed — fixed layout) ───────────────────
+  // Phase 1: Cover
   buildCover(doc, digestName, startDate, endDate, deliveryCount);
 
-  // ── Phase 2: PLAN — pre-calculate all block heights, group into pages ────
-  const pagePlans = planPages(doc, r, hasMismatch);
+  // Phase 2: Build page templates (measurement + planning, no rendering)
+  const templates = buildPageTemplates(doc, r, mismatchMsg, deliveryCount, startDate, endDate);
 
-  // ── Phase 3: RENDER — execute the plan page by page ─────────────────────
-  renderPages(doc, pagePlans, state, { r, deliveryCount, startDate, endDate, mismatchMsg });
+  // Phase 3: Render templates page by page
+  renderTemplates(doc, templates, state, { r, deliveryCount, startDate, endDate });
 
-  // ── Back page ────────────────────────────────────────────────────────────
+  // Back page
   buildBackPage(doc, state);
 
-  // ── Save ─────────────────────────────────────────────────────────────────
+  // Save
   const safeName = digestName.replace(/[^a-z0-9]/gi, '-').toLowerCase();
   const safeDate = startDate ? startDate.slice(0, 10) : 'report';
   doc.save(`${safeName}-report-${safeDate}.pdf`);
