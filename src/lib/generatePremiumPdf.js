@@ -383,27 +383,40 @@ function buildPageTemplates(doc, r, mismatchMsg, deliveryCount, startDate, endDa
   }
 
   // ── TEMPLATE: Inflection Points ───────────────────────────────────────────
-  // Group entries 3–4 per page to maintain timeline readability.
+  // Group entries per page. Anti-orphan: if last entry would be alone on a new
+  // page, pull the second-to-last with it (pair the final two entries together).
   if (r.inflection_points?.length > 0) {
     const pts = r.inflection_points;
-    const MAX_PER_PAGE = 4;
+    const MAX_PER_PAGE = 3;
     let t = tpl();
     let countOnPage = 0;
 
+    // Pre-measure all heights
+    const ptH = pts.map(p => mInflection(doc, p) + 5);
+
     for (let i = 0; i < pts.length; i++) {
-      const h = mInflection(doc, pts[i]) + 5;
+      const h = ptH[i];
       const isLast = i === pts.length - 1;
 
       if (countOnPage === 0) {
-        add(t, barItem('04', 'INFLECTION POINTS', countOnPage === 0 && templates.indexOf(t) > (r.key_themes ? 1 : 0)));
+        add(t, barItem('04', 'INFLECTION POINTS', templates.length > 1));
         add(t, { type: 'spacer', h: 4 });
       }
 
-      if (countOnPage >= MAX_PER_PAGE || t.usedH + h > USABLE - 4) {
-        t = tpl();
-        add(t, barItem('04', 'INFLECTION POINTS', true));
-        add(t, { type: 'spacer', h: 4 });
-        countOnPage = 0;
+      const wouldOverflow = t.usedH + h > USABLE - 4;
+      const overLimit = countOnPage >= MAX_PER_PAGE;
+
+      if (wouldOverflow || overLimit) {
+        // Anti-orphan: check if this is the second-to-last entry and the last
+        // entry would also need a new page — if so, put both on the new page.
+        const lastEntryH = i === pts.length - 2 ? ptH[i + 1] : 0;
+        const lastWouldFitWithThis = !wouldOverflow && (t.usedH + h + lastEntryH <= USABLE - 4);
+        if (!lastWouldFitWithThis || overLimit) {
+          t = tpl();
+          add(t, barItem('04', 'INFLECTION POINTS', true));
+          add(t, { type: 'spacer', h: 4 });
+          countOnPage = 0;
+        }
       }
 
       add(t, { type: 'inflection', pt: pts[i], isLast, index: i, h });
