@@ -1,14 +1,16 @@
 /**
  * functions/lib.js — MergeRSS Shared Backend Utility Layer
  *
- * NOTE: This file is NOT deployed as a standalone function.
- * It is imported by other functions using: import { ... } from './lib.js';
+ * NOTE: Base44 does NOT support local imports between function files.
+ * This file is a REFERENCE / documentation artifact — not deployed as shared code.
  *
- * HOWEVER: Base44 does NOT support local imports between function files.
- * This file exists as a REFERENCE / documentation artifact.
+ * The actual utilities are inlined (with CANONICAL COPY comments) into each function.
  *
- * The actual utilities are inlined into each function via the patterns below.
- * Copy-paste from here into functions that need them.
+ * MAINTENANCE RULE:
+ * When editing a canonical pattern here, also update all inlined copies in:
+ *   - fetchFeeds.js  (primary — contains parseFeed, buildDedupSets, isDuplicate, buildFeedItemRecord)
+ *   - recoverFeeds.js (carries CANONICAL COPY of parseFeed + dedup helpers — must stay in sync)
+ *   - clusterStories.js, scoreClusters.js, generateDigests.js, enrichFeedItems.js (extractItems, auth)
  *
  * ─────────────────────────────────────────────────────────────────────────────
  * PATTERN 1: extractItems — normalize any Base44 SDK response to a clean array
