@@ -1,661 +1,683 @@
 import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
 
-// ─── Design Tokens ────────────────────────────────────────────────────────────
-// Dark theme matching the app's stone/amber palette
-const C = {
-  // Backgrounds
-  pageBg:      [10, 8, 5],          // #0a0805 — deepest app bg
-  cardBg:      [20, 16, 10],        // stone-900 equiv
-  cardBg2:     [26, 22, 14],        // stone-800 equiv
-  sectionDark: [15, 12, 8],         // slightly darker panel
+// ─── Print Design System ──────────────────────────────────────────────────────
+// Letter (8.5" × 11") — print-safe light theme with MergeRSS brand accents.
+// All measurements in mm. 1 inch = 25.4mm. Letter = 215.9 × 279.4mm.
 
-  // Amber brand
-  amber:       [251, 191, 36],      // primary brand — hsl(38,95%,54%)
-  amberDark:   [140, 95, 10],       // darker amber for non-primary section bars
-  amberBg:     [35, 26, 4],         // very dark amber tint for callout box
+const P = {
+  // Page dimensions (letter)
+  pageW:   215.9,
+  pageH:   279.4,
+  marginX: 19.05,  // 0.75" margins
+  marginY: 19.05,
+  get col() { return this.pageW - this.marginX * 2; },  // ~177.8mm
+  get bodyBottom() { return this.pageH - 16; },          // footer zone starts
 
-  // Text
-  white:       [255, 255, 255],
-  textPrimary: [225, 215, 200],     // stone-200 equiv — main body
-  textSub:     [180, 168, 152],     // stone-300 equiv
-  textMuted:   [130, 120, 108],     // stone-500 equiv
-  textFaint:   [70, 64, 56],        // stone-700 equiv
+  // Brand colors — print-safe (work on white paper)
+  amber:        [180, 120, 0],     // darker amber — legible on white
+  amberLight:   [255, 248, 220],   // very pale amber tint for callout bg
+  amberBorder:  [200, 150, 20],    // amber border for callout box
+  accent:       [60, 40, 120],     // deep purple for section numbers/accents
+  accentLight:  [240, 237, 250],   // pale purple for section header bg
 
-  // Borders / dividers
-  border:      [38, 32, 22],        // stone-800
-  borderLight: [55, 46, 32],        // stone-700
+  // Text hierarchy
+  ink:          [20, 20, 20],      // near-black body text
+  inkSub:       [60, 60, 60],      // secondary body text
+  inkMuted:     [110, 110, 110],   // labels, metadata
+  inkFaint:     [160, 160, 160],   // faint rule text, footer
 
-  // Trajectory colors (visible on dark)
-  emerald:     [52, 211, 153],      // emerald-400
-  emeraldBg:   [6, 30, 18],
-  red:         [248, 113, 113],     // red-400
-  redBg:       [32, 8, 8],
-  blue:        [96, 165, 250],      // blue-400
-  blueBg:      [8, 20, 45],
-  orange:      [251, 146, 60],      // orange-400
-  orangeBg:    [32, 16, 4],
-  stone:       [120, 113, 108],     // stone-500
+  // Surface / structure
+  white:        [255, 255, 255],
+  pageBg:       [255, 255, 255],
+  ruleColor:    [200, 200, 200],   // section divider lines
+  cardBg:       [248, 248, 248],   // subtle card fill
+  cardBorder:   [220, 220, 220],   // card stroke
 
-  // Page geometry (A4 in mm)
-  pageW:  210,
-  pageH:  297,
-  margin: 16,
-  col:    178,  // pageW - margin*2
+  // Trajectory status colors — print-legible
+  emerald:      [0, 130, 80],
+  emeraldBg:    [230, 248, 238],
+  red:          [185, 40, 40],
+  redBg:        [252, 232, 232],
+  blue:         [30, 80, 180],
+  blueBg:       [228, 238, 255],
+  orange:       [180, 90, 0],
+  orangeBg:     [255, 240, 220],
+  grayText:     [100, 100, 100],
+  grayBg:       [238, 238, 238],
 };
 
-// ─── Low-level helpers ────────────────────────────────────────────────────────
+// Line height multipliers for print
+const LH = {
+  body:  6.2,   // 9.5pt body text line height
+  small: 5.2,   // 8pt small text
+  label: 4.6,   // 7pt label text
+  large: 7.0,   // 11pt heading
+};
 
-function setFont(doc, bold = false, size = 10) {
+// ─── Primitive helpers ────────────────────────────────────────────────────────
+
+function font(doc, bold, size) {
   doc.setFont('helvetica', bold ? 'bold' : 'normal');
   doc.setFontSize(size);
 }
 
-function setColor(doc, color) {
-  doc.setTextColor(...color);
+function color(doc, rgb) {
+  doc.setTextColor(...rgb);
 }
 
-function fillRect(doc, x, y, w, h, color) {
-  doc.setFillColor(...color);
+function fill(doc, x, y, w, h, rgb) {
+  doc.setFillColor(...rgb);
   doc.rect(x, y, w, h, 'F');
 }
 
-function strokeRect(doc, x, y, w, h, color, lineW = 0.3) {
-  doc.setDrawColor(...color);
-  doc.setLineWidth(lineW);
+function stroke(doc, x, y, w, h, rgb, lw = 0.3) {
+  doc.setDrawColor(...rgb);
+  doc.setLineWidth(lw);
   doc.rect(x, y, w, h, 'S');
 }
 
-function drawLine(doc, x1, y1, x2, y2, color, width = 0.3) {
-  doc.setDrawColor(...color);
-  doc.setLineWidth(width);
+function line(doc, x1, y1, x2, y2, rgb, lw = 0.3) {
+  doc.setDrawColor(...rgb);
+  doc.setLineWidth(lw);
   doc.line(x1, y1, x2, y2);
 }
 
-// Measure wrapped line count without rendering
-function lineCount(doc, str, maxW, bold = false, size = 10) {
-  setFont(doc, bold, size);
-  return doc.splitTextToSize(String(str || ''), maxW).length;
+// Measure wrapped lines without rendering
+function measure(doc, text, maxW, bold, size) {
+  font(doc, bold, size);
+  return doc.splitTextToSize(String(text || ''), maxW);
 }
 
-// Write wrapped text, returns new Y position
-function writeText(doc, str, x, y, { size = 10, color = C.textPrimary, bold = false, maxW = C.col, lineH, align = 'left' } = {}) {
-  setFont(doc, bold, size);
-  setColor(doc, color);
-  const lh = lineH || (size * 0.44);
+// Render wrapped text block, return new Y
+function text(doc, str, x, y, { size = 9.5, rgb = P.ink, bold = false, maxW = P.col, lh, align = 'left' } = {}) {
+  font(doc, bold, size);
+  color(doc, rgb);
+  const lineH = lh || LH.body;
   const lines = doc.splitTextToSize(String(str || ''), maxW);
-  lines.forEach(line => {
-    doc.text(line, x, y, { align });
-    y += lh;
-  });
+  for (const l of lines) {
+    doc.text(l, x, y, { align });
+    y += lineH;
+  }
   return y;
 }
 
-// Add a new page and initialize it with background + footer
-function newPage(doc, state) {
+// ─── Page management ─────────────────────────────────────────────────────────
+
+function initPage(doc, state) {
+  fill(doc, 0, 0, P.pageW, P.pageH, P.pageBg);
+  drawFooter(doc, state.page, state.digestName, state.reportDate);
+}
+
+function addPage(doc, state) {
   doc.addPage();
   state.page++;
-  fillRect(doc, 0, 0, C.pageW, C.pageH, C.pageBg);
-  addFooter(doc, state.page);
-  return 20;
+  initPage(doc, state);
+  return P.marginY;
 }
 
-// Check if content fits; if not, break to new page. Returns updated y.
-function ensureSpace(doc, y, needed, state) {
-  if (y + needed > C.pageH - 16) {
-    return newPage(doc, state);
+// Ensure `needed` mm fits before bottom. Returns new Y (possibly on a new page).
+function need(doc, y, needed, state) {
+  if (y + needed > P.bodyBottom) {
+    return addPage(doc, state);
   }
   return y;
 }
 
-// ─── Footer ───────────────────────────────────────────────────────────────────
+// ─── Running footer ───────────────────────────────────────────────────────────
 
-function addFooter(doc, pageNum) {
-  const y = C.pageH - 9;
-  fillRect(doc, 0, C.pageH - 11, C.pageW, 11, C.cardBg2);
-  drawLine(doc, 0, C.pageH - 11, C.pageW, C.pageH - 11, C.border, 0.4);
-  setFont(doc, false, 7);
-  setColor(doc, C.textFaint);
-  doc.text('MergeRSS Intelligence Report  ·  Confidential', C.margin, y);
-  doc.text(String(pageNum), C.pageW - C.margin, y, { align: 'right' });
+function drawFooter(doc, pageNum, digestName, reportDate) {
+  const fy = P.pageH - 8;
+  line(doc, P.marginX, P.pageH - 13, P.pageW - P.marginX, P.pageH - 13, P.ruleColor, 0.4);
+  font(doc, false, 7);
+  color(doc, P.inkFaint);
+  doc.text(`MergeRSS Intelligence Report  ·  ${digestName || ''}`, P.marginX, fy);
+  doc.text(String(pageNum), P.pageW - P.marginX, fy, { align: 'right' });
+  if (reportDate) {
+    doc.text(reportDate, P.pageW / 2, fy, { align: 'center' });
+  }
 }
 
-// ─── Section header bar ───────────────────────────────────────────────────────
-// section 01 = amber/primary (matches screen exactly)
-// sections 02–06 = dark stone with muted amber number (matches screen)
+// ─── Section header ───────────────────────────────────────────────────────────
+// Always keep section header + at least 20mm of content together (ensured by caller).
 
-function sectionHeader(doc, y, num, label, isPrimary = false) {
-  const barH = 11;
-  if (isPrimary) {
-    // Matches screen: bg-[hsl(var(--primary))] with dark text
-    fillRect(doc, 0, y, C.pageW, barH, C.amber);
-    setFont(doc, true, 7.5);
-    setColor(doc, [10, 8, 5]);
-    doc.text(num, C.margin, y + barH - 2.5);
-    // vertical pip separator
-    doc.setDrawColor(10, 8, 5);
-    doc.setLineWidth(0.5);
-    doc.line(C.margin + 8, y + 3, C.margin + 8, y + barH - 2);
-    doc.text(label, C.margin + 12, y + barH - 2.5);
-  } else {
-    // Matches screen: bg-stone-900 with muted label
-    fillRect(doc, 0, y, C.pageW, barH, C.cardBg2);
-    drawLine(doc, 0, y + barH, C.pageW, y + barH, C.border, 0.4);
-    setFont(doc, true, 7.5);
-    setColor(doc, C.textFaint);
-    doc.text(num, C.margin, y + barH - 2.5);
-    doc.setDrawColor(...C.border);
-    doc.setLineWidth(0.5);
-    doc.line(C.margin + 8, y + 3, C.margin + 8, y + barH - 2);
-    setColor(doc, C.textMuted);
-    doc.text(label, C.margin + 12, y + barH - 2.5);
-  }
-  return y + barH + 4;
+function sectionHeader(doc, y, num, label) {
+  const barH = 10;
+
+  // Pale purple background bar
+  fill(doc, 0, y, P.pageW, barH, P.accentLight);
+  line(doc, 0, y + barH, P.pageW, y + barH, [200, 195, 220], 0.5);
+
+  // Section number — purple accent
+  font(doc, true, 7.5);
+  color(doc, P.accent);
+  doc.text(num, P.marginX, y + barH - 2.5);
+
+  // Pip separator
+  line(doc, P.marginX + 9, y + 2.5, P.marginX + 9, y + barH - 2.5, [180, 175, 210], 0.5);
+
+  // Section label — dark ink, uppercase tracked
+  font(doc, true, 7.5);
+  color(doc, P.inkSub);
+  doc.text(label, P.marginX + 13, y + barH - 2.5);
+
+  return y + barH + 5;
+}
+
+// Horizontal rule between sections
+function rule(doc, y) {
+  line(doc, P.marginX, y, P.marginX + P.col, y, P.ruleColor, 0.4);
+  return y + 9;
 }
 
 // ─── COVER PAGE ───────────────────────────────────────────────────────────────
 
-function buildCoverPage(doc, digestName, startDate, endDate, deliveryCount) {
-  fillRect(doc, 0, 0, C.pageW, C.pageH, C.pageBg);
+function buildCover(doc, digestName, startDate, endDate, deliveryCount) {
+  fill(doc, 0, 0, P.pageW, P.pageH, P.pageBg);
 
-  // Top amber stripe
-  fillRect(doc, 0, 0, C.pageW, 2.5, C.amber);
+  // Top brand stripe — amber
+  fill(doc, 0, 0, P.pageW, 3, P.amber);
 
-  // Brand mark
-  fillRect(doc, C.margin, 14, 14, 14, C.amber);
-  setFont(doc, true, 9);
-  setColor(doc, [10, 8, 5]);
-  doc.text('M', C.margin + 4.5, 24);
-  setFont(doc, true, 10);
-  setColor(doc, C.white);
-  doc.text('MergeRSS', C.margin + 18, 24);
+  // Wordmark
+  fill(doc, P.marginX, 16, 12, 12, P.amber);
+  font(doc, true, 8);
+  color(doc, P.white);
+  doc.text('M', P.marginX + 3.8, 24.5);
+  font(doc, true, 10);
+  color(doc, P.ink);
+  doc.text('MergeRSS', P.marginX + 16, 24.5);
 
-  // INTELLIGENCE REPORT label
-  setFont(doc, false, 7);
-  setColor(doc, C.textMuted);
-  doc.text('INTELLIGENCE REPORT', C.margin, 52);
+  // Report type label
+  font(doc, false, 7);
+  color(doc, P.inkMuted);
+  doc.text('INTELLIGENCE REPORT', P.marginX, 50);
 
-  drawLine(doc, C.margin, 56, C.margin + C.col, 56, C.border, 0.5);
+  line(doc, P.marginX, 54, P.marginX + P.col, 54, P.ruleColor, 0.6);
 
-  // Digest name — large, bold
-  setFont(doc, true, 26);
-  setColor(doc, C.white);
-  const titleLines = doc.splitTextToSize(digestName.toUpperCase(), C.col);
-  let ty = 70;
-  titleLines.slice(0, 3).forEach(l => {
-    doc.text(l, C.margin, ty);
+  // Report title
+  font(doc, true, 26);
+  color(doc, P.ink);
+  const titleLines = doc.splitTextToSize(digestName, P.col);
+  let ty = 68;
+  titleLines.slice(0, 4).forEach(l => {
+    doc.text(l, P.marginX, ty);
     ty += 12;
   });
 
   // Subtitle
-  setFont(doc, false, 12);
-  setColor(doc, C.amber);
-  doc.text('Trend & Intelligence Report', C.margin, ty + 4);
+  font(doc, false, 12);
+  color(doc, P.amber);
+  doc.text('Trend & Intelligence Report', P.marginX, ty + 4);
 
   // Date range
-  let dateStr = '—';
+  let dateStr = '';
   try {
     dateStr = `${format(new Date(startDate), 'MMMM d, yyyy')} \u2013 ${format(new Date(endDate), 'MMMM d, yyyy')}`;
-  } catch {}
-  setFont(doc, false, 9);
-  setColor(doc, C.textMuted);
-  doc.text(dateStr, C.margin, 150);
+  } catch { dateStr = `${startDate || ''} \u2013 ${endDate || ''}`; }
 
-  // Issue count stat
-  setFont(doc, true, 24);
-  setColor(doc, C.amber);
-  doc.text(String(deliveryCount), C.margin, 168);
-  setFont(doc, false, 8);
-  setColor(doc, C.textMuted);
-  doc.text('DIGEST ISSUES ANALYZED', C.margin + 20, 168);
+  font(doc, false, 9.5);
+  color(doc, P.inkMuted);
+  doc.text(dateStr, P.marginX, ty + 16);
 
-  // Amber rule
-  drawLine(doc, 0, 182, C.pageW, 182, C.amberDark, 1.5);
+  // Stats block
+  const statsY = ty + 32;
+  line(doc, P.marginX, statsY, P.marginX + P.col, statsY, P.ruleColor, 0.5);
 
-  // Metadata block
-  fillRect(doc, 0, 182, C.pageW, 62, C.cardBg);
+  font(doc, true, 28);
+  color(doc, P.amber);
+  doc.text(String(deliveryCount), P.marginX, statsY + 16);
+  font(doc, false, 8);
+  color(doc, P.inkMuted);
+  doc.text('DIGEST ISSUES ANALYZED', P.marginX + 22, statsY + 16);
 
-  setFont(doc, false, 7);
-  setColor(doc, C.textFaint);
-  doc.text('PREPARED BY', C.margin, 194);
-  setFont(doc, true, 10);
-  setColor(doc, C.textPrimary);
-  doc.text('MergeRSS Intelligence Engine', C.margin, 201);
+  line(doc, P.marginX, statsY + 22, P.marginX + P.col, statsY + 22, P.ruleColor, 0.5);
 
-  setFont(doc, false, 7);
-  setColor(doc, C.textFaint);
-  doc.text('GENERATED ON', C.margin + 88, 194);
-  setFont(doc, true, 10);
-  setColor(doc, C.textPrimary);
-  doc.text(format(new Date(), 'MMMM d, yyyy'), C.margin + 88, 201);
+  // Metadata panel
+  const metaY = statsY + 32;
+  fill(doc, P.marginX, metaY, P.col, 30, P.cardBg);
+  stroke(doc, P.marginX, metaY, P.col, 30, P.cardBorder, 0.3);
 
-  drawLine(doc, C.margin, 212, C.margin + C.col, 212, C.border, 0.3);
+  font(doc, false, 7);
+  color(doc, P.inkFaint);
+  doc.text('PREPARED BY', P.marginX + 6, metaY + 7);
+  font(doc, true, 9.5);
+  color(doc, P.ink);
+  doc.text('MergeRSS Intelligence Engine', P.marginX + 6, metaY + 14);
 
-  setFont(doc, false, 7.5);
-  setColor(doc, C.textFaint);
-  const disc = 'This report was generated by an AI-powered analysis engine from curated digest data. Content is for informational purposes and reflects data available within the specified date range.';
-  const discLines = doc.splitTextToSize(disc, C.col);
-  discLines.forEach((l, i) => doc.text(l, C.margin, 219 + i * 4.5));
+  font(doc, false, 7);
+  color(doc, P.inkFaint);
+  doc.text('GENERATED', P.marginX + 90, metaY + 7);
+  font(doc, true, 9.5);
+  color(doc, P.ink);
+  doc.text(format(new Date(), 'MMMM d, yyyy'), P.marginX + 90, metaY + 14);
 
-  // Bottom footer bar
-  fillRect(doc, 0, C.pageH - 11, C.pageW, 11, C.cardBg2);
-  drawLine(doc, 0, C.pageH - 11, C.pageW, C.pageH - 11, C.border, 0.3);
-  setFont(doc, false, 7);
-  setColor(doc, C.textFaint);
-  doc.text('CONFIDENTIAL  \u00B7  MERGRESS INTELLIGENCE', C.margin, C.pageH - 4);
-  doc.text('mergerss.com', C.pageW - C.margin, C.pageH - 4, { align: 'right' });
+  // Disclaimer
+  const discY = metaY + 40;
+  font(doc, false, 7.5);
+  color(doc, P.inkFaint);
+  const disc = 'This report was generated by an AI-powered analysis engine from curated digest data. Content is for informational purposes only and reflects data available within the specified date range.';
+  const discLines = doc.splitTextToSize(disc, P.col);
+  discLines.forEach((l, i) => doc.text(l, P.marginX, discY + i * 4.6));
+
+  // Bottom footer
+  line(doc, P.marginX, P.pageH - 16, P.marginX + P.col, P.pageH - 16, P.ruleColor, 0.4);
+  font(doc, false, 7);
+  color(doc, P.inkFaint);
+  doc.text('CONFIDENTIAL  \u00B7  MERGRESS INTELLIGENCE', P.marginX, P.pageH - 9);
+  doc.text('mergerss.com', P.pageW - P.marginX, P.pageH - 9, { align: 'right' });
 }
 
 // ─── Key Takeaway Callout ─────────────────────────────────────────────────────
-// Mirrors screen: border-l-4 border-primary, bg-stone-900, "KEY TAKEAWAY" label
+// Full-width callout with left amber bar — print-native treatment.
 
-function keyTakeawayBox(doc, y, summary) {
-  const firstSentence = summary.split(/(?<=[.!?])\s+/)[0] || summary.slice(0, 300);
-  const textMaxW = C.col - 14;
-  setFont(doc, false, 9.5);
-  const textLines = doc.splitTextToSize(firstSentence, textMaxW);
-  const boxH = textLines.length * 5.2 + 18;
+function keyTakeaway(doc, y, summary) {
+  const firstSentence = summary.split(/(?<=[.!?])\s+/)[0] || summary.slice(0, 350);
+  const innerW = P.col - 14;
+  const lines = measure(doc, firstSentence, innerW, false, 10);
+  const boxH = lines.length * LH.body + 18;
 
-  // Dark bg (stone-900)
-  fillRect(doc, C.margin, y, C.col, boxH, C.cardBg);
-  // Left amber accent bar (4px = ~1.4mm at A4 scale)
-  fillRect(doc, C.margin, y, 2.5, boxH, C.amber);
+  // Pale amber background
+  fill(doc, P.marginX, y, P.col, boxH, P.amberLight);
+  // Amber left bar
+  fill(doc, P.marginX, y, 3, boxH, P.amber);
   // Subtle border
-  strokeRect(doc, C.margin, y, C.col, boxH, C.border, 0.25);
+  stroke(doc, P.marginX, y, P.col, boxH, P.amberBorder, 0.3);
 
-  setFont(doc, true, 7);
-  setColor(doc, C.amber);
-  doc.text('KEY TAKEAWAY', C.margin + 8, y + 6.5);
+  font(doc, true, 7);
+  color(doc, P.amber);
+  doc.text('KEY TAKEAWAY', P.marginX + 8, y + 7);
 
-  setFont(doc, false, 9.5);
-  setColor(doc, C.textPrimary);
-  textLines.forEach((l, i) => doc.text(l, C.margin + 8, y + 13.5 + i * 5.2));
+  font(doc, false, 10);
+  color(doc, P.ink);
+  lines.forEach((l, i) => doc.text(l, P.marginX + 8, y + 14 + i * LH.body));
 
-  return y + boxH + 5;
+  return y + boxH + 6;
 }
 
-// ─── Trajectory Pill ──────────────────────────────────────────────────────────
+// ─── Warning banner ───────────────────────────────────────────────────────────
 
-const TRAJ = {
-  rising:    { label: 'Rising \u2191',     fg: C.emerald,  bg: C.emeraldBg },
-  falling:   { label: 'Falling \u2193',    fg: C.red,      bg: C.redBg },
-  stable:    { label: 'Stable \u2192',     fg: C.stone,    bg: [22, 18, 14] },
-  volatile:  { label: 'Volatile',          fg: C.orange,   bg: C.orangeBg },
-  peaked:    { label: 'Peaked',            fg: C.orange,   bg: C.orangeBg },
-  resolving: { label: 'Resolving \u2198',  fg: C.blue,     bg: C.blueBg },
+function warningBanner(doc, y, msg) {
+  const lines = measure(doc, msg, P.col - 14, false, 8.5);
+  const h = lines.length * LH.small + 12;
+  fill(doc, P.marginX, y, P.col, h, [255, 248, 220]);
+  fill(doc, P.marginX, y, 3, h, P.amber);
+  stroke(doc, P.marginX, y, P.col, h, P.amberBorder, 0.3);
+  font(doc, false, 8.5);
+  color(doc, [130, 80, 0]);
+  lines.forEach((l, i) => doc.text(l, P.marginX + 10, y + 8 + i * LH.small));
+  return y + h + 5;
+}
+
+// ─── Theme block ─────────────────────────────────────────────────────────────
+// Print-native: number + title row, trajectory label inline, full description below.
+// No fixed height — expands naturally. Page-break safe.
+
+const TRAJ_PRINT = {
+  rising:    { label: 'Rising \u2191',    fg: [0, 120, 70],   bg: [228, 248, 236] },
+  falling:   { label: 'Falling \u2193',   fg: [160, 30, 30],  bg: [252, 230, 230] },
+  stable:    { label: 'Stable \u2192',    fg: [90, 90, 90],   bg: [238, 238, 238] },
+  volatile:  { label: 'Volatile',         fg: [160, 80, 0],   bg: [255, 238, 210] },
+  peaked:    { label: 'Peaked',           fg: [160, 80, 0],   bg: [255, 238, 210] },
+  resolving: { label: 'Resolving \u2198', fg: [20, 70, 170],  bg: [225, 235, 255] },
 };
 
-// Returns pill width
-function trajPill(doc, x, y, trajectory) {
-  const cfg = TRAJ[trajectory] || TRAJ.stable;
-  setFont(doc, true, 7);
+function trajLabel(doc, x, y, trajectory) {
+  const cfg = TRAJ_PRINT[trajectory] || TRAJ_PRINT.stable;
+  font(doc, true, 7);
   const w = doc.getTextWidth(cfg.label) + 8;
-  fillRect(doc, x, y - 4.5, w, 6.5, cfg.bg);
-  setColor(doc, cfg.fg);
+  fill(doc, x, y - 5, w, 7, cfg.bg);
+  color(doc, cfg.fg);
   doc.text(cfg.label, x + 4, y);
   return w;
 }
 
-// ─── Theme Card ───────────────────────────────────────────────────────────────
-// Mirrors screen: numbered row, theme name, trajectory badge, full description below
+function themeBlock(doc, y, theme, index, state) {
+  const num = String(index + 1).padStart(2, '0');
+  const titleW = P.col - 55;
+  const descW  = P.col - 10;
 
-function themeCard(doc, y, theme, index, state) {
-  const numLabel = String(index + 1).padStart(2, '0');
-  const textMaxW = C.col - 16;
-  const descMaxW = C.col - 28;  // indented under number
+  const titleLines = measure(doc, theme.theme || '', titleW, true, 11);
+  const descLines  = measure(doc, theme.description || '', descW, false, 9);
 
-  // Pre-measure title and description to size the card dynamically
-  setFont(doc, true, 10.5);
-  const titleLines = doc.splitTextToSize(theme.theme || '', C.col - 60);
+  // Total block height: divider(1) + number row(14) + gap(4) + description + padding(8)
+  const titleH = titleLines.length * LH.large;
+  const descH  = descLines.length * LH.body;
+  const blockH = titleH + descH + 22;
 
-  setFont(doc, false, 8.5);
-  const descLines = doc.splitTextToSize(theme.description || '', descMaxW);
+  y = need(doc, y, blockH, state);
 
-  // Card height: title block (min 14) + description + padding
-  const titleH = Math.max(titleLines.length * 5.5, 8);
-  const descH = descLines.length * 4.8;
-  const cardH = titleH + descH + 20;
+  // Top rule in amber
+  fill(doc, P.marginX, y, P.col, 1, P.amber);
 
-  // Ensure fits on page
-  y = ensureSpace(doc, y, cardH + 4, state);
+  // Light card bg
+  fill(doc, P.marginX, y + 1, P.col, blockH - 1, P.cardBg);
+  stroke(doc, P.marginX, y, P.col, blockH, P.cardBorder, 0.25);
 
-  // Top amber stripe (1.5mm) matching screen card structure
-  fillRect(doc, C.margin, y, C.col, 1.5, [40, 32, 8]);
-  // Card background
-  fillRect(doc, C.margin, y + 1.5, C.col, cardH - 1.5, C.cardBg);
-  // Left subtle border
-  strokeRect(doc, C.margin, y, C.col, cardH, C.border, 0.25);
+  // Index number — accent purple
+  font(doc, true, 8);
+  color(doc, P.accent);
+  doc.text(num, P.marginX + 5, y + 10);
 
-  // Row number — top left, muted amber
-  setFont(doc, true, 7);
-  setColor(doc, C.textFaint);
-  doc.text(numLabel, C.margin + 5, y + 9);
+  // Theme title — dark ink, bold
+  font(doc, true, 11);
+  color(doc, P.ink);
+  const titleX = P.marginX + 14;
+  titleLines.forEach((l, i) => doc.text(l, titleX, y + 10 + i * LH.large));
 
-  // Theme title — bold, white
-  setFont(doc, true, 10.5);
-  setColor(doc, C.white);
-  const titleX = C.margin + 14;
-  const titleY = y + 9;
-  titleLines.forEach((l, li) => doc.text(l, titleX, titleY + li * 5.5));
-
-  // Trajectory pill — right-aligned, same row as title
-  const pillX = C.margin + C.col - 4;
-  // measure pill width first
-  const cfg = TRAJ[theme.trajectory] || TRAJ.stable;
-  setFont(doc, true, 7);
+  // Trajectory label — right aligned in same row
+  const cfg = TRAJ_PRINT[theme.trajectory] || TRAJ_PRINT.stable;
+  font(doc, true, 7);
   const pillW = doc.getTextWidth(cfg.label) + 8;
-  const pX = pillX - pillW;
-  fillRect(doc, pX, y + 4, pillW, 6.5, cfg.bg);
-  setColor(doc, cfg.fg);
-  doc.text(cfg.label, pX + 4, y + 9);
+  const pillX = P.marginX + P.col - pillW - 4;
+  fill(doc, pillX, y + 4, pillW, 7, cfg.bg);
+  color(doc, cfg.fg);
+  doc.text(cfg.label, pillX + 4, y + 9.5);
 
-  // Description — below title, indented, muted text color
-  const descY = titleY + titleH + 2;
-  setFont(doc, false, 8.5);
-  setColor(doc, C.textMuted);
-  descLines.forEach((l, li) => doc.text(l, titleX, descY + li * 4.8));
-
-  return y + cardH + 3;
-}
-
-// ─── Inflection Point ─────────────────────────────────────────────────────────
-// Mirrors screen: amber dot + vertical line, date label, event headline, significance
-
-function inflectionPoint(doc, y, pt, isLast, state) {
-  // Pre-measure to size
-  setFont(doc, true, 10);
-  const evLines = doc.splitTextToSize(pt.event || '', C.col - 18);
-  setFont(doc, false, 8.5);
-  const sigLines = doc.splitTextToSize(pt.significance || '', C.col - 18);
-
-  const blockH = 7 + evLines.length * 5.5 + sigLines.length * 4.8 + 8;
-  y = ensureSpace(doc, y, blockH + 6, state);
-
-  const dotX = C.margin + 5;
-  const dotY = y + 4;
-
-  // Amber dot
-  doc.setFillColor(...C.amber);
-  doc.circle(dotX, dotY, 2.5, 'F');
-
-  // Vertical connector (to next item, not beyond)
-  if (!isLast) {
-    drawLine(doc, dotX, dotY + 3, dotX, y + blockH + 5, C.border, 0.5);
-  }
-
-  const textX = C.margin + 14;
-
-  // Date
-  setFont(doc, true, 7.5);
-  setColor(doc, C.amber);
-  doc.text((pt.date || '').toUpperCase(), textX, y + 5);
-
-  // Event headline
-  setFont(doc, true, 10);
-  setColor(doc, C.white);
-  evLines.forEach((l, li) => doc.text(l, textX, y + 12 + li * 5.5));
-
-  // Significance
-  const sigY = y + 12 + evLines.length * 5.5 + 2;
-  setFont(doc, false, 8.5);
-  setColor(doc, C.textMuted);
-  sigLines.forEach((l, li) => doc.text(l, textX, sigY + li * 4.8));
+  // Description — full text, readable line height
+  const descY = y + titleH + 16;
+  font(doc, false, 9);
+  color(doc, P.inkSub);
+  descLines.forEach((l, i) => doc.text(l, titleX, descY + i * LH.body));
 
   return y + blockH + 4;
 }
 
-// ─── Outlook Signal Block ─────────────────────────────────────────────────────
-// Mirrors screen: number badge (stone-800 bg + amber number), signal text
+// ─── Trend trajectory columns ─────────────────────────────────────────────────
+// 3 columns side-by-side. Falls back to stacked if only 1-2 active columns.
+// Entire block is kept together with need().
 
-function outlookSignal(doc, y, signal, index, state) {
-  setFont(doc, false, 9.5);
-  const sLines = doc.splitTextToSize(signal.trim(), C.col - 14);
-  const blockH = Math.max(sLines.length * 5.2, 8) + 6;
-
-  y = ensureSpace(doc, y, blockH, state);
-
-  // Number badge — dark background, amber number text
-  fillRect(doc, C.margin, y, 7, 7, C.cardBg2);
-  strokeRect(doc, C.margin, y, 7, 7, C.border, 0.3);
-  setFont(doc, true, 7);
-  setColor(doc, C.amber);  // amber on dark — matches screen
-  doc.text(String(index + 1), C.margin + 1.8, y + 5.2);
-
-  // Signal text
-  setFont(doc, false, 9.5);
-  setColor(doc, C.textPrimary);
-  sLines.forEach((l, li) => doc.text(l, C.margin + 12, y + 5 + li * 5.2));
-
-  return y + blockH;
-}
-
-// ─── Data Summary Block ───────────────────────────────────────────────────────
-// Mirrors screen footer: 3 stat pills in a dark panel
-
-function dataSummaryBlock(doc, y, dataSummary, deliveryCount, startDate, endDate) {
-  const panelH = 28;
-  fillRect(doc, C.margin, y, C.col, panelH, C.cardBg2);
-  strokeRect(doc, C.margin, y, C.col, panelH, C.border, 0.3);
-
-  const stats = [
-    { label: 'ISSUES ANALYZED', val: String(dataSummary.digest_count || deliveryCount || '—') },
-    { label: 'DATE RANGE',      val: dataSummary.date_range || `${startDate} – ${endDate}` },
-    { label: 'MOST ACTIVE',     val: dataSummary.most_active_period || '—' },
+function trajectoryColumns(doc, y, report, state) {
+  const colDefs = [
+    { items: report.escalating_topics   || [], label: 'ESCALATING \u2191',    fg: [0, 120, 70],   hdrBg: [215, 245, 228], bodyBg: [238, 250, 242] },
+    { items: report.deescalating_topics || [], label: 'DE-ESCALATING \u2193', fg: [20, 70, 170],  hdrBg: [215, 228, 255], bodyBg: [235, 242, 255] },
+    { items: report.cyclical_topics     || [], label: 'CYCLICAL',             fg: [160, 80, 0],   hdrBg: [255, 238, 210], bodyBg: [255, 248, 232] },
   ];
 
-  const cellW = Math.floor(C.col / 3);
+  const active = colDefs.filter(c => c.items.length > 0);
+  if (!active.length) return y;
+
+  const gutter = 5;
+  const colW = Math.floor((P.col - gutter * (active.length - 1)) / active.length);
+
+  // Measure tallest column
+  let maxColH = 12;
+  for (const col of active) {
+    let h = 12; // header
+    font(doc, false, 9);
+    for (const item of col.items) {
+      const ls = doc.splitTextToSize(`\u2022  ${item}`, colW - 10);
+      h += ls.length * LH.body + 2;
+    }
+    h += 8; // bottom padding
+    if (h > maxColH) maxColH = h;
+  }
+
+  y = need(doc, y, maxColH + 4, state);
+
+  active.forEach((col, ci) => {
+    const x = P.marginX + ci * (colW + gutter);
+
+    // Column header
+    fill(doc, x, y, colW, 12, col.hdrBg);
+    stroke(doc, x, y, colW, maxColH, col.fg.map ? col.fg : P.cardBorder, 0.3);
+    font(doc, true, 7.5);
+    color(doc, col.fg);
+    doc.text(col.label, x + 5, y + 8.5);
+
+    // Body
+    fill(doc, x, y + 12, colW, maxColH - 12, col.bodyBg);
+
+    font(doc, false, 9);
+    color(doc, P.ink);
+    let iy = y + 21;
+    col.items.forEach(item => {
+      const ls = doc.splitTextToSize(`\u2022  ${item}`, colW - 10);
+      ls.forEach(l => {
+        if (iy < y + maxColH - 2) {
+          doc.text(l, x + 5, iy);
+          iy += LH.body;
+        }
+      });
+      iy += 2;
+    });
+  });
+
+  return y + maxColH + 8;
+}
+
+// ─── Inflection point (timeline entry) ───────────────────────────────────────
+// Amber dot + vertical connector. Each entry is kept atomic (no mid-entry page breaks).
+
+function inflectionEntry(doc, y, pt, isLast, state) {
+  const eventLines = measure(doc, pt.event || '', P.col - 20, true, 10.5);
+  const sigLines   = measure(doc, pt.significance || '', P.col - 20, false, 9);
+
+  const entryH = 8 + eventLines.length * LH.large + sigLines.length * LH.body + 10;
+  y = need(doc, y, entryH, state);
+
+  const dotX = P.marginX + 5.5;
+
+  // Amber dot
+  doc.setFillColor(...P.amber);
+  doc.circle(dotX, y + 5, 2.8, 'F');
+
+  // Connector line to next entry — drawn after content, to full entry height
+  if (!isLast) {
+    line(doc, dotX, y + 8, dotX, y + entryH + 4, P.ruleColor, 0.6);
+  }
+
+  const textX = P.marginX + 16;
+
+  // Date label
+  font(doc, true, 7.5);
+  color(doc, P.amber);
+  doc.text((pt.date || '').toUpperCase(), textX, y + 6);
+
+  // Event headline
+  font(doc, true, 10.5);
+  color(doc, P.ink);
+  eventLines.forEach((l, i) => doc.text(l, textX, y + 13 + i * LH.large));
+
+  // Significance
+  const sigY = y + 13 + eventLines.length * LH.large + 2;
+  font(doc, false, 9);
+  color(doc, P.inkSub);
+  sigLines.forEach((l, i) => doc.text(l, textX, sigY + i * LH.body));
+
+  return y + entryH + 4;
+}
+
+// ─── Outlook signal ───────────────────────────────────────────────────────────
+// Numbered square badge + signal sentence. Kept whole per signal.
+
+function outlookSignal(doc, y, signal, index, state) {
+  const sigLines = measure(doc, signal.trim(), P.col - 16, false, 9.5);
+  const blockH = Math.max(sigLines.length * LH.body, 8) + 8;
+
+  y = need(doc, y, blockH, state);
+
+  // Number badge
+  fill(doc, P.marginX, y, 8, 8, P.accentLight);
+  stroke(doc, P.marginX, y, 8, 8, [180, 175, 215], 0.35);
+  font(doc, true, 7);
+  color(doc, P.accent);
+  doc.text(String(index + 1), P.marginX + 2.2, y + 5.8);
+
+  // Signal text
+  font(doc, false, 9.5);
+  color(doc, P.ink);
+  sigLines.forEach((l, i) => doc.text(l, P.marginX + 13, y + 5.5 + i * LH.body));
+
+  return y + blockH + 2;
+}
+
+// ─── Data summary panel ───────────────────────────────────────────────────────
+// 3-cell stat panel in a light card. Kept whole.
+
+function dataSummaryPanel(doc, y, ds, deliveryCount, startDate, endDate) {
+  const stats = [
+    { label: 'ISSUES ANALYZED', val: String(ds.digest_count || deliveryCount || '\u2014') },
+    { label: 'DATE RANGE',      val: ds.date_range || `${startDate || ''} \u2013 ${endDate || ''}` },
+    { label: 'MOST ACTIVE',     val: ds.most_active_period || '\u2014' },
+  ];
+
+  const cellW = Math.floor(P.col / 3);
+  const panelH = 30;
+
+  fill(doc, P.marginX, y, P.col, panelH, P.cardBg);
+  stroke(doc, P.marginX, y, P.col, panelH, P.cardBorder, 0.3);
+
   stats.forEach(({ label, val }, ci) => {
-    const x = C.margin + ci * cellW + 5;
-    // Divider between cells
-    if (ci > 0) drawLine(doc, C.margin + ci * cellW, y + 4, C.margin + ci * cellW, y + panelH - 4, C.border, 0.3);
+    const x = P.marginX + ci * cellW + 6;
+    if (ci > 0) {
+      line(doc, P.marginX + ci * cellW, y + 5, P.marginX + ci * cellW, y + panelH - 5, P.ruleColor, 0.3);
+    }
 
-    setFont(doc, false, 7);
-    setColor(doc, C.textFaint);
-    doc.text(label, x, y + 8);
+    font(doc, false, 7);
+    color(doc, P.inkFaint);
+    doc.text(label, x, y + 9);
 
-    setFont(doc, true, 9.5);
-    setColor(doc, C.textPrimary);
-    const vLines = doc.splitTextToSize(val, cellW - 8);
-    vLines.slice(0, 2).forEach((l, li) => doc.text(l, x, y + 15 + li * 5));
+    font(doc, true, 10);
+    color(doc, P.ink);
+    const vl = doc.splitTextToSize(val, cellW - 10);
+    vl.slice(0, 2).forEach((l, li) => doc.text(l, x, y + 17 + li * 5.5));
   });
 
   return y + panelH + 4;
 }
 
-// ─── Warning / Range Mismatch Banner ─────────────────────────────────────────
+// ─── Back page ────────────────────────────────────────────────────────────────
 
-function warningBanner(doc, y, text) {
-  setFont(doc, false, 8.5);
-  const textLines = doc.splitTextToSize(text, C.col - 12);
-  const bannerH = textLines.length * 4.8 + 12;
+function buildBackPage(doc, state) {
+  addPage(doc, state);
+  const cx = P.pageW / 2;
+  const cy = P.pageH / 2 - 15;
 
-  // Amber-tinted dark background + amber left bar
-  fillRect(doc, C.margin, y, C.col, bannerH, [30, 22, 4]);
-  fillRect(doc, C.margin, y, 2.5, bannerH, [180, 130, 20]);
-  strokeRect(doc, C.margin, y, C.col, bannerH, [80, 60, 10], 0.3);
+  // Brand mark
+  fill(doc, cx - 12, cy - 12, 24, 24, P.amber);
+  font(doc, true, 14);
+  color(doc, P.white);
+  doc.text('M', cx - 4, cy + 4);
 
-  // Warning symbol
-  setFont(doc, true, 8);
-  setColor(doc, C.amber);
-  doc.text('\u26A0', C.margin + 6, y + bannerH / 2 + 2);
+  font(doc, true, 18);
+  color(doc, P.ink);
+  doc.text('MergeRSS', cx, cy + 22, { align: 'center' });
 
-  setFont(doc, false, 8.5);
-  setColor(doc, [200, 180, 100]);
-  textLines.forEach((l, i) => doc.text(l, C.margin + 13, y + 7 + i * 4.8));
+  font(doc, false, 10);
+  color(doc, P.inkMuted);
+  doc.text('Intelligence. Curated.', cx, cy + 31, { align: 'center' });
 
-  return y + bannerH + 4;
+  line(doc, cx - 35, cy + 38, cx + 35, cy + 38, P.ruleColor, 0.4);
+
+  font(doc, false, 8.5);
+  color(doc, P.inkFaint);
+  doc.text('mergerss.com', cx, cy + 46, { align: 'center' });
 }
 
-// ─── Section divider ─────────────────────────────────────────────────────────
-
-function sectionDivider(doc, y) {
-  drawLine(doc, C.margin, y, C.margin + C.col, y, C.border, 0.4);
-  return y + 10;
-}
-
-// ─── Main Export ──────────────────────────────────────────────────────────────
+// ─── Main export ──────────────────────────────────────────────────────────────
 
 export async function generatePremiumPdf(savedReport) {
-  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-  const r = savedReport.report || {};
-  const digestName = savedReport.digest_name || 'Intelligence Report';
-  const startDate = savedReport.start_date;
-  const endDate = savedReport.end_date;
+  // letter format, portrait
+  const doc = new jsPDF({ unit: 'mm', format: 'letter', orientation: 'portrait' });
+
+  const r            = savedReport.report || {};
+  const digestName   = savedReport.digest_name || 'Intelligence Report';
+  const startDate    = savedReport.start_date || '';
+  const endDate      = savedReport.end_date || '';
   const deliveryCount = savedReport.delivery_count || 0;
-  const actualStart = savedReport.actual_start;
-  const actualEnd = savedReport.actual_end;
-  const requestedStart = savedReport.start_date;
-  const requestedEnd = savedReport.end_date;
+  const actualStart  = savedReport.actual_start;
+  const actualEnd    = savedReport.actual_end;
 
-  // ── COVER PAGE ────────────────────────────────────────────────────────────
-  buildCoverPage(doc, digestName, startDate, endDate, deliveryCount);
+  let reportDateStr = '';
+  try { reportDateStr = format(new Date(), 'MMMM d, yyyy'); } catch {}
 
-  // ── PAGE 2 START ──────────────────────────────────────────────────────────
+  const state = {
+    page: 1,
+    digestName,
+    reportDate: reportDateStr,
+  };
+
+  // ── Cover ────────────────────────────────────────────────────────────────
+  buildCover(doc, digestName, startDate, endDate, deliveryCount);
+
+  // ── Content pages ────────────────────────────────────────────────────────
   doc.addPage();
-  const state = { page: 2 };
-  fillRect(doc, 0, 0, C.pageW, C.pageH, C.pageBg);
-  addFooter(doc, state.page);
+  state.page = 2;
+  initPage(doc, state);
+  let y = P.marginY;
 
-  let y = 18;
-
-  // ── RANGE MISMATCH WARNING ────────────────────────────────────────────────
-  // Mirrors the amber callout at the top of the screen report header
-  const rangeDiffers = requestedStart && requestedEnd && actualStart && actualEnd &&
-    (requestedStart !== actualStart || requestedEnd !== actualEnd);
-  if (rangeDiffers) {
-    let displayStart = '—', displayEnd = '—';
-    try { displayStart = format(new Date(actualStart), 'MMM d, yyyy'); } catch {}
-    try { displayEnd = format(new Date(actualEnd), 'MMM d, yyyy'); } catch {}
-    y = warningBanner(doc, y,
-      `Data available ${displayStart} – ${displayEnd} only. Report is based on available issues within the requested range.`
-    );
-    y += 2;
+  // Range mismatch notice
+  const rangeMismatch = actualStart && actualEnd && startDate && endDate &&
+    (actualStart !== startDate || actualEnd !== endDate);
+  if (rangeMismatch) {
+    let ds = actualStart, de = actualEnd;
+    try { ds = format(new Date(actualStart), 'MMM d, yyyy'); } catch {}
+    try { de = format(new Date(actualEnd), 'MMM d, yyyy'); } catch {}
+    y = warningBanner(doc, y, `Note: Data is available for ${ds} \u2013 ${de} only. Analysis reflects available issues within the requested range.`);
   }
 
-  // ── 01 EXECUTIVE SUMMARY ──────────────────────────────────────────────────
-  // Primary section: amber bar background matching screen
-  y = sectionHeader(doc, y, '01', 'EXECUTIVE SUMMARY', true);
-  y += 2;
+  // ── 01 Executive Summary ─────────────────────────────────────────────────
+  y = need(doc, y, 40, state);
+  y = sectionHeader(doc, y, '01', 'EXECUTIVE SUMMARY');
 
   if (r.executive_summary) {
-    // Key Takeaway callout — mirrors screen border-l-4 card
-    y = ensureSpace(doc, y, 30, state);
-    y = keyTakeawayBox(doc, y, r.executive_summary);
-    y += 5;
+    y = need(doc, y, 30, state);
+    y = keyTakeaway(doc, y, r.executive_summary);
 
-    // Body paragraphs — full text, not truncated
+    // Full body — paragraph by paragraph
     const paras = r.executive_summary.split(/\n+/).filter(p => p.trim());
     for (const para of paras) {
-      setFont(doc, false, 9.5);
-      const pLines = doc.splitTextToSize(para, C.col);
-      const pH = pLines.length * 5.2 + 4;
-      y = ensureSpace(doc, y, pH, state);
-      y = writeText(doc, para, C.margin, y, { size: 9.5, color: C.textSub, maxW: C.col, lineH: 5.2 });
-      y += 3;
+      const lines = measure(doc, para, P.col, false, 9.5);
+      const ph = lines.length * LH.body + 4;
+      y = need(doc, y, ph, state);
+      y = text(doc, para, P.marginX, y, { size: 9.5, rgb: P.inkSub, maxW: P.col, lh: LH.body });
+      y += 4;
     }
   }
 
-  y += 2;
-  y = sectionDivider(doc, y);
+  y += 3;
+  y = rule(doc, y);
 
-  // ── 02 KEY THEMES ─────────────────────────────────────────────────────────
+  // ── 02 Key Themes ────────────────────────────────────────────────────────
   if (r.key_themes?.length > 0) {
-    y = ensureSpace(doc, y, 18, state);
+    y = need(doc, y, 30, state);
     y = sectionHeader(doc, y, '02', 'KEY THEMES & EVOLUTION');
-    y += 2;
 
     for (let i = 0; i < r.key_themes.length; i++) {
-      y = themeCard(doc, y, r.key_themes[i], i, state);
+      y = themeBlock(doc, y, r.key_themes[i], i, state);
     }
 
-    y += 2;
-    y = sectionDivider(doc, y);
+    y += 3;
+    y = rule(doc, y);
   }
 
-  // ── 03 TREND TRAJECTORIES ─────────────────────────────────────────────────
+  // ── 03 Trend Trajectories ────────────────────────────────────────────────
   const hasTraj = r.escalating_topics?.length || r.deescalating_topics?.length || r.cyclical_topics?.length;
   if (hasTraj) {
-    y = ensureSpace(doc, y, 18, state);
+    y = need(doc, y, 30, state);
     y = sectionHeader(doc, y, '03', 'TREND TRAJECTORIES');
+    y = trajectoryColumns(doc, y, r, state);
     y += 2;
-
-    const colDefs = [
-      { items: r.escalating_topics   || [], label: 'ESCALATING \u2191',    fg: C.emerald, hdrBg: [6, 35, 20],  bodyBg: C.emeraldBg },
-      { items: r.deescalating_topics || [], label: 'DE-ESCALATING \u2193', fg: C.blue,    hdrBg: [8, 22, 55],  bodyBg: C.blueBg },
-      { items: r.cyclical_topics     || [], label: 'CYCLICAL \u26A1',      fg: C.orange,  hdrBg: [40, 20, 4],  bodyBg: C.orangeBg },
-    ];
-
-    const activeCols = colDefs.filter(c => c.items.length > 0);
-    const numCols = activeCols.length || 1;
-    const gutter = 4;
-    const colW = Math.floor((C.col - gutter * (numCols - 1)) / numCols);
-    const maxItems = Math.max(...activeCols.map(c => c.items.length), 1);
-
-    // Calculate height needed for the tallest column
-    let maxColH = 10; // header height
-    for (const col of activeCols) {
-      setFont(doc, false, 8.5);
-      let colContentH = 10; // header
-      for (const item of col.items.slice(0, 10)) {
-        const ls = doc.splitTextToSize(`\u2022 ${item}`, colW - 8);
-        colContentH += ls.length * 4.8 + 2;
-      }
-      colContentH += 6; // padding
-      if (colContentH > maxColH) maxColH = colContentH;
-    }
-
-    y = ensureSpace(doc, y, maxColH + 6, state);
-
-    activeCols.forEach((col, ci) => {
-      const x = C.margin + ci * (colW + gutter);
-
-      // Column header
-      fillRect(doc, x, y, colW, 10, col.hdrBg);
-      setFont(doc, true, 7.5);
-      setColor(doc, col.fg);
-      doc.text(col.label, x + 4, y + 7);
-
-      // Column body background
-      fillRect(doc, x, y + 10, colW, maxColH - 10, col.bodyBg);
-      strokeRect(doc, x, y, colW, maxColH, C.border, 0.25);
-
-      // Items
-      setFont(doc, false, 8.5);
-      setColor(doc, C.textPrimary);
-      let itemY = y + 18;
-      col.items.slice(0, 10).forEach(item => {
-        const itemLines = doc.splitTextToSize(`\u2022 ${item}`, colW - 8);
-        itemLines.forEach(l => {
-          if (itemY < y + maxColH - 2) {
-            doc.text(l, x + 4, itemY);
-            itemY += 4.8;
-          }
-        });
-        itemY += 1.5;
-      });
-    });
-
-    y += maxColH + 6;
-    y = sectionDivider(doc, y);
+    y = rule(doc, y);
   }
 
-  // ── 04 INFLECTION POINTS ──────────────────────────────────────────────────
+  // ── 04 Inflection Points ─────────────────────────────────────────────────
   if (r.inflection_points?.length > 0) {
-    y = ensureSpace(doc, y, 24, state);
+    y = need(doc, y, 35, state);
     y = sectionHeader(doc, y, '04', 'INFLECTION POINTS');
     y += 4;
 
     for (let i = 0; i < r.inflection_points.length; i++) {
-      y = inflectionPoint(doc, y, r.inflection_points[i], i === r.inflection_points.length - 1, state);
+      y = inflectionEntry(doc, y, r.inflection_points[i], i === r.inflection_points.length - 1, state);
     }
 
-    y += 2;
-    y = sectionDivider(doc, y);
+    y += 3;
+    y = rule(doc, y);
   }
 
-  // ── 05 OUTLOOK & FORWARD SIGNALS ─────────────────────────────────────────
+  // ── 05 Outlook & Forward Signals ─────────────────────────────────────────
   if (r.outlook) {
-    y = ensureSpace(doc, y, 24, state);
+    y = need(doc, y, 30, state);
     y = sectionHeader(doc, y, '05', 'OUTLOOK & FORWARD SIGNALS');
     y += 4;
 
@@ -664,49 +686,23 @@ export async function generatePremiumPdf(savedReport) {
       y = outlookSignal(doc, y, signals[i], i, state);
     }
 
-    y += 2;
-    y = sectionDivider(doc, y);
+    y += 3;
+    y = rule(doc, y);
   }
 
-  // ── 06 DATA SUMMARY ───────────────────────────────────────────────────────
+  // ── 06 Data Summary ──────────────────────────────────────────────────────
   if (r.data_summary) {
-    y = ensureSpace(doc, y, 40, state);
+    y = need(doc, y, 45, state);
     y = sectionHeader(doc, y, '06', 'DATA SUMMARY');
     y += 4;
-    y = dataSummaryBlock(doc, y, r.data_summary, deliveryCount, startDate, endDate);
+    y = dataSummaryPanel(doc, y, r.data_summary, deliveryCount, startDate, endDate);
   }
 
-  // ── BACK PAGE ─────────────────────────────────────────────────────────────
-  doc.addPage();
-  state.page++;
-  fillRect(doc, 0, 0, C.pageW, C.pageH, C.pageBg);
-  addFooter(doc, state.page);
+  // ── Back page ────────────────────────────────────────────────────────────
+  buildBackPage(doc, state);
 
-  const cx = C.pageW / 2;
-  const cy = C.pageH / 2 - 20;
-
-  fillRect(doc, cx - 11, cy - 11, 22, 22, C.amber);
-  setFont(doc, true, 13);
-  setColor(doc, [10, 8, 5]);
-  doc.text('M', cx - 3.5, cy + 4);
-
-  setFont(doc, true, 16);
-  setColor(doc, C.white);
-  doc.text('MergeRSS', cx, cy + 20, { align: 'center' });
-
-  setFont(doc, false, 9);
-  setColor(doc, C.textMuted);
-  doc.text('Intelligence. Curated.', cx, cy + 29, { align: 'center' });
-
-  drawLine(doc, cx - 30, cy + 36, cx + 30, cy + 36, C.borderLight, 0.4);
-
-  setFont(doc, false, 8);
-  setColor(doc, C.textFaint);
-  doc.text('mergerss.com', cx, cy + 44, { align: 'center' });
-
-  // ── SAVE ──────────────────────────────────────────────────────────────────
-  let safeName = digestName.replace(/[^a-z0-9]/gi, '-').toLowerCase();
-  let safeDate = startDate ? startDate.slice(0, 10) : 'report';
-  const filename = `${safeName}-report-${safeDate}.pdf`;
-  doc.save(filename);
+  // ── Save ─────────────────────────────────────────────────────────────────
+  const safeName = digestName.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+  const safeDate = startDate ? startDate.slice(0, 10) : 'report';
+  doc.save(`${safeName}-report-${safeDate}.pdf`);
 }
