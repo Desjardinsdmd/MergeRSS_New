@@ -510,7 +510,7 @@ function rTheme(doc, y, theme, index) {
   const descLines  = D.split(doc, theme.description || '', THEME_DESC_W, false, 9.5);
   const titleH = titleLines.length * LH.h2;
   const descH  = descLines.length * LH.body;
-  const blockH = titleH + descH + 26;
+  const blockH = Math.max(titleH + descH + 26, 52);
 
   // Card chrome
   D.fill(doc, G.mX, y, G.col, 2, C.amber);
