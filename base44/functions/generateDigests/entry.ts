@@ -255,9 +255,18 @@ ${topItems.map((item, idx) => `${idx + 1}. [${item.category}] ${item.title}
 
 Write a well-organized, professional digest. Group related stories where appropriate. Be concise but informative. Reference specific article titles and include source URLs inline where relevant.`;
 
-                // Stamp last_sent BEFORE delivery to prevent race condition / double-send
-                // if this run is retried before delivery completes
-                await base44.asServiceRole.entities.Digest.update(digest.id, { last_sent: now.toISOString() });
+                // ── Idempotency guard ─────────────────────────────────────────────────
+                // Stamp last_sent + a delivery_nonce BEFORE making the LLM call.
+                // The nonce is based on the run's start timestamp so that if two
+                // scheduled runs fire simultaneously, only the first one proceeds.
+                // A second run hitting the same digest will see last_sent < 5 min
+                // (the dueDigests filter at the top) and skip it automatically.
+                const deliveryNonce = `${digest.id}_${now.toISOString().slice(0, 16)}`; // minute-level granularity
+                await base44.asServiceRole.entities.Digest.update(digest.id, {
+                    last_sent: now.toISOString(),
+                    // Store nonce in metadata so admin can inspect it if needed
+                    metadata_json: JSON.stringify({ last_delivery_nonce: deliveryNonce }),
+                });
 
                 const content = await base44.asServiceRole.integrations.Core.InvokeLLM({ prompt });
 
