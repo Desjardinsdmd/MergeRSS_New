@@ -142,8 +142,9 @@ Deno.serve(async (req) => {
                 health_state: health.health_state,
             });
 
-            // Write delay — pause every feed to avoid rate limits at scale (174 feeds)
-            await sleep(150);
+            // Write in micro-batches: pause 100ms every feed, plus a longer pause every 15 to let burst limits reset
+            await sleep(100);
+            if (i % 15 === 14) await sleep(600);
         }
 
         const healthy  = results.filter(r => r.health_state === 'healthy').length;
