@@ -95,15 +95,17 @@ export default function Feeds() {
     return map;
   }, [healthData]);
 
-  // Count issues for summary
+  // Count issues for summary — only for the current user's feeds
+  const userFeedIds = React.useMemo(() => new Set(feeds.map(f => f.id)), [feeds]);
   const { failingCount, degradingCount } = React.useMemo(() => {
     let failing = 0, degrading = 0;
     healthData.forEach(h => {
+      if (!userFeedIds.has(h.feed_id)) return;
       if (h.health_state === 'failing') failing++;
       else if (h.health_state === 'degrading') degrading++;
     });
     return { failingCount: failing, degradingCount: degrading };
-  }, [healthData]);
+  }, [healthData, userFeedIds]);
 
   const filteredFeeds = React.useMemo(() => {
     const list = feeds.filter((feed) => {
