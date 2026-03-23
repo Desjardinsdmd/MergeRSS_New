@@ -52,8 +52,10 @@ const STALE_REACTIVATE_THRESHOLD = 0.55;
 const STALE_WINDOW_HOURS         = 72;
 const MIN_KEYWORDS_FOR_CLUSTER   = 2;
 const FETCH_LIMIT                = 500;
-const BATCH_WRITE_DELAY_MS       = 100;
-const ITEM_WRITE_DELAY_MS        = 25;
+const BATCH_WRITE_DELAY_MS       = 200;
+const ITEM_WRITE_DELAY_MS        = 200;
+const ITEM_WRITE_BATCH_SIZE      = 10;
+const ITEM_WRITE_BATCH_PAUSE_MS  = 500;
 const LOCK_WINDOW_MS             = 10 * 60 * 1000;
 const ZOMBIE_TTL_MS              = 15 * 60 * 1000;
 
@@ -387,15 +389,32 @@ Deno.serve(async (req) => {
             }
         }
 
-        if (clusterId) {
-            for (const item of allItems) {
-                if (item.cluster_id === clusterId) continue;
+        // Only annotate items for multi-article clusters — singletons provide no grouping signal
+        // and generate unnecessary write volume (the primary cause of 429 storms).
+        if (clusterId && allItems.length > 1) {
+            const itemsNeedingUpdate = allItems.filter(item => item.cluster_id !== clusterId);
+            for (let wi = 0; wi < itemsNeedingUpdate.length; wi++) {
+                const item = itemsNeedingUpdate[wi];
                 const wasReassigned = !!item.cluster_id && item.cluster_id !== clusterId;
                 const updatePayload = { cluster_id: clusterId };
                 if (wasReassigned) { updatePayload.previous_cluster_id = item.cluster_id; reassigned++; }
-                await base44.asServiceRole.entities.FeedItem.update(item.id, updatePayload).catch(() => {});
-                itemsAnnotated++;
+                let writeOk = false;
+                for (let attempt = 0; attempt < 3 && !writeOk; attempt++) {
+                    try {
+                        await base44.asServiceRole.entities.FeedItem.update(item.id, updatePayload);
+                        writeOk = true;
+                    } catch (e) {
+                        if (e.message?.includes('429') || e.message?.includes('Rate limit')) {
+                            await sleep(ITEM_WRITE_DELAY_MS * Math.pow(2, attempt + 1));
+                        } else {
+                            break;
+                        }
+                    }
+                }
+                if (writeOk) itemsAnnotated++;
                 await sleep(ITEM_WRITE_DELAY_MS);
+                // Extra pause every ITEM_WRITE_BATCH_SIZE writes
+                if ((wi + 1) % ITEM_WRITE_BATCH_SIZE === 0) await sleep(ITEM_WRITE_BATCH_PAUSE_MS);
             }
         }
         await sleep(BATCH_WRITE_DELAY_MS);
