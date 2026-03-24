@@ -364,28 +364,46 @@ Deno.serve(async (req) => {
         }
 
         if (matchedExisting) {
-            try {
-                await base44.asServiceRole.entities.StoryCluster.update(matchedExisting.id, {
-                    ...clusterData,
-                    ...(reactivatedFrom ? {
-                        reactivated_from_id: reactivatedFrom,
-                        reactivation_count: (matchedExisting.reactivation_count || 0) + 1,
-                    } : {}),
-                });
+            let writeOk = false;
+            for (let attempt = 0; attempt < 3 && !writeOk; attempt++) {
+                try {
+                    await base44.asServiceRole.entities.StoryCluster.update(matchedExisting.id, {
+                        ...clusterData,
+                        ...(reactivatedFrom ? {
+                            reactivated_from_id: reactivatedFrom,
+                            reactivation_count: (matchedExisting.reactivation_count || 0) + 1,
+                        } : {}),
+                    });
+                    writeOk = true;
+                } catch (e) {
+                    if (e.message?.includes('429') || e.message?.includes('Rate limit')) {
+                        await sleep(BATCH_WRITE_DELAY_MS * Math.pow(2, attempt + 1));
+                    } else {
+                        console.warn(`[clusterStories] Update failed: ${e.message}`);
+                        break;
+                    }
+                }
+            }
+            if (writeOk) {
                 clusterId = matchedExisting.id;
                 activeByFingerprint[clusterFingerprint] = { ...matchedExisting, id: matchedExisting.id };
                 if (reactivatedFrom) reactivated++; else updated++;
-            } catch (e) {
-                console.warn(`[clusterStories] Update failed: ${e.message}`);
             }
         } else {
-            try {
-                const newCluster = await base44.asServiceRole.entities.StoryCluster.create(clusterData);
-                clusterId = newCluster?.id;
-                if (clusterId) activeByFingerprint[clusterFingerprint] = { id: clusterId, cluster_fingerprint: clusterFingerprint };
-                created++;
-            } catch (e) {
-                console.warn(`[clusterStories] Create failed: ${e.message}`);
+            for (let attempt = 0; attempt < 3; attempt++) {
+                try {
+                    const newCluster = await base44.asServiceRole.entities.StoryCluster.create(clusterData);
+                    clusterId = newCluster?.id;
+                    if (clusterId) { activeByFingerprint[clusterFingerprint] = { id: clusterId, cluster_fingerprint: clusterFingerprint }; created++; }
+                    break;
+                } catch (e) {
+                    if ((e.message?.includes('429') || e.message?.includes('Rate limit')) && attempt < 2) {
+                        await sleep(BATCH_WRITE_DELAY_MS * Math.pow(2, attempt + 1));
+                    } else {
+                        console.warn(`[clusterStories] Create failed: ${e.message}`);
+                        break;
+                    }
+                }
             }
         }
 
