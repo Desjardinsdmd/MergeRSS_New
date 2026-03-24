@@ -1,5 +1,22 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function safeUpdate(entity, id, data, retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      await entity.update(id, data);
+      return;
+    } catch (e) {
+      if ((e.message?.includes('429') || e.message?.includes('Rate limit')) && i < retries - 1) {
+        await sleep(500 * Math.pow(2, i));
+      } else {
+        throw e;
+      }
+    }
+  }
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -69,7 +86,9 @@ Deno.serve(async (req) => {
         updateData.escalation_reason = repairResult.escalation_reason;
       }
 
-      await base44.entities.Feed.update(feed.id, updateData);
+      await safeUpdate(base44.entities.Feed, feed.id, updateData);
+      // Throttle between feeds to avoid 429 storms
+      await sleep(300);
     }
 
     const repaired = results.filter(r => r.status === 'resolved').length;
