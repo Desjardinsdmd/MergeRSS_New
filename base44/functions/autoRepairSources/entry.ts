@@ -45,8 +45,19 @@ Deno.serve(async (req) => {
     const feedMap = Object.fromEntries(feeds.map(f => [f.id, f]));
     const results = [];
 
+    // Cap per run to avoid timeouts — scheduled every 6h so all feeds get coverage over time
+    const MAX_PER_RUN = 10;
+    const RUN_BUDGET_MS = 90_000; // 90 second hard budget
+    const runStart = Date.now();
+
     // Process each problematic source
+    let processed = 0;
     for (const health of problematicFeeds) {
+      if (processed >= MAX_PER_RUN) break;
+      if (Date.now() - runStart > RUN_BUDGET_MS) {
+        console.log('[autoRepairSources] Budget exceeded, stopping early');
+        break;
+      }
       const feed = feedMap[health.feed_id];
       if (!feed) continue;
 
@@ -89,6 +100,7 @@ Deno.serve(async (req) => {
       await safeUpdate(base44.entities.Feed, feed.id, updateData);
       // Throttle between feeds to avoid 429 storms
       await sleep(300);
+      processed++;
     }
 
     const repaired = results.filter(r => r.status === 'resolved').length;
