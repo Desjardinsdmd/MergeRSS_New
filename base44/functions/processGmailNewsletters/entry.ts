@@ -88,8 +88,13 @@ Deno.serve(async (req) => {
   const syncRecord = syncStates.length > 0 ? syncStates[0] : null;
 
   if (!syncRecord) {
-    await base44.asServiceRole.entities.SyncState.create({ key: 'gmail_newsletters', history_id: currentHistoryId });
+    await base44.asServiceRole.entities.SyncState.create({ key: 'gmail_newsletters', history_id: currentHistoryId, enabled: true });
     return Response.json({ status: 'initialized', historyId: currentHistoryId });
+  }
+
+  // Check if watcher is disabled
+  if (syncRecord.enabled === false) {
+    return Response.json({ status: 'disabled' });
   }
 
   const prevHistoryId = syncRecord.history_id;
