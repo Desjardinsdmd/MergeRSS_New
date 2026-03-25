@@ -12,6 +12,7 @@ import {
   LayoutDashboard,
   FileText,
   Link2,
+  Mail,
   Settings,
   LogOut,
   Menu,
