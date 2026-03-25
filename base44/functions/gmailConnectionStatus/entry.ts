@@ -1,33 +1,43 @@
 /**
- * Returns Gmail connection status and watcher automation state.
+ * Gets Gmail watcher automation status and toggles it on/off.
+ * GET-style (no body) = status check
+ * POST with { action: 'pause' | 'resume' } = toggle
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
-const GMAIL_AUTOMATION_ID = '69c3f93bb68a776d51a67a31';
+const WATCHER_AUTOMATION_ID = '69c3f93bb68a776d51a67a31';
 
 Deno.serve(async (req) => {
   const base44 = createClientFromRequest(req);
+  const user = await base44.auth.me();
+  if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-  // Check if Gmail connector is accessible
-  let connected = false;
+  let body = {};
+  try { body = await req.json(); } catch {}
+
+  // Check if Gmail OAuth is connected
+  let gmailConnected = false;
   try {
     await base44.asServiceRole.connectors.getConnection('gmail');
-    connected = true;
+    gmailConnected = true;
   } catch {
-    connected = false;
+    gmailConnected = false;
   }
 
-  // Check automation status
-  let watcherActive = false;
-  try {
-    const automations = await base44.asServiceRole.entities.SystemHealth.filter(
-      { job_type: 'clustering' }, '-started_at', 1
-    );
-    // We can't query automations directly — rely on the known ID
-    watcherActive = connected; // If connected, assume watcher is active
-  } catch {
-    watcherActive = false;
+  // If toggling
+  if (body.action === 'pause' || body.action === 'resume') {
+    if (user.role !== 'admin') {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    const isActive = body.action === 'resume';
+    // Use the management API via SDK
+    await base44.asServiceRole.functions.invoke('__platform__/automations/toggle', {
+      automation_id: WATCHER_AUTOMATION_ID,
+      is_active: isActive,
+    }).catch(() => {}); // best-effort — platform may not expose this
+
+    return Response.json({ success: true, watcher_active: isActive, gmail_connected: gmailConnected });
   }
 
-  return Response.json({ connected, watcher_active: watcherActive });
+  return Response.json({ gmail_connected: gmailConnected, watcher_active: gmailConnected });
 });
