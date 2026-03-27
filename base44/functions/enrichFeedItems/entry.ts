@@ -83,13 +83,14 @@ Deno.serve(async (req) => {
         let enrichments = [];
         try {
             const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
-                prompt: `You are a financial and tech news intelligence analyst. 
-For each article below, return:
-1. ai_summary: 1-2 sentence plain-English summary focusing on what happened and why it matters
-2. importance_score: integer 0-100 (100 = market-moving global event, 0 = trivial/routine)
-3. intelligence_tag: one of "Trending" (widely discussed topic), "Risk" (threat, danger, downturn), "Opportunity" (growth, positive catalyst), "Neutral" (informational, no clear signal)
+                prompt: `You are an intelligence analyst assessing articles for a professional reader who tracks multiple domains: commercial real estate (CRE), finance, legal/regulatory, technology, and industry news.
 
-Be decisive. Avoid always returning Neutral. Use Risk for regulatory, geopolitical, market stress signals. Use Opportunity for earnings beats, launches, policy tailwinds.
+For each article below, return:
+1. ai_summary: 1-2 sentence plain-English summary focusing on what happened and why it matters to a professional in that domain
+2. importance_score: integer 0-100 scored RELATIVE TO THE ARTICLE'S OWN CATEGORY/DOMAIN (100 = major development within that field, 0 = trivial/routine for that field). A significant CRE deal should score just as high as a significant geopolitical event — score within context, not global news significance.
+3. intelligence_tag: one of "Trending" (widely discussed in its field), "Risk" (threat, danger, downturn, regulatory risk), "Opportunity" (growth, positive catalyst, new deal), "Neutral" (informational, no clear signal)
+
+Be decisive. Avoid always returning Neutral. Score importance relative to how significant this is for someone following that specific topic — NOT relative to world news.
 
 Articles:
 ${JSON.stringify(articlesPayload, null, 2)}`,
