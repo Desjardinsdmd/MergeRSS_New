@@ -1,6 +1,7 @@
 /**
  * processGmailNewsletters
  * Gmail connector automation handler.
+ * The platform pre-enriches the payload with data.new_message_ids before calling this function.
  * Watches for new emails from configured subscriptions (EmailSubscription entity).
  * Stores caught emails as NewsletterEmail records — displayed in the EmailFeeds inbox.
  */
@@ -67,7 +68,6 @@ function extractLinks(html) {
   while ((match = regex.exec(html)) !== null) {
     const url = match[1].trim();
     const rawText = match[2].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-    // Filter out unsubscribe, tracking, and non-http links
     if (!url.startsWith('http')) continue;
     if (/unsubscribe|optout|opt-out|track|click\.|\?r=|utm_/i.test(url)) continue;
     if (rawText.length < 3 || rawText.length > 150) continue;
@@ -85,52 +85,27 @@ Deno.serve(async (req) => {
   let body = {};
   try { body = await req.json(); } catch {}
 
-  const messageData = body?.data?.message?.data;
-  if (!messageData) return Response.json({ status: 'no_message_data' });
+  // The platform pre-populates data.new_message_ids — no manual Pub/Sub decoding needed
+  const messageIds = body?.data?.new_message_ids ?? [];
+  console.log(`[processGmailNewsletters] Received ${messageIds.length} new message IDs`);
 
-  let decoded;
-  try { decoded = JSON.parse(atob(messageData)); } catch {
-    return Response.json({ status: 'decode_error' });
+  if (messageIds.length === 0) {
+    return Response.json({ status: 'no_new_messages' });
   }
-
-  const currentHistoryId = String(decoded.historyId);
 
   const { accessToken } = await base44.asServiceRole.connectors.getConnection('gmail');
   const authHeader = { Authorization: `Bearer ${accessToken}` };
 
-  // Load sync state
+  // Check if sync is enabled
   const syncStates = await base44.asServiceRole.entities.SyncState.filter({ key: 'gmail_newsletters' });
   const syncRecord = syncStates[0] || null;
-
-  if (!syncRecord) {
-    await base44.asServiceRole.entities.SyncState.create({ key: 'gmail_newsletters', history_id: currentHistoryId, enabled: true });
-    return Response.json({ status: 'initialized', historyId: currentHistoryId });
-  }
-
-  if (syncRecord.enabled === false) {
+  if (syncRecord && syncRecord.enabled === false) {
     return Response.json({ status: 'disabled' });
   }
 
-  const prevHistoryId = syncRecord.history_id;
-
-  // Fetch history
-  const historyRes = await fetch(
-    `https://gmail.googleapis.com/gmail/v1/users/me/history?startHistoryId=${prevHistoryId}&historyTypes=messageAdded`,
-    { headers: authHeader }
-  );
-
-  if (!historyRes.ok) {
-    const err = await historyRes.text();
-    console.error(`[processGmailNewsletters] history.list failed: ${err}`);
-    return Response.json({ status: 'history_error', detail: err });
-  }
-
-  const historyData = await historyRes.json();
-  const histories = historyData.history || [];
-
   // Load active subscriptions and build sender map
   const subscriptions = await base44.asServiceRole.entities.EmailSubscription.filter({ is_active: true }, '-created_date', 200);
-  const senderMap = {}; // email -> subscription
+  const senderMap = {};
   for (const sub of subscriptions) {
     for (const email of (sub.sender_emails || [])) {
       senderMap[email.toLowerCase()] = sub;
@@ -140,68 +115,68 @@ Deno.serve(async (req) => {
   let processed = 0;
   let created = 0;
 
-  for (const history of histories) {
-    for (const added of (history.messagesAdded || [])) {
-      const msgId = added.message?.id;
-      if (!msgId) continue;
-
-      const msgRes = await fetch(
-        `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msgId}?format=full`,
-        { headers: authHeader }
-      );
-      if (!msgRes.ok) continue;
-
-      const msg = await msgRes.json();
-      processed++;
-
-      const headers = msg.payload?.headers || [];
-      const getHeader = (name) => headers.find(h => h.name.toLowerCase() === name.toLowerCase())?.value || '';
-
-      const fromHeader = getHeader('From');
-      const subject = getHeader('Subject');
-      const dateHeader = getHeader('Date');
-
-      const emailMatch = fromHeader.match(/<([^>]+)>/) || fromHeader.match(/(\S+@\S+)/);
-      const senderEmail = emailMatch ? emailMatch[1].toLowerCase() : fromHeader.toLowerCase().trim();
-      const senderName = fromHeader.match(/^([^<]+)</) ? fromHeader.match(/^([^<]+)</)[1].trim() : senderEmail;
-
-      const matchedSub = senderMap[senderEmail];
-      if (!matchedSub) continue;
-
-      // Dedupe
-      const existing = await base44.asServiceRole.entities.NewsletterEmail.filter({ gmail_message_id: msgId }, '-created_date', 1);
-      if (existing.length > 0) continue;
-
-      const { html, text } = extractEmailBody(msg.payload);
-      const textContent = html ? extractTextFromHtml(html) : text;
-      const links = extractLinks(html || text);
-
-      const receivedAt = dateHeader ? new Date(dateHeader).toISOString() : new Date().toISOString();
-
-      await base44.asServiceRole.entities.NewsletterEmail.create({
-        gmail_message_id: msgId,
-        subscription_id: matchedSub.id,
-        from_email: senderEmail,
-        from_name: senderName,
-        subject: subject || '(No Subject)',
-        received_at: receivedAt,
-        text_content: textContent.slice(0, 8000),
-        links,
-        is_read: false,
-      });
-
-      // Update subscription stats
-      await base44.asServiceRole.entities.EmailSubscription.update(matchedSub.id, {
-        email_count: (matchedSub.email_count || 0) + 1,
-        last_received_at: receivedAt,
-      });
-
-      created++;
-      await sleep(100);
+  for (const msgId of messageIds) {
+    const msgRes = await fetch(
+      `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msgId}?format=full`,
+      { headers: authHeader }
+    );
+    if (!msgRes.ok) {
+      console.warn(`[processGmailNewsletters] Failed to fetch message ${msgId}: ${msgRes.status}`);
+      continue;
     }
-  }
 
-  await base44.asServiceRole.entities.SyncState.update(syncRecord.id, { history_id: currentHistoryId });
+    const msg = await msgRes.json();
+    processed++;
+
+    const headers = msg.payload?.headers || [];
+    const getHeader = (name) => headers.find(h => h.name.toLowerCase() === name.toLowerCase())?.value || '';
+
+    const fromHeader = getHeader('From');
+    const subject = getHeader('Subject');
+    const dateHeader = getHeader('Date');
+
+    const emailMatch = fromHeader.match(/<([^>]+)>/) || fromHeader.match(/(\S+@\S+)/);
+    const senderEmail = emailMatch ? emailMatch[1].toLowerCase() : fromHeader.toLowerCase().trim();
+    const senderName = fromHeader.match(/^([^<]+)</) ? fromHeader.match(/^([^<]+)</)[1].trim() : senderEmail;
+
+    const matchedSub = senderMap[senderEmail];
+    if (!matchedSub) {
+      console.log(`[processGmailNewsletters] No subscription match for sender: ${senderEmail}`);
+      continue;
+    }
+
+    // Dedupe
+    const existing = await base44.asServiceRole.entities.NewsletterEmail.filter({ gmail_message_id: msgId }, '-created_date', 1);
+    if (existing.length > 0) {
+      console.log(`[processGmailNewsletters] Duplicate skipped: ${msgId}`);
+      continue;
+    }
+
+    const { html, text } = extractEmailBody(msg.payload);
+    const textContent = html ? extractTextFromHtml(html) : text;
+    const links = extractLinks(html || text);
+    const receivedAt = dateHeader ? new Date(dateHeader).toISOString() : new Date().toISOString();
+
+    await base44.asServiceRole.entities.NewsletterEmail.create({
+      gmail_message_id: msgId,
+      subscription_id: matchedSub.id,
+      from_email: senderEmail,
+      from_name: senderName,
+      subject: subject || '(No Subject)',
+      received_at: receivedAt,
+      text_content: textContent.slice(0, 8000),
+      links,
+      is_read: false,
+    });
+
+    await base44.asServiceRole.entities.EmailSubscription.update(matchedSub.id, {
+      email_count: (matchedSub.email_count || 0) + 1,
+      last_received_at: receivedAt,
+    });
+
+    created++;
+    await sleep(100);
+  }
 
   console.log(`[processGmailNewsletters] processed=${processed} created=${created}`);
   return Response.json({ status: 'ok', processed, created });
