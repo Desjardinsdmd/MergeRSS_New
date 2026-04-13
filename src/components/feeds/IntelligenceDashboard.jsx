@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -55,11 +55,24 @@ export default function IntelligenceDashboard({ user, feeds = [], digests = [], 
         i.published_date && new Date(i.published_date) >= new Date(since24h)
     ).length;
 
-    // High importance/risk items for sidebar — score >= 65 or Risk tag, no weak noise
-    const highImportanceItems = rankedItems
-        .filter(i => ((i.importance_score ?? 0) >= 65 || i.intelligence_tag === 'Risk') && (i.importance_score ?? 0) >= 50)
-        .sort((a, b) => (b.importance_score ?? 0) - (a.importance_score ?? 0))
-        .slice(0, 6);
+    // High importance/risk items for sidebar — score >= 65 or Risk tag, with category diversity
+    const highImportanceItems = useMemo(() => {
+        const candidates = rankedItems
+            .filter(i => ((i.importance_score ?? 0) >= 65 || i.intelligence_tag === 'Risk') && (i.importance_score ?? 0) >= 50)
+            .sort((a, b) => (b.importance_score ?? 0) - (a.importance_score ?? 0));
+        // Max 2 per category to prevent one topic dominating the sidebar
+        const result = [];
+        const catCount = {};
+        for (const item of candidates) {
+            const cat = (item.category || 'Uncategorized').toLowerCase();
+            catCount[cat] = (catCount[cat] || 0);
+            if (catCount[cat] >= 2) continue;
+            catCount[cat]++;
+            result.push(item);
+            if (result.length >= 6) break;
+        }
+        return result;
+    }, [rankedItems]);
 
     // Bookmarks
     const { data: bookmarks = [] } = useQuery({

@@ -18,7 +18,20 @@ const TAG_CONFIG = {
     Neutral:     { textClass: 'text-stone-500',   icon: Minus },
 };
 
-const MACRO_BOOST_RE = /\b(fed|federal reserve|interest rate|inflation|gdp|earnings|capital markets|policy|regulation|oil|energy|geopolit|trade|tariff|acqui|merger|ipo|real estate|housing)\b/i;
+// Category diversity helper — ensures no single category dominates the briefing
+function diversifyByCategory(items, maxPerCategory = 2, total = 4) {
+    const result = [];
+    const catCount = {};
+    for (const item of items) {
+        const cat = (item.category || 'Uncategorized').toLowerCase();
+        catCount[cat] = (catCount[cat] || 0);
+        if (catCount[cat] >= maxPerCategory) continue;
+        catCount[cat]++;
+        result.push(item);
+        if (result.length >= total) break;
+    }
+    return result;
+}
 
 // HARD RULE: Low Priority items never appear in Today's Briefing
 function qualifiesForBriefing(item, clusterSize) {
@@ -322,10 +335,8 @@ export default function TopFiveToday({ feedIds, feeds, onItemsLoaded }) {
             if (!raw?.length) return [];
 
             const boosted = raw.map(item => {
-                const text = (item.title || '') + ' ' + (item.description || '');
-                const macroBoost = MACRO_BOOST_RE.test(text) ? 8 : 0;
                 const interactionBoost = Math.min(getInteractionScore(item.title) * 2, 10);
-                return { ...item, _boostedScore: (item.importance_score ?? 0) + macroBoost + interactionBoost };
+                return { ...item, _boostedScore: (item.importance_score ?? 0) + interactionBoost };
             }).sort((a, b) => b._boostedScore - a._boostedScore);
 
             const clusterMap = new Map();
@@ -350,13 +361,19 @@ export default function TopFiveToday({ feedIds, feeds, onItemsLoaded }) {
                 })
                 .sort((a, b) => b._qualityScore - a._qualityScore);
 
-            // Cap at 4 items — deduplicate items with nearly identical insights
+            // Cap at 4 items — deduplicate insights AND enforce category diversity
             const topItems = [];
             const seenInsights = new Set();
+            const catCount = {};
             for (const item of ranked) {
                 const insight = generateInsight(item);
                 const insightKey = insight ? insight.slice(0, 50) : `score:${item.importance_score}`;
                 if (seenInsights.has(insightKey)) continue;
+                // Max 2 items from the same category to prevent one topic dominating
+                const cat = (item.category || 'Uncategorized').toLowerCase();
+                catCount[cat] = (catCount[cat] || 0);
+                if (catCount[cat] >= 2) continue;
+                catCount[cat]++;
                 seenInsights.add(insightKey);
                 topItems.push(item);
                 if (topItems.length >= 4) break;

@@ -43,11 +43,22 @@ export default function WhatChanged({ feedIds = [], feeds = [] }) {
             );
             if (!raw?.length) return [];
             const clusters = clusterItems(raw, feedMap);
-            return clusters
+            const filtered = clusters
                 .filter(c => (c.primary.importance_score ?? 0) >= 40 || c.primary.intelligence_tag === 'Risk' || c.primary.intelligence_tag === 'Opportunity')
-                .sort((a, b) => (b.primary.importance_score ?? 0) - (a.primary.importance_score ?? 0))
-                .slice(0, 6)
-                .map(c => ({ ...c.primary, _clusterSize: c.clusterSize }));
+                .sort((a, b) => (b.primary.importance_score ?? 0) - (a.primary.importance_score ?? 0));
+
+            // Category diversity — max 2 per category in top 6
+            const result = [];
+            const catCount = {};
+            for (const c of filtered) {
+                const cat = (c.primary.category || 'Uncategorized').toLowerCase();
+                catCount[cat] = (catCount[cat] || 0);
+                if (catCount[cat] >= 2) continue;
+                catCount[cat]++;
+                result.push(c);
+                if (result.length >= 6) break;
+            }
+            return result.map(c => ({ ...c.primary, _clusterSize: c.clusterSize }));
         },
         enabled: !!feedIds.length,
         staleTime: 2 * 60 * 1000,

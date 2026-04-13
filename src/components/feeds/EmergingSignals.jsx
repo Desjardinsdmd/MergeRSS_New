@@ -30,7 +30,7 @@ export default function EmergingSignals({ feedIds = [], feeds = [], top5Ids = ne
 
             const clusters = clusterItems(raw, feedMap);
 
-            return clusters
+            const filtered = clusters
                 .filter(c => {
                     const score = c.primary.importance_score ?? 0;
                     const insight = generateInsight(c.primary);
@@ -38,12 +38,21 @@ export default function EmergingSignals({ feedIds = [], feeds = [], top5Ids = ne
                         !insight.startsWith('Downside signal') &&
                         !insight.startsWith('Upside signal') &&
                         !insight.startsWith('Broad coverage');
-                    // Require score >= 65, not already in top5, and a specific insight
                     return c.clusterSize <= 2 && score >= 65 && !top5Ids.has(c.primary.id) && hasSpecificInsight;
                 })
-                .sort((a, b) => (b.primary.importance_score ?? 0) - (a.primary.importance_score ?? 0))
-                .slice(0, 3)
-                .map(c => ({ ...c.primary, _clusterSize: c.clusterSize }));
+                .sort((a, b) => (b.primary.importance_score ?? 0) - (a.primary.importance_score ?? 0));
+
+            // Category diversity — max 1 per category to surface different topics
+            const result = [];
+            const seenCats = new Set();
+            for (const c of filtered) {
+                const cat = (c.primary.category || 'Uncategorized').toLowerCase();
+                if (seenCats.has(cat)) continue;
+                seenCats.add(cat);
+                result.push(c);
+                if (result.length >= 3) break;
+            }
+            return result.map(c => ({ ...c.primary, _clusterSize: c.clusterSize }));
         },
         enabled: !!feedIds.length,
         staleTime: 5 * 60 * 1000,
