@@ -51,11 +51,11 @@ const EXTENDED_THRESHOLD         = 0.60;
 const STALE_REACTIVATE_THRESHOLD = 0.55;
 const STALE_WINDOW_HOURS         = 72;
 const MIN_KEYWORDS_FOR_CLUSTER   = 2;
-const FETCH_LIMIT                = 500;
-const BATCH_WRITE_DELAY_MS       = 200;
-const ITEM_WRITE_DELAY_MS        = 200;
+const FETCH_LIMIT                = 200;
+const BATCH_WRITE_DELAY_MS       = 80;
+const ITEM_WRITE_DELAY_MS        = 80;
 const ITEM_WRITE_BATCH_SIZE      = 10;
-const ITEM_WRITE_BATCH_PAUSE_MS  = 500;
+const ITEM_WRITE_BATCH_PAUSE_MS  = 200;
 const LOCK_WINDOW_MS             = 10 * 60 * 1000;
 const ZOMBIE_TTL_MS              = 15 * 60 * 1000;
 
