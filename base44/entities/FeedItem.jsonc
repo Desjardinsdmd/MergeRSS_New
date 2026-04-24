@@ -1,0 +1,112 @@
+{
+  "name": "FeedItem",
+  "type": "object",
+  "properties": {
+    "feed_id": {
+      "type": "string",
+      "description": "Reference to parent feed"
+    },
+    "title": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "content": {
+      "type": "string"
+    },
+    "author": {
+      "type": "string"
+    },
+    "published_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "guid": {
+      "type": "string",
+      "description": "Unique identifier from feed"
+    },
+    "canonical_url": {
+      "type": "string",
+      "description": "Normalized URL for deduplication"
+    },
+    "dedupe_hash": {
+      "type": "string",
+      "description": "Hash for deduplication"
+    },
+    "category": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false
+    },
+    "ai_summary": {
+      "type": "string",
+      "description": "AI-generated summary answering So what? with lens-specific implication"
+    },
+    "importance_score": {
+      "type": "number",
+      "description": "AI-ranked importance score 0-100 scored against TCU/AI-TECH/MACRO lens"
+    },
+    "intelligence_tag": {
+      "type": "string",
+      "enum": [
+        "Trending",
+        "Risk",
+        "Opportunity",
+        "Neutral"
+      ],
+      "description": "AI-assigned intelligence classification \u2014 discriminating, not default Opportunity"
+    },
+    "scoring_lens": {
+      "type": "string",
+      "enum": [
+        "TCU",
+        "AI_TECH",
+        "MACRO"
+      ],
+      "description": "Which scoring lens was applied during enrichment"
+    },
+    "entities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Named entities extracted during enrichment: companies, people, places, regulations, products"
+    },
+    "enrichment_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "done",
+        "fallback",
+        "failed"
+      ],
+      "default": "pending",
+      "description": "Enrichment quality: pending=not yet enriched, done=LLM succeeded, fallback=LLM failed, failed=could not be processed"
+    },
+    "cluster_id": {
+      "type": "string",
+      "description": "StoryCluster ID this article belongs to"
+    },
+    "previous_cluster_id": {
+      "type": "string",
+      "description": "Prior cluster_id before reassignment"
+    }
+  },
+  "required": [
+    "feed_id",
+    "title",
+    "url"
+  ]
+}
