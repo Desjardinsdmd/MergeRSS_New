@@ -45,7 +45,10 @@ export default function TrendingTopicsInline({ feedIds }) {
                 <span className="text-xs text-stone-600 ml-auto">7d vs 4-week baseline · authority-weighted</span>
             </div>
             <div className="divide-y divide-stone-800/60">
-                {Object.entries(signals).map(([bucket, entities]) => (
+                {Object.entries(signals).map(([bucket, entities]) => {
+                    const items = Array.isArray(entities) ? entities : [];
+                    if (!items.length) return null;
+                    return (
                     <div key={bucket} className="px-5 py-4">
                         <div className="flex items-center gap-2 mb-3">
                             <span className={`text-[10px] font-bold px-2 py-0.5 border ${BUCKET_COLORS[bucket] || BUCKET_COLORS.Macro}`}>
@@ -53,7 +56,7 @@ export default function TrendingTopicsInline({ feedIds }) {
                             </span>
                         </div>
                         <div className="space-y-3">
-                            {entities.slice(0, 5).map((signal) => (
+                            {items.slice(0, 5).map((signal) => (
                                 <div key={signal.entity}>
                                     <div className="flex items-center gap-2 mb-1">
                                         <span className="text-sm font-semibold text-stone-100">{signal.entity}</span>
@@ -82,7 +85,8 @@ export default function TrendingTopicsInline({ feedIds }) {
                             ))}
                         </div>
                     </div>
-                ))}
+                    );
+                })}
             </div>
         </div>
     );
