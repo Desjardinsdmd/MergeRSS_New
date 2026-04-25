@@ -8,7 +8,7 @@
  *   [4] runJob()               — lock, heartbeat, structured result
  *   [5] pipeline health classification — empty output is NOT success
  */
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 // ── Shared utilities (inlined — see functions/lib.js for canonical patterns) ──
 
@@ -225,6 +225,9 @@ Deno.serve(async (req) => {
         });
     }
 
+    // ── 1b. Load SourceAuthority for boost calculation ──────────────────────
+    const allAuth = extractItems(await base44.asServiceRole.entities.SourceAuthority.list('-created_date', 500));
+
     // ── 2. Pre-compute metadata per item ─────────────────────────────────────
     const itemMeta = items.map(item => {
         const keywords = new Set(extractKeywords(item.title || ''));
@@ -317,6 +320,22 @@ Deno.serve(async (req) => {
         const clusterFingerprint = buildFingerprint(allKeywords, pivot.publishedMs);
         const blendedImportance = computeBlendedImportance(primary, allItems, sourceDomains);
 
+        // ── Multi-source importance boost ──
+        // +5 for clusters with source_count >= 3 AND authority_weighted_source_count >= 2
+        let boostedImportance = blendedImportance;
+        if (sourceDomains.length >= 3) {
+            // Compute authority-weighted source count
+            let authWeightedCount = 0;
+            for (const domain of sourceDomains) {
+                const auth = allAuth.find(a => a.domain && a.domain.toLowerCase() === domain.toLowerCase());
+                const weight = auth?.tier === 'tier1' ? 2.0 : auth?.tier === 'tier3' ? 0.5 : 1.0;
+                authWeightedCount += weight;
+            }
+            if (authWeightedCount >= 2) {
+                boostedImportance = Math.min(100, blendedImportance + 5);
+            }
+        }
+
         const clusterData = {
             representative_title: primary.title || 'Untitled',
             normalized_title: normalizeTitle(primary.title || ''),
@@ -330,7 +349,7 @@ Deno.serve(async (req) => {
             tags: primary.tags || [],
             first_seen_at: new Date(firstSeenMs).toISOString(),
             last_updated_at: new Date(lastUpdatedMs).toISOString(),
-            importance_score: blendedImportance,
+            importance_score: boostedImportance,
             intelligence_tag: intelligenceTag,
             cluster_window_hours: windowHours,
             cluster_fingerprint: clusterFingerprint,

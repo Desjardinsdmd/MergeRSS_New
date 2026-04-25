@@ -89,15 +89,21 @@ export default function SignalRadarChart({ user, feeds }) {
     // Use same denominator (max of both) so the scales are comparable
     const denom = Math.max(maxWeek, maxBaseline);
 
-    return CATEGORIES.map(c => ({
-      category: c.label,
-      key: c.key,
-      thisWeek: Math.round((weekCounts[c.key] / denom) * 100),
-      baseline: Math.round((baselineRaw[c.key] / denom) * 100),
-      rawThisWeek: weekCounts[c.key],
-      rawBaseline: Math.round(baselineRaw[c.key] * 10) / 10,
-      tagBalance: tagBalances[c.key].opp > tagBalances[c.key].risk ? 'opportunity' : tagBalances[c.key].risk > tagBalances[c.key].opp ? 'risk' : 'neutral',
-    }));
+    return CATEGORIES.map(c => {
+      const rawWeek = weekCounts[c.key];
+      const rawBase = baselineRaw[c.key];
+      const isAtBaseline = rawWeek === 0;
+      return {
+        category: c.label,
+        key: c.key,
+        thisWeek: isAtBaseline ? 5 : Math.round((rawWeek / denom) * 100),
+        baseline: Math.round((rawBase / denom) * 100),
+        rawThisWeek: rawWeek,
+        rawBaseline: Math.round(rawBase * 10) / 10,
+        tagBalance: isAtBaseline ? 'baseline' : (tagBalances[c.key].opp > tagBalances[c.key].risk ? 'opportunity' : tagBalances[c.key].risk > tagBalances[c.key].opp ? 'risk' : 'neutral'),
+        isAtBaseline,
+      };
+    });
   }, [items]);
 
   const handleSpokeClick = (categoryKey) => {
@@ -108,7 +114,7 @@ export default function SignalRadarChart({ user, feeds }) {
 
   const CustomTick = ({ x, y, payload }) => {
     const entry = chartData.find(d => d.category === payload.value);
-    const color = entry?.tagBalance === 'opportunity' ? '#4ade80' : entry?.tagBalance === 'risk' ? '#f87171' : '#78716c';
+    const color = entry?.tagBalance === 'baseline' ? '#57534e' : entry?.tagBalance === 'opportunity' ? '#4ade80' : entry?.tagBalance === 'risk' ? '#f87171' : '#78716c';
     return (
       <text
         x={x} y={y}
@@ -168,15 +174,27 @@ export default function SignalRadarChart({ user, feeds }) {
               <Radar
                 name="4-Week Baseline"
                 dataKey="baseline"
-                stroke="#78716c"
+                stroke="#a8a29e"
                 fill="none"
-                strokeWidth={1.5}
-                strokeDasharray="4 3"
+                strokeWidth={2}
+                strokeDasharray="6 3"
+                strokeOpacity={0.65}
               />
             </RadarChart>
           </ResponsiveContainer>
         )}
       </div>
+
+      {/* Baseline categories line */}
+      {(() => {
+        const baselineCats = chartData.filter(d => d.isAtBaseline).map(d => d.category);
+        if (!baselineCats.length) return null;
+        return (
+          <p className="text-[10px] text-stone-600 text-center mt-2 px-2">
+            Categories at baseline: {baselineCats.join(', ')}
+          </p>
+        );
+      })()}
 
       {/* Legend */}
       <div className="flex items-center justify-center gap-5 pt-2 border-t border-stone-800 mt-2">
@@ -185,7 +203,7 @@ export default function SignalRadarChart({ user, feeds }) {
           <span className="text-[10px] text-stone-500">This week</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-3 h-0.5 border-t border-dashed border-stone-500" />
+          <div className="w-3 h-0.5 border-t-2 border-dashed border-stone-400" />
           <span className="text-[10px] text-stone-500">4-week baseline</span>
         </div>
       </div>

@@ -268,9 +268,21 @@ ${JSON.stringify(articlesPayload, null, 2)}`,
             }
         }
 
+        // ── Trigger story clustering after enrichment ──
+        let clusterResult = null;
+        if (enriched > 0) {
+            try {
+                const clusterRes = await base44.asServiceRole.functions.invoke('clusterStories', { window_hours: 48 });
+                clusterResult = clusterRes?.data || clusterRes;
+                console.log(`[enrichFeedItems] Clustering triggered — ${JSON.stringify(clusterResult?.multi_article_clusters ?? 'ok')}`);
+            } catch (clusterErr) {
+                console.warn(`[enrichFeedItems] Clustering call failed (non-fatal): ${clusterErr.message}`);
+            }
+        }
+
         const durationMs = Date.now() - startTime;
         console.log(`[enrichFeedItems] Done — enriched=${enriched} failed=${failed} duration=${durationMs}ms`);
-        return Response.json({ enriched, failed, skipped: needsEnrichment.length - enriched - failed, duration_ms: durationMs });
+        return Response.json({ enriched, failed, skipped: needsEnrichment.length - enriched - failed, duration_ms: durationMs, clustering: clusterResult });
     } catch (error) {
         console.error('[enrichFeedItems] Unhandled error:', error.message);
         return Response.json({ error: error.message }, { status: 500 });
