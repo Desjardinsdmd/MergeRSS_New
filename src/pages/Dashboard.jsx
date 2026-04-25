@@ -9,6 +9,8 @@ import OnboardingTour from '@/components/OnboardingTour';
 import SetupWalkthrough from '@/components/SetupWalkthrough';
 import StreakCounter from '@/components/dashboard/StreakCounter';
 import IntelligenceDashboard from '@/components/feeds/IntelligenceDashboard';
+import SignalRadarChart from '@/components/dashboard/SignalRadarChart';
+import RisingSignalsWidget from '@/components/dashboard/RisingSignalsWidget';
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
@@ -129,6 +131,14 @@ export default function Dashboard() {
               Add Feeds
             </Button>
           </Link>
+        </div>
+      )}
+
+      {/* Signal Radar + Rising Signals */}
+      {feeds.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          <SignalRadarChart user={user} feeds={feeds} />
+          <RisingSignalsWidget />
         </div>
       )}
 
