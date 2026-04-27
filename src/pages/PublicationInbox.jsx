@@ -20,7 +20,7 @@ export default function PublicationInbox() {
 
   const { data: pubsRaw = [] } = useQuery({
     queryKey: ['pub-detail', pubId, user?.email],
-    queryFn: () => base44.entities.Publication.filter({ id: pubId, created_by: user.email }, '-created_date', 1),
+    queryFn: () => base44.entities.Publication.filter({ id: pubId }, '-created_date', 1),
     enabled: !!pubId && !!user,
   });
   const pubs = Array.isArray(pubsRaw) ? pubsRaw : (pubsRaw?.items || pubsRaw?.data || []);
@@ -29,7 +29,7 @@ export default function PublicationInbox() {
   const { data: postsRaw = [], isLoading } = useQuery({
     queryKey: ['pub-posts', pubId, statusFilter, user?.email],
     queryFn: () => {
-      const filter = { publication_id: pubId, created_by: user.email };
+      const filter = { publication_id: pubId };
       if (statusFilter !== 'all') filter.status = statusFilter;
       return base44.entities.PublicationPost.filter(filter, '-created_date', 50);
     },
