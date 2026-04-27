@@ -30,19 +30,19 @@ export default function Publications() {
   const queryClient = useQueryClient();
 
   useEffect(() => { base44.auth.me().then(setUser); }, []);
-  const isPremium = user?.plan === 'premium';
+  const isPremium = user?.plan === 'premium' || user?.role === 'admin';
 
   const { data: pubsRaw = [], isLoading } = useQuery({
     queryKey: ['publications'],
     queryFn: () => base44.entities.Publication.filter({}, '-created_date', 50),
-    enabled: isPremium,
+    enabled: !!user,
   });
   const pubs = Array.isArray(pubsRaw) ? pubsRaw : (pubsRaw?.items || pubsRaw?.data || []);
 
   const { data: lensesRaw = [] } = useQuery({
     queryKey: ['pub-lenses'],
     queryFn: () => base44.entities.CustomLens.filter({}, '-created_date', 50),
-    enabled: isPremium,
+    enabled: !!user,
   });
   const lenses = Array.isArray(lensesRaw) ? lensesRaw : (lensesRaw?.items || lensesRaw?.data || []);
   const lensMap = {};

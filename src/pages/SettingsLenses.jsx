@@ -21,12 +21,12 @@ export default function SettingsLenses() {
 
   useEffect(() => { base44.auth.me().then(setUser); }, []);
 
-  const isPremium = user?.plan === 'premium';
+  const isPremium = user?.plan === 'premium' || user?.role === 'admin';
 
   const { data: lensesRaw = [], isLoading } = useQuery({
     queryKey: ['custom-lenses'],
     queryFn: () => base44.entities.CustomLens.filter({}, '-created_date', 50),
-    enabled: isPremium,
+    enabled: !!user,
   });
   const lenses = Array.isArray(lensesRaw) ? lensesRaw : (lensesRaw?.items || lensesRaw?.data || []);
 
