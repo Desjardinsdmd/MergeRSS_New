@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -22,6 +22,7 @@ import { toast } from 'sonner';
 export default function PublicationVoice() {
   const params = new URLSearchParams(window.location.search);
   const pubId = params.get('id');
+  const [user, setUser] = useState(null);
   const [showAdd, setShowAdd] = useState(false);
   const [showPromote, setShowPromote] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -29,25 +30,27 @@ export default function PublicationVoice() {
   const [saving, setSaving] = useState(false);
   const queryClient = useQueryClient();
 
+  useEffect(() => { base44.auth.me().then(setUser); }, []);
+
   const { data: pubsRaw = [] } = useQuery({
-    queryKey: ['voice-pub', pubId],
-    queryFn: () => base44.entities.Publication.filter({ id: pubId }, '-created_date', 1),
-    enabled: !!pubId,
+    queryKey: ['voice-pub', pubId, user?.email],
+    queryFn: () => base44.entities.Publication.filter({ id: pubId, created_by: user.email }, '-created_date', 1),
+    enabled: !!pubId && !!user,
   });
   const pub = (Array.isArray(pubsRaw) ? pubsRaw : (pubsRaw?.items || pubsRaw?.data || []))[0];
 
   const { data: examplesRaw = [], isLoading } = useQuery({
-    queryKey: ['voice-examples', pubId],
-    queryFn: () => base44.entities.PublicationVoiceExample.filter({ publication_id: pubId }, '-created_date', 50),
-    enabled: !!pubId,
+    queryKey: ['voice-examples', pubId, user?.email],
+    queryFn: () => base44.entities.PublicationVoiceExample.filter({ publication_id: pubId, created_by: user.email }, '-created_date', 50),
+    enabled: !!pubId && !!user,
   });
   const examples = Array.isArray(examplesRaw) ? examplesRaw : (examplesRaw?.items || examplesRaw?.data || []);
 
   // Load posted items for "Promote from posted"
   const { data: postedRaw = [] } = useQuery({
-    queryKey: ['voice-posted', pubId],
-    queryFn: () => base44.entities.PublicationPost.filter({ publication_id: pubId, status: 'posted' }, '-posted_at', 20),
-    enabled: !!pubId && showPromote,
+    queryKey: ['voice-posted', pubId, user?.email],
+    queryFn: () => base44.entities.PublicationPost.filter({ publication_id: pubId, status: 'posted', created_by: user.email }, '-posted_at', 20),
+    enabled: !!pubId && !!user && showPromote,
   });
   const postedPosts = Array.isArray(postedRaw) ? postedRaw : (postedRaw?.items || postedRaw?.data || []);
 

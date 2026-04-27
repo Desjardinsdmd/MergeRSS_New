@@ -22,8 +22,8 @@ export default function SettingsLenses() {
   useEffect(() => { base44.auth.me().then(setUser); }, []);
 
   const { data: lensesRaw = [], isLoading } = useQuery({
-    queryKey: ['custom-lenses'],
-    queryFn: () => base44.entities.CustomLens.list('-created_date', 50),
+    queryKey: ['custom-lenses', user?.email],
+    queryFn: () => base44.entities.CustomLens.filter({ created_by: user.email }, '-created_date', 50),
     enabled: !!user,
   });
   const lenses = Array.isArray(lensesRaw) ? lensesRaw : (lensesRaw?.items || lensesRaw?.data || []);

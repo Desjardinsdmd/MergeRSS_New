@@ -8,28 +8,32 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowLeft, Loader2, Inbox } from 'lucide-react';
 import PostReviewCard from '@/components/publications/PostReviewCard';
 
+
 export default function PublicationInbox() {
   const params = new URLSearchParams(window.location.search);
   const pubId = params.get('id');
+  const [user, setUser] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const queryClient = useQueryClient();
 
+  useEffect(() => { base44.auth.me().then(setUser); }, []);
+
   const { data: pubsRaw = [] } = useQuery({
-    queryKey: ['pub-detail', pubId],
-    queryFn: () => base44.entities.Publication.filter({ id: pubId }, '-created_date', 1),
-    enabled: !!pubId,
+    queryKey: ['pub-detail', pubId, user?.email],
+    queryFn: () => base44.entities.Publication.filter({ id: pubId, created_by: user.email }, '-created_date', 1),
+    enabled: !!pubId && !!user,
   });
   const pubs = Array.isArray(pubsRaw) ? pubsRaw : (pubsRaw?.items || pubsRaw?.data || []);
   const pub = pubs[0];
 
   const { data: postsRaw = [], isLoading } = useQuery({
-    queryKey: ['pub-posts', pubId, statusFilter],
+    queryKey: ['pub-posts', pubId, statusFilter, user?.email],
     queryFn: () => {
-      const filter = { publication_id: pubId };
+      const filter = { publication_id: pubId, created_by: user.email };
       if (statusFilter !== 'all') filter.status = statusFilter;
       return base44.entities.PublicationPost.filter(filter, '-created_date', 50);
     },
-    enabled: !!pubId,
+    enabled: !!pubId && !!user,
   });
   const posts = Array.isArray(postsRaw) ? postsRaw : (postsRaw?.items || postsRaw?.data || []);
 
