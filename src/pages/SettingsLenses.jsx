@@ -21,8 +21,6 @@ export default function SettingsLenses() {
 
   useEffect(() => { base44.auth.me().then(setUser); }, []);
 
-  const isPremium = user?.plan === 'premium' || user?.role === 'admin';
-
   const { data: lensesRaw = [], isLoading } = useQuery({
     queryKey: ['custom-lenses'],
     queryFn: () => base44.entities.CustomLens.filter({}, '-created_date', 50),
@@ -39,7 +37,6 @@ export default function SettingsLenses() {
   };
 
   if (!user) return <div className="p-8 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-stone-500" /></div>;
-  if (!isPremium) return <div className="p-6 lg:p-8 max-w-3xl mx-auto"><PremiumGate feature="Custom Lenses" /></div>;
 
   if (editing) {
     return (
