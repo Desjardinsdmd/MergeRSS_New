@@ -27,7 +27,9 @@ import {
   Globe,
   Search,
   Bookmark,
-  AlertCircle
+  AlertCircle,
+  Newspaper,
+  SlidersHorizontal
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeProvider } from '@/components/ThemeProvider';
@@ -48,7 +50,9 @@ const navigation = [
   { name: 'Search', href: 'ArticleSearch', icon: Search },
   { name: 'Directory', href: 'Directory', icon: Globe },
   { name: 'Team', href: 'Team', icon: Users },
+  { name: 'Publications', href: 'Publications', icon: Newspaper },
   { name: 'Integrations', href: 'Integrations', icon: Link2 },
+  { name: 'Lenses', href: 'SettingsLenses', icon: SlidersHorizontal },
   { name: 'Settings', href: 'Settings', icon: Settings },
 ];
 

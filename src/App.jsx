@@ -7,6 +7,10 @@ import PageNotFound from './lib/PageNotFound';
 import DigestReports from './pages/DigestReports';
 import ReleaseAudit from './pages/ReleaseAudit';
 import AdminDebug from './pages/AdminDebug';
+import SettingsLenses from './pages/SettingsLenses';
+import Publications from './pages/Publications';
+import PublicationInbox from './pages/PublicationInbox';
+import PublicationVoice from './pages/PublicationVoice';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 
@@ -63,6 +67,10 @@ const AuthenticatedApp = () => {
       <Route path="/DigestReports" element={<LayoutWrapper currentPageName="DigestReports"><DigestReports /></LayoutWrapper>} />
       <Route path="/ReleaseAudit" element={<LayoutWrapper currentPageName="ReleaseAudit"><ReleaseAudit /></LayoutWrapper>} />
       <Route path="/AdminDebug" element={<LayoutWrapper currentPageName="AdminDebug"><AdminDebug /></LayoutWrapper>} />
+      <Route path="/SettingsLenses" element={<LayoutWrapper currentPageName="SettingsLenses"><SettingsLenses /></LayoutWrapper>} />
+      <Route path="/Publications" element={<LayoutWrapper currentPageName="Publications"><Publications /></LayoutWrapper>} />
+      <Route path="/PublicationInbox" element={<LayoutWrapper currentPageName="Publications"><PublicationInbox /></LayoutWrapper>} />
+      <Route path="/PublicationVoice" element={<LayoutWrapper currentPageName="Publications"><PublicationVoice /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
