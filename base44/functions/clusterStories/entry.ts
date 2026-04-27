@@ -457,6 +457,68 @@ Deno.serve(async (req) => {
         await sleep(BATCH_WRITE_DELAY_MS);
     }
 
+    // ── 5b. Compute custom_lens_aggregates for clusters with scored articles ─
+    try {
+        const allLenses = extractItems(await base44.asServiceRole.entities.CustomLens.filter({ is_active: true }, '-created_date', 100));
+        if (allLenses.length > 0) {
+            // Build lookup of item custom_lens_scores
+            const itemScoresMap = {};
+            for (const im of itemMeta) {
+                if (im.item.custom_lens_scores?.length) {
+                    itemScoresMap[im.item.id] = im.item.custom_lens_scores;
+                }
+            }
+
+            // For each cluster that was created/updated this run, compute aggregates
+            for (const { pivot, members } of rawClusters) {
+                if (members.length === 0) continue;
+                const articleIds = members.map(m => m.item.id);
+                const aggregates = [];
+                for (const lens of allLenses) {
+                    const scores = [];
+                    for (const aid of articleIds) {
+                        const itemScores = itemScoresMap[aid];
+                        if (!itemScores) continue;
+                        const match = itemScores.find(s => s.lens_id === lens.id);
+                        if (match) scores.push(match);
+                    }
+                    if (scores.length === 0) continue;
+                    const maxScore = Math.max(...scores.map(s => s.importance_score || 0));
+                    const avgScore = Math.round(scores.reduce((sum, s) => sum + (s.importance_score || 0), 0) / scores.length);
+                    // Pick dominant tag (most frequent non-Neutral, fallback Neutral)
+                    const tagCounts = {};
+                    for (const s of scores) { tagCounts[s.intelligence_tag] = (tagCounts[s.intelligence_tag] || 0) + 1; }
+                    delete tagCounts['Neutral'];
+                    const dominantTag = Object.keys(tagCounts).length > 0
+                        ? Object.entries(tagCounts).sort((a, b) => b[1] - a[1])[0][0]
+                        : 'Neutral';
+                    aggregates.push({
+                        lens_id: lens.id,
+                        max_importance_score: maxScore,
+                        avg_importance_score: avgScore,
+                        intelligence_tag: dominantTag,
+                        computed_at: new Date().toISOString(),
+                    });
+                }
+                if (aggregates.length > 0) {
+                    // Find the cluster ID for this raw cluster
+                    const fp = buildFingerprint(new Set(members.flatMap(m => [...m.keywords])), pivot.publishedMs);
+                    const clusterRec = activeByFingerprint[fp];
+                    if (clusterRec?.id) {
+                        try {
+                            await base44.asServiceRole.entities.StoryCluster.update(clusterRec.id, { custom_lens_aggregates: aggregates });
+                        } catch (e) {
+                            console.warn(`[clusterStories] Lens aggregate update failed: ${e.message}`);
+                        }
+                        await sleep(50);
+                    }
+                }
+            }
+        }
+    } catch (lensAggErr) {
+        console.warn(`[clusterStories] CustomLens aggregation failed (non-fatal): ${lensAggErr.message}`);
+    }
+
     // ── 6. Mark old clusters stale ────────────────────────────────────────────
     const staleThreshold = new Date(Date.now() - windowHours * 2 * 3600 * 1000).toISOString();
     let markedStale = 0;

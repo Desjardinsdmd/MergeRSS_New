@@ -268,6 +268,105 @@ ${JSON.stringify(articlesPayload, null, 2)}`,
             }
         }
 
+        // ── Custom Lens Scoring ──
+        // After standard enrichment, check if any user-defined CustomLens records
+        // match these items' parent feeds and score them additionally.
+        let customLensScored = 0;
+        try {
+            const allLenses = extractItems(await base44.asServiceRole.entities.CustomLens.filter({ is_active: true }, '-created_date', 100));
+            if (allLenses.length > 0) {
+                // Group items by their feed's owner (created_by) so we only run lenses owned by that user
+                const feedOwners = {};
+                for (const f of feeds) { feedOwners[f.id] = f.created_by; }
+
+                for (const lens of allLenses) {
+                    const lensOwner = lens.created_by;
+                    // Find items whose feed is owned by the lens owner AND matches lens filters
+                    const matchingItems = needsEnrichment.filter(item => {
+                        const feed = feedMap[item.feed_id];
+                        if (!feed || feedOwners[item.feed_id] !== lensOwner) return false;
+                        // Check category filter (if set, feed category must match one)
+                        if (lens.feed_filter_categories?.length > 0) {
+                            if (!lens.feed_filter_categories.includes(feed.category)) return false;
+                        }
+                        // Check tag filter (if set, feed must have at least one matching tag)
+                        if (lens.feed_filter_tags?.length > 0) {
+                            const feedTags = feed.tags || [];
+                            if (!lens.feed_filter_tags.some(t => feedTags.includes(t))) return false;
+                        }
+                        return true;
+                    });
+
+                    if (!matchingItems.length) continue;
+
+                    // Score up to 10 items per lens per batch
+                    const batch = matchingItems.slice(0, 10);
+                    const articlesForLens = batch.map((item, idx) => ({
+                        index: idx,
+                        title: (item.title || '').slice(0, 200),
+                        description: (item.description || '').slice(0, 400),
+                        category: item.category || '',
+                        source: feedMap[item.feed_id]?.name || '',
+                    }));
+
+                    try {
+                        const lensResult = await base44.asServiceRole.integrations.Core.InvokeLLM({
+                            prompt: `${lens.scoring_prompt}
+
+For each article below, return:
+1. ai_summary: 2-3 sentences answering "So what?" from this lens perspective.
+2. importance_score: integer 0-100.
+3. intelligence_tag: one of "Trending", "Risk", "Opportunity", "Neutral".
+
+Articles:
+${JSON.stringify(articlesForLens, null, 2)}`,
+                            response_json_schema: {
+                                type: "object",
+                                properties: {
+                                    results: {
+                                        type: "array",
+                                        items: {
+                                            type: "object",
+                                            properties: {
+                                                index: { type: "number" },
+                                                ai_summary: { type: "string" },
+                                                importance_score: { type: "number" },
+                                                intelligence_tag: { type: "string", enum: ["Trending", "Risk", "Opportunity", "Neutral"] }
+                                            },
+                                            required: ["index", "ai_summary", "importance_score", "intelligence_tag"]
+                                        }
+                                    }
+                                },
+                                required: ["results"]
+                            }
+                        });
+
+                        for (const r of (lensResult?.results || [])) {
+                            const item = batch[r.index];
+                            if (!item) continue;
+                            const existingScores = item.custom_lens_scores || [];
+                            // Replace or append score for this lens
+                            const filtered = existingScores.filter(s => s.lens_id !== lens.id);
+                            filtered.push({
+                                lens_id: lens.id,
+                                importance_score: Math.round(r.importance_score || 50),
+                                intelligence_tag: r.intelligence_tag || 'Neutral',
+                                ai_summary: r.ai_summary || '',
+                                scored_at: new Date().toISOString(),
+                            });
+                            await base44.asServiceRole.entities.FeedItem.update(item.id, { custom_lens_scores: filtered });
+                            customLensScored++;
+                            await sleep(50);
+                        }
+                    } catch (lensErr) {
+                        console.warn(`[enrichFeedItems] CustomLens ${lens.name} scoring failed: ${lensErr.message}`);
+                    }
+                }
+            }
+        } catch (lensLoadErr) {
+            console.warn(`[enrichFeedItems] CustomLens load failed (non-fatal): ${lensLoadErr.message}`);
+        }
+
         // ── Trigger story clustering after enrichment ──
         let clusterResult = null;
         if (enriched > 0) {
@@ -281,8 +380,8 @@ ${JSON.stringify(articlesPayload, null, 2)}`,
         }
 
         const durationMs = Date.now() - startTime;
-        console.log(`[enrichFeedItems] Done — enriched=${enriched} failed=${failed} duration=${durationMs}ms`);
-        return Response.json({ enriched, failed, skipped: needsEnrichment.length - enriched - failed, duration_ms: durationMs, clustering: clusterResult });
+        console.log(`[enrichFeedItems] Done — enriched=${enriched} failed=${failed} customLensScored=${customLensScored} duration=${durationMs}ms`);
+        return Response.json({ enriched, failed, custom_lens_scored: customLensScored, skipped: needsEnrichment.length - enriched - failed, duration_ms: durationMs, clustering: clusterResult });
     } catch (error) {
         console.error('[enrichFeedItems] Unhandled error:', error.message);
         return Response.json({ error: error.message }, { status: 500 });
