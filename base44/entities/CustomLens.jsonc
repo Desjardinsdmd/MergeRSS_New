@@ -1,0 +1,74 @@
+{
+  "name": "CustomLens",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "User-facing lens name"
+    },
+    "slug": {
+      "type": "string",
+      "description": "URL-safe identifier, auto-generated from name"
+    },
+    "description": {
+      "type": "string"
+    },
+    "audience_description": {
+      "type": "string",
+      "description": "Who is this lens scoring for? Plain-English description used inside the scoring prompt."
+    },
+    "scoring_prompt": {
+      "type": "string",
+      "description": "Full system prompt for the LLM scorer. User-editable."
+    },
+    "rubric_json": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Optional structured rubric: importance bands, content_type enum, geo enum, audience enum."
+    },
+    "feed_filter_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Only score items from feeds with at least one of these tags. If empty, scores all feeds owned by user."
+    },
+    "feed_filter_categories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Only score items from feeds with one of these categories. ANDed with tag filter."
+    },
+    "minimum_score_threshold": {
+      "type": "number",
+      "default": 50,
+      "description": "Items below this score are not eligible candidates for Publications using this lens."
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "name",
+    "scoring_prompt"
+  ],
+  "rls": {
+    "read": {
+      "filter": {
+        "created_by": "{{user.email}}"
+      }
+    },
+    "update": {
+      "filter": {
+        "created_by": "{{user.email}}"
+      }
+    },
+    "delete": {
+      "filter": {
+        "created_by": "{{user.email}}"
+      }
+    }
+  }
+}

@@ -1,0 +1,151 @@
+{
+  "name": "StoryCluster",
+  "type": "object",
+  "properties": {
+    "representative_title": {
+      "type": "string",
+      "description": "Best headline chosen to represent this cluster"
+    },
+    "normalized_title": {
+      "type": "string",
+      "description": "Normalized version of representative title for matching"
+    },
+    "cluster_fingerprint": {
+      "type": "string",
+      "description": "Stable identity key: top-keywords + date-bucket"
+    },
+    "representative_item_id": {
+      "type": "string",
+      "description": "FeedItem ID of the primary/best article in this cluster"
+    },
+    "article_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "All FeedItem IDs in this cluster"
+    },
+    "feed_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Distinct feed IDs contributing to this cluster"
+    },
+    "source_domains": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Distinct source domains/names"
+    },
+    "article_count": {
+      "type": "number",
+      "default": 1
+    },
+    "source_count": {
+      "type": "number",
+      "default": 1
+    },
+    "category": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "first_seen_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "importance_score": {
+      "type": "number",
+      "description": "Blended score: 60% LLM importance + 40% structural"
+    },
+    "intelligence_tag": {
+      "type": "string",
+      "enum": [
+        "Trending",
+        "Risk",
+        "Opportunity",
+        "Neutral"
+      ]
+    },
+    "cluster_window_hours": {
+      "type": "number",
+      "default": 24
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "stale",
+        "merged"
+      ],
+      "default": "active"
+    },
+    "reactivated_from_id": {
+      "type": "string"
+    },
+    "reactivation_count": {
+      "type": "number",
+      "default": 0
+    },
+    "trend_score": {
+      "type": "number",
+      "description": "Authority-weighted trend score 0-100. Primary ranking signal."
+    },
+    "trend_score_components": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Explainable breakdown"
+    },
+    "authority_weighted_source_count": {
+      "type": "number",
+      "description": "Effective source count after authority weighting"
+    },
+    "velocity_score": {
+      "type": "number",
+      "description": "Article arrival rate score 0-100"
+    },
+    "custom_lens_aggregates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "lens_id": {
+            "type": "string"
+          },
+          "max_importance_score": {
+            "type": "number"
+          },
+          "avg_importance_score": {
+            "type": "number"
+          },
+          "intelligence_tag": {
+            "type": "string"
+          },
+          "structured_metadata_merged": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "computed_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "description": "Aggregated custom lens scores across cluster articles for Publication selection"
+    }
+  },
+  "required": [
+    "representative_title",
+    "article_count"
+  ]
+}

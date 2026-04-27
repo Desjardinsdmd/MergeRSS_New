@@ -66,7 +66,7 @@
         "Opportunity",
         "Neutral"
       ],
-      "description": "AI-assigned intelligence classification \u2014 discriminating, not default Opportunity"
+      "description": "AI-assigned intelligence classification"
     },
     "scoring_lens": {
       "type": "string",
@@ -82,7 +82,7 @@
       "items": {
         "type": "string"
       },
-      "description": "Named entities extracted during enrichment: companies, people, places, regulations, products"
+      "description": "Named entities extracted during enrichment"
     },
     "enrichment_status": {
       "type": "string",
@@ -93,7 +93,7 @@
         "failed"
       ],
       "default": "pending",
-      "description": "Enrichment quality: pending=not yet enriched, done=LLM succeeded, fallback=LLM failed, failed=could not be processed"
+      "description": "Enrichment quality"
     },
     "cluster_id": {
       "type": "string",
@@ -102,6 +102,42 @@
     "previous_cluster_id": {
       "type": "string",
       "description": "Prior cluster_id before reassignment"
+    },
+    "custom_lens_scores": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "lens_id": {
+            "type": "string"
+          },
+          "importance_score": {
+            "type": "number"
+          },
+          "intelligence_tag": {
+            "type": "string",
+            "enum": [
+              "Trending",
+              "Risk",
+              "Opportunity",
+              "Neutral"
+            ]
+          },
+          "ai_summary": {
+            "type": "string"
+          },
+          "structured_metadata": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Lens-specific structured output"
+          },
+          "scored_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "description": "Custom lens scores in addition to the primary scoring lens"
     }
   },
   "required": [

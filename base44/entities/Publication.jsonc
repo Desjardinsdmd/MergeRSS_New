@@ -1,0 +1,96 @@
+{
+  "name": "Publication",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "channel_type": {
+      "type": "string",
+      "enum": [
+        "x",
+        "linkedin",
+        "newsletter",
+        "slack",
+        "discord",
+        "manual"
+      ],
+      "default": "x"
+    },
+    "lens_id": {
+      "type": "string",
+      "description": "CustomLens used for story selection"
+    },
+    "voice_prompt": {
+      "type": "string",
+      "description": "Writer prompt \u2014 voice, format, constraints. User-editable."
+    },
+    "post_format_config": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Channel-specific format config. For X: { max_chars: 280, supports_threads: true, hashtag_policy: 'minimal', link_placement: 'end' }"
+    },
+    "schedule_cron": {
+      "type": "string",
+      "description": "Cron expression for when to generate drafts. e.g. '0 11 * * *' = daily 7am ET (UTC-4)."
+    },
+    "timezone": {
+      "type": "string",
+      "default": "America/Toronto"
+    },
+    "auto_post": {
+      "type": "boolean",
+      "default": false,
+      "description": "If true, drafts auto-post without human approval. Default false."
+    },
+    "credentials_ref": {
+      "type": "string",
+      "description": "Reference to encrypted channel credentials stored separately."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "paused",
+        "draft_only"
+      ],
+      "default": "draft_only",
+      "description": "draft_only = generate drafts but never post even if auto_post=true"
+    },
+    "candidates_per_run": {
+      "type": "number",
+      "default": 3,
+      "description": "How many top-ranked clusters to surface as candidates each scheduled run"
+    },
+    "last_run_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "next_run_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "name",
+    "channel_type",
+    "lens_id"
+  ],
+  "rls": {
+    "read": {
+      "filter": {
+        "created_by": "{{user.email}}"
+      }
+    },
+    "update": {
+      "filter": {
+        "created_by": "{{user.email}}"
+      }
+    },
+    "delete": {
+      "filter": {
+        "created_by": "{{user.email}}"
+      }
+    }
+  }
+}

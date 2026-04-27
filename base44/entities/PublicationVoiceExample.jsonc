@@ -1,0 +1,48 @@
+{
+  "name": "PublicationVoiceExample",
+  "type": "object",
+  "properties": {
+    "publication_id": {
+      "type": "string"
+    },
+    "example_content": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "example_label": {
+      "type": "string",
+      "description": "Variant label this example represents"
+    },
+    "performance_note": {
+      "type": "string",
+      "description": "Why this is a good example"
+    },
+    "use_in_prompts": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "publication_id",
+    "example_content"
+  ],
+  "rls": {
+    "read": {
+      "filter": {
+        "created_by": "{{user.email}}"
+      }
+    },
+    "update": {
+      "filter": {
+        "created_by": "{{user.email}}"
+      }
+    },
+    "delete": {
+      "filter": {
+        "created_by": "{{user.email}}"
+      }
+    }
+  }
+}
