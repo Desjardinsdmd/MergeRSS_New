@@ -103,6 +103,26 @@ Deno.serve(async (req) => {
             const selected = topCandidates[0];
             const candidatePool = topCandidates.slice(1).map(c => c.cluster.id);
 
+            // Fetch source articles for the selected cluster to give the LLM concrete details
+            const articleIds = selected.cluster.article_ids || [];
+            let sourceArticles = [];
+            if (articleIds.length > 0) {
+                const fetched = extractItems(await base44.asServiceRole.entities.FeedItem.filter(
+                    { id: { $in: articleIds.slice(0, 10) } }, '-published_date', 10
+                ));
+                sourceArticles = fetched;
+            }
+            // Build a rich context block from source articles
+            const articlesContext = sourceArticles.map((a, i) => {
+                const parts = [`Source ${i + 1}: ${a.title}`];
+                if (a.url) parts.push(`URL: ${a.url}`);
+                if (a.description) parts.push(`Description: ${a.description.slice(0, 500)}`);
+                if (a.content && a.content !== a.description) parts.push(`Content excerpt: ${a.content.slice(0, 800)}`);
+                if (a.author) parts.push(`Author: ${a.author}`);
+                if (a.published_date) parts.push(`Published: ${a.published_date}`);
+                return parts.join('\n');
+            }).join('\n\n');
+
             // Generate selection reason
             let selectionReason = '';
             try {
@@ -127,14 +147,23 @@ Deno.serve(async (req) => {
                     prompt: `${pub.voice_prompt || 'Write in a professional, concise voice.'}${examplesBlock}
 
 Story: "${selected.cluster.representative_title}"
-Summary: ${selected.agg.ai_summary || selected.cluster.representative_title}
-Sources: ${selected.cluster.source_count} sources, ${selected.cluster.article_count} articles
 Intelligence tag: ${selected.agg.intelligence_tag}
+Sources: ${selected.cluster.source_count} sources, ${selected.cluster.article_count} articles
+
+--- SOURCE ARTICLES (use these for concrete facts, names, numbers, locations) ---
+${articlesContext || 'No source articles available.'}
+--- END SOURCES ---
+
+CRITICAL INSTRUCTIONS:
+- Extract specific facts from the source articles: names, dollar amounts, unit counts, square footage, locations, dates, percentages.
+- Do NOT use vague filler phrases like "indicating further commitment" or "reflecting ongoing investment". State what happened.
+- Every post must contain at least one concrete detail from the sources.
+- If the sources lack detail, say what IS known concretely — don't pad with generic commentary.
 
 Generate 3 draft variants for posting to ${pub.channel_type}:
-1. "wire" — a tight single post (max ${formatConfig.max_chars || 280} chars) that delivers the key signal.
-2. "thread" — a 2-3 post thread that unpacks the story with context. Each post max ${formatConfig.max_chars || 280} chars.
-3. "take" — an opinionated single post (max ${formatConfig.max_chars || 280} chars) with analysis angle.
+1. "wire" — a tight single post (max ${formatConfig.max_chars || 280} chars) that delivers the key signal with specific facts.
+2. "thread" — a 2-3 post thread that unpacks the story with context and data points. Each post max ${formatConfig.max_chars || 280} chars.
+3. "take" — an opinionated single post (max ${formatConfig.max_chars || 280} chars) with an analytical angle grounded in the facts.
 
 Return as JSON.`,
                     response_json_schema: {
