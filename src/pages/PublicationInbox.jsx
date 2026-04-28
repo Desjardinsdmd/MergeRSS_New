@@ -29,7 +29,7 @@ export default function PublicationInbox() {
   const { data: postsRaw = [], isLoading } = useQuery({
     queryKey: ['pub-posts', pubId, statusFilter, user?.email],
     queryFn: () => {
-      const filter = { publication_id: pubId, created_by: user.email };
+      const filter = { publication_id: pubId };
       if (statusFilter !== 'all') filter.status = statusFilter;
       return base44.entities.PublicationPost.filter(filter, '-created_date', 50);
     },
