@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   Check, X, Clock, Send, ChevronDown, ChevronUp,
-  MessageSquare, Eye, Heart, Repeat2, Bookmark, Loader2
+  MessageSquare, Eye, Heart, Repeat2, Bookmark, Loader2, RotateCcw
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -206,6 +206,27 @@ export default function PostReviewCard({ post, onUpdate }) {
                 className="bg-[hsl(var(--primary))] text-stone-900 font-semibold">
                 {acting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Send className="w-4 h-4 mr-1" />}
                 Post Now
+              </Button>
+            </div>
+          )}
+
+          {post.status === 'failed' && (
+            <div className="flex gap-3 pt-2">
+              <Button size="sm" onClick={async () => {
+                setActing(true);
+                await base44.entities.PublicationPost.update(post.id, { status: 'approved', error_message: '' });
+                const res = await base44.functions.invoke('postToX', { post_id: post.id });
+                if (res.data?.success) {
+                  toast.success('Posted to X!');
+                } else {
+                  toast.error(res.data?.error || 'Post failed again');
+                }
+                setActing(false);
+                onUpdate();
+              }} disabled={acting}
+                className="bg-[hsl(var(--primary))] text-stone-900 font-semibold">
+                {acting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <RotateCcw className="w-4 h-4 mr-1" />}
+                Retry Post
               </Button>
             </div>
           )}
