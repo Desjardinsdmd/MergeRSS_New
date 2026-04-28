@@ -275,24 +275,19 @@ ${JSON.stringify(articlesPayload, null, 2)}`,
         try {
             const allLenses = extractItems(await base44.asServiceRole.entities.CustomLens.filter({ is_active: true }, '-created_date', 100));
             if (allLenses.length > 0) {
-                // Group items by their feed's owner (created_by) so we only run lenses owned by that user
-                const feedOwners = {};
-                for (const f of feeds) { feedOwners[f.id] = f.created_by; }
-
                 for (const lens of allLenses) {
-                    const lensOwner = lens.created_by;
-                    // Find items whose feed is owned by the lens owner AND matches lens filters
+                    // Find items whose parent feed matches lens tag/category filters
                     const matchingItems = needsEnrichment.filter(item => {
                         const feed = feedMap[item.feed_id];
-                        if (!feed || feedOwners[item.feed_id] !== lensOwner) return false;
+                        if (!feed) return false;
                         // Check category filter (if set, feed category must match one)
                         if (lens.feed_filter_categories?.length > 0) {
                             if (!lens.feed_filter_categories.includes(feed.category)) return false;
                         }
                         // Check tag filter (if set, feed must have at least one matching tag)
                         if (lens.feed_filter_tags?.length > 0) {
-                            const feedTags = feed.tags || [];
-                            if (!lens.feed_filter_tags.some(t => feedTags.includes(t))) return false;
+                            const feedTags = (feed.tags || []).map(t => t.toLowerCase());
+                            if (!lens.feed_filter_tags.some(t => feedTags.includes(t.toLowerCase()))) return false;
                         }
                         return true;
                     });
