@@ -16,6 +16,22 @@ import {
 import PremiumGate from '@/components/publications/PremiumGate';
 import PublicationForm from '@/components/publications/PublicationForm';
 
+function cronToET(cron) {
+  const parts = cron.trim().split(' ');
+  const utcHour = parseInt(parts[1]);
+  let etHour = utcHour - 4; // ET = UTC-4 (EDT)
+  if (etHour < 0) etHour += 24;
+  const period = etHour >= 12 ? 'PM' : 'AM';
+  const display = etHour === 0 ? 12 : etHour > 12 ? etHour - 12 : etHour;
+  return `${display}${period}`;
+}
+
+function formatSchedule(cronStr) {
+  if (!cronStr) return 'Not set';
+  const crons = cronStr.split(',').map(s => s.trim()).filter(Boolean);
+  return crons.map(cronToET).join(', ') + ' ET';
+}
+
 const STATUS_COLORS = {
   active: 'bg-green-900/30 text-green-400',
   paused: 'bg-stone-700 text-stone-400',
@@ -123,10 +139,11 @@ export default function Publications() {
                       <Badge className={STATUS_COLORS[pub.status] || 'bg-stone-700 text-stone-400'}>{pub.status}</Badge>
                       <Badge variant="outline" className="text-xs">{pub.channel_type}</Badge>
                     </div>
-                    <div className="flex items-center gap-4 text-xs text-stone-600">
-                      <span>Lens: {lensMap[pub.lens_id]?.name || 'Unknown'}</span>
-                      <span>Candidates: {pub.candidates_per_run || 3}/run</span>
-                      {pub.last_run_at && <span>Last run: {new Date(pub.last_run_at).toLocaleString()}</span>}
+                    <div className="flex items-center gap-4 text-xs text-stone-600 flex-wrap">
+                       <span>Lens: {lensMap[pub.lens_id]?.name || 'Unknown'}</span>
+                       <span>Candidates: {pub.candidates_per_run || 3}/run</span>
+                       <span>Schedule: {formatSchedule(pub.schedule_cron)}</span>
+                       {pub.last_run_at && <span>Last run: {new Date(pub.last_run_at).toLocaleString()}</span>}
                     </div>
                   </div>
                   <div className="flex items-center gap-1">

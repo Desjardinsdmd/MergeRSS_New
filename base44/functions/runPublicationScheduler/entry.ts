@@ -218,8 +218,28 @@ Return as JSON.`,
 });
 
 async function updateNextRun(base44, pub) {
-    // Simple next-run calculation: add 24h from now (cron parsing is complex; this is v1)
-    const nextRun = new Date(Date.now() + 24 * 3600 * 1000).toISOString();
+    // Parse multi-cron: schedule_cron can be "0 11 * * *,0 16 * * *,0 20 * * *"
+    const crons = (pub.schedule_cron || '0 11 * * *').split(',').map(s => s.trim()).filter(Boolean);
+    const now = new Date();
+
+    // Find the next upcoming slot from the cron list
+    const candidates = crons.map(cron => {
+        const parts = cron.split(' ');
+        const minute = parseInt(parts[0]);
+        const hour = parseInt(parts[1]);
+        // Try today first
+        const today = new Date(now);
+        today.setUTCHours(hour, minute, 0, 0);
+        if (today > now) return today;
+        // Otherwise tomorrow
+        const tomorrow = new Date(now);
+        tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+        tomorrow.setUTCHours(hour, minute, 0, 0);
+        return tomorrow;
+    });
+    candidates.sort((a, b) => a - b);
+    const nextRun = candidates[0].toISOString();
+
     await base44.asServiceRole.entities.Publication.update(pub.id, {
         last_run_at: new Date().toISOString(),
         next_run_at: nextRun,

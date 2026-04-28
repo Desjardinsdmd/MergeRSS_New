@@ -7,16 +7,47 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 
-const SCHEDULE_PRESETS = [
-  { label: 'Daily 7am', cron: '0 11 * * *', desc: '7:00 AM ET daily' },
-  { label: 'Daily 8am', cron: '0 12 * * *', desc: '8:00 AM ET daily' },
-  { label: 'Daily 9am', cron: '0 13 * * *', desc: '9:00 AM ET daily' },
-  { label: 'Weekdays 7am', cron: '0 11 * * 1-5', desc: '7:00 AM ET Mon-Fri' },
-  { label: 'Weekdays 8am', cron: '0 12 * * 1-5', desc: '8:00 AM ET Mon-Fri' },
+const SCHEDULE_SLOTS = [
+  { label: '6:00 AM ET', cron: '0 10 * * *' },
+  { label: '7:00 AM ET', cron: '0 11 * * *' },
+  { label: '8:00 AM ET', cron: '0 12 * * *' },
+  { label: '9:00 AM ET', cron: '0 13 * * *' },
+  { label: '10:00 AM ET', cron: '0 14 * * *' },
+  { label: '11:00 AM ET', cron: '0 15 * * *' },
+  { label: '12:00 PM ET', cron: '0 16 * * *' },
+  { label: '1:00 PM ET', cron: '0 17 * * *' },
+  { label: '2:00 PM ET', cron: '0 18 * * *' },
+  { label: '3:00 PM ET', cron: '0 19 * * *' },
+  { label: '4:00 PM ET', cron: '0 20 * * *' },
+  { label: '5:00 PM ET', cron: '0 21 * * *' },
+  { label: '6:00 PM ET', cron: '0 22 * * *' },
+  { label: '7:00 PM ET', cron: '0 23 * * *' },
+  { label: '8:00 PM ET', cron: '0 0 * * *' },
 ];
+
+function parseCronList(cronStr) {
+  if (!cronStr) return ['0 11 * * *'];
+  return cronStr.split(',').map(s => s.trim()).filter(Boolean);
+}
+
+function computeNextRun(crons) {
+  const now = new Date();
+  const candidates = crons.map(cron => {
+    const parts = cron.split(' ');
+    const minute = parseInt(parts[0]);
+    const hour = parseInt(parts[1]);
+    const next = new Date(now);
+    next.setUTCHours(hour, minute, 0, 0);
+    if (next <= now) next.setUTCDate(next.getUTCDate() + 1);
+    return next;
+  });
+  candidates.sort((a, b) => a - b);
+  return candidates[0].toISOString();
+}
 
 const DEFAULT_VOICE = `Write in a professional, concise voice. Be direct and signal-forward. 
 Lead with the insight, not the headline. 
@@ -30,7 +61,7 @@ export default function PublicationForm({ publication, onSave, onCancel }) {
     lens_id: '',
     voice_prompt: DEFAULT_VOICE,
     post_format_config: { max_chars: 280, supports_threads: true, hashtag_policy: 'minimal', link_placement: 'end' },
-    schedule_cron: '0 11 * * *',
+    schedule_crons: ['0 11 * * *'],
     timezone: 'America/Toronto',
     auto_post: false,
     status: 'draft_only',
@@ -55,7 +86,7 @@ export default function PublicationForm({ publication, onSave, onCancel }) {
         lens_id: publication.lens_id || '',
         voice_prompt: publication.voice_prompt || DEFAULT_VOICE,
         post_format_config: publication.post_format_config || { max_chars: 280, supports_threads: true, hashtag_policy: 'minimal', link_placement: 'end' },
-        schedule_cron: publication.schedule_cron || '0 11 * * *',
+        schedule_crons: parseCronList(publication.schedule_cron),
         timezone: publication.timezone || 'America/Toronto',
         auto_post: publication.auto_post || false,
         status: publication.status || 'draft_only',
@@ -73,11 +104,16 @@ export default function PublicationForm({ publication, onSave, onCancel }) {
       toast.error('Name and lens are required');
       return;
     }
+    if (!form.schedule_crons.length) {
+      toast.error('Select at least one schedule time');
+      return;
+    }
     setSaving(true);
     const credStr = creds.api_key ? JSON.stringify(creds) : '';
-    const data = { ...form, credentials_ref: credStr };
-    // Compute next_run_at
-    data.next_run_at = new Date(Date.now() + 24 * 3600 * 1000).toISOString();
+    const { schedule_crons, ...rest } = form;
+    const data = { ...rest, schedule_cron: schedule_crons.join(','), credentials_ref: credStr };
+    // Compute next_run_at from earliest upcoming slot
+    data.next_run_at = computeNextRun(schedule_crons);
     if (publication?.id) {
       await base44.entities.Publication.update(publication.id, data);
     } else {
@@ -133,20 +169,37 @@ export default function PublicationForm({ publication, onSave, onCancel }) {
         <p className="text-xs text-stone-600 mt-1">Defines the writing style for generated drafts.</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <Label className="text-stone-400">Schedule</Label>
-          <Select value={form.schedule_cron} onValueChange={v => setForm({ ...form, schedule_cron: v })}>
-            <SelectTrigger className="bg-stone-800 border-stone-700 text-stone-100">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {SCHEDULE_PRESETS.map(p => (
-                <SelectItem key={p.cron} value={p.cron}>{p.label} — {p.desc}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      <div>
+        <Label className="text-stone-400">Schedule Times (select multiple)</Label>
+        <p className="text-xs text-stone-600 mb-2">Each selected slot generates a fresh draft run per day.</p>
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+          {SCHEDULE_SLOTS.map(slot => {
+            const isChecked = form.schedule_crons.includes(slot.cron);
+            return (
+              <label key={slot.cron} className={`flex items-center gap-2 px-3 py-2 rounded-md border cursor-pointer transition-colors text-sm ${isChecked ? 'bg-amber-900/30 border-amber-700 text-amber-300' : 'bg-stone-800 border-stone-700 text-stone-400 hover:border-stone-600'}`}>
+                <Checkbox
+                  checked={isChecked}
+                  onCheckedChange={(checked) => {
+                    const next = checked
+                      ? [...form.schedule_crons, slot.cron]
+                      : form.schedule_crons.filter(c => c !== slot.cron);
+                    setForm({ ...form, schedule_crons: next });
+                  }}
+                  className="border-stone-600"
+                />
+                <span>{slot.label}</span>
+              </label>
+            );
+          })}
         </div>
+        {form.schedule_crons.length > 0 && (
+          <p className="text-xs text-stone-500 mt-2">
+            {form.schedule_crons.length} run{form.schedule_crons.length > 1 ? 's' : ''} per day selected
+          </p>
+        )}
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <Label className="text-stone-400">Status</Label>
           <Select value={form.status} onValueChange={v => setForm({ ...form, status: v })}>
