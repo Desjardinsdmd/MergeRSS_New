@@ -64,12 +64,19 @@ Deno.serve(async (req) => {
                 continue;
             }
 
-            // Find clusters from last 24h with lens aggregates above threshold
-            const windowStart = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
-            const clusters = extractItems(await base44.asServiceRole.entities.StoryCluster.filter(
-                { status: 'active', last_updated_at: { $gte: windowStart } },
-                '-importance_score', 50
+            // Find clusters that actually have lens aggregates for this lens.
+            // We query broadly (active clusters, sorted by recency of system update)
+            // and then JS-filter for lens eligibility, because the DB can't filter
+            // on nested array fields and a naive importance_score sort gets swamped
+            // by stale high-score clusters with no lens data.
+            const allActive = extractItems(await base44.asServiceRole.entities.StoryCluster.filter(
+                { status: 'active' },
+                '-updated_date', 200
             ));
+            // Only keep clusters whose lens aggregates include this lens
+            const clusters = allActive.filter(c =>
+                (c.custom_lens_aggregates || []).some(a => a.lens_id === lens.id)
+            );
 
             // Filter to clusters that have a lens aggregate for this lens above threshold
             const scored = clusters
