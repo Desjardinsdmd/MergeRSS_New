@@ -117,22 +117,5 @@
   },
   "required": [
     "publication_id"
-  ],
-  "rls": {
-    "read": {
-      "filter": {
-        "created_by": "{{user.email}}"
-      }
-    },
-    "update": {
-      "filter": {
-        "created_by": "{{user.email}}"
-      }
-    },
-    "delete": {
-      "filter": {
-        "created_by": "{{user.email}}"
-      }
-    }
-  }
+  ]
 }

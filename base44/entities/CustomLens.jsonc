@@ -53,22 +53,5 @@
   "required": [
     "name",
     "scoring_prompt"
-  ],
-  "rls": {
-    "read": {
-      "filter": {
-        "created_by": "{{user.email}}"
-      }
-    },
-    "update": {
-      "filter": {
-        "created_by": "{{user.email}}"
-      }
-    },
-    "delete": {
-      "filter": {
-        "created_by": "{{user.email}}"
-      }
-    }
-  }
+  ]
 }

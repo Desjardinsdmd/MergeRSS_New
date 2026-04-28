@@ -7,7 +7,7 @@
  *   [3] Lock + heartbeat           — job execution framework
  *   [4] Pipeline health classification — zero scored ≠ success if clusters exist
  */
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 // ── Shared utilities (inlined — see functions/lib.js) ─────────────────────────
 
@@ -142,7 +142,7 @@ Deno.serve(async (req) => {
     try {
         base44 = createClientFromRequest(req);
     } catch {
-        const { createClient } = await import('npm:@base44/sdk@0.8.21');
+        const { createClient } = await import('npm:@base44/sdk@0.8.25');
         base44 = createClient();
     }
 

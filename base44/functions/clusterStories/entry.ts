@@ -133,7 +133,7 @@ Deno.serve(async (req) => {
         base44 = createClientFromRequest(req);
     } catch {
         try {
-            const { createClient } = await import('npm:@base44/sdk@0.8.21');
+            const { createClient } = await import('npm:@base44/sdk@0.8.25');
             base44 = createClient();
         } catch (e) {
             return Response.json({ error: `SDK boot failed: ${e.message}` }, { status: 500 });
