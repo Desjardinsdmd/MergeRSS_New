@@ -32,14 +32,14 @@ export default function Publications() {
   useEffect(() => { base44.auth.me().then(setUser); }, []);
   const { data: pubsRaw = [], isLoading } = useQuery({
     queryKey: ['publications', user?.email],
-    queryFn: () => base44.entities.Publication.filter({ created_by: user.email }, '-created_date', 50),
+    queryFn: () => base44.entities.Publication.list('-created_date', 50),
     enabled: !!user,
   });
   const pubs = Array.isArray(pubsRaw) ? pubsRaw : (pubsRaw?.items || pubsRaw?.data || []);
 
   const { data: lensesRaw = [] } = useQuery({
     queryKey: ['pub-lenses', user?.email],
-    queryFn: () => base44.entities.CustomLens.filter({ created_by: user.email }, '-created_date', 50),
+    queryFn: () => base44.entities.CustomLens.list('-created_date', 50),
     enabled: !!user,
   });
   const lenses = Array.isArray(lensesRaw) ? lensesRaw : (lensesRaw?.items || lensesRaw?.data || []);
