@@ -160,10 +160,13 @@ CRITICAL INSTRUCTIONS:
 - Every post must contain at least one concrete detail from the sources.
 - If the sources lack detail, say what IS known concretely — don't pad with generic commentary.
 
+IMPORTANT: Every variant MUST end with a link to the primary source article. Use this URL: ${sourceArticles[0]?.url || '(no URL available)'}
+The link counts toward the character limit. URLs on X use ~23 chars regardless of length.
+
 Generate 3 draft variants for posting to ${pub.channel_type}:
-1. "wire" — a tight single post (max ${formatConfig.max_chars || 280} chars) that delivers the key signal with specific facts.
-2. "thread" — a 2-3 post thread that unpacks the story with context and data points. Each post max ${formatConfig.max_chars || 280} chars.
-3. "take" — an opinionated single post (max ${formatConfig.max_chars || 280} chars) with an analytical angle grounded in the facts.
+1. "wire" — a tight single post (max ${formatConfig.max_chars || 280} chars) that delivers the key signal with specific facts, ending with the source link.
+2. "thread" — a 2-3 post thread that unpacks the story with context and data points. Each post max ${formatConfig.max_chars || 280} chars. The LAST post in the thread must include the source link.
+3. "take" — an opinionated single post (max ${formatConfig.max_chars || 280} chars) with an analytical angle grounded in the facts, ending with the source link.
 
 Return as JSON.`,
                     response_json_schema: {
