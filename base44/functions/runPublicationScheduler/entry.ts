@@ -94,14 +94,30 @@ Deno.serve(async (req) => {
             const topCandidates = scored.slice(0, candidateCount);
 
             if (!topCandidates.length) {
-                results.push({ publication: pub.name, error: 'No eligible clusters found' });
+                console.log(`[runPublicationScheduler] ${pub.name}: No eligible clusters found. ${allActive.length} active clusters checked, ${clusters.length} had lens data, 0 passed threshold (min=${lens.minimum_score_threshold}).`);
+                results.push({ publication: pub.name, error: 'No eligible clusters found', active_clusters: allActive.length, with_lens_data: clusters.length });
                 // Update next_run_at even if nothing found
                 await updateNextRun(base44, pub);
                 continue;
             }
 
-            const selected = topCandidates[0];
-            const candidatePool = topCandidates.slice(1).map(c => c.cluster.id);
+            // Dedup: exclude clusters already used by this publication recently (last 48h)
+            const recentPosts = extractItems(await base44.asServiceRole.entities.PublicationPost.filter(
+                { publication_id: pub.id }, '-created_date', 20
+            ));
+            const recentClusterIds = new Set(recentPosts.map(p => p.cluster_id).filter(Boolean));
+            const dedupedCandidates = topCandidates.filter(c => !recentClusterIds.has(c.cluster.id));
+
+            if (!dedupedCandidates.length) {
+                console.log(`[runPublicationScheduler] ${pub.name}: ${topCandidates.length} candidates found but all already posted. Cluster IDs: ${topCandidates.map(c => c.cluster.id).join(', ')}`);
+                results.push({ publication: pub.name, error: 'All top candidates already posted', candidates_before_dedup: topCandidates.length });
+                await updateNextRun(base44, pub);
+                continue;
+            }
+
+            const selected = dedupedCandidates[0];
+            const candidatePool = dedupedCandidates.slice(1).map(c => c.cluster.id);
+            console.log(`[runPublicationScheduler] ${pub.name}: Selected cluster "${selected.cluster.representative_title}" (score=${selected.combinedScore.toFixed(1)}, ${dedupedCandidates.length} eligible after dedup)`);
 
             // Fetch source articles for the selected cluster to give the LLM concrete details
             const articleIds = selected.cluster.article_ids || [];
