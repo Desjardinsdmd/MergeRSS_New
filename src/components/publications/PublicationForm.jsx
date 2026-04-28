@@ -66,6 +66,7 @@ export default function PublicationForm({ publication, onSave, onCancel }) {
     auto_post: false,
     status: 'draft_only',
     candidates_per_run: 3,
+    preferred_variant: 'wire',
     credentials_ref: '',
   });
   const [creds, setCreds] = useState({ api_key: '', api_secret: '', access_token: '', access_token_secret: '' });
@@ -91,6 +92,7 @@ export default function PublicationForm({ publication, onSave, onCancel }) {
         auto_post: publication.auto_post || false,
         status: publication.status || 'draft_only',
         candidates_per_run: publication.candidates_per_run || 3,
+        preferred_variant: publication.preferred_variant || 'wire',
         credentials_ref: publication.credentials_ref || '',
       });
       if (publication.credentials_ref) {
@@ -215,11 +217,27 @@ export default function PublicationForm({ publication, onSave, onCancel }) {
         </div>
       </div>
 
-      <div>
-        <Label className="text-stone-400">Candidates Per Run</Label>
-        <Input type="number" min={1} max={10} value={form.candidates_per_run}
-          onChange={e => setForm({ ...form, candidates_per_run: parseInt(e.target.value) || 3 })}
-          className="bg-stone-800 border-stone-700 text-stone-100 w-24" />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <Label className="text-stone-400">Candidates Per Run</Label>
+          <Input type="number" min={1} max={10} value={form.candidates_per_run}
+            onChange={e => setForm({ ...form, candidates_per_run: parseInt(e.target.value) || 3 })}
+            className="bg-stone-800 border-stone-700 text-stone-100 w-24" />
+        </div>
+        <div>
+          <Label className="text-stone-400">Preferred Variant</Label>
+          <Select value={form.preferred_variant} onValueChange={v => setForm({ ...form, preferred_variant: v })}>
+            <SelectTrigger className="bg-stone-800 border-stone-700 text-stone-100">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="wire">Wire (single post, neutral)</SelectItem>
+              <SelectItem value="thread">Thread (2-3 posts, explanatory)</SelectItem>
+              <SelectItem value="take">Take (single post, opinionated)</SelectItem>
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-stone-600 mt-1">Default variant for auto-post and manual review.</p>
+        </div>
       </div>
 
       {/* X Credentials */}

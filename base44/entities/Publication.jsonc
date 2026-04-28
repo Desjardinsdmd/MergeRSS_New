@@ -32,7 +32,7 @@
     },
     "schedule_cron": {
       "type": "string",
-      "description": "Cron expression for when to generate drafts. e.g. '0 11 * * *' = daily 7am ET (UTC-4)."
+      "description": "Cron expression(s) for when to generate drafts, comma-separated. e.g. '0 11 * * *,0 16 * * *'"
     },
     "timezone": {
       "type": "string",
@@ -42,6 +42,16 @@
       "type": "boolean",
       "default": false,
       "description": "If true, drafts auto-post without human approval. Default false."
+    },
+    "preferred_variant": {
+      "type": "string",
+      "enum": [
+        "wire",
+        "thread",
+        "take"
+      ],
+      "default": "wire",
+      "description": "Which draft variant to auto-select. Used as chosen_variant_index when auto_post is on, and as default selection in manual review."
     },
     "credentials_ref": {
       "type": "string",

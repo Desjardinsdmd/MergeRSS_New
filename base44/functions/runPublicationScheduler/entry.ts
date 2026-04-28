@@ -193,15 +193,39 @@ Return as JSON.`,
                 variants = [{ label: 'wire', content: [selected.cluster.representative_title] }];
             }
 
+            // Determine chosen variant index from preferred_variant
+            const variantLabels = variants.map(v => (v.label || '').toLowerCase());
+            const preferred = (pub.preferred_variant || 'wire').toLowerCase();
+            let chosenIndex = variantLabels.indexOf(preferred);
+            if (chosenIndex === -1) chosenIndex = 0; // fallback to first (wire)
+
             // Create PublicationPost
-            await base44.asServiceRole.entities.PublicationPost.create({
+            const postData = {
                 publication_id: pub.id,
                 cluster_id: selected.cluster.id,
                 candidate_pool: candidatePool,
                 selection_reason: typeof selectionReason === 'string' ? selectionReason : JSON.stringify(selectionReason),
                 draft_variants: variants,
+                chosen_variant_index: chosenIndex,
                 status: 'draft',
-            });
+            };
+
+            // If auto_post is on and publication is active, mark as approved for immediate posting
+            if (pub.auto_post && pub.status === 'active') {
+                postData.status = 'approved';
+            }
+
+            const createdPost = await base44.asServiceRole.entities.PublicationPost.create(postData);
+
+            // If auto_post + active, trigger postToX immediately
+            if (pub.auto_post && pub.status === 'active' && createdPost?.id) {
+                try {
+                    await base44.asServiceRole.functions.invoke('postToX', { post_id: createdPost.id });
+                    console.log(`[runPublicationScheduler] Auto-posted for ${pub.name}`);
+                } catch (postErr) {
+                    console.error(`[runPublicationScheduler] Auto-post failed for ${pub.name}: ${postErr.message}`);
+                }
+            }
 
             // Update Publication timestamps
             await updateNextRun(base44, pub);
