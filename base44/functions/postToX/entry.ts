@@ -114,7 +114,9 @@ Deno.serve(async (req) => {
     }
 
     // Get content to post
-    const content = post.final_content || (post.draft_variants?.[post.chosen_variant_index ?? 0]?.content) || [];
+    const content = (post.final_content?.length ? post.final_content : null)
+        ?? post.draft_variants?.[post.chosen_variant_index ?? 0]?.content
+        ?? [];
     if (!content.length) {
         await base44.entities.PublicationPost.update(post.id, { status: 'failed', error_message: 'No content to post' });
         return Response.json({ error: 'No content to post' }, { status: 400 });
