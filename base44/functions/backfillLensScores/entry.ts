@@ -32,9 +32,15 @@ function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
 
-    const user = await base44.auth.me();
-    if (!user || user.role !== 'admin') {
-        return Response.json({ error: 'Forbidden' }, { status: 403 });
+    // Allow admin users and scheduler (no user session)
+    let user = null;
+    try {
+        user = await base44.auth.me();
+        if (user && user.role !== 'admin') {
+            return Response.json({ error: 'Forbidden' }, { status: 403 });
+        }
+    } catch {
+        // Scheduler call — no user session, proceed with service role
     }
 
     let body = {};
