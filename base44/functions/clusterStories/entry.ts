@@ -148,6 +148,10 @@ Deno.serve(async (req) => {
     try { body = await req.json(); } catch {}
     const windowHours = body.window_hours || PRIMARY_WINDOW_HOURS;
     const dryRun = body.dry_run === true;
+    const fetchLimit = body.fetch_limit || FETCH_LIMIT;
+    const primaryThreshold = body.primary_threshold ?? PRIMARY_THRESHOLD;
+    const scopeUser = body.scope_user || null; // e.g. "stackcre@gmail.com"
+    const scopeTag = body.scope_tag || null;   // e.g. "the-stack"
     const instanceId = makeRunId();
 
     // ── Lock ──────────────────────────────────────────────────────────────────
@@ -195,14 +199,17 @@ Deno.serve(async (req) => {
     const staleWindowStart = new Date(Date.now() - STALE_WINDOW_HOURS * 3600 * 1000).toISOString();
 
     // ── 1. Load recent feed items — hard-capped to avoid envelope responses ───
+    const itemQuery = { published_date: { $gte: windowStart } };
+    if (scopeUser) itemQuery.created_by = scopeUser;
+    if (scopeTag) itemQuery.tags = scopeTag;
     const items = await safeFilter(
         base44.asServiceRole.entities.FeedItem,
-        { published_date: { $gte: windowStart } },
+        itemQuery,
         '-published_date',
-        FETCH_LIMIT
+        fetchLimit
     );
 
-    console.log(`[clusterStories][${instanceId}] Loaded ${items.length} items from last ${windowHours}h (cap=${FETCH_LIMIT})`);
+    console.log(`[clusterStories][${instanceId}] Loaded ${items.length} items from last ${windowHours}h (cap=${fetchLimit}, threshold=${primaryThreshold}, scope_user=${scopeUser || 'all'}, scope_tag=${scopeTag || 'all'})`);
 
     if (items.length === 0) {
         clearInterval(heartbeatTimer);
@@ -256,7 +263,7 @@ Deno.serve(async (req) => {
             if (assigned.has(candidate.item.id)) continue;
             const timeDiffHours = Math.abs(pivot.publishedMs - candidate.publishedMs) / 3600000;
             const sim = jaccardSimilarity(pivot.keywords, candidate.keywords);
-            if (timeDiffHours <= windowHours && sim >= PRIMARY_THRESHOLD && candidate.keywords.size >= MIN_KEYWORDS_FOR_CLUSTER) {
+            if (timeDiffHours <= windowHours && sim >= primaryThreshold && candidate.keywords.size >= MIN_KEYWORDS_FOR_CLUSTER) {
                 members.push(candidate); assigned.add(candidate.item.id); continue;
             }
             if (timeDiffHours <= EXTENDED_WINDOW_HOURS && sim >= EXTENDED_THRESHOLD && candidate.keywords.size >= MIN_KEYWORDS_FOR_CLUSTER) {
