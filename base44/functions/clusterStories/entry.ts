@@ -52,10 +52,10 @@ const STALE_REACTIVATE_THRESHOLD = 0.55;
 const STALE_WINDOW_HOURS         = 72;
 const MIN_KEYWORDS_FOR_CLUSTER   = 2;
 const FETCH_LIMIT                = 200;
-const BATCH_WRITE_DELAY_MS       = 80;
-const ITEM_WRITE_DELAY_MS        = 80;
-const ITEM_WRITE_BATCH_SIZE      = 10;
-const ITEM_WRITE_BATCH_PAUSE_MS  = 200;
+const BATCH_WRITE_DELAY_MS       = 40;
+const ITEM_WRITE_DELAY_MS        = 40;
+const ITEM_WRITE_BATCH_SIZE      = 15;
+const ITEM_WRITE_BATCH_PAUSE_MS  = 100;
 const LOCK_WINDOW_MS             = 10 * 60 * 1000;
 const ZOMBIE_TTL_MS              = 15 * 60 * 1000;
 
@@ -201,7 +201,9 @@ Deno.serve(async (req) => {
     // ── 1. Load recent feed items — hard-capped to avoid envelope responses ───
     const itemQuery = { published_date: { $gte: windowStart } };
     if (scopeUser) itemQuery.created_by = scopeUser;
-    if (scopeTag) itemQuery.tags = scopeTag;
+    if (scopeTag) itemQuery.tags = { $in: [scopeTag] };
+    const scopeLens = body.scope_lens || null; // lens ID — only cluster items scored by this lens
+    if (scopeLens) itemQuery['custom_lens_scores.lens_id'] = scopeLens;
     const items = await safeFilter(
         base44.asServiceRole.entities.FeedItem,
         itemQuery,
@@ -209,7 +211,7 @@ Deno.serve(async (req) => {
         fetchLimit
     );
 
-    console.log(`[clusterStories][${instanceId}] Loaded ${items.length} items from last ${windowHours}h (cap=${fetchLimit}, threshold=${primaryThreshold}, scope_user=${scopeUser || 'all'}, scope_tag=${scopeTag || 'all'})`);
+    console.log(`[clusterStories][${instanceId}] Loaded ${items.length} items from last ${windowHours}h (cap=${fetchLimit}, threshold=${primaryThreshold}, scope_user=${scopeUser || 'all'}, scope_tag=${scopeTag || 'all'}, scope_lens=${scopeLens || 'all'})`);
 
     if (items.length === 0) {
         clearInterval(heartbeatTimer);
