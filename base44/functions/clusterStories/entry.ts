@@ -152,6 +152,7 @@ Deno.serve(async (req) => {
     const primaryThreshold = body.primary_threshold ?? PRIMARY_THRESHOLD;
     const scopeUser = body.scope_user || null; // e.g. "stackcre@gmail.com"
     const scopeTag = body.scope_tag || null;   // e.g. "the-stack"
+    const skipSingletons = body.skip_singletons === true; // skip writing 1-article clusters (saves write budget on large backfills)
     const instanceId = makeRunId();
 
     // ── Lock ──────────────────────────────────────────────────────────────────
@@ -312,10 +313,16 @@ Deno.serve(async (req) => {
     }
 
     // ── 5. Persist clusters ───────────────────────────────────────────────────
-    let created = 0, updated = 0, reactivated = 0, itemsAnnotated = 0, reassigned = 0;
+    let created = 0, updated = 0, reactivated = 0, itemsAnnotated = 0, reassigned = 0, skippedSingletons = 0;
 
     for (const { pivot, members } of rawClusters) {
         const allItems = members.map(m => m.item);
+
+        // Skip singleton cluster writes when flag is set (saves massive write budget on backfills)
+        if (skipSingletons && allItems.length === 1) {
+            skippedSingletons++;
+            continue;
+        }
         const allKeywords = new Set(members.flatMap(m => [...m.keywords]));
         const primary = choosePrimary(allItems);
         const articleIds = allItems.map(i => i.id);
@@ -555,6 +562,7 @@ Deno.serve(async (req) => {
         total_items_processed: items.length,
         total_clusters: rawClusters.length,
         singletons: rawClusters.filter(c => c.members.length === 1).length,
+        singletons_skipped: skippedSingletons,
         multi_article_clusters: multiArticleCount,
         clusters_created: created,
         clusters_updated: updated,
