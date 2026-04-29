@@ -52,10 +52,10 @@ const STALE_REACTIVATE_THRESHOLD = 0.55;
 const STALE_WINDOW_HOURS         = 72;
 const MIN_KEYWORDS_FOR_CLUSTER   = 2;
 const FETCH_LIMIT                = 200;
-const BATCH_WRITE_DELAY_MS       = 40;
-const ITEM_WRITE_DELAY_MS        = 40;
-const ITEM_WRITE_BATCH_SIZE      = 15;
-const ITEM_WRITE_BATCH_PAUSE_MS  = 100;
+const BATCH_WRITE_DELAY_MS       = 80;
+const ITEM_WRITE_DELAY_MS        = 80;
+const ITEM_WRITE_BATCH_SIZE      = 10;
+const ITEM_WRITE_BATCH_PAUSE_MS  = 200;
 const LOCK_WINDOW_MS             = 10 * 60 * 1000;
 const ZOMBIE_TTL_MS              = 15 * 60 * 1000;
 
@@ -152,7 +152,7 @@ Deno.serve(async (req) => {
     const primaryThreshold = body.primary_threshold ?? PRIMARY_THRESHOLD;
     const scopeUser = body.scope_user || null; // e.g. "stackcre@gmail.com"
     const scopeTag = body.scope_tag || null;   // e.g. "the-stack"
-    const skipSingletons = body.skip_singletons === true; // skip writing 1-article clusters (saves write budget on large backfills)
+    const skipSingletons = body.skip_singletons ?? (windowHours > 48); // auto-enabled for backfills
     const instanceId = makeRunId();
 
     // ── Lock ──────────────────────────────────────────────────────────────────
@@ -313,16 +313,14 @@ Deno.serve(async (req) => {
     }
 
     // ── 5. Persist clusters ───────────────────────────────────────────────────
-    let created = 0, updated = 0, reactivated = 0, itemsAnnotated = 0, reassigned = 0, skippedSingletons = 0;
+    let created = 0, updated = 0, reactivated = 0, itemsAnnotated = 0, reassigned = 0;
 
     for (const { pivot, members } of rawClusters) {
-        const allItems = members.map(m => m.item);
+        // Skip singleton clusters during writes when skip_singletons is enabled
+        // This dramatically reduces write volume for backfill runs
+        if (skipSingletons && members.length === 1) continue;
 
-        // Skip singleton cluster writes when flag is set (saves massive write budget on backfills)
-        if (skipSingletons && allItems.length === 1) {
-            skippedSingletons++;
-            continue;
-        }
+        const allItems = members.map(m => m.item);
         const allKeywords = new Set(members.flatMap(m => [...m.keywords]));
         const primary = choosePrimary(allItems);
         const articleIds = allItems.map(i => i.id);
@@ -562,7 +560,6 @@ Deno.serve(async (req) => {
         total_items_processed: items.length,
         total_clusters: rawClusters.length,
         singletons: rawClusters.filter(c => c.members.length === 1).length,
-        singletons_skipped: skippedSingletons,
         multi_article_clusters: multiArticleCount,
         clusters_created: created,
         clusters_updated: updated,
