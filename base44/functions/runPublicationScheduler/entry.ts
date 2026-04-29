@@ -64,17 +64,23 @@ Deno.serve(async (req) => {
                 continue;
             }
 
-            // Find clusters that actually have lens aggregates for this lens.
-            // We query broadly (active clusters, sorted by recency of system update)
-            // and then JS-filter for lens eligibility, because the DB can't filter
-            // on nested array fields and a naive importance_score sort gets swamped
-            // by stale high-score clusters with no lens data.
-            const allActive = extractItems(await base44.asServiceRole.entities.StoryCluster.filter(
-                { status: 'active' },
-                '-updated_date', 200
-            ));
+            // Find clusters that have lens aggregates for this lens.
+            // Query strategy:
+            //   1. Active clusters (broad — any could have lens data)
+            //   2. Stale clusters with lens data (targeted — use nested field query
+            //      to avoid being buried under thousands of generic stale clusters)
+            const [activeRaw, lensStaleRaw] = await Promise.all([
+                base44.asServiceRole.entities.StoryCluster.filter(
+                    { status: 'active' }, '-updated_date', 200
+                ),
+                base44.asServiceRole.entities.StoryCluster.filter(
+                    { status: 'stale', 'custom_lens_aggregates.lens_id': lens.id },
+                    '-updated_date', 200
+                ),
+            ]);
+            const allCandidates = [...extractItems(activeRaw), ...extractItems(lensStaleRaw)];
             // Only keep clusters whose lens aggregates include this lens
-            const clusters = allActive.filter(c =>
+            const clusters = allCandidates.filter(c =>
                 (c.custom_lens_aggregates || []).some(a => a.lens_id === lens.id)
             );
 
@@ -94,8 +100,8 @@ Deno.serve(async (req) => {
             const topCandidates = scored.slice(0, candidateCount);
 
             if (!topCandidates.length) {
-                console.log(`[runPublicationScheduler] ${pub.name}: No eligible clusters found. ${allActive.length} active clusters checked, ${clusters.length} had lens data, 0 passed threshold (min=${lens.minimum_score_threshold}).`);
-                results.push({ publication: pub.name, error: 'No eligible clusters found', active_clusters: allActive.length, with_lens_data: clusters.length });
+                console.log(`[runPublicationScheduler] ${pub.name}: No eligible clusters found. ${allCandidates.length} clusters checked (active+stale), ${clusters.length} had lens data, 0 passed threshold (min=${lens.minimum_score_threshold}).`);
+                results.push({ publication: pub.name, error: 'No eligible clusters found', total_clusters: allCandidates.length, with_lens_data: clusters.length });
                 // Update next_run_at even if nothing found
                 await updateNextRun(base44, pub);
                 continue;
