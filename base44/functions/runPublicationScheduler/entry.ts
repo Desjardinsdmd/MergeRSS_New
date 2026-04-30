@@ -244,19 +244,25 @@ Deno.serve(async (req) => {
                 continue;
             }
 
-            // Dedup: exclude clusters already used by this publication recently (last 48h)
+            // Dedup: exclude clusters posted in the last 48 hours
+            const dedupCutoff = new Date(Date.now() - 48 * 3600 * 1000).toISOString();
             const recentPosts = extractItems(await base44.asServiceRole.entities.PublicationPost.filter(
-                { publication_id: pub.id }, '-created_date', 20
+                { publication_id: pub.id, created_date: { $gte: dedupCutoff } }, '-created_date', 50
             ));
             const recentClusterIds = new Set(recentPosts.map(p => p.cluster_id).filter(Boolean));
-            const dedupedCandidates = topCandidates.filter(c => !recentClusterIds.has(c.cluster.id));
 
-            if (!dedupedCandidates.length) {
-                console.log(`[runPublicationScheduler] ${pub.name}: ${topCandidates.length} candidates found but all already posted. Cluster IDs: ${topCandidates.map(c => c.cluster.id).join(', ')}`);
-                results.push({ publication: pub.name, error: 'All top candidates already posted', candidates_before_dedup: topCandidates.length });
+            // Filter the FULL scored list (not just top N) to find unused clusters
+            const dedupedAll = scored.filter(c => !recentClusterIds.has(c.cluster.id));
+
+            if (!dedupedAll.length) {
+                console.log(`[runPublicationScheduler] ${pub.name}: ${scored.length} scored clusters, all ${recentClusterIds.size} recent cluster IDs blocked. No unused clusters available.`);
+                results.push({ publication: pub.name, error: 'All scored clusters already posted in last 48h', scored_count: scored.length, blocked_count: recentClusterIds.size });
                 await updateNextRun(base44, pub);
                 continue;
             }
+
+            // Take the best unused cluster
+            const dedupedCandidates = dedupedAll.slice(0, candidateCount);
 
             const selected = dedupedCandidates[0];
             const candidatePool = dedupedCandidates.slice(1).map(c => c.cluster.id);
