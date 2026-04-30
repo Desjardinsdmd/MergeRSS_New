@@ -20,139 +20,6 @@ function extractItems(raw) {
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-// ── Pre-flight: lens scoring + clustering before cluster selection ─────────
-async function runPreFlightScoring(base44, lens) {
-    const startMs = Date.now();
-    console.log(`[pre-flight] Starting lens scoring for "${lens.name}" (${lens.id})`);
-
-    // 1. Find feeds matching the lens filters
-    let feedFilter = {};
-    if (lens.feed_filter_tags?.length > 0) feedFilter.tags = { $in: lens.feed_filter_tags };
-    const allFeeds = extractItems(await base44.asServiceRole.entities.Feed.filter(
-        Object.keys(feedFilter).length ? feedFilter : {}, '-created_date', 200
-    ));
-    let matchingFeeds = allFeeds;
-    if (lens.feed_filter_categories?.length > 0) {
-        matchingFeeds = allFeeds.filter(f => lens.feed_filter_categories.includes(f.category));
-    }
-    const feedIds = matchingFeeds.map(f => f.id);
-    const feedMap = {};
-    for (const f of matchingFeeds) feedMap[f.id] = f;
-    if (!feedIds.length) {
-        console.log(`[pre-flight] No feeds match lens filters (${allFeeds.length} total feeds)`);
-        return { scored: 0, skipped: 'no_matching_feeds' };
-    }
-
-    // 2. Load items from last 2 days that DON'T have this lens scored yet
-    const cutoffDate = new Date(Date.now() - 2 * 24 * 3600 * 1000).toISOString();
-    const allItems = extractItems(await base44.asServiceRole.entities.FeedItem.filter(
-        { feed_id: { $in: feedIds }, published_date: { $gte: cutoffDate } }, '-published_date', 500
-    ));
-    const needsScoring = allItems.filter(item => {
-        const scores = item.custom_lens_scores || [];
-        return !scores.some(s => s.lens_id === lens.id);
-    });
-
-    if (!needsScoring.length) {
-        console.log(`[pre-flight] All ${allItems.length} items already scored for this lens`);
-        return { scored: 0, already_scored: allItems.length, duration_ms: Date.now() - startMs };
-    }
-
-    console.log(`[pre-flight] ${needsScoring.length} items need scoring (of ${allItems.length} total)`);
-
-    // 3. Score in batches of 10, up to 10 batches (100 items max per run)
-    const BATCH_SIZE = 10;
-    const MAX_BATCHES = 10;
-    const PAUSE_MS = 2000;
-    const toProcess = needsScoring.slice(0, MAX_BATCHES * BATCH_SIZE);
-    let totalScored = 0;
-
-    for (let i = 0; i < toProcess.length; i += BATCH_SIZE) {
-        const batch = toProcess.slice(i, i + BATCH_SIZE);
-        const articlesPayload = batch.map((item, idx) => ({
-            index: idx,
-            title: (item.title || '').slice(0, 200),
-            description: (item.description || '').slice(0, 500),
-            content: (item.content || '').slice(0, 800),
-            category: item.category || '',
-            source: feedMap[item.feed_id]?.name || '',
-        }));
-
-        try {
-            const lensResult = await base44.asServiceRole.integrations.Core.InvokeLLM({
-                prompt: `${lens.scoring_prompt}\n\nFor each article below, return the JSON object specified in the prompt above. Always include importance_score, intelligence_tag, and ai_summary.\n\nArticles:\n${JSON.stringify(articlesPayload, null, 2)}`,
-                response_json_schema: {
-                    type: "object",
-                    properties: {
-                        results: {
-                            type: "array",
-                            items: {
-                                type: "object",
-                                properties: {
-                                    index: { type: "number" },
-                                    importance_score: { type: "number" },
-                                    intelligence_tag: { type: "string", enum: ["Trending", "Risk", "Opportunity", "Neutral"] },
-                                    ai_summary: { type: "string" },
-                                },
-                                required: ["index", "importance_score", "intelligence_tag", "ai_summary"]
-                            }
-                        }
-                    },
-                    required: ["results"]
-                }
-            });
-            for (const r of (lensResult?.results || [])) {
-                const item = batch[r.index];
-                if (!item) continue;
-                const newScore = Math.min(100, Math.max(0, Math.round(r.importance_score || 0)));
-                const existingScores = item.custom_lens_scores || [];
-                const filtered = existingScores.filter(s => s.lens_id !== lens.id);
-                filtered.push({
-                    lens_id: lens.id,
-                    importance_score: newScore,
-                    intelligence_tag: r.intelligence_tag || 'Neutral',
-                    ai_summary: r.ai_summary || '',
-                    scored_at: new Date().toISOString(),
-                });
-                for (let attempt = 0; attempt < 3; attempt++) {
-                    try {
-                        await base44.asServiceRole.entities.FeedItem.update(item.id, { custom_lens_scores: filtered });
-                        totalScored++;
-                        break;
-                    } catch (e) {
-                        if (e.message?.includes('429') || e.message?.includes('Rate limit')) {
-                            await sleep(5000);
-                        } else break;
-                    }
-                }
-                await sleep(150);
-            }
-        } catch (llmErr) {
-            console.error(`[pre-flight] LLM batch error: ${llmErr.message}`);
-            if (llmErr.message?.includes('429') || llmErr.message?.includes('rate')) break;
-        }
-        if (i + BATCH_SIZE < toProcess.length) await sleep(PAUSE_MS);
-    }
-
-    console.log(`[pre-flight] Scored ${totalScored} items in ${Date.now() - startMs}ms`);
-
-    // 4. Trigger clustering so custom_lens_aggregates are recomputed on clusters
-    if (totalScored > 0) {
-        try {
-            console.log(`[pre-flight] Triggering clustering to recompute lens aggregates...`);
-            await base44.asServiceRole.functions.invoke('clusterStories', {
-                scope_lens: lens.id,
-                scope_tag: (lens.feed_filter_tags || [])[0] || null,
-            });
-            console.log(`[pre-flight] Clustering complete`);
-        } catch (clusterErr) {
-            console.warn(`[pre-flight] Clustering failed (non-fatal): ${clusterErr.message}`);
-        }
-    }
-
-    return { scored: totalScored, total_items: allItems.length, needs_scoring: needsScoring.length, duration_ms: Date.now() - startMs };
-}
-
 Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
 
@@ -197,11 +64,8 @@ Deno.serve(async (req) => {
                 continue;
             }
 
-            // ── PRE-FLIGHT: Score unscored items + recluster before selecting ──
-            const preFlightResult = await runPreFlightScoring(base44, lens);
-            console.log(`[runPublicationScheduler] Pre-flight for ${pub.name}: ${JSON.stringify(preFlightResult)}`);
-
             // Find clusters that have lens aggregates for this lens.
+            // (Lens scoring and clustering happen upstream in the feed→score→cluster chain)
             // Query strategy:
             //   1. Active clusters (broad — any could have lens data)
             //   2. Stale clusters with lens data (targeted — use nested field query

@@ -38,7 +38,7 @@ const COOLDOWN_HOURS           = 2;
 const FEED_FETCH_CONCURRENCY   = 5;
 const WRITE_DELAY_MS           = 150;
 const BATCH_DELAY_MS           = 300;
-const RUN_INTERVAL_MINUTES     = 10;
+const RUN_INTERVAL_MINUTES     = 60;
 const LOCK_WINDOW_MS           = 8 * 60 * 1000;
 const ZOMBIE_TTL_MS            = 15 * 60 * 1000;
 const HEARTBEAT_INTERVAL_MS    = 60 * 1000;
@@ -622,6 +622,21 @@ Deno.serve(async (req) => {
             completed_at: new Date().toISOString(),
             metadata: { ...finalSummary, instance_id: instanceId, run_type: 'main' },
         }).catch(() => {});
+    }
+
+    // ── Chain: trigger lens scoring → clustering pipeline ─────────────────────
+    if (summary.new_items > 0) {
+        console.log(`[fetchFeeds][${instanceId}] Chaining → backfillLensScores (${summary.new_items} new items)`);
+        base44.asServiceRole.functions.invoke('backfillLensScores', {
+            days_back: 2,
+            batch_size: 10,
+            max_batches: 10,
+            chain_cluster: true,
+        }).catch(chainErr => {
+            console.warn(`[fetchFeeds][${instanceId}] Chain to backfillLensScores failed (non-fatal): ${chainErr.message}`);
+        });
+    } else {
+        console.log(`[fetchFeeds][${instanceId}] No new items — skipping lens scoring chain`);
     }
 
     return Response.json({ success: true, instance_id: instanceId, ...finalSummary });

@@ -46,7 +46,6 @@ Deno.serve(async (req) => {
     let body = {};
     try { body = await req.json(); } catch {}
 
-    const LENS_ID = body.lens_id || '69ef5ba155799e3773e6eab1';
     const BATCH_SIZE = body.batch_size || 10;
     const MAX_BATCHES = body.max_batches || 5;
     const PAUSE_MS = body.pause_ms || 3000;
@@ -54,11 +53,34 @@ Deno.serve(async (req) => {
     const DAYS_BACK = body.days_back || 30;
     const RESCORE = body.rescore === true;
     const SCORE_RANGE = body.score_range || null; // e.g. [30, 60]
+    const CHAIN_CLUSTER = body.chain_cluster === true;
 
-    // Load the lens
-    const lenses = extractItems(await base44.asServiceRole.entities.CustomLens.filter({ id: LENS_ID }, '-created_date', 1));
-    const lens = lenses[0];
-    if (!lens) return Response.json({ error: 'Lens not found' }, { status: 404 });
+    // Auto-discover lenses: if lens_id provided use it, otherwise find all active lenses linked to active publications
+    let lensesToProcess = [];
+    if (body.lens_id) {
+        const found = extractItems(await base44.asServiceRole.entities.CustomLens.filter({ id: body.lens_id }, '-created_date', 1));
+        if (found[0]) lensesToProcess = [found[0]];
+    } else {
+        const activePubs = extractItems(await base44.asServiceRole.entities.Publication.filter(
+            { status: { $ne: 'paused' } }, '-created_date', 50
+        ));
+        const lensIds = [...new Set(activePubs.map(p => p.lens_id).filter(Boolean))];
+        if (lensIds.length > 0) {
+            const allLenses = extractItems(await base44.asServiceRole.entities.CustomLens.filter(
+                { is_active: true }, '-created_date', 50
+            ));
+            lensesToProcess = allLenses.filter(l => lensIds.includes(l.id));
+        }
+    }
+
+    if (!lensesToProcess.length) {
+        console.log('[backfill] No lenses to process');
+        return Response.json({ error: 'No active lenses found for publications' }, { status: 404 });
+    }
+
+    const lens = lensesToProcess[0]; // Process first lens (primary path)
+    const LENS_ID = lens.id;
+    console.log(`[backfill] Processing lens "${lens.name}" (${LENS_ID})${lensesToProcess.length > 1 ? ` (+${lensesToProcess.length - 1} more)` : ''}`);
 
     // Find matching feeds
     let feedFilter = {};
@@ -276,6 +298,75 @@ ${JSON.stringify(articlesPayload, null, 2)}`,
             dropped_below_50: scoreChanges.filter(c => c.old_score >= 50 && c.new_score < 50).length,
             rose_above_50: scoreChanges.filter(c => c.old_score < 50 && c.new_score >= 50).length,
         };
+    }
+
+    // Process additional lenses if auto-discovered
+    if (lensesToProcess.length > 1) {
+        for (let li = 1; li < lensesToProcess.length; li++) {
+            const extraLens = lensesToProcess[li];
+            console.log(`[backfill] Processing additional lens "${extraLens.name}" (${extraLens.id})`);
+            // Score items for this lens (reuse same feed matching logic inline)
+            let extraFeedFilter = {};
+            if (extraLens.feed_filter_tags?.length > 0) extraFeedFilter.tags = { $in: extraLens.feed_filter_tags };
+            const extraFeeds = extractItems(await base44.asServiceRole.entities.Feed.filter(
+                Object.keys(extraFeedFilter).length ? extraFeedFilter : {}, '-created_date', 200
+            ));
+            let extraMatching = extraFeeds;
+            if (extraLens.feed_filter_categories?.length > 0) {
+                extraMatching = extraFeeds.filter(f => extraLens.feed_filter_categories.includes(f.category));
+            }
+            const extraFeedIds = extraMatching.map(f => f.id);
+            const extraFeedMap = {};
+            for (const f of extraMatching) extraFeedMap[f.id] = f;
+            if (!extraFeedIds.length) continue;
+
+            const extraCutoff = new Date(Date.now() - DAYS_BACK * 24 * 3600 * 1000).toISOString();
+            const extraItems = extractItems(await base44.asServiceRole.entities.FeedItem.filter(
+                { feed_id: { $in: extraFeedIds }, published_date: { $gte: extraCutoff } }, '-published_date', 500
+            ));
+            const extraNeeds = extraItems.filter(item => !(item.custom_lens_scores || []).some(s => s.lens_id === extraLens.id));
+            const extraToProcess = extraNeeds.slice(0, MAX_BATCHES * BATCH_SIZE);
+
+            for (let i = 0; i < extraToProcess.length; i += BATCH_SIZE) {
+                const batch = extraToProcess.slice(i, i + BATCH_SIZE);
+                const payload = batch.map((item, idx) => ({
+                    index: idx, title: (item.title || '').slice(0, 200),
+                    description: (item.description || '').slice(0, 500),
+                    content: (item.content || '').slice(0, 800),
+                    category: item.category || '', source: extraFeedMap[item.feed_id]?.name || '',
+                }));
+                try {
+                    const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
+                        prompt: `${extraLens.scoring_prompt}\n\nFor each article below, return the JSON object specified in the prompt above. Always include importance_score, intelligence_tag, and ai_summary.\n\nArticles:\n${JSON.stringify(payload, null, 2)}`,
+                        response_json_schema: { type: "object", properties: { results: { type: "array", items: { type: "object", properties: { index: { type: "number" }, importance_score: { type: "number" }, intelligence_tag: { type: "string", enum: ["Trending", "Risk", "Opportunity", "Neutral"] }, ai_summary: { type: "string" } }, required: ["index", "importance_score", "intelligence_tag", "ai_summary"] } } }, required: ["results"] }
+                    });
+                    for (const r of (result?.results || [])) {
+                        const item = batch[r.index];
+                        if (!item) continue;
+                        const newScore = Math.min(100, Math.max(0, Math.round(r.importance_score || 0)));
+                        const existing = (item.custom_lens_scores || []).filter(s => s.lens_id !== extraLens.id);
+                        existing.push({ lens_id: extraLens.id, importance_score: newScore, intelligence_tag: r.intelligence_tag || 'Neutral', ai_summary: r.ai_summary || '', scored_at: new Date().toISOString() });
+                        await base44.asServiceRole.entities.FeedItem.update(item.id, { custom_lens_scores: existing }).catch(() => {});
+                        await sleep(200);
+                    }
+                } catch (err) {
+                    console.warn(`[backfill] Extra lens "${extraLens.name}" batch error: ${err.message}`);
+                    if (err.message?.includes('429') || err.message?.includes('rate')) break;
+                }
+                if (i + BATCH_SIZE < extraToProcess.length) await sleep(PAUSE_MS);
+            }
+        }
+    }
+
+    // ── Chain: trigger clustering to recompute lens aggregates ──────────────
+    if (CHAIN_CLUSTER && totalScored > 0) {
+        console.log(`[backfill] Chaining → clusterStories`);
+        try {
+            await base44.asServiceRole.functions.invoke('clusterStories', {});
+            console.log(`[backfill] Clustering chain complete`);
+        } catch (clusterErr) {
+            console.warn(`[backfill] Clustering chain failed (non-fatal): ${clusterErr.message}`);
+        }
     }
 
     return Response.json(response);
