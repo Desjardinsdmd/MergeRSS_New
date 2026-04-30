@@ -120,8 +120,9 @@ export default function CandidatePipeline({ publicationId }) {
       {/* Table */}
       <Card className="border-stone-800 bg-stone-900 overflow-hidden">
         {/* Header */}
-        <div className="grid grid-cols-[1fr_80px_80px_70px_60px_100px] gap-3 items-center px-4 py-2 border-b border-stone-700 bg-stone-800/50">
+        <div className="grid grid-cols-[1fr_90px_80px_80px_70px_60px_100px] gap-3 items-center px-4 py-2 border-b border-stone-700 bg-stone-800/50">
           <span className="text-xs font-medium text-stone-500 uppercase tracking-wider">Cluster</span>
+          <span className="text-xs font-medium text-stone-500 uppercase tracking-wider text-center">Posted</span>
           <span className="text-xs font-medium text-stone-500 uppercase tracking-wider text-center">Score</span>
           <span className="text-xs font-medium text-stone-500 uppercase tracking-wider text-center">Lens</span>
           <span className="text-xs font-medium text-stone-500 uppercase tracking-wider text-center">Trend</span>

@@ -23,7 +23,7 @@ export default function CandidateRow({ candidate, onSelect, selecting }) {
 
   return (
     <div className={cn(
-      "grid grid-cols-[1fr_80px_80px_70px_60px_100px] gap-3 items-center px-4 py-3 border-b border-stone-800 hover:bg-stone-800/50 transition",
+      "grid grid-cols-[1fr_90px_80px_80px_70px_60px_100px] gap-3 items-center px-4 py-3 border-b border-stone-800 hover:bg-stone-800/50 transition",
       candidate.already_posted && "opacity-50",
       !candidate.above_threshold && "opacity-60"
     )}>
@@ -45,6 +45,13 @@ export default function CandidateRow({ candidate, onSelect, selecting }) {
             <Badge variant="outline" className="text-xs text-amber-400 border-amber-800">+{candidate.feedback_boost} boost</Badge>
           )}
         </div>
+      </div>
+
+      {/* Date posted */}
+      <div className="text-center">
+        <span className="text-xs text-stone-500">
+          {candidate.first_seen_at ? new Date(candidate.first_seen_at).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' }) : '—'}
+        </span>
       </div>
 
       {/* Combined score */}
