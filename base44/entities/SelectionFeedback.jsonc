@@ -1,0 +1,50 @@
+{
+  "name": "SelectionFeedback",
+  "type": "object",
+  "properties": {
+    "publication_id": {
+      "type": "string"
+    },
+    "cluster_id": {
+      "type": "string"
+    },
+    "lens_id": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "manual_select",
+        "auto_select",
+        "skip",
+        "reject"
+      ],
+      "description": "What happened to this cluster"
+    },
+    "original_score": {
+      "type": "number",
+      "description": "The combined score at time of decision"
+    },
+    "lens_score": {
+      "type": "number",
+      "description": "The lens importance score at time of decision"
+    },
+    "cluster_title": {
+      "type": "string"
+    },
+    "cluster_category": {
+      "type": "string"
+    },
+    "cluster_source_count": {
+      "type": "number"
+    },
+    "user_notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "publication_id",
+    "cluster_id",
+    "action"
+  ]
+}

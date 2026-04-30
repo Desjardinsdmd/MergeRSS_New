@@ -382,6 +382,23 @@ Return as JSON.`,
 
             const createdPost = await base44.asServiceRole.entities.PublicationPost.create(postData);
 
+            // Record auto-select feedback for learning
+            try {
+                await base44.asServiceRole.entities.SelectionFeedback.create({
+                    publication_id: pub.id,
+                    cluster_id: selected.cluster.id,
+                    lens_id: lens.id,
+                    action: 'auto_select',
+                    original_score: Math.round(selected.combinedScore * 10) / 10,
+                    lens_score: selected.agg.max_importance_score || 0,
+                    cluster_title: selected.cluster.representative_title,
+                    cluster_category: selected.cluster.category || '',
+                    cluster_source_count: selected.cluster.source_count || 1,
+                });
+            } catch (fbErr) {
+                console.warn(`[runPublicationScheduler] Feedback record failed: ${fbErr.message}`);
+            }
+
             // If auto_post + active, trigger postToX immediately
             if (pub.auto_post && pub.status === 'active' && createdPost?.id) {
                 try {

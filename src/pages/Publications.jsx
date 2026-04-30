@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
-  Plus, Pencil, Trash2, Loader2, Newspaper, Play, Inbox, BookOpen,
+  Plus, Pencil, Trash2, Loader2, Newspaper, Play, Inbox, BookOpen, ChevronDown, ChevronUp, BarChart3,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import PremiumGate from '@/components/publications/PremiumGate';
 import PublicationForm from '@/components/publications/PublicationForm';
+import CandidatePipeline from '@/components/publications/CandidatePipeline';
 
 function cronToET(cron) {
   const parts = cron.trim().split(' ');
@@ -43,6 +44,7 @@ export default function Publications() {
   const [editing, setEditing] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [runningId, setRunningId] = useState(null);
+  const [expandedPipeline, setExpandedPipeline] = useState(null);
   const queryClient = useQueryClient();
 
   useEffect(() => { base44.auth.me().then(setUser); }, []);
@@ -130,46 +132,59 @@ export default function Publications() {
       ) : (
         <div className="space-y-3">
           {pubs.map(pub => (
-            <Card key={pub.id} className="border-stone-800 bg-stone-900">
-              <CardContent className="p-4">
-                <div className="flex items-start gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold text-stone-200">{pub.name}</h3>
-                      <Badge className={STATUS_COLORS[pub.status] || 'bg-stone-700 text-stone-400'}>{pub.status}</Badge>
-                      <Badge variant="outline" className="text-xs">{pub.channel_type}</Badge>
+            <div key={pub.id} className="space-y-0">
+              <Card className="border-stone-800 bg-stone-900">
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-semibold text-stone-200">{pub.name}</h3>
+                        <Badge className={STATUS_COLORS[pub.status] || 'bg-stone-700 text-stone-400'}>{pub.status}</Badge>
+                        <Badge variant="outline" className="text-xs">{pub.channel_type}</Badge>
+                      </div>
+                      <div className="flex items-center gap-4 text-xs text-stone-600 flex-wrap">
+                         <span>Lens: {lensMap[pub.lens_id]?.name || 'Unknown'}</span>
+                         <span>Candidates: {pub.candidates_per_run || 3}/run</span>
+                         <span>Schedule: {formatSchedule(pub.schedule_cron)}</span>
+                         {pub.last_run_at && <span>Last run: {new Date(pub.last_run_at).toLocaleString()}</span>}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-4 text-xs text-stone-600 flex-wrap">
-                       <span>Lens: {lensMap[pub.lens_id]?.name || 'Unknown'}</span>
-                       <span>Candidates: {pub.candidates_per_run || 3}/run</span>
-                       <span>Schedule: {formatSchedule(pub.schedule_cron)}</span>
-                       {pub.last_run_at && <span>Last run: {new Date(pub.last_run_at).toLocaleString()}</span>}
+                    <div className="flex items-center gap-1">
+                      <Button variant="ghost" size="sm"
+                        className="text-stone-400 hover:text-stone-200"
+                        onClick={() => setExpandedPipeline(expandedPipeline === pub.id ? null : pub.id)}>
+                        <BarChart3 className="w-4 h-4 mr-1" /> Pipeline
+                        {expandedPipeline === pub.id ? <ChevronUp className="w-3 h-3 ml-1" /> : <ChevronDown className="w-3 h-3 ml-1" />}
+                      </Button>
+                      <Link to={`/PublicationInbox?id=${pub.id}`}>
+                        <Button variant="ghost" size="sm" className="text-stone-400 hover:text-stone-200">
+                          <Inbox className="w-4 h-4 mr-1" /> Inbox
+                        </Button>
+                      </Link>
+                      <Link to={`/PublicationVoice?id=${pub.id}`}>
+                        <Button variant="ghost" size="sm" className="text-stone-400 hover:text-stone-200">
+                          <BookOpen className="w-4 h-4 mr-1" /> Voice
+                        </Button>
+                      </Link>
+                      <Button variant="ghost" size="icon" onClick={() => handleRunNow(pub.id)} disabled={runningId === pub.id}>
+                        {runningId === pub.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4 text-[hsl(var(--primary))]" />}
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => setEditing(pub)}>
+                        <Pencil className="w-4 h-4 text-stone-400" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => setDeleteTarget(pub)}>
+                        <Trash2 className="w-4 h-4 text-red-400" />
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Link to={`/PublicationInbox?id=${pub.id}`}>
-                      <Button variant="ghost" size="sm" className="text-stone-400 hover:text-stone-200">
-                        <Inbox className="w-4 h-4 mr-1" /> Inbox
-                      </Button>
-                    </Link>
-                    <Link to={`/PublicationVoice?id=${pub.id}`}>
-                      <Button variant="ghost" size="sm" className="text-stone-400 hover:text-stone-200">
-                        <BookOpen className="w-4 h-4 mr-1" /> Voice
-                      </Button>
-                    </Link>
-                    <Button variant="ghost" size="icon" onClick={() => handleRunNow(pub.id)} disabled={runningId === pub.id}>
-                      {runningId === pub.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4 text-[hsl(var(--primary))]" />}
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => setEditing(pub)}>
-                      <Pencil className="w-4 h-4 text-stone-400" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => setDeleteTarget(pub)}>
-                      <Trash2 className="w-4 h-4 text-red-400" />
-                    </Button>
-                  </div>
+                </CardContent>
+              </Card>
+              {expandedPipeline === pub.id && (
+                <div className="mt-3 ml-0">
+                  <CandidatePipeline publicationId={pub.id} />
                 </div>
-              </CardContent>
-            </Card>
+              )}
+            </div>
           ))}
         </div>
       )}
