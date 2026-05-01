@@ -1,7 +1,7 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Send, CheckCircle2, TrendingUp, AlertTriangle, Zap, Minus, Clock, X } from 'lucide-react';
+import { Send, TrendingUp, AlertTriangle, Zap, Minus, Clock, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const TAG_COLORS = {
@@ -32,10 +32,7 @@ export default function CandidateRow({ candidate, onSelect, onSkip, selecting })
   const TagIcon = TAG_ICONS[candidate.intelligence_tag] || Minus;
 
   return (
-    <div className={cn(
-      "grid grid-cols-[1fr_100px_80px_80px_100px] gap-3 items-center px-4 py-3 border-b border-stone-800 hover:bg-stone-800/50 transition",
-      candidate.already_posted && "opacity-40"
-    )}>
+    <div className="grid grid-cols-[1fr_100px_80px_80px_140px] gap-3 items-center px-4 py-3 border-b border-stone-800 hover:bg-stone-800/50 transition">
       {/* Title + meta */}
       <div className="min-w-0">
         <p className="text-sm font-medium text-stone-200 truncate">{candidate.title}</p>
@@ -72,35 +69,27 @@ export default function CandidateRow({ candidate, onSelect, onSkip, selecting })
         <span className="text-xs text-stone-600 ml-1">art</span>
       </div>
 
-      {/* Action */}
-      <div className="text-right">
-        {candidate.already_posted ? (
-          <span className="text-xs text-stone-600 flex items-center justify-end gap-1">
-            <CheckCircle2 className="w-3.5 h-3.5 text-green-600" /> Posted
-          </span>
-        ) : (
-          <div className="flex items-center justify-end gap-1.5">
-            <Button
-              size="sm"
-              variant="ghost"
-              disabled={selecting}
-              onClick={() => onSkip?.(candidate)}
-              className="text-xs text-stone-500 hover:text-red-400 px-2"
-              title="Skip — not interested"
-            >
-              <X className="w-3.5 h-3.5" />
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={selecting}
-              onClick={() => onSelect(candidate)}
-              className="text-xs"
-            >
-              <Send className="w-3 h-3 mr-1" /> Draft
-            </Button>
-          </div>
-        )}
+      {/* Actions */}
+      <div className="flex items-center justify-end gap-1.5">
+        <Button
+          size="sm"
+          variant="ghost"
+          disabled={selecting}
+          onClick={() => onSkip?.(candidate)}
+          className="text-xs text-stone-500 hover:text-red-400 hover:bg-red-950/30 px-2"
+          title="Discard — not interested"
+        >
+          <X className="w-3.5 h-3.5 mr-0.5" /> Discard
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={selecting}
+          onClick={() => onSelect(candidate)}
+          className="text-xs border-amber-800/50 text-amber-400 hover:bg-amber-950/30"
+        >
+          <Send className="w-3 h-3 mr-1" /> Draft
+        </Button>
       </div>
     </div>
   );

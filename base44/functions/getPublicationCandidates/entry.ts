@@ -1,15 +1,14 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 /**
- * getPublicationCandidates — returns unranked cluster candidates for a publication.
+ * getPublicationCandidates — returns cluster candidates from the last 24 hours.
  * 
- * Sorted by recency (newest first). No algorithmic ranking.
- * Lens scores included for informational display only.
- * Feedback history tracked for future learning.
+ * Rolling 24h window. Excludes already-posted and already-skipped clusters.
+ * Sorted by recency (newest first) by default.
  *
  * Params:
  *   publication_id — required
- *   limit — max candidates to return (default 50)
+ *   limit — max candidates to return (default 100)
  *   sort — 'newest' (default) or 'sources'
  */
 
@@ -30,7 +29,7 @@ Deno.serve(async (req) => {
     let body = {};
     try { body = await req.json(); } catch {}
 
-    const { publication_id, limit = 50, sort = 'newest' } = body;
+    const { publication_id, limit = 100, sort = 'newest' } = body;
     if (!publication_id) return Response.json({ error: 'publication_id required' }, { status: 400 });
 
     // Load publication
@@ -42,33 +41,47 @@ Deno.serve(async (req) => {
     const lenses = extractItems(await base44.asServiceRole.entities.CustomLens.filter({ id: pub.lens_id }, '-created_date', 1));
     const lens = lenses[0];
 
-    // Load feedback history for learning stats
+    // Load feedback history
     const feedbackRaw = extractItems(await base44.asServiceRole.entities.SelectionFeedback.filter(
-        { publication_id }, '-created_date', 200
+        { publication_id }, '-created_date', 500
     ));
     const manualSelects = feedbackRaw.filter(f => f.action === 'manual_select').length;
     const skips = feedbackRaw.filter(f => f.action === 'skip' || f.action === 'reject').length;
 
-    // Load ALL active clusters — no threshold gating
+    // Skipped cluster IDs (last 48h — don't resurface skipped stories)
+    const skipCutoff = new Date(Date.now() - 48 * 3600 * 1000).toISOString();
+    const recentSkippedIds = new Set(
+        feedbackRaw
+            .filter(f => (f.action === 'skip' || f.action === 'reject') && f.created_date >= skipCutoff)
+            .map(f => f.cluster_id)
+    );
+
+    // Rolling 24h window
+    const windowCutoff = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+
+    // Load active clusters updated in the last 24h
     const activeRaw = await base44.asServiceRole.entities.StoryCluster.filter(
-        { status: 'active' }, '-updated_date', 300
+        { status: 'active', updated_date: { $gte: windowCutoff } }, '-updated_date', 300
     );
     const allClusters = extractItems(activeRaw);
 
     // Dedup: get recently posted cluster IDs
-    const dedupCutoff = new Date(Date.now() - 48 * 3600 * 1000).toISOString();
     const recentPosts = extractItems(await base44.asServiceRole.entities.PublicationPost.filter(
-        { publication_id: pub.id, created_date: { $gte: dedupCutoff } }, '-created_date', 50
+        { publication_id: pub.id, created_date: { $gte: skipCutoff } }, '-created_date', 50
     ));
     const recentClusterIds = new Set(recentPosts.map(p => p.cluster_id).filter(Boolean));
 
-    // Map clusters to candidate objects — no ranking, just data
-    const candidates = allClusters.map(c => {
+    // Map clusters to candidate objects — exclude posted and skipped
+    const candidates = [];
+    for (const c of allClusters) {
+        if (recentClusterIds.has(c.id)) continue;
+        if (recentSkippedIds.has(c.id)) continue;
+
         const lensAgg = lens
             ? (c.custom_lens_aggregates || []).find(a => a.lens_id === lens.id)
             : null;
 
-        return {
+        candidates.push({
             id: c.id,
             title: c.representative_title,
             category: c.category,
@@ -80,15 +93,13 @@ Deno.serve(async (req) => {
             last_updated_at: c.last_updated_at,
             intelligence_tag: lensAgg?.intelligence_tag || c.intelligence_tag || 'Neutral',
             lens_score: lensAgg?.max_importance_score || null,
-            already_posted: recentClusterIds.has(c.id),
-        };
-    });
+        });
+    }
 
-    // Sort by user preference — no algorithmic ranking
+    // Sort
     if (sort === 'sources') {
         candidates.sort((a, b) => b.source_count - a.source_count);
     } else {
-        // newest first
         candidates.sort((a, b) => {
             const da = a.last_updated_at || a.first_seen_at || '';
             const db = b.last_updated_at || b.first_seen_at || '';
@@ -98,7 +109,8 @@ Deno.serve(async (req) => {
 
     return Response.json({
         candidates: candidates.slice(0, limit),
-        total_clusters: allClusters.length,
+        total_clusters: candidates.length,
+        window_hours: 24,
         lens_name: lens?.name || null,
         feedback_stats: {
             total: feedbackRaw.length,

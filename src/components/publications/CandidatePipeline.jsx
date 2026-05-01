@@ -46,7 +46,6 @@ export default function CandidatePipeline({ publicationId }) {
     return true;
   });
 
-  const postedCount = candidates.filter(c => c.already_posted).length;
   const fbStats = data?.feedback_stats || {};
 
   const handleSkip = async (candidate) => {
@@ -86,7 +85,7 @@ export default function CandidatePipeline({ publicationId }) {
         <div className="flex items-center gap-2">
           <BarChart3 className="w-4 h-4 text-stone-500" />
           <span className="text-sm text-stone-400">
-            {data?.total_clusters || 0} stories · {postedCount} posted
+            {data?.total_clusters || 0} stories in the last 24h
           </span>
         </div>
         {fbStats.manual_selects > 0 && (
@@ -141,7 +140,7 @@ export default function CandidatePipeline({ publicationId }) {
       {/* Table */}
       <Card className="border-stone-800 bg-stone-900 overflow-hidden">
         {/* Header */}
-        <div className="grid grid-cols-[1fr_100px_80px_80px_100px] gap-3 items-center px-4 py-2 border-b border-stone-700 bg-stone-800/50">
+        <div className="grid grid-cols-[1fr_100px_80px_80px_140px] gap-3 items-center px-4 py-2 border-b border-stone-700 bg-stone-800/50">
           <span className="text-xs font-medium text-stone-500 uppercase tracking-wider">Story</span>
           <span className="text-xs font-medium text-stone-500 uppercase tracking-wider text-center">When</span>
           <span className="text-xs font-medium text-stone-500 uppercase tracking-wider text-center">Sources</span>
@@ -156,7 +155,7 @@ export default function CandidatePipeline({ publicationId }) {
             </div>
           ) : filtered.length === 0 ? (
             <div className="py-12 text-center text-stone-500 text-sm">
-              No candidates found. Run the scheduler or wait for feeds to be scored.
+              No new stories in the last 24 hours. Check back after your next feed fetch.
             </div>
           ) : (
             filtered.map(c => (
