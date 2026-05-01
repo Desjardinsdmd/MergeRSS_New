@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   Check, X, Clock, Send, ChevronDown, ChevronUp,
-  MessageSquare, Eye, Heart, Repeat2, Bookmark, Loader2, RotateCcw
+  MessageSquare, Eye, Heart, Repeat2, Bookmark, Loader2, RotateCcw, Copy
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -119,6 +119,18 @@ export default function PostReviewCard({ post, onUpdate }) {
                       <Badge variant="outline" className="text-xs">{v.label}</Badge>
                       {selectedVariant === i && <Check className="w-3 h-3 text-[hsl(var(--primary))]" />}
                       <span className="text-xs text-stone-600">{v.content?.length === 1 ? 'Single post' : `${v.content?.length}-post thread`}</span>
+                      <button
+                        type="button"
+                        className="ml-auto p-1 rounded hover:bg-stone-700 text-stone-500 hover:text-stone-200 transition"
+                        title="Copy to clipboard"
+                        onClick={e => {
+                          e.stopPropagation();
+                          const text = (v.content || []).join('\n\n');
+                          navigator.clipboard.writeText(text);
+                          toast.success(`${v.label} copied to clipboard`);
+                        }}>
+                        <Copy className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                     {(v.content || []).map((text, ti) => (
                       <p key={ti} className="text-sm text-stone-300 mb-1">{text}</p>
