@@ -12,7 +12,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Loader2, RefreshCw, Search, Filter, BarChart3, TrendingUp, ArrowUpDown } from 'lucide-react';
+import { Loader2, RefreshCw, Search, Filter, BarChart3, TrendingUp, ArrowUpDown, CheckSquare, Square, X, Send } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import CandidateRow from './CandidateRow';
 
@@ -23,7 +24,63 @@ export default function CandidatePipeline({ publicationId }) {
   const [selecting, setSelecting] = useState(false);
   const [confirmCandidate, setConfirmCandidate] = useState(null);
   const [userNotes, setUserNotes] = useState('');
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [bulkActing, setBulkActing] = useState(false);
   const queryClient = useQueryClient();
+
+  const toggleSelect = (id) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    if (selectedIds.size === filtered.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filtered.map(c => c.id)));
+    }
+  };
+
+  const handleBulkDiscard = async () => {
+    setBulkActing(true);
+    const ids = [...selectedIds];
+    for (const id of ids) {
+      const c = candidates.find(x => x.id === id);
+      if (c) {
+        await base44.functions.invoke('skipCluster', {
+          publication_id: publicationId,
+          cluster_id: id,
+          cluster_title: c.title,
+        });
+      }
+    }
+    toast.info(`Discarded ${ids.length} stories`);
+    setSelectedIds(new Set());
+    setBulkActing(false);
+    queryClient.invalidateQueries({ queryKey: ['pub-candidates'] });
+  };
+
+  const handleBulkDraft = async () => {
+    setBulkActing(true);
+    const ids = [...selectedIds];
+    let success = 0;
+    for (const id of ids) {
+      const res = await base44.functions.invoke('manualSelectCluster', {
+        publication_id: publicationId,
+        cluster_id: id,
+        user_notes: '',
+      });
+      if (res.data?.success) success++;
+    }
+    toast.success(`Created ${success} drafts`);
+    setSelectedIds(new Set());
+    setBulkActing(false);
+    queryClient.invalidateQueries({ queryKey: ['pub-candidates'] });
+    queryClient.invalidateQueries({ queryKey: ['pub-posts'] });
+  };
 
   const { data, isLoading, isRefetching, refetch } = useQuery({
     queryKey: ['pub-candidates', publicationId, sortBy],
@@ -137,10 +194,40 @@ export default function CandidatePipeline({ publicationId }) {
         </Select>
       </div>
 
+      {/* Bulk action bar */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 px-4 py-2 bg-stone-800 border border-stone-700 rounded-lg">
+          <span className="text-sm text-stone-300 font-medium">{selectedIds.size} selected</span>
+          <div className="flex-1" />
+          <Button size="sm" variant="ghost" disabled={bulkActing}
+            onClick={() => setSelectedIds(new Set())}
+            className="text-xs text-stone-500 hover:text-stone-200">
+            Clear
+          </Button>
+          <Button size="sm" variant="ghost" disabled={bulkActing}
+            onClick={handleBulkDiscard}
+            className="text-xs text-red-400 hover:text-red-300 hover:bg-red-950/30">
+            {bulkActing ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <X className="w-3.5 h-3.5 mr-1" />}
+            Discard All
+          </Button>
+          <Button size="sm" variant="outline" disabled={bulkActing}
+            onClick={handleBulkDraft}
+            className="text-xs border-amber-800/50 text-amber-400 hover:bg-amber-950/30">
+            {bulkActing ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <Send className="w-3.5 h-3.5 mr-1" />}
+            Draft All
+          </Button>
+        </div>
+      )}
+
       {/* Table */}
       <Card className="border-stone-800 bg-stone-900 overflow-hidden">
         {/* Header */}
-        <div className="grid grid-cols-[1fr_100px_80px_80px_140px] gap-3 items-center px-4 py-2 border-b border-stone-700 bg-stone-800/50">
+        <div className="grid grid-cols-[32px_1fr_100px_80px_80px_140px] gap-3 items-center px-4 py-2 border-b border-stone-700 bg-stone-800/50">
+          <Checkbox
+            checked={filtered.length > 0 && selectedIds.size === filtered.length}
+            onCheckedChange={toggleAll}
+            className="border-stone-600 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+          />
           <span className="text-xs font-medium text-stone-500 uppercase tracking-wider">Story</span>
           <span className="text-xs font-medium text-stone-500 uppercase tracking-wider text-center">When</span>
           <span className="text-xs font-medium text-stone-500 uppercase tracking-wider text-center">Sources</span>
@@ -162,7 +249,9 @@ export default function CandidatePipeline({ publicationId }) {
               <CandidateRow
                 key={c.id}
                 candidate={c}
-                selecting={selecting}
+                selecting={selecting || bulkActing}
+                selected={selectedIds.has(c.id)}
+                onToggleSelect={() => toggleSelect(c.id)}
                 onSelect={setConfirmCandidate}
                 onSkip={handleSkip}
               />

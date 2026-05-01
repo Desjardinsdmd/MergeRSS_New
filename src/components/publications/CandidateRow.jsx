@@ -2,6 +2,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Send, TrendingUp, AlertTriangle, Zap, Minus, Clock, X, ExternalLink } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 
 const TAG_COLORS = {
@@ -28,11 +29,20 @@ function timeAgo(dateStr) {
   return `${days}d ago`;
 }
 
-export default function CandidateRow({ candidate, onSelect, onSkip, selecting }) {
+export default function CandidateRow({ candidate, onSelect, onSkip, selecting, selected, onToggleSelect }) {
   const TagIcon = TAG_ICONS[candidate.intelligence_tag] || Minus;
 
   return (
-    <div className="grid grid-cols-[1fr_100px_80px_80px_140px] gap-3 items-center px-4 py-3 border-b border-stone-800 hover:bg-stone-800/50 transition">
+    <div className={cn(
+      "grid grid-cols-[32px_1fr_100px_80px_80px_140px] gap-3 items-center px-4 py-3 border-b border-stone-800 hover:bg-stone-800/50 transition",
+      selected && "bg-amber-950/20"
+    )}>
+      {/* Checkbox */}
+      <Checkbox
+        checked={!!selected}
+        onCheckedChange={onToggleSelect}
+        className="border-stone-600 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+      />
       {/* Title + meta */}
       <div className="min-w-0">
         {candidate.article_url ? (
