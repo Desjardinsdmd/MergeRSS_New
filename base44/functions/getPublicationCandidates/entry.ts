@@ -1,11 +1,16 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 /**
- * getPublicationCandidates — returns ranked cluster candidates for a publication.
+ * getPublicationCandidates — returns unranked cluster candidates for a publication.
  * 
+ * Sorted by recency (newest first). No algorithmic ranking.
+ * Lens scores included for informational display only.
+ * Feedback history tracked for future learning.
+ *
  * Params:
  *   publication_id — required
- *   limit — max candidates to return (default 30)
+ *   limit — max candidates to return (default 50)
+ *   sort — 'newest' (default) or 'sources'
  */
 
 function extractItems(raw) {
@@ -25,7 +30,7 @@ Deno.serve(async (req) => {
     let body = {};
     try { body = await req.json(); } catch {}
 
-    const { publication_id, limit = 30 } = body;
+    const { publication_id, limit = 50, sort = 'newest' } = body;
     if (!publication_id) return Response.json({ error: 'publication_id required' }, { status: 400 });
 
     // Load publication
@@ -33,37 +38,22 @@ Deno.serve(async (req) => {
     const pub = pubs[0];
     if (!pub) return Response.json({ error: 'Publication not found' }, { status: 404 });
 
-    // Load lens
+    // Load lens (optional — for informational scores)
     const lenses = extractItems(await base44.asServiceRole.entities.CustomLens.filter({ id: pub.lens_id }, '-created_date', 1));
     const lens = lenses[0];
-    if (!lens) return Response.json({ error: 'Lens not found' }, { status: 404 });
 
-    // Load feedback to compute boost scores
+    // Load feedback history for learning stats
     const feedbackRaw = extractItems(await base44.asServiceRole.entities.SelectionFeedback.filter(
-        { publication_id, action: 'manual_select' }, '-created_date', 100
+        { publication_id }, '-created_date', 200
     ));
-    // Build a set of manually selected categories and source domains for boosting
-    const manualCategories = {};
-    const manualSources = {};
-    for (const fb of feedbackRaw) {
-        if (fb.cluster_category) {
-            manualCategories[fb.cluster_category] = (manualCategories[fb.cluster_category] || 0) + 1;
-        }
-    }
+    const manualSelects = feedbackRaw.filter(f => f.action === 'manual_select').length;
+    const skips = feedbackRaw.filter(f => f.action === 'skip' || f.action === 'reject').length;
 
-    // Load clusters with lens data
-    const [activeRaw, staleRaw] = await Promise.all([
-        base44.asServiceRole.entities.StoryCluster.filter({ status: 'active' }, '-updated_date', 200),
-        base44.asServiceRole.entities.StoryCluster.filter(
-            { status: 'stale', 'custom_lens_aggregates.lens_id': lens.id }, '-updated_date', 200
-        ),
-    ]);
-    const allClusters = [...extractItems(activeRaw), ...extractItems(staleRaw)];
-
-    // Filter to clusters with lens data
-    const withLens = allClusters.filter(c =>
-        (c.custom_lens_aggregates || []).some(a => a.lens_id === lens.id)
+    // Load ALL active clusters — no threshold gating
+    const activeRaw = await base44.asServiceRole.entities.StoryCluster.filter(
+        { status: 'active' }, '-updated_date', 300
     );
+    const allClusters = extractItems(activeRaw);
 
     // Dedup: get recently posted cluster IDs
     const dedupCutoff = new Date(Date.now() - 48 * 3600 * 1000).toISOString();
@@ -72,20 +62,11 @@ Deno.serve(async (req) => {
     ));
     const recentClusterIds = new Set(recentPosts.map(p => p.cluster_id).filter(Boolean));
 
-    // Score and rank
-    const scored = withLens.map(c => {
-        const agg = (c.custom_lens_aggregates || []).find(a => a.lens_id === lens.id);
-        if (!agg) return null;
-
-        const lensScore = agg.max_importance_score || 0;
-        const trendScore = c.trend_score || c.importance_score || 0;
-        let combinedScore = (trendScore * 0.6) + (lensScore * 0.4);
-
-        // Feedback boost: categories the user manually picks get a small boost
-        const catBoost = manualCategories[c.category] ? Math.min(manualCategories[c.category] * 2, 10) : 0;
-        combinedScore += catBoost;
-
-        const alreadyPosted = recentClusterIds.has(c.id);
+    // Map clusters to candidate objects — no ranking, just data
+    const candidates = allClusters.map(c => {
+        const lensAgg = lens
+            ? (c.custom_lens_aggregates || []).find(a => a.lens_id === lens.id)
+            : null;
 
         return {
             id: c.id,
@@ -97,24 +78,32 @@ Deno.serve(async (req) => {
             source_domains: c.source_domains || [],
             first_seen_at: c.first_seen_at,
             last_updated_at: c.last_updated_at,
-            lens_score: lensScore,
-            trend_score: trendScore,
-            combined_score: Math.round(combinedScore * 10) / 10,
-            intelligence_tag: agg.intelligence_tag || 'Neutral',
-            ai_summary: agg.ai_summary || '',
-            feedback_boost: catBoost,
-            already_posted: alreadyPosted,
-            status: c.status,
-            above_threshold: lensScore >= (lens.minimum_score_threshold || 40),
+            intelligence_tag: lensAgg?.intelligence_tag || c.intelligence_tag || 'Neutral',
+            lens_score: lensAgg?.max_importance_score || null,
+            already_posted: recentClusterIds.has(c.id),
         };
-    }).filter(Boolean).sort((a, b) => b.combined_score - a.combined_score);
+    });
+
+    // Sort by user preference — no algorithmic ranking
+    if (sort === 'sources') {
+        candidates.sort((a, b) => b.source_count - a.source_count);
+    } else {
+        // newest first
+        candidates.sort((a, b) => {
+            const da = a.last_updated_at || a.first_seen_at || '';
+            const db = b.last_updated_at || b.first_seen_at || '';
+            return db.localeCompare(da);
+        });
+    }
 
     return Response.json({
-        candidates: scored.slice(0, limit),
-        total_with_lens: withLens.length,
+        candidates: candidates.slice(0, limit),
         total_clusters: allClusters.length,
-        threshold: lens.minimum_score_threshold || 40,
-        lens_name: lens.name,
-        feedback_count: feedbackRaw.length,
+        lens_name: lens?.name || null,
+        feedback_stats: {
+            total: feedbackRaw.length,
+            manual_selects: manualSelects,
+            skips,
+        },
     });
 });

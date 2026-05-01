@@ -12,23 +12,24 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Loader2, RefreshCw, Search, Filter, BarChart3, TrendingUp } from 'lucide-react';
+import { Loader2, RefreshCw, Search, Filter, BarChart3, TrendingUp, ArrowUpDown } from 'lucide-react';
 import { toast } from 'sonner';
 import CandidateRow from './CandidateRow';
 
 export default function CandidatePipeline({ publicationId }) {
   const [tagFilter, setTagFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('newest');
   const [selecting, setSelecting] = useState(false);
   const [confirmCandidate, setConfirmCandidate] = useState(null);
   const [userNotes, setUserNotes] = useState('');
   const queryClient = useQueryClient();
 
   const { data, isLoading, isRefetching, refetch } = useQuery({
-    queryKey: ['pub-candidates', publicationId],
+    queryKey: ['pub-candidates', publicationId, sortBy],
     queryFn: async () => {
       const res = await base44.functions.invoke('getPublicationCandidates', {
-        publication_id: publicationId, limit: 50,
+        publication_id: publicationId, limit: 50, sort: sortBy,
       });
       return res.data;
     },
@@ -45,8 +46,18 @@ export default function CandidatePipeline({ publicationId }) {
     return true;
   });
 
-  const eligibleCount = candidates.filter(c => c.above_threshold && !c.already_posted).length;
   const postedCount = candidates.filter(c => c.already_posted).length;
+  const fbStats = data?.feedback_stats || {};
+
+  const handleSkip = async (candidate) => {
+    await base44.functions.invoke('skipCluster', {
+      publication_id: publicationId,
+      cluster_id: candidate.id,
+      cluster_title: candidate.title,
+    });
+    toast.info('Skipped — noted for learning');
+    queryClient.invalidateQueries({ queryKey: ['pub-candidates'] });
+  };
 
   const handleSelect = async () => {
     if (!confirmCandidate) return;
@@ -75,13 +86,13 @@ export default function CandidatePipeline({ publicationId }) {
         <div className="flex items-center gap-2">
           <BarChart3 className="w-4 h-4 text-stone-500" />
           <span className="text-sm text-stone-400">
-            {data?.total_with_lens || 0} scored · {eligibleCount} eligible · {postedCount} posted
+            {data?.total_clusters || 0} stories · {postedCount} posted
           </span>
         </div>
-        {data?.feedback_count > 0 && (
+        {fbStats.manual_selects > 0 && (
           <Badge variant="outline" className="text-xs text-amber-400 border-amber-800">
             <TrendingUp className="w-3 h-3 mr-1" />
-            {data.feedback_count} manual selections (learning)
+            {fbStats.manual_selects} picks · {fbStats.skips || 0} skips (learning)
           </Badge>
         )}
         <div className="flex-1" />
@@ -98,7 +109,7 @@ export default function CandidatePipeline({ publicationId }) {
           <Input
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            placeholder="Search clusters..."
+            placeholder="Search stories..."
             className="pl-9 bg-stone-800 border-stone-700 text-stone-100 text-sm"
           />
         </div>
@@ -115,18 +126,26 @@ export default function CandidatePipeline({ publicationId }) {
             <SelectItem value="Neutral">Neutral</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={sortBy} onValueChange={setSortBy}>
+          <SelectTrigger className="w-36 bg-stone-800 border-stone-700 text-stone-100 text-sm">
+            <ArrowUpDown className="w-3 h-3 mr-1 text-stone-500" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="newest">Newest First</SelectItem>
+            <SelectItem value="sources">Most Sources</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Table */}
       <Card className="border-stone-800 bg-stone-900 overflow-hidden">
         {/* Header */}
-        <div className="grid grid-cols-[1fr_90px_80px_80px_70px_60px_100px] gap-3 items-center px-4 py-2 border-b border-stone-700 bg-stone-800/50">
-          <span className="text-xs font-medium text-stone-500 uppercase tracking-wider">Cluster</span>
-          <span className="text-xs font-medium text-stone-500 uppercase tracking-wider text-center">Posted</span>
-          <span className="text-xs font-medium text-stone-500 uppercase tracking-wider text-center">Score</span>
-          <span className="text-xs font-medium text-stone-500 uppercase tracking-wider text-center">Lens</span>
-          <span className="text-xs font-medium text-stone-500 uppercase tracking-wider text-center">Trend</span>
-          <span className="text-xs font-medium text-stone-500 uppercase tracking-wider text-center">Status</span>
+        <div className="grid grid-cols-[1fr_100px_80px_80px_100px] gap-3 items-center px-4 py-2 border-b border-stone-700 bg-stone-800/50">
+          <span className="text-xs font-medium text-stone-500 uppercase tracking-wider">Story</span>
+          <span className="text-xs font-medium text-stone-500 uppercase tracking-wider text-center">When</span>
+          <span className="text-xs font-medium text-stone-500 uppercase tracking-wider text-center">Sources</span>
+          <span className="text-xs font-medium text-stone-500 uppercase tracking-wider text-center">Articles</span>
           <span className="text-xs font-medium text-stone-500 uppercase tracking-wider text-right">Action</span>
         </div>
 
@@ -146,6 +165,7 @@ export default function CandidatePipeline({ publicationId }) {
                 candidate={c}
                 selecting={selecting}
                 onSelect={setConfirmCandidate}
+                onSkip={handleSkip}
               />
             ))
           )}
@@ -160,10 +180,10 @@ export default function CandidatePipeline({ publicationId }) {
             <AlertDialogDescription className="space-y-3">
               <p className="font-medium text-stone-300">"{confirmCandidate?.title}"</p>
               <p className="text-stone-500 text-sm">
-                Score: {confirmCandidate?.combined_score} · Lens: {confirmCandidate?.lens_score} · {confirmCandidate?.intelligence_tag}
+                {confirmCandidate?.source_count} sources · {confirmCandidate?.article_count} articles · {confirmCandidate?.intelligence_tag}
               </p>
               <p className="text-stone-500 text-sm">
-                This will create a draft post and record your selection as feedback to improve future rankings.
+                This will create a draft post. Your pick helps the system learn your preferences over time.
               </p>
               <Input
                 value={userNotes}

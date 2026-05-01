@@ -1,7 +1,7 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Send, CheckCircle2, TrendingUp, AlertTriangle, Zap, Minus } from 'lucide-react';
+import { Send, CheckCircle2, TrendingUp, AlertTriangle, Zap, Minus, Clock, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const TAG_COLORS = {
@@ -18,14 +18,23 @@ const TAG_ICONS = {
   Neutral: Minus,
 };
 
-export default function CandidateRow({ candidate, onSelect, selecting }) {
+function timeAgo(dateStr) {
+  if (!dateStr) return '';
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const hrs = Math.floor(diff / 3600000);
+  if (hrs < 1) return 'just now';
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d ago`;
+}
+
+export default function CandidateRow({ candidate, onSelect, onSkip, selecting }) {
   const TagIcon = TAG_ICONS[candidate.intelligence_tag] || Minus;
 
   return (
     <div className={cn(
-      "grid grid-cols-[1fr_90px_80px_80px_70px_60px_100px] gap-3 items-center px-4 py-3 border-b border-stone-800 hover:bg-stone-800/50 transition",
-      candidate.already_posted && "opacity-50",
-      !candidate.above_threshold && "opacity-60"
+      "grid grid-cols-[1fr_100px_80px_80px_100px] gap-3 items-center px-4 py-3 border-b border-stone-800 hover:bg-stone-800/50 transition",
+      candidate.already_posted && "opacity-40"
     )}>
       {/* Title + meta */}
       <div className="min-w-0">
@@ -35,74 +44,63 @@ export default function CandidateRow({ candidate, onSelect, selecting }) {
             <TagIcon className="w-3 h-3 mr-1" />
             {candidate.intelligence_tag}
           </Badge>
-          <span className="text-xs text-stone-600">{candidate.source_count} src · {candidate.article_count} art</span>
           {candidate.source_domains?.length > 0 && (
-            <span className="text-xs text-stone-600 truncate max-w-[150px]">
-              {candidate.source_domains.slice(0, 2).join(', ')}
+            <span className="text-xs text-stone-600 truncate max-w-[200px]">
+              {candidate.source_domains.slice(0, 3).join(', ')}
             </span>
-          )}
-          {candidate.feedback_boost > 0 && (
-            <Badge variant="outline" className="text-xs text-amber-400 border-amber-800">+{candidate.feedback_boost} boost</Badge>
           )}
         </div>
       </div>
 
-      {/* Date posted */}
+      {/* Recency */}
       <div className="text-center">
-        <span className="text-xs text-stone-500">
-          {candidate.first_seen_at ? new Date(candidate.first_seen_at).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' }) : '—'}
+        <span className="text-xs text-stone-400 flex items-center justify-center gap-1">
+          <Clock className="w-3 h-3" />
+          {timeAgo(candidate.last_updated_at || candidate.first_seen_at)}
         </span>
       </div>
 
-      {/* Combined score */}
+      {/* Sources */}
       <div className="text-center">
-        <span className={cn(
-          "text-sm font-bold",
-          candidate.combined_score >= 60 ? "text-green-400" :
-          candidate.combined_score >= 40 ? "text-amber-400" : "text-stone-500"
-        )}>
-          {candidate.combined_score}
-        </span>
+        <span className="text-sm font-medium text-stone-300">{candidate.source_count}</span>
+        <span className="text-xs text-stone-600 ml-1">src</span>
       </div>
 
-      {/* Lens score */}
+      {/* Articles */}
       <div className="text-center">
-        <span className={cn(
-          "text-sm",
-          candidate.lens_score >= 60 ? "text-green-400" :
-          candidate.lens_score >= 40 ? "text-amber-400" : "text-stone-500"
-        )}>
-          {candidate.lens_score}
-        </span>
-      </div>
-
-      {/* Trend score */}
-      <div className="text-center">
-        <span className="text-sm text-stone-400">{candidate.trend_score || '—'}</span>
-      </div>
-
-      {/* Status */}
-      <div className="text-center">
-        {candidate.already_posted ? (
-          <CheckCircle2 className="w-4 h-4 text-green-500 mx-auto" />
-        ) : !candidate.above_threshold ? (
-          <span className="text-xs text-stone-600">Below</span>
-        ) : (
-          <span className="text-xs text-green-400">Eligible</span>
-        )}
+        <span className="text-sm text-stone-400">{candidate.article_count}</span>
+        <span className="text-xs text-stone-600 ml-1">art</span>
       </div>
 
       {/* Action */}
       <div className="text-right">
-        <Button
-          size="sm"
-          variant="outline"
-          disabled={candidate.already_posted || selecting}
-          onClick={() => onSelect(candidate)}
-          className="text-xs"
-        >
-          <Send className="w-3 h-3 mr-1" /> Draft
-        </Button>
+        {candidate.already_posted ? (
+          <span className="text-xs text-stone-600 flex items-center justify-end gap-1">
+            <CheckCircle2 className="w-3.5 h-3.5 text-green-600" /> Posted
+          </span>
+        ) : (
+          <div className="flex items-center justify-end gap-1.5">
+            <Button
+              size="sm"
+              variant="ghost"
+              disabled={selecting}
+              onClick={() => onSkip?.(candidate)}
+              className="text-xs text-stone-500 hover:text-red-400 px-2"
+              title="Skip — not interested"
+            >
+              <X className="w-3.5 h-3.5" />
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={selecting}
+              onClick={() => onSelect(candidate)}
+              className="text-xs"
+            >
+              <Send className="w-3 h-3 mr-1" /> Draft
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
