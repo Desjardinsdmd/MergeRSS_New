@@ -1,7 +1,7 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Send, TrendingUp, AlertTriangle, Zap, Minus, Clock, X } from 'lucide-react';
+import { Send, TrendingUp, AlertTriangle, Zap, Minus, Clock, X, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const TAG_COLORS = {
@@ -35,7 +35,20 @@ export default function CandidateRow({ candidate, onSelect, onSkip, selecting })
     <div className="grid grid-cols-[1fr_100px_80px_80px_140px] gap-3 items-center px-4 py-3 border-b border-stone-800 hover:bg-stone-800/50 transition">
       {/* Title + meta */}
       <div className="min-w-0">
-        <p className="text-sm font-medium text-stone-200 truncate">{candidate.title}</p>
+        {candidate.article_url ? (
+          <a
+            href={candidate.article_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm font-medium text-stone-200 hover:text-amber-400 truncate flex items-center gap-1.5 group"
+            title={candidate.article_url}
+          >
+            <span className="truncate">{candidate.title}</span>
+            <ExternalLink className="w-3 h-3 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+          </a>
+        ) : (
+          <p className="text-sm font-medium text-stone-200 truncate">{candidate.title}</p>
+        )}
         <div className="flex items-center gap-2 mt-0.5">
           <Badge className={TAG_COLORS[candidate.intelligence_tag]} variant="secondary">
             <TagIcon className="w-3 h-3 mr-1" />

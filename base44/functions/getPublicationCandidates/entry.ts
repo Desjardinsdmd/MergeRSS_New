@@ -79,12 +79,24 @@ Deno.serve(async (req) => {
     ));
     const recentClusterIds = new Set(recentPosts.map(p => p.cluster_id).filter(Boolean));
 
-    // Map clusters to candidate objects — exclude posted and skipped
-    const candidates = [];
-    for (const c of allClusters) {
-        if (recentClusterIds.has(c.id)) continue;
-        if (recentSkippedIds.has(c.id)) continue;
+    // Collect representative item IDs to fetch article URLs
+    const eligibleClusters = allClusters.filter(c => !recentClusterIds.has(c.id) && !recentSkippedIds.has(c.id));
+    const repItemIds = eligibleClusters.map(c => c.representative_item_id).filter(Boolean);
 
+    // Batch-fetch representative FeedItems to get URLs
+    const itemUrlMap = {};
+    if (repItemIds.length > 0) {
+        const repItems = extractItems(await base44.asServiceRole.entities.FeedItem.filter(
+            { id: { $in: repItemIds.slice(0, 200) } }, '-created_date', 200
+        ));
+        for (const item of repItems) {
+            itemUrlMap[item.id] = item.url || null;
+        }
+    }
+
+    // Map clusters to candidate objects
+    const candidates = [];
+    for (const c of eligibleClusters) {
         const lensAgg = lens
             ? (c.custom_lens_aggregates || []).find(a => a.lens_id === lens.id)
             : null;
@@ -101,6 +113,7 @@ Deno.serve(async (req) => {
             last_updated_at: c.last_updated_at,
             intelligence_tag: lensAgg?.intelligence_tag || c.intelligence_tag || 'Neutral',
             lens_score: lensAgg?.max_importance_score || null,
+            article_url: itemUrlMap[c.representative_item_id] || null,
         });
     }
 
