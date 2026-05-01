@@ -59,18 +59,26 @@ Deno.serve(async (req) => {
     // Rolling 24h window
     const windowCutoff = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
 
+    // Load user's own feed IDs to restrict pipeline to their sources only
+    const userFeedsRaw = extractItems(await base44.asServiceRole.entities.Feed.filter(
+        { created_by: user.email }, '-created_date', 500
+    ));
+    const userFeedIds = new Set(userFeedsRaw.map(f => f.id));
+
     // Load active clusters — fetch all then filter by 24h window client-side
-    // (updated_date filter may not work reliably across all SDK versions)
     const activeRaw = await base44.asServiceRole.entities.StoryCluster.filter(
         { status: 'active' }, '-updated_date', 300
     );
     const allClustersRaw = extractItems(activeRaw);
 
-    // Apply 24h window based on STORY recency — must be between windowCutoff and now
+    // Apply 24h window AND restrict to clusters that contain at least one of the user's feeds
     const nowIso = new Date().toISOString();
     const allClusters = allClustersRaw.filter(c => {
         const ts = c.last_updated_at || c.first_seen_at || '';
-        return ts >= windowCutoff && ts <= nowIso;
+        if (ts < windowCutoff || ts > nowIso) return false;
+        // Only include clusters that have at least one article from the user's feeds
+        const clusterFeedIds = c.feed_ids || [];
+        return clusterFeedIds.some(fid => userFeedIds.has(fid));
     });
 
     // Dedup: get recently posted cluster IDs
