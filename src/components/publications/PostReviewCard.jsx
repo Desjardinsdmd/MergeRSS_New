@@ -58,6 +58,19 @@ export default function PostReviewCard({ post, onUpdate }) {
     onUpdate();
   };
 
+  const handleMarkPosted = async () => {
+    setActing(true);
+    const content = editContent || variants[selectedVariant]?.content || [];
+    await base44.entities.PublicationPost.update(post.id, {
+      status: 'posted', chosen_variant_index: selectedVariant,
+      final_content: content, posted_at: new Date().toISOString(),
+      human_notes: notes || 'Manually posted',
+    });
+    toast.success('Marked as posted');
+    setActing(false);
+    onUpdate();
+  };
+
   const handleReject = async () => {
     setActing(true);
     await base44.entities.PublicationPost.update(post.id, { status: 'rejected', human_notes: notes });
@@ -198,6 +211,11 @@ export default function PostReviewCard({ post, onUpdate }) {
                 {acting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Check className="w-4 h-4 mr-1" />}
                 Approve
               </Button>
+              <Button size="sm" variant="outline" onClick={handleMarkPosted} disabled={acting}
+                className="text-green-400 border-green-800 hover:bg-green-900/20">
+                {acting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Send className="w-4 h-4 mr-1" />}
+                Mark as Posted
+              </Button>
               <div className="flex items-center gap-2">
                 <Input type="datetime-local" value={scheduledFor} onChange={e => setScheduledFor(e.target.value)}
                   className="bg-stone-800 border-stone-700 text-stone-100 text-sm w-auto" />
@@ -218,6 +236,11 @@ export default function PostReviewCard({ post, onUpdate }) {
                 className="bg-[hsl(var(--primary))] text-stone-900 font-semibold">
                 {acting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Send className="w-4 h-4 mr-1" />}
                 Post Now
+              </Button>
+              <Button size="sm" variant="outline" onClick={handleMarkPosted} disabled={acting}
+                className="text-green-400 border-green-800 hover:bg-green-900/20">
+                {acting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Check className="w-4 h-4 mr-1" />}
+                Mark as Posted
               </Button>
             </div>
           )}
