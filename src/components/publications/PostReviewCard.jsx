@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   Check, X, Clock, Send, ChevronDown, ChevronUp,
-  MessageSquare, Eye, Heart, Repeat2, Bookmark, Loader2, RotateCcw, Copy
+  MessageSquare, Eye, Heart, Repeat2, Bookmark, Loader2, RotateCcw, Copy,
+  Pencil, Sparkles, Save
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -29,6 +30,10 @@ export default function PostReviewCard({ post, onUpdate }) {
   const [scheduledFor, setScheduledFor] = useState(post.scheduled_for || '');
   const [notes, setNotes] = useState(post.human_notes || '');
   const [acting, setActing] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [showRevise, setShowRevise] = useState(false);
+  const [revisionFeedback, setRevisionFeedback] = useState('');
+  const [revising, setRevising] = useState(false);
 
   const variants = post.draft_variants || [];
   const metrics = post.engagement_metrics;
@@ -68,6 +73,41 @@ export default function PostReviewCard({ post, onUpdate }) {
     });
     toast.success('Marked as posted');
     setActing(false);
+    onUpdate();
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editContent) return;
+    setActing(true);
+    const updatedVariants = [...variants];
+    updatedVariants[selectedVariant] = { ...updatedVariants[selectedVariant], content: editContent };
+    await base44.entities.PublicationPost.update(post.id, {
+      draft_variants: updatedVariants,
+      final_content: editContent,
+      human_notes: notes,
+    });
+    toast.success('Content saved');
+    setActing(false);
+    setIsEditing(false);
+    onUpdate();
+  };
+
+  const handleRevise = async () => {
+    if (!revisionFeedback.trim()) { toast.error('Enter your feedback first'); return; }
+    setRevising(true);
+    const res = await base44.functions.invoke('reviseDraft', {
+      post_id: post.id,
+      feedback: revisionFeedback.trim(),
+    });
+    if (res.data?.success) {
+      toast.success('Drafts revised by AI');
+      setRevisionFeedback('');
+      setShowRevise(false);
+      setEditContent(null);
+    } else {
+      toast.error(res.data?.error || 'Revision failed');
+    }
+    setRevising(false);
     onUpdate();
   };
 
@@ -154,8 +194,22 @@ export default function PostReviewCard({ post, onUpdate }) {
             </div>
           )}
 
-          {/* Edit content */}
-          {post.status === 'draft' && (
+          {/* Inline Edit / Revise Controls */}
+          <div className="flex items-center gap-2 pt-1">
+            {!isEditing && (
+              <Button size="sm" variant="ghost" onClick={() => { setIsEditing(true); setEditContent(variants[selectedVariant]?.content || []); }}
+                className="text-stone-400 hover:text-stone-200 text-xs">
+                <Pencil className="w-3.5 h-3.5 mr-1" /> Edit
+              </Button>
+            )}
+            <Button size="sm" variant="ghost" onClick={() => setShowRevise(!showRevise)}
+              className="text-stone-400 hover:text-stone-200 text-xs">
+              <Sparkles className="w-3.5 h-3.5 mr-1" /> {showRevise ? 'Cancel Revise' : 'Revise with AI'}
+            </Button>
+          </div>
+
+          {/* Inline Editor */}
+          {isEditing && (
             <div>
               <p className="text-xs text-stone-500 uppercase tracking-wider mb-2">Edit Content</p>
               {(editContent || variants[selectedVariant]?.content || []).map((text, i) => (
@@ -167,6 +221,32 @@ export default function PostReviewCard({ post, onUpdate }) {
                   }}
                   rows={3} className="bg-stone-800 border-stone-700 text-stone-100 text-sm mb-2" />
               ))}
+              <div className="flex gap-2">
+                <Button size="sm" onClick={handleSaveEdit} disabled={acting}
+                  className="bg-[hsl(var(--primary))] text-stone-900 font-semibold text-xs">
+                  {acting ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <Save className="w-3.5 h-3.5 mr-1" />}
+                  Save Changes
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => { setIsEditing(false); setEditContent(null); }}
+                  className="text-stone-500 text-xs">
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* AI Revision Feedback */}
+          {showRevise && (
+            <div className="bg-stone-800/50 rounded-lg p-3 border border-stone-700">
+              <p className="text-xs text-stone-500 uppercase tracking-wider mb-2">Revision Instructions</p>
+              <Textarea value={revisionFeedback} onChange={e => setRevisionFeedback(e.target.value)}
+                placeholder="Tell the AI what to change... e.g. 'Make it more concise', 'Add the dollar amount from the article', 'Change the tone to be less formal'"
+                rows={3} className="bg-stone-900 border-stone-700 text-stone-100 text-sm mb-2" />
+              <Button size="sm" onClick={handleRevise} disabled={revising}
+                className="bg-[hsl(var(--primary))] text-stone-900 font-semibold text-xs">
+                {revising ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <Sparkles className="w-3.5 h-3.5 mr-1" />}
+                {revising ? 'Revising...' : 'Generate Revised Drafts'}
+              </Button>
             </div>
           )}
 
