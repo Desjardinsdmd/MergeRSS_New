@@ -266,7 +266,11 @@ Deno.serve(async (req) => {
             if (assigned.has(candidate.item.id)) continue;
             const timeDiffHours = Math.abs(pivot.publishedMs - candidate.publishedMs) / 3600000;
             const sim = jaccardSimilarity(pivot.keywords, candidate.keywords);
-            if (timeDiffHours <= windowHours && sim >= primaryThreshold && candidate.keywords.size >= MIN_KEYWORDS_FOR_CLUSTER) {
+            // Loosen threshold for short headlines (≤5 keywords on both sides)
+            const effectiveThreshold = (pivot.keywords.size <= 5 && candidate.keywords.size <= 5)
+                ? Math.min(primaryThreshold, 0.30)
+                : primaryThreshold;
+            if (timeDiffHours <= windowHours && sim >= effectiveThreshold && candidate.keywords.size >= MIN_KEYWORDS_FOR_CLUSTER) {
                 members.push(candidate); assigned.add(candidate.item.id); continue;
             }
             if (timeDiffHours <= EXTENDED_WINDOW_HOURS && sim >= EXTENDED_THRESHOLD && candidate.keywords.size >= MIN_KEYWORDS_FOR_CLUSTER) {

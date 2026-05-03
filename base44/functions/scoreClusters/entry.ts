@@ -287,7 +287,10 @@ Deno.serve(async (req) => {
                 velocity_score: scoring.velocity_score,
             });
             written++;
-        } catch { failed++; }
+        } catch (err) {
+            console.error(`[scoreClusters][${instanceId}] Failed to score cluster ${cluster.id}: ${err.message}`);
+            failed++;
+        }
         await sleep(60);
     }
 

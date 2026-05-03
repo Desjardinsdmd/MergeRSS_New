@@ -37,9 +37,10 @@ Deno.serve(async (req) => {
     const pub = pubs[0];
     if (!pub) return Response.json({ error: 'Publication not found' }, { status: 404 });
 
-    // Load lens (optional — for informational scores)
+    // Load lens (optional — for informational scores and threshold enforcement)
     const lenses = extractItems(await base44.asServiceRole.entities.CustomLens.filter({ id: pub.lens_id }, '-created_date', 1));
     const lens = lenses[0];
+    const minimumScoreThreshold = lens?.minimum_score_threshold ?? 0;
 
     // Load feedback history
     const feedbackRaw = extractItems(await base44.asServiceRole.entities.SelectionFeedback.filter(
@@ -102,12 +103,17 @@ Deno.serve(async (req) => {
         }
     }
 
-    // Map clusters to candidate objects
+    // Map clusters to candidate objects, enforcing lens minimum score threshold
     const candidates = [];
     for (const c of eligibleClusters) {
         const lensAgg = lens
             ? (c.custom_lens_aggregates || []).find(a => a.lens_id === lens.id)
             : null;
+
+        const lensScore = lensAgg?.max_importance_score ?? 0;
+
+        // Enforce lens minimum score threshold
+        if (lens && lensScore < minimumScoreThreshold) continue;
 
         candidates.push({
             id: c.id,
@@ -120,16 +126,18 @@ Deno.serve(async (req) => {
             first_seen_at: c.first_seen_at,
             last_updated_at: c.last_updated_at,
             intelligence_tag: lensAgg?.intelligence_tag || c.intelligence_tag || 'Neutral',
-            lens_score: lensAgg?.max_importance_score || null,
+            lens_score: lensScore,
             article_url: itemUrlMap[c.representative_item_id] || null,
         });
     }
 
-    // Sort
+    // Sort — default is lens_score desc with recency tie-breaker
     if (sort === 'sources') {
         candidates.sort((a, b) => b.source_count - a.source_count);
     } else {
         candidates.sort((a, b) => {
+            const scoreDiff = (b.lens_score || 0) - (a.lens_score || 0);
+            if (scoreDiff !== 0) return scoreDiff;
             const da = a.last_updated_at || a.first_seen_at || '';
             const db = b.last_updated_at || b.first_seen_at || '';
             return db.localeCompare(da);
