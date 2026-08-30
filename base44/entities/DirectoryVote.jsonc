@@ -1,0 +1,32 @@
+{
+  "name": "DirectoryVote",
+  "type": "object",
+  "properties": {
+    "item_id": {
+      "type": "string",
+      "description": "ID of the feed or digest being voted on"
+    },
+    "item_type": {
+      "type": "string",
+      "enum": [
+        "feed",
+        "digest"
+      ]
+    },
+    "vote": {
+      "type": "string",
+      "enum": [
+        "up",
+        "down"
+      ]
+    },
+    "voter_email": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "item_id",
+    "item_type",
+    "vote"
+  ]
+}

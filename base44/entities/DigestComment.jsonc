@@ -1,0 +1,24 @@
+{
+  "name": "DigestComment",
+  "type": "object",
+  "properties": {
+    "digest_id": {
+      "type": "string",
+      "description": "Reference to the digest"
+    },
+    "content": {
+      "type": "string",
+      "description": "Comment text"
+    },
+    "author_name": {
+      "type": "string"
+    },
+    "author_email": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "digest_id",
+    "content"
+  ]
+}

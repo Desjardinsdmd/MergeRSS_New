@@ -1,0 +1,42 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "user"
+      ],
+      "default": "user"
+    },
+    "onboarding_complete": {
+      "type": "boolean",
+      "default": false
+    },
+    "setup_walkthrough_complete": {
+      "type": "boolean",
+      "default": false
+    },
+    "plan": {
+      "type": "string",
+      "enum": [
+        "free",
+        "premium"
+      ],
+      "default": "free"
+    },
+    "login_streak": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of consecutive days the user has visited"
+    },
+    "last_visit_date": {
+      "type": "string",
+      "description": "Date string of the user's last visit"
+    }
+  },
+  "required": [
+    "last_visit_date"
+  ]
+}

@@ -1,0 +1,138 @@
+{
+  "name": "Digest",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Digest name"
+    },
+    "description": {
+      "type": "string"
+    },
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Categories to include"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tags to filter by"
+    },
+    "feed_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Specific feeds to include"
+    },
+    "frequency": {
+      "type": "string",
+      "enum": [
+        "daily",
+        "weekly",
+        "monthly"
+      ],
+      "default": "daily"
+    },
+    "schedule_time": {
+      "type": "string",
+      "description": "Time to send (HH:MM format)"
+    },
+    "schedule_day_of_week": {
+      "type": "number",
+      "description": "Day of week for weekly digests (0=Sunday, 6=Saturday)"
+    },
+    "schedule_day_of_month": {
+      "type": "number",
+      "description": "Day of month for monthly digests (1-31)"
+    },
+    "timezone": {
+      "type": "string",
+      "default": "America/New_York"
+    },
+    "output_length": {
+      "type": "string",
+      "enum": [
+        "short",
+        "medium",
+        "long"
+      ],
+      "default": "medium"
+    },
+    "delivery_web": {
+      "type": "boolean",
+      "default": true
+    },
+    "delivery_email": {
+      "type": "boolean",
+      "default": false,
+      "description": "Send digest to user's email"
+    },
+    "delivery_slack": {
+      "type": "boolean",
+      "default": false
+    },
+    "delivery_discord": {
+      "type": "boolean",
+      "default": false
+    },
+    "delivery_teams": {
+      "type": "boolean",
+      "default": false,
+      "description": "Send digest to Microsoft Teams"
+    },
+    "slack_channel_id": {
+      "type": "string"
+    },
+    "discord_webhook_url": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "paused"
+      ],
+      "default": "active"
+    },
+    "last_sent": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "next_scheduled": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "is_public": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this digest is listed in the public directory"
+    },
+    "public_description": {
+      "type": "string",
+      "description": "Short description shown in the public directory"
+    },
+    "added_count": {
+      "type": "number",
+      "default": 0,
+      "description": "How many users have added this digest from the directory"
+    },
+    "upvotes": {
+      "type": "number",
+      "default": 0
+    },
+    "downvotes": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "name",
+    "frequency"
+  ]
+}

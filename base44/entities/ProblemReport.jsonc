@@ -1,0 +1,53 @@
+{
+  "name": "ProblemReport",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Brief title of the problem"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed description of the issue"
+    },
+    "page": {
+      "type": "string",
+      "description": "Page/section where the problem occurred"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "in_progress",
+        "resolved"
+      ],
+      "default": "open",
+      "description": "Status of the report"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default": "medium"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user who reported the issue"
+    },
+    "browser_info": {
+      "type": "string",
+      "description": "Browser and device information"
+    },
+    "admin_notes": {
+      "type": "string",
+      "description": "Private notes for admin"
+    }
+  },
+  "required": [
+    "title",
+    "description"
+  ]
+}

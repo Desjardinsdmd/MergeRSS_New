@@ -1,0 +1,16 @@
+{
+  "name": "AlertSettings",
+  "type": "object",
+  "properties": {
+    "destination_email": {
+      "type": "string",
+      "description": "Email address to send system alerts to. If empty, all admin users are emailed."
+    },
+    "frequency_hours": {
+      "type": "number",
+      "default": 24,
+      "description": "How often (in hours) the scheduled alert check runs"
+    }
+  },
+  "required": []
+}

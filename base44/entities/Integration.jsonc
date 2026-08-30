@@ -1,0 +1,66 @@
+{
+  "name": "Integration",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "slack",
+        "discord",
+        "teams"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "connected",
+        "disconnected",
+        "error"
+      ],
+      "default": "disconnected"
+    },
+    "workspace_name": {
+      "type": "string"
+    },
+    "workspace_id": {
+      "type": "string"
+    },
+    "access_token": {
+      "type": "string"
+    },
+    "refresh_token": {
+      "type": "string"
+    },
+    "token_expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "webhook_url": {
+      "type": "string",
+      "description": "Webhook URL for Discord, Teams, or Slack"
+    },
+    "channels": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "selected_channel_id": {
+      "type": "string"
+    },
+    "selected_channel_name": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "type"
+  ]
+}

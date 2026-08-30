@@ -1,0 +1,74 @@
+{
+  "name": "RepairJob",
+  "type": "object",
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": [
+        "idle",
+        "running",
+        "completed",
+        "failed",
+        "cancelled"
+      ],
+      "default": "idle"
+    },
+    "total_count": {
+      "type": "number",
+      "default": 0
+    },
+    "processed_count": {
+      "type": "number",
+      "default": 0
+    },
+    "repaired_count": {
+      "type": "number",
+      "default": 0
+    },
+    "deleted_count": {
+      "type": "number",
+      "default": 0
+    },
+    "quarantined_count": {
+      "type": "number",
+      "default": 0
+    },
+    "failed_count": {
+      "type": "number",
+      "default": 0
+    },
+    "current_feed_id": {
+      "type": "string"
+    },
+    "current_feed_name": {
+      "type": "string"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_heartbeat_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Final summary with breakdown by failure category"
+    },
+    "feed_ids_snapshot": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs of all feeds captured at job start"
+    }
+  },
+  "required": [
+    "status"
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "name": "DirectoryFeed",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Display name for the feed"
+    },
+    "url": {
+      "type": "string",
+      "description": "RSS feed URL"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "CRE",
+        "Markets",
+        "Tech",
+        "News",
+        "Finance",
+        "Crypto",
+        "AI",
+        "Other"
+      ],
+      "description": "Feed category"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Custom tags for the feed"
+    },
+    "description": {
+      "type": "string",
+      "description": "Short description shown in the public directory"
+    },
+    "added_count": {
+      "type": "number",
+      "default": 0,
+      "description": "How many users have added this feed from the directory"
+    },
+    "upvotes": {
+      "type": "number",
+      "default": 0
+    },
+    "downvotes": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "name",
+    "url",
+    "category"
+  ]
+}

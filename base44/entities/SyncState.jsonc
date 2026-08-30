@@ -1,0 +1,22 @@
+{
+  "name": "SyncState",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "Unique key for this sync state record"
+    },
+    "history_id": {
+      "type": "string",
+      "description": "Last processed Gmail history ID"
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this sync is active"
+    }
+  },
+  "required": [
+    "key"
+  ]
+}

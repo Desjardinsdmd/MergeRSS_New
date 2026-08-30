@@ -1,0 +1,44 @@
+{
+  "name": "NewsletterSubscription",
+  "type": "object",
+  "properties": {
+    "email_feed_id": {
+      "type": "string",
+      "description": "Reference to the EmailFeed"
+    },
+    "from_email": {
+      "type": "string",
+      "description": "Sender email address"
+    },
+    "from_name": {
+      "type": "string",
+      "description": "Sender name"
+    },
+    "newsletter_name": {
+      "type": "string",
+      "description": "User-friendly name for the newsletter"
+    },
+    "subscribed_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "email_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of emails received from this sender"
+    },
+    "last_email_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether user is actively subscribed"
+    }
+  },
+  "required": [
+    "email_feed_id",
+    "from_email"
+  ]
+}

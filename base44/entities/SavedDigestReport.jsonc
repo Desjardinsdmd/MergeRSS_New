@@ -1,0 +1,41 @@
+{
+  "name": "SavedDigestReport",
+  "type": "object",
+  "properties": {
+    "digest_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs of digests analyzed"
+    },
+    "digest_name": {
+      "type": "string",
+      "description": "Combined label for the digests"
+    },
+    "start_date": {
+      "type": "string"
+    },
+    "end_date": {
+      "type": "string"
+    },
+    "delivery_count": {
+      "type": "number"
+    },
+    "actual_start": {
+      "type": "string"
+    },
+    "actual_end": {
+      "type": "string"
+    },
+    "report": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Full AI-generated report object"
+    }
+  },
+  "required": [
+    "digest_name",
+    "report"
+  ]
+}

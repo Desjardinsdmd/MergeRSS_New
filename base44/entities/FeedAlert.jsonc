@@ -1,0 +1,39 @@
+{
+  "name": "FeedAlert",
+  "type": "object",
+  "properties": {
+    "feed_id": {
+      "type": "string",
+      "description": "Reference to the Feed"
+    },
+    "channel_type": {
+      "type": "string",
+      "enum": [
+        "slack",
+        "discord"
+      ],
+      "description": "Where to send alerts"
+    },
+    "webhook_url": {
+      "type": "string",
+      "description": "Webhook URL to post to"
+    },
+    "label": {
+      "type": "string",
+      "description": "Optional label for this alert"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "last_sent": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "feed_id",
+    "channel_type",
+    "webhook_url"
+  ]
+}

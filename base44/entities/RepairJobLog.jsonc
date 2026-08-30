@@ -1,0 +1,63 @@
+{
+  "name": "RepairJobLog",
+  "type": "object",
+  "properties": {
+    "job_id": {
+      "type": "string"
+    },
+    "feed_id": {
+      "type": "string"
+    },
+    "feed_name": {
+      "type": "string"
+    },
+    "original_url": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "repaired",
+        "quarantined",
+        "failed",
+        "skipped"
+      ],
+      "description": "Outcome of the repair attempt"
+    },
+    "message": {
+      "type": "string"
+    },
+    "new_url": {
+      "type": "string"
+    },
+    "repair_method": {
+      "type": "string"
+    },
+    "failure_category": {
+      "type": "string",
+      "enum": [
+        "404_gone",
+        "blocked_antibot",
+        "paywall_login",
+        "invalid_html",
+        "no_articles_found",
+        "extraction_failed",
+        "feed_validation_failed",
+        "timeout",
+        "network_error",
+        "unexpected_error",
+        "none"
+      ]
+    },
+    "diagnostics": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Detailed diagnostics: http_status, redirects, bot_blocked, item_count, etc."
+    }
+  },
+  "required": [
+    "job_id",
+    "feed_id",
+    "action"
+  ]
+}

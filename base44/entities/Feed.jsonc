@@ -1,0 +1,161 @@
+{
+  "name": "Feed",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Display name for the source"
+    },
+    "url": {
+      "type": "string",
+      "description": "RSS feed URL or original website URL"
+    },
+    "category": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "paused",
+        "error",
+        "processing"
+      ],
+      "default": "active"
+    },
+    "source_type": {
+      "type": "string",
+      "enum": [
+        "rss_native",
+        "rss_discovered",
+        "generated"
+      ]
+    },
+    "original_submitted_url": {
+      "type": "string"
+    },
+    "resolved_url": {
+      "type": "string"
+    },
+    "validation_confidence": {
+      "type": "number"
+    },
+    "last_fetched": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_successful_fetch_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "fetch_error": {
+      "type": "string"
+    },
+    "item_count": {
+      "type": "number",
+      "default": 0
+    },
+    "consecutive_errors": {
+      "type": "number",
+      "default": 0
+    },
+    "last_failure_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp of most recent fetch failure"
+    },
+    "last_failure_reason": {
+      "type": "string",
+      "description": "Error message from most recent failure"
+    },
+    "paused_by_system": {
+      "type": "boolean",
+      "default": false,
+      "description": "True when the system auto-paused this feed due to repeated failures"
+    },
+    "paused_reason": {
+      "type": "string",
+      "description": "Why the system paused this feed"
+    },
+    "retry_after_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Earliest time this feed should be retried after auto-pause"
+    },
+    "metadata_json": {
+      "type": "string"
+    },
+    "sourced_from_directory": {
+      "type": "boolean",
+      "default": false
+    },
+    "directory_feed_id": {
+      "type": "string"
+    },
+    "is_public": {
+      "type": "boolean",
+      "default": false
+    },
+    "public_description": {
+      "type": "string"
+    },
+    "repair_status": {
+      "type": "string",
+      "enum": [
+        "idle",
+        "retrying",
+        "repairing",
+        "failed",
+        "resolved"
+      ],
+      "default": "idle"
+    },
+    "last_repair_attempt_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "repair_attempt_count": {
+      "type": "number",
+      "default": 0
+    },
+    "repair_actions_taken": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "result": {
+            "type": "string",
+            "enum": [
+              "success",
+              "failed"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          },
+          "attempted_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "escalation_reason": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name",
+    "url",
+    "category"
+  ]
+}

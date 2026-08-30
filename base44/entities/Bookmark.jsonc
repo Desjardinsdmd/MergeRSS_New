@@ -1,0 +1,35 @@
+{
+  "name": "Bookmark",
+  "type": "object",
+  "properties": {
+    "feed_item_id": {
+      "type": "string",
+      "description": "Reference to the bookmarked FeedItem"
+    },
+    "title": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "published_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "feed_item_id",
+    "title",
+    "url"
+  ]
+}

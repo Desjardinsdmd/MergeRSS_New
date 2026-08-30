@@ -1,0 +1,55 @@
+{
+  "name": "NewsletterEmail",
+  "type": "object",
+  "properties": {
+    "gmail_message_id": {
+      "type": "string",
+      "description": "Gmail message ID for deduplication"
+    },
+    "subscription_id": {
+      "type": "string",
+      "description": "Reference to the EmailSubscription that matched"
+    },
+    "from_email": {
+      "type": "string"
+    },
+    "from_name": {
+      "type": "string"
+    },
+    "subject": {
+      "type": "string"
+    },
+    "received_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "text_content": {
+      "type": "string",
+      "description": "Plain text body"
+    },
+    "links": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Extracted hyperlinks from the email body"
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "gmail_message_id",
+    "subject",
+    "from_email"
+  ]
+}

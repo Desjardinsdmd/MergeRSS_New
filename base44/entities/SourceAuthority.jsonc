@@ -1,0 +1,58 @@
+{
+  "name": "SourceAuthority",
+  "type": "object",
+  "properties": {
+    "domain": {
+      "type": "string",
+      "description": "Normalized domain (e.g. reuters.com). Primary identity key."
+    },
+    "feed_id": {
+      "type": "string",
+      "description": "Optional: link to a specific Feed record"
+    },
+    "feed_name": {
+      "type": "string",
+      "description": "Display name of the source"
+    },
+    "tier": {
+      "type": "string",
+      "enum": [
+        "tier1",
+        "tier2",
+        "tier3"
+      ],
+      "default": "tier2",
+      "description": "tier1=high authority, tier2=medium, tier3=low signal"
+    },
+    "authority_score": {
+      "type": "number",
+      "default": 50,
+      "description": "Numeric authority score 0-100. Derived from tier unless admin overrides."
+    },
+    "is_manual_override": {
+      "type": "boolean",
+      "default": false,
+      "description": "True when an admin has manually set tier/score instead of using auto-assignment"
+    },
+    "auto_score_basis": {
+      "type": "string",
+      "description": "Reason for auto-assigned score: known_tier1, known_tier2, default_tier2, known_tier3"
+    },
+    "article_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Observed article count \u2014 used by auto-scorer"
+    },
+    "avg_importance": {
+      "type": "number",
+      "description": "Rolling average importance_score of this source's articles"
+    },
+    "last_evaluated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "domain"
+  ]
+}

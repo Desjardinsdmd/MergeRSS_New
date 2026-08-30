@@ -1,0 +1,92 @@
+{
+  "name": "GeneratedFeed",
+  "type": "object",
+  "properties": {
+    "source_url": {
+      "type": "string",
+      "description": "The original URL provided by the user"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "is_native_feed": {
+      "type": "boolean",
+      "default": false,
+      "description": "True if a native RSS/Atom feed was discovered"
+    },
+    "native_feed_url": {
+      "type": "string",
+      "description": "URL of the discovered native feed"
+    },
+    "cached_xml": {
+      "type": "string",
+      "description": "Cached RSS XML output (capped at 200KB)"
+    },
+    "items_cache": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Cached extracted items for re-display"
+    },
+    "last_fetched": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_success": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "error_count": {
+      "type": "number",
+      "default": 0
+    },
+    "last_error": {
+      "type": "string"
+    },
+    "is_disabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Admin can disable a feed"
+    },
+    "refresh_frequency": {
+      "type": "string",
+      "enum": [
+        "5min",
+        "15min",
+        "1hour",
+        "6hours",
+        "daily"
+      ],
+      "default": "1hour"
+    },
+    "item_limit": {
+      "type": "number",
+      "default": 25
+    },
+    "include_full_content": {
+      "type": "boolean",
+      "default": false
+    },
+    "utm_params": {
+      "type": "string"
+    },
+    "fetch_count": {
+      "type": "number",
+      "default": 0
+    },
+    "avg_fetch_ms": {
+      "type": "number"
+    },
+    "method": {
+      "type": "string",
+      "description": "How the feed was generated: direct_rss, discovered_rss, scraped"
+    }
+  },
+  "required": [
+    "source_url"
+  ]
+}

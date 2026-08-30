@@ -1,0 +1,89 @@
+{
+  "name": "DigestDelivery",
+  "type": "object",
+  "properties": {
+    "digest_id": {
+      "type": "string"
+    },
+    "delivery_type": {
+      "type": "string",
+      "enum": [
+        "web",
+        "slack",
+        "discord"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "sent",
+        "failed"
+      ],
+      "default": "pending"
+    },
+    "content": {
+      "type": "string",
+      "description": "Generated digest content"
+    },
+    "item_count": {
+      "type": "number"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "List of article items included in the digest"
+    },
+    "date_range_start": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "date_range_end": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "error_message": {
+      "type": "string"
+    },
+    "sent_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the delivery has been read"
+    },
+    "is_favorited": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the delivery has been favorited/starred"
+    },
+    "folder": {
+      "type": "string",
+      "description": "User-assigned folder name for organization",
+      "default": "Inbox"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "User-assigned tags"
+    }
+  },
+  "required": [
+    "digest_id",
+    "delivery_type"
+  ]
+}

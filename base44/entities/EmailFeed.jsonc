@@ -1,0 +1,37 @@
+{
+  "name": "EmailFeed",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "User's account email"
+    },
+    "unique_email": {
+      "type": "string",
+      "description": "Unique email address for this user to forward newsletters to"
+    },
+    "mailgun_route_id": {
+      "type": "string",
+      "description": "Mailgun route ID for this email feed"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this email feed is accepting messages"
+    },
+    "total_received": {
+      "type": "number",
+      "default": 0,
+      "description": "Total number of emails received"
+    },
+    "last_email_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the last email was received"
+    }
+  },
+  "required": [
+    "user_email",
+    "unique_email"
+  ]
+}

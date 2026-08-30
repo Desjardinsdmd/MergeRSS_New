@@ -1,0 +1,36 @@
+{
+  "name": "EmailSubscription",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Display name for this newsletter"
+    },
+    "sender_emails": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Sender email addresses to watch"
+    },
+    "category": {
+      "type": "string"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "email_count": {
+      "type": "number",
+      "default": 0
+    },
+    "last_received_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "name",
+    "sender_emails"
+  ]
+}

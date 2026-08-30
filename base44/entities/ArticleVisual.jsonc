@@ -1,0 +1,88 @@
+{
+  "name": "ArticleVisual",
+  "type": "object",
+  "properties": {
+    "article_id": {
+      "type": "string",
+      "description": "FeedItem ID this visual belongs to"
+    },
+    "article_url": {
+      "type": "string"
+    },
+    "article_analysis": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Structured article understanding output"
+    },
+    "visual_value_score": {
+      "type": "number",
+      "description": "0\u2013100 score"
+    },
+    "score_breakdown": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Concreteness, explanatory_gain, specificity, novelty, risk_penalty"
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "generate",
+        "reject"
+      ],
+      "description": "Whether to generate or skip"
+    },
+    "visual_type": {
+      "type": "string",
+      "enum": [
+        "scene",
+        "diagram",
+        "reject"
+      ]
+    },
+    "visual_spec": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Visual concept extraction output"
+    },
+    "prompt": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "positive_prompt, negative_prompt, render_settings"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Final accepted image URL"
+    },
+    "critique": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Post-generation critique scores"
+    },
+    "generation_attempts": {
+      "type": "number",
+      "default": 0
+    },
+    "final_outcome": {
+      "type": "string",
+      "enum": [
+        "accepted",
+        "rejected_low_score",
+        "rejected_after_critique",
+        "rejected_after_retry"
+      ],
+      "description": "Terminal outcome of the pipeline"
+    },
+    "rejection_reason": {
+      "type": "string"
+    },
+    "pipeline_version": {
+      "type": "string",
+      "default": "1.0"
+    }
+  },
+  "required": [
+    "article_id",
+    "decision",
+    "final_outcome"
+  ]
+}

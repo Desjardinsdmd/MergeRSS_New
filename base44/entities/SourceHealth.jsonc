@@ -1,0 +1,125 @@
+{
+  "name": "SourceHealth",
+  "type": "object",
+  "properties": {
+    "feed_id": {
+      "type": "string",
+      "description": "Reference to the Feed being evaluated"
+    },
+    "health_score": {
+      "type": "number",
+      "description": "Overall health score (0-100)"
+    },
+    "health_state": {
+      "type": "string",
+      "enum": [
+        "healthy",
+        "degrading",
+        "failing"
+      ],
+      "description": "Health classification based on score"
+    },
+    "fetch_reliability": {
+      "type": "number",
+      "description": "Success rate percentage (0-100)"
+    },
+    "freshness_score": {
+      "type": "number",
+      "description": "Freshness factor (0-100) based on recency"
+    },
+    "activity_score": {
+      "type": "number",
+      "description": "Activity consistency factor (0-100)"
+    },
+    "parsing_quality": {
+      "type": "number",
+      "description": "% of items successfully parsed (0-100)"
+    },
+    "stability_score": {
+      "type": "number",
+      "description": "Structural consistency score (0-100)"
+    },
+    "articles_last_24h": {
+      "type": "number",
+      "default": 0,
+      "description": "Article count in last 24 hours"
+    },
+    "articles_last_7d": {
+      "type": "number",
+      "default": 0,
+      "description": "Article count in last 7 days"
+    },
+    "avg_articles_per_day": {
+      "type": "number",
+      "description": "Rolling average articles per day"
+    },
+    "last_article_timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp of most recent article"
+    },
+    "inactivity_duration_days": {
+      "type": "number",
+      "description": "Days since last article"
+    },
+    "failure_rate": {
+      "type": "number",
+      "description": "% of fetch attempts that failed"
+    },
+    "success_rate": {
+      "type": "number",
+      "description": "% of fetch attempts that succeeded"
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "no_articles",
+              "high_failure_rate",
+              "parsing_error",
+              "empty_feed",
+              "low_confidence",
+              "activity_drop",
+              "inactive"
+            ]
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "info",
+              "warning",
+              "critical"
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "detected_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "description": "Array of detected issues"
+    },
+    "evaluated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp of last evaluation"
+    },
+    "score_breakdown": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Detailed scoring metadata for debugging"
+    }
+  },
+  "required": [
+    "feed_id",
+    "health_score",
+    "health_state"
+  ]
+}

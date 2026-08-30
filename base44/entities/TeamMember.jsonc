@@ -1,0 +1,36 @@
+{
+  "name": "TeamMember",
+  "type": "object",
+  "properties": {
+    "email": {
+      "type": "string",
+      "description": "Email of the invited team member"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "editor",
+        "viewer"
+      ],
+      "default": "viewer",
+      "description": "Team role: admin can manage everything, editor can add/edit feeds and digests, viewer can only read"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "active"
+      ],
+      "default": "pending"
+    },
+    "invited_by": {
+      "type": "string",
+      "description": "Email of user who sent the invite"
+    }
+  },
+  "required": [
+    "email",
+    "role"
+  ]
+}
