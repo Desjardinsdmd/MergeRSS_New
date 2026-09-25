@@ -44,6 +44,8 @@ export default function ArticleVisualBadge({ item, onVisualReady }) {
     }
   };
 
+  if (hidden) return null;
+
   if (status === 'accepted' && imageUrl) {
     return (
       <div className="relative">
