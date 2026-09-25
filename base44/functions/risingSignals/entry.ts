@@ -1,11 +1,17 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 /**
- * risingSignals — velocity-based named-entity detection.
+ * risingSignals — velocity-based named-entity detection, read from FeedDailyRollup.
  *
- * Compares 7-day entity mention counts (authority-weighted) against
- * 4-week rolling baseline. Surfaces entities with 3x+ spike AND >= 3 mentions.
- * Scoped by category: CRE, AI/Tech, Macro.
+ * Compares the last 7 days of entity mentions (authority-weighted) against the
+ * weekly average of the prior 3 weeks. Surfaces entities with >= 3 raw mentions
+ * and a >= 3x lift. Scoped by category bucket: CRE, AI/Tech, Macro.
+ *
+ * Rebuilt 2026-09-25. The old version pulled at most 500 raw articles newest-first,
+ * which for a typical user covered ~8 days, leaving the 3-week baseline empty and
+ * flagging almost everything as "rising". Reading daily rollups keeps the query size
+ * at (feeds x 28) small rows no matter how many articles the feeds publish, and the
+ * response now reports baseline coverage so a thin baseline is visible, never silent.
  */
 
 function extractItems(raw) {
@@ -21,14 +27,18 @@ const CATEGORY_BUCKETS = {
     'AI/Tech': ['ai', 'tech'],
     Macro: ['markets', 'finance', 'news', 'geopolitics'],
 };
-
 function categorizeToBucket(category) {
     const cat = (category || '').toLowerCase();
     for (const [bucket, cats] of Object.entries(CATEGORY_BUCKETS)) {
         if (cats.includes(cat)) return bucket;
     }
-    return 'Macro'; // default
+    return 'Macro';
 }
+
+const MIN_RAW_MENTIONS = 3;
+const MIN_LIFT = 3;
+const MIN_BASELINE_DAYS = 14; // of 21 possible
+const PAGE = 1000;
 
 Deno.serve(async (req) => {
     try {
@@ -36,123 +46,110 @@ Deno.serve(async (req) => {
         const user = await base44.auth.me();
         if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-        // Load user's feeds
         const userFeeds = extractItems(await base44.entities.Feed.filter(
-            { created_by: user.email, status: 'active' }, '-created_date', 500
+            { created_by: user.email }, '-created_date', 1000
         ));
+        if (!userFeeds.length) return Response.json({ signals: {} });
         const feedIds = userFeeds.map(f => f.id);
-        if (!feedIds.length) return Response.json({ signals: {} });
 
-        // Build feed → domain → authority map
-        const allAuth = extractItems(await base44.asServiceRole.entities.SourceAuthority.list('-created_date', 500));
+        // Authority weights by domain
+        const allAuth = extractItems(await base44.asServiceRole.entities.SourceAuthority.list('-created_date', 1000));
         const authByDomain = {};
-        for (const a of allAuth) {
-            if (a.domain) authByDomain[a.domain.toLowerCase()] = a;
-        }
-        const feedAuthority = {};
+        for (const a of allAuth) if (a.domain) authByDomain[a.domain.toLowerCase()] = a;
+        const feedWeight = {}, feedBucket = {}, feedName = {};
         for (const f of userFeeds) {
+            let w = 1.0;
             try {
                 const domain = new URL(f.url || '').hostname.replace(/^www\./, '');
-                const auth = authByDomain[domain];
-                feedAuthority[f.id] = auth?.tier === 'tier1' ? 2.0 : auth?.tier === 'tier3' ? 0.5 : 1.0;
-            } catch { feedAuthority[f.id] = 1.0; }
+                const tier = authByDomain[domain]?.tier;
+                w = tier === 'tier1' ? 2.0 : tier === 'tier3' ? 0.5 : 1.0;
+            } catch { /* default */ }
+            feedWeight[f.id] = w;
+            feedBucket[f.id] = categorizeToBucket(f.category);
+            feedName[f.id] = f.name;
         }
-        const feedCategoryMap = {};
-        for (const f of userFeeds) { feedCategoryMap[f.id] = f.category; }
 
-        // Fetch items from last 28 days (4 weeks)
-        const since28d = new Date(Date.now() - 28 * 24 * 60 * 60 * 1000).toISOString();
-        const since7d = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+        // Day boundaries (UTC). Recent = today and the 6 prior days; baseline = the 21 days before.
+        const todayStart = new Date(new Date().toISOString().slice(0, 10) + 'T00:00:00Z').getTime();
+        const d = (n) => new Date(todayStart - n * 86400_000).toISOString().slice(0, 10);
+        const recentFrom = d(6), baselineFrom = d(27);
 
-        const allItems = extractItems(await base44.entities.FeedItem.filter(
-            { feed_id: { $in: feedIds }, published_date: { $gte: since28d }, enrichment_status: 'done' },
-            '-published_date', 500
-        ));
+        const rows = [];
+        for (let skip = 0; skip < 20_000; skip += PAGE) {
+            const page = extractItems(await base44.asServiceRole.entities.FeedDailyRollup.filter(
+                { feed_id: { $in: feedIds }, day: { $gte: baselineFrom } }, 'day', PAGE, skip
+            ));
+            rows.push(...page);
+            if (page.length < PAGE) break;
+        }
 
-        const recent7d = allItems.filter(i => i.published_date >= since7d);
-        const older = allItems.filter(i => i.published_date < since7d);
+        // Aggregate per bucket
+        const agg = {}; // bucket -> key -> { e, recentRaw, recentW, baseW }
+        const baselineDays = new Set(), recentDays = new Set();
+        const topItemsRecent = {}; // bucket -> [{...item, feed_id, w}]
+        let recentArticles = 0, baselineArticles = 0;
 
-        // Count entity mentions by category bucket, weighted by authority
-        function countEntities(items) {
-            const counts = {}; // { bucket: { entity: weightedCount } }
-            for (const item of items) {
-                if (!item.entities?.length) continue;
-                const bucket = categorizeToBucket(feedCategoryMap[item.feed_id] || item.category);
-                const weight = feedAuthority[item.feed_id] || 1.0;
-                if (!counts[bucket]) counts[bucket] = {};
-                for (const entity of item.entities) {
-                    const key = entity.trim();
-                    if (key.length < 2) continue;
-                    counts[bucket][key] = (counts[bucket][key] || 0) + weight;
-                }
+        for (const r of rows) {
+            const bucket = feedBucket[r.feed_id] || 'Macro';
+            const w = feedWeight[r.feed_id] || 1.0;
+            const isRecent = r.day >= recentFrom;
+            (isRecent ? recentDays : baselineDays).add(r.day);
+            if (isRecent) recentArticles += r.item_count || 0; else baselineArticles += r.item_count || 0;
+            agg[bucket] ||= {};
+            for (const { e, k, n } of (r.entity_counts || [])) {
+                const a = (agg[bucket][k] ||= { e, recentRaw: 0, recentW: 0, baseW: 0 });
+                if (isRecent) { a.recentRaw += n; a.recentW += n * w; } else { a.baseW += n * w; }
             }
-            return counts;
-        }
-
-        const recentCounts = countEntities(recent7d);
-        // Normalize older counts to a per-week baseline (divide by 3 weeks)
-        const olderCounts = countEntities(older);
-        const baselineCounts = {};
-        for (const [bucket, entities] of Object.entries(olderCounts)) {
-            baselineCounts[bucket] = {};
-            for (const [entity, count] of Object.entries(entities)) {
-                baselineCounts[bucket][entity] = count / 3; // 3 older weeks
+            if (isRecent) {
+                (topItemsRecent[bucket] ||= []).push(...(r.top_items || []).map(t => ({ ...t, feed_id: r.feed_id, w })));
             }
         }
 
-        // Find rising signals: 3x+ spike AND >= 3 raw mentions in 7d
+        const baselineCoverage = baselineDays.size; // of 21
+        const baselineOk = baselineCoverage >= MIN_BASELINE_DAYS;
+
         const signals = {};
-        for (const [bucket, entities] of Object.entries(recentCounts)) {
+        for (const [bucket, entities] of Object.entries(agg)) {
             const rising = [];
-            // Count raw (unweighted) mentions for minimum threshold
-            const rawCounts = {};
-            for (const item of recent7d) {
-                if (!item.entities?.length) continue;
-                const itemBucket = categorizeToBucket(feedCategoryMap[item.feed_id] || item.category);
-                if (itemBucket !== bucket) continue;
-                for (const e of item.entities) {
-                    rawCounts[e.trim()] = (rawCounts[e.trim()] || 0) + 1;
-                }
-            }
-
-            for (const [entity, weightedCount] of Object.entries(entities)) {
-                const baseline = baselineCounts[bucket]?.[entity] || 0;
-                const rawCount = rawCounts[entity] || 0;
-                if (rawCount < 3) continue; // minimum 3 mentions
-                const multiplier = baseline > 0 ? weightedCount / baseline : weightedCount;
-                if (multiplier < 3 && baseline > 0) continue; // 3x threshold
-
-                // Find top 2 most authoritative articles mentioning this entity
-                const mentioningArticles = recent7d
-                    .filter(i => {
-                        const itemBucket = categorizeToBucket(feedCategoryMap[i.feed_id] || i.category);
-                        return itemBucket === bucket && i.entities?.includes(entity);
-                    })
-                    .sort((a, b) => {
-                        const wa = feedAuthority[a.feed_id] || 1;
-                        const wb = feedAuthority[b.feed_id] || 1;
-                        return (wb * (b.importance_score || 0)) - (wa * (a.importance_score || 0));
-                    })
+            for (const [k, a] of Object.entries(entities)) {
+                if (a.recentRaw < MIN_RAW_MENTIONS) continue;
+                const baselinePerWeek = a.baseW / 3;
+                // +1 smoothing: an entity with no history needs real volume to qualify,
+                // instead of passing automatically because baseline == 0.
+                const lift = (a.recentW + 1) / (baselinePerWeek + 1);
+                if (lift < MIN_LIFT) continue;
+                const top_articles = (topItemsRecent[bucket] || [])
+                    .filter(t => (t.entity_keys || []).includes(k))
+                    .sort((x, y) => (y.w * (y.importance_score || 0)) - (x.w * (x.importance_score || 0)))
                     .slice(0, 2)
-                    .map(i => ({ id: i.id, title: i.title, url: i.url, source: feedCategoryMap[i.feed_id] }));
-
+                    .map(t => ({ id: t.id, title: t.title, url: t.url, source: feedName[t.feed_id] }));
                 rising.push({
-                    entity,
-                    current_week_count: rawCount,
-                    baseline_count: Math.round(baseline * 10) / 10,
-                    weighted_current: Math.round(weightedCount * 10) / 10,
-                    multiplier: Math.round(multiplier * 10) / 10,
-                    top_articles: mentioningArticles,
+                    entity: a.e,
+                    current_week_count: a.recentRaw,
+                    baseline_count: Math.round(baselinePerWeek * 10) / 10,
+                    weighted_current: Math.round(a.recentW * 10) / 10,
+                    multiplier: Math.round(lift * 10) / 10,
+                    is_new: a.baseW === 0,
+                    top_articles,
                 });
             }
-
-            rising.sort((a, b) => b.multiplier - a.multiplier);
-            if (rising.length > 0) {
-                signals[bucket] = rising.slice(0, 8);
-            }
+            rising.sort((x, y) => y.multiplier - x.multiplier || y.current_week_count - x.current_week_count);
+            if (rising.length) signals[bucket] = rising.slice(0, 8);
         }
 
-        return Response.json({ signals, items_analyzed: allItems.length, recent_7d: recent7d.length });
+        return Response.json({
+            signals,
+            baseline: {
+                days_covered: baselineCoverage,
+                days_expected: 21,
+                sufficient: baselineOk,
+                note: baselineOk ? null : 'Baseline history is thin; lifts are provisional until ~2 more weeks of data accumulate.',
+            },
+            recent_days_covered: recentDays.size,
+            items_analyzed: recentArticles + baselineArticles,
+            recent_7d: recentArticles,
+            rollup_rows_read: rows.length,
+        });
     } catch (error) {
         return Response.json({ error: error.message }, { status: 500 });
     }
