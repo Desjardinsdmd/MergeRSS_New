@@ -1,31 +1,74 @@
 {
   "name": "PublicationVoiceExample",
-  "type": "object",
   "properties": {
+    "example_content": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "example_label": {
+      "description": "Variant label this example represents",
+      "type": "string"
+    },
+    "performance_note": {
+      "description": "Why this is a good example",
+      "type": "string"
+    },
     "publication_id": {
       "type": "string"
     },
-    "example_content": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "example_label": {
-      "type": "string",
-      "description": "Variant label this example represents"
-    },
-    "performance_note": {
-      "type": "string",
-      "description": "Why this is a good example"
-    },
     "use_in_prompts": {
-      "type": "boolean",
-      "default": true
+      "default": true,
+      "type": "boolean"
     }
   },
   "required": [
     "publication_id",
     "example_content"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  },
+  "type": "object"
 }
