@@ -163,7 +163,9 @@ async function claim(svc, runId) {
     const now = Date.now();
     const nowIso = new Date(now).toISOString();
     const window = { $gte: new Date(now - MAX_AGE_MS).toISOString(), $lte: new Date(now - GRACE_MS).toISOString() };
-    const pending = extractItems(await svc.Article.filter({ enrichment_status: 'pending', first_seen_at: window }, 'first_seen_at', BATCH));
+    // Newest first: fresh articles are what users and The Stack see. Oldest-first starved them
+    // behind thousands of migrated backlog rows the legacy pipeline never scored.
+    const pending = extractItems(await svc.Article.filter({ enrichment_status: 'pending', first_seen_at: window }, '-first_seen_at', BATCH));
     const expired = pending.length < BATCH
         ? extractItems(await svc.Article.filter({ enrichment_status: 'processing', enrich_lease_until: { $lt: nowIso } }, 'first_seen_at', BATCH - pending.length))
         : [];
