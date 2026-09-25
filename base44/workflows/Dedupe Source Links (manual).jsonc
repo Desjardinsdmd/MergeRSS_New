@@ -1,0 +1,43 @@
+{
+  "name": "Dedupe Source Links (manual)",
+  "description": "Removes duplicate SourceItem links (same source + article) left by legacy duplicate feed items. Pass mode apply to delete; default is a dry run.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 4 1 1 *",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "dedupe_source_links_manual",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "dedupe": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "dedupeSourceLinks",
+            "args": {
+              "mode": "dry_run"
+            }
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}
