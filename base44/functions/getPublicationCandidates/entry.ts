@@ -58,8 +58,10 @@ Deno.serve(async (req) => {
             .map(f => f.cluster_id)
     );
 
-    // Rolling 24h window
-    const windowCutoff = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+    // Rolling window (2026-09-25: widened from 24h to 72h; the Stack sources publish
+    // ~2 relevant stories a day, so 24h left the queue nearly empty most of the time)
+    const WINDOW_HOURS = body.window_hours || 72;
+    const windowCutoff = new Date(Date.now() - WINDOW_HOURS * 3600 * 1000).toISOString();
 
     // Load user's own feed IDs to restrict pipeline to their sources only
     const userFeedsRaw = extractItems(await base44.asServiceRole.entities.Feed.filter(
@@ -67,11 +69,18 @@ Deno.serve(async (req) => {
     ));
     const userFeedIds = new Set(userFeedsRaw.map(f => f.id));
 
-    // Load active clusters — fetch all then filter by 24h window client-side
-    const activeRaw = await base44.asServiceRole.entities.StoryCluster.filter(
-        { status: 'active' }, '-updated_date', 300
-    );
-    const allClustersRaw = extractItems(activeRaw);
+    // Load clusters server-side, scoped to the user's feeds and the window. Previously this
+    // pulled the 300 most recently updated clusters across ALL users and filtered after,
+    // so other accounts' high-volume feeds could push relevant clusters out of the page.
+    // Stale clusters inside the window are included: "stale" only means no new articles.
+    const allClustersRaw = userFeedIds.size ? extractItems(await base44.asServiceRole.entities.StoryCluster.filter(
+        {
+            status: { $in: ['active', 'stale'] },
+            feed_ids: { $in: [...userFeedIds] },
+            last_updated_at: { $gte: windowCutoff },
+        },
+        '-last_updated_at', 300
+    )) : [];
 
     // Apply 24h window AND restrict to clusters that contain at least one of the user's feeds
     const nowIso = new Date().toISOString();
@@ -148,7 +157,7 @@ Deno.serve(async (req) => {
     return Response.json({
         candidates: candidates.slice(0, limit),
         total_clusters: candidates.length,
-        window_hours: 24,
+        window_hours: WINDOW_HOURS,
         lens_name: lens?.name || null,
         feedback_stats: {
             total: feedbackRaw.length,
