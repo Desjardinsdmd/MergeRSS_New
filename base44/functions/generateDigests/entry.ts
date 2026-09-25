@@ -19,6 +19,46 @@ function extractItems(raw) {
     return found || [];
 }
 
+// ── Schedule helpers (timezone-aware, no external deps) ─────────────────────
+function tzParts(date, timeZone) {
+    const f = new Intl.DateTimeFormat('en-US', {
+        timeZone, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit', weekday: 'short',
+    });
+    const p = Object.fromEntries(f.formatToParts(date).map(x => [x.type, x.value]));
+    const wd = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(p.weekday);
+    return { y: +p.year, m: +p.month, d: +p.day, h: +p.hour, mi: +p.minute, s: +p.second, wd };
+}
+// UTC instant for a wall-clock time in a zone (handles DST by one correction pass).
+function zonedToUtc(y, m, d, h, mi, timeZone) {
+    let guess = Date.UTC(y, m - 1, d, h, mi);
+    for (let k = 0; k < 2; k++) {
+        const p = tzParts(new Date(guess), timeZone);
+        const asUtc = Date.UTC(p.y, p.m - 1, p.d, p.h, p.mi);
+        guess += Date.UTC(y, m - 1, d, h, mi) - asUtc;
+    }
+    return new Date(guess);
+}
+// Most recent scheduled slot <= now, or null if the digest has no schedule_time.
+function lastScheduledSlot(digest, now) {
+    const t = digest.schedule_time;
+    if (!t || !/^\d{1,2}:\d{2}$/.test(t)) return null;
+    const [hh, mm] = t.split(':').map(Number);
+    const tz = digest.timezone || 'America/New_York';
+    let local;
+    try { local = tzParts(now, tz); } catch { return null; }
+    for (let back = 0; back <= 31; back++) {
+        const probe = new Date(Date.UTC(local.y, local.m - 1, local.d) - back * 86400000);
+        const y = probe.getUTCFullYear(), m = probe.getUTCMonth() + 1, d = probe.getUTCDate();
+        const wd = probe.getUTCDay();
+        if (digest.frequency === 'weekly' && digest.schedule_day_of_week != null && wd !== digest.schedule_day_of_week) continue;
+        if (digest.frequency === 'monthly' && digest.schedule_day_of_month != null && d !== digest.schedule_day_of_month) continue;
+        const slot = zonedToUtc(y, m, d, hh, mm, tz);
+        if (slot <= now) return slot;
+    }
+    return null;
+}
+
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
@@ -116,12 +156,19 @@ Deno.serve(async (req) => {
             digests = extractItems(await base44.asServiceRole.entities.Digest.filter({ status: 'active' }));
         }
 
-        // Filter to only digests that are due right now (skip obviously not-due ones early)
+        // Due check (2026-09-25): honour each digest's schedule_time/timezone/day.
+        // The old rule ("due 20h after last_sent") made daily send times walk backward
+        // around the clock. Now a digest is due once its most recent scheduled slot has
+        // passed and it has not been sent since that slot. Digests without a
+        // schedule_time keep the old elapsed-time rule.
         const dueDigests = force ? digests : digests.filter(digest => {
+            const slot = lastScheduledSlot(digest, now);
+            if (slot) {
+                if (!digest.last_sent) return true;
+                return new Date(digest.last_sent) < slot;
+            }
             if (!digest.last_sent) return true;
-            const timeSince = (now - new Date(digest.last_sent)) / (1000 * 60); // minutes
-            if (timeSince < 5) return false; // sent too recently
-            const hoursSince = timeSince / 60;
+            const hoursSince = (now - new Date(digest.last_sent)) / 3600000;
             let minHours = 20;
             if (digest.frequency === 'weekly') minHours = 168;
             if (digest.frequency === 'monthly') minHours = 24 * 28;
@@ -151,13 +198,13 @@ Deno.serve(async (req) => {
             console.log(`[generateDigests] Processing digest="${digest.name}" id=${digest.id}`);
             try {
                 // Day-of-week / day-of-month schedule check
-                if (!force && digest.frequency === 'weekly' && digest.schedule_day_of_week !== undefined) {
+                if (!force && !digest.schedule_time && digest.frequency === 'weekly' && digest.schedule_day_of_week != null) {
                     if (now.getDay() !== digest.schedule_day_of_week) {
                         results.push({ digest: digest.name, skipped: true, reason: 'Not scheduled day of week' });
                         continue;
                     }
                 }
-                if (!force && digest.frequency === 'monthly' && digest.schedule_day_of_month !== undefined) {
+                if (!force && !digest.schedule_time && digest.frequency === 'monthly' && digest.schedule_day_of_month != null) {
                     if (now.getDate() !== digest.schedule_day_of_month) {
                         results.push({ digest: digest.name, skipped: true, reason: 'Not scheduled day of month' });
                         continue;
