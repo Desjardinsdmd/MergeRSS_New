@@ -1,0 +1,43 @@
+{
+  "name": "Shadow Compare (manual)",
+  "description": "Read-only cutover gate: compares what the legacy and new pipelines captured over the last N hours, per source, plus score adoption.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 4 1 1 *",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "shadow_compare_manual",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "compare": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "shadowCompare",
+            "args": {
+              "hours": 6
+            }
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}
