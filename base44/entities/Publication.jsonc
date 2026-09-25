@@ -1,12 +1,18 @@
 {
   "name": "Publication",
-  "type": "object",
   "properties": {
-    "name": {
-      "type": "string"
+    "auto_post": {
+      "default": false,
+      "description": "If true, drafts auto-post without human approval. Default false.",
+      "type": "boolean"
+    },
+    "candidates_per_run": {
+      "default": 3,
+      "description": "How many top-ranked clusters to surface as candidates each scheduled run",
+      "type": "number"
     },
     "channel_type": {
-      "type": "string",
+      "default": "x",
       "enum": [
         "x",
         "linkedin",
@@ -15,75 +21,112 @@
         "discord",
         "manual"
       ],
-      "default": "x"
+      "type": "string"
+    },
+    "credentials_ref": {
+      "description": "Reference to encrypted channel credentials stored separately.",
+      "type": "string"
+    },
+    "last_run_at": {
+      "format": "date-time",
+      "type": "string"
     },
     "lens_id": {
-      "type": "string",
-      "description": "CustomLens used for story selection"
+      "description": "CustomLens used for story selection",
+      "type": "string"
     },
-    "voice_prompt": {
-      "type": "string",
-      "description": "Writer prompt \u2014 voice, format, constraints. User-editable."
+    "name": {
+      "type": "string"
+    },
+    "next_run_at": {
+      "format": "date-time",
+      "type": "string"
     },
     "post_format_config": {
-      "type": "object",
       "additionalProperties": true,
-      "description": "Channel-specific format config. For X: { max_chars: 280, supports_threads: true, hashtag_policy: 'minimal', link_placement: 'end' }"
-    },
-    "schedule_cron": {
-      "type": "string",
-      "description": "Cron expression(s) for when to generate drafts, comma-separated. e.g. '0 11 * * *,0 16 * * *'"
-    },
-    "timezone": {
-      "type": "string",
-      "default": "America/Toronto"
-    },
-    "auto_post": {
-      "type": "boolean",
-      "default": false,
-      "description": "If true, drafts auto-post without human approval. Default false."
+      "description": "Channel-specific format config. For X: { max_chars: 280, supports_threads: true, hashtag_policy: 'minimal', link_placement: 'end' }",
+      "type": "object"
     },
     "preferred_variant": {
-      "type": "string",
+      "default": "wire",
+      "description": "Which draft variant to auto-select. Used as chosen_variant_index when auto_post is on, and as default selection in manual review.",
       "enum": [
         "wire",
         "thread",
         "take"
       ],
-      "default": "wire",
-      "description": "Which draft variant to auto-select. Used as chosen_variant_index when auto_post is on, and as default selection in manual review."
+      "type": "string"
     },
-    "credentials_ref": {
-      "type": "string",
-      "description": "Reference to encrypted channel credentials stored separately."
+    "schedule_cron": {
+      "description": "Cron expression(s) for when to generate drafts, comma-separated. e.g. '0 11 * * *,0 16 * * *'",
+      "type": "string"
     },
     "status": {
-      "type": "string",
+      "default": "draft_only",
+      "description": "draft_only = generate drafts but never post even if auto_post=true",
       "enum": [
         "active",
         "paused",
         "draft_only"
       ],
-      "default": "draft_only",
-      "description": "draft_only = generate drafts but never post even if auto_post=true"
+      "type": "string"
     },
-    "candidates_per_run": {
-      "type": "number",
-      "default": 3,
-      "description": "How many top-ranked clusters to surface as candidates each scheduled run"
+    "timezone": {
+      "default": "America/Toronto",
+      "type": "string"
     },
-    "last_run_at": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "next_run_at": {
-      "type": "string",
-      "format": "date-time"
+    "voice_prompt": {
+      "description": "Writer prompt \u2014 voice, format, constraints. User-editable.",
+      "type": "string"
     }
   },
   "required": [
     "name",
     "channel_type",
     "lens_id"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  },
+  "type": "object"
 }
