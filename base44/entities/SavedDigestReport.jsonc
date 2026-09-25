@@ -1,41 +1,79 @@
 {
   "name": "SavedDigestReport",
-  "type": "object",
   "properties": {
-    "digest_ids": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "description": "IDs of digests analyzed"
-    },
-    "digest_name": {
-      "type": "string",
-      "description": "Combined label for the digests"
-    },
-    "start_date": {
+    "actual_end": {
       "type": "string"
     },
-    "end_date": {
+    "actual_start": {
       "type": "string"
     },
     "delivery_count": {
       "type": "number"
     },
-    "actual_start": {
+    "digest_ids": {
+      "description": "IDs of digests analyzed",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "digest_name": {
+      "description": "Combined label for the digests",
       "type": "string"
     },
-    "actual_end": {
+    "end_date": {
       "type": "string"
     },
     "report": {
-      "type": "object",
       "additionalProperties": true,
-      "description": "Full AI-generated report object"
+      "description": "Full AI-generated report object",
+      "type": "object"
+    },
+    "start_date": {
+      "type": "string"
     }
   },
   "required": [
     "digest_name",
     "report"
-  ]
+  ],
+  "rls": {
+    "delete": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  },
+  "type": "object"
 }
