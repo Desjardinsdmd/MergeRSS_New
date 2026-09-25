@@ -234,6 +234,11 @@ async function claim(svc, runId) {
 }
 
 async function store(svc, source, items, category, stats) {
+    // Retention window applies at intake too: a podcast's first fetch can list its whole
+    // back catalogue (Recode Decode: 922 episodes). Nothing older than 90 days is stored.
+    const floor = Date.now() - 90 * 86400_000;
+    items = items.filter(it => new Date(it.published_date).getTime() >= floor);
+    stats.items_seen = (stats.items_seen || 0) + items.length;
     if (!items.length) return 0;
     // Dedupe within the fetch itself
     const byKey = new Map();
@@ -319,13 +324,28 @@ Deno.serve(async (req) => {
         await Promise.all(Array.from({ length: CONCURRENCY }, async () => {
             while (queue.length) {
                 const source = queue.shift();
-                const interval = hot.has(source.id) ? HOT_MIN : COLD_MIN;
+                const baseInterval = hot.has(source.id) ? HOT_MIN : (source.fetch_interval_min || COLD_MIN);
+                let interval = baseInterval;
                 const nowIso = new Date().toISOString();
                 try {
                     const r = await fetchFeed(source);
                     let added = 0;
+                    let seen = 0;
                     if (r.notModified) stats.not_modified++;
-                    else added = await store(svc, source, r.items, categoryBySource[source.id], stats);
+                    else {
+                        const before = stats.items_seen || 0;
+                        added = await store(svc, source, r.items, categoryBySource[source.id], stats);
+                        seen = (stats.items_seen || 0) - before;
+                    }
+                    // Adaptive cadence for cold sources. If every item in the feed was new, items
+                    // are scrolling off between polls (Djinni, Slickdeals, The Athletic lost items
+                    // this way in the shadow comparison), so halve the interval. If under 20% was
+                    // new, relax back toward hourly.
+                    if (!hot.has(source.id) && seen > 0) {
+                        const ratio = added / seen;
+                        if (ratio >= 0.95) interval = Math.max(HOT_MIN, Math.round(baseInterval / 2));
+                        else if (ratio < 0.2) interval = Math.min(COLD_MIN, Math.round(baseInterval * 1.5));
+                    }
                     stats.sources_fetched++;
                     await svc.Source.update(source.id, {
                         last_fetched_at: nowIso, last_success_at: nowIso, consecutive_errors: 0, last_error: '',
