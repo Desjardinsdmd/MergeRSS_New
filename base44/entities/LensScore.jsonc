@@ -1,7 +1,7 @@
 {
   "name": "LensScore",
   "type": "object",
-  "description": "A lens owner's score for a shared SourceItem. Replaces custom_lens_scores arrays embedded on shared items.",
+  "description": "A lens owner's score for a shared Article. Replaces custom_lens_scores arrays embedded on shared items.",
   "properties": {
     "lens_id": {
       "type": "string"
@@ -9,10 +9,7 @@
     "owner_email": {
       "type": "string"
     },
-    "item_id": {
-      "type": "string"
-    },
-    "source_id": {
+    "article_id": {
       "type": "string"
     },
     "importance_score": {
@@ -42,7 +39,7 @@
   "required": [
     "lens_id",
     "owner_email",
-    "item_id"
+    "article_id"
   ],
   "rls": {
     "create": {

@@ -1,33 +1,15 @@
 {
   "name": "SourceItem",
   "type": "object",
-  "description": "One article per Source (deduped by guid/canonical_url). Shared enrichment. Users read these only through backend functions that check their subscriptions.",
+  "description": "Link between a Source and an Article it published. Queried by source_id + published_date to build a user's feed.",
   "properties": {
     "source_id": {
       "type": "string"
     },
+    "article_id": {
+      "type": "string"
+    },
     "guid": {
-      "type": "string"
-    },
-    "canonical_url": {
-      "type": "string"
-    },
-    "dedupe_hash": {
-      "type": "string"
-    },
-    "title": {
-      "type": "string"
-    },
-    "url": {
-      "type": "string"
-    },
-    "description": {
-      "type": "string"
-    },
-    "content": {
-      "type": "string"
-    },
-    "author": {
       "type": "string"
     },
     "published_date": {
@@ -38,59 +20,13 @@
       "type": "string",
       "format": "date-time"
     },
-    "category": {
+    "legacy_item_id": {
       "type": "string"
-    },
-    "entities": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "ai_summary": {
-      "type": "string"
-    },
-    "importance_score": {
-      "type": "number"
-    },
-    "intelligence_tag": {
-      "type": "string",
-      "enum": [
-        "Trending",
-        "Risk",
-        "Opportunity",
-        "Neutral"
-      ]
-    },
-    "enrichment_status": {
-      "type": "string",
-      "enum": [
-        "pending",
-        "processing",
-        "done",
-        "fallback",
-        "failed"
-      ],
-      "default": "pending"
-    },
-    "enrichment_attempts": {
-      "type": "number",
-      "default": 0
-    },
-    "enrich_lease_until": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "legacy_item_ids": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
     }
   },
   "required": [
     "source_id",
-    "title"
+    "article_id"
   ],
   "rls": {
     "create": {

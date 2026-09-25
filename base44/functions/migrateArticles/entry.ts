@@ -118,7 +118,7 @@ Deno.serve(async (req) => {
                             url_key: k, url: it.url, title: it.title || '(untitled)', description: it.description || '',
                             content: it.content || '', author: it.author || '', published_date: it.published_date,
                             first_seen_at: it.created_date, category: it.category || '', entities: it.entities || [],
-                            ai_summary: it.ai_summary || '', importance_score: it.importance_score ?? null,
+                            ai_summary: it.ai_summary || '', importance_score: it.importance_score ?? undefined,
                             intelligence_tag: it.intelligence_tag || undefined,
                             enrichment_status: it.enrichment_status || 'pending',
                             legacy_item_ids: todo.filter(t => itemKey(t) === k).map(t => t.id),
@@ -141,9 +141,9 @@ Deno.serve(async (req) => {
                         const owner = lensOwner[cls.lens_id];
                         if (!owner || owner !== sub.user_email) { stats.lens_scores_skipped_cross_tenant++; continue; }
                         scores.push({ lens_id: cls.lens_id, owner_email: owner, article_id: art.id,
-                            importance_score: cls.importance_score ?? null, intelligence_tag: cls.intelligence_tag || undefined,
+                            importance_score: cls.importance_score ?? undefined, intelligence_tag: cls.intelligence_tag || undefined,
                             ai_summary: cls.ai_summary || '', structured_metadata: cls.structured_metadata || {},
-                            scored_at: cls.scored_at || null });
+                            scored_at: cls.scored_at || undefined });
                     }
                 }
                 for (const c of chunks(links, CHUNK)) await svc.SourceItem.bulkCreate(c);

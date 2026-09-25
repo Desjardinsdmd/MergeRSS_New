@@ -1,15 +1,12 @@
 {
   "name": "UserItemState",
   "type": "object",
-  "description": "Per-user state on a shared SourceItem (read, saved). Replaces is_read on shared items.",
+  "description": "Per-user state on a shared Article (read, saved). Saved articles are never pruned by retention.",
   "properties": {
     "user_email": {
       "type": "string"
     },
-    "item_id": {
-      "type": "string"
-    },
-    "source_id": {
+    "article_id": {
       "type": "string"
     },
     "is_read": {
@@ -23,11 +20,14 @@
     "read_at": {
       "type": "string",
       "format": "date-time"
+    },
+    "legacy_item_id": {
+      "type": "string"
     }
   },
   "required": [
     "user_email",
-    "item_id"
+    "article_id"
   ],
   "rls": {
     "create": {

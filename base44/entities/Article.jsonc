@@ -1,0 +1,113 @@
+{
+  "name": "Article",
+  "type": "object",
+  "description": "One row per unique article (keyed by url_key). Shared enrichment, scored once regardless of how many sources or users carry it.",
+  "properties": {
+    "url_key": {
+      "type": "string",
+      "description": "Dedup key: normalized canonical URL (host lowercase, no www, no tracking params, no trailing slash)"
+    },
+    "url": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "content": {
+      "type": "string"
+    },
+    "author": {
+      "type": "string"
+    },
+    "published_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "first_seen_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "category": {
+      "type": "string"
+    },
+    "entities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ai_summary": {
+      "type": "string"
+    },
+    "importance_score": {
+      "type": "number"
+    },
+    "intelligence_tag": {
+      "type": "string",
+      "enum": [
+        "Trending",
+        "Risk",
+        "Opportunity",
+        "Neutral"
+      ]
+    },
+    "enrichment_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "processing",
+        "done",
+        "fallback",
+        "failed"
+      ],
+      "default": "pending"
+    },
+    "enrichment_attempts": {
+      "type": "number",
+      "default": 0
+    },
+    "enrich_lease_until": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source_count": {
+      "type": "number",
+      "default": 1
+    },
+    "legacy_item_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "url_key",
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
