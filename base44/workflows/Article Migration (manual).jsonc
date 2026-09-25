@@ -1,0 +1,55 @@
+{
+  "name": "Article Migration (manual)",
+  "description": "Step 1 creates Sources and Subscriptions from legacy feeds (idempotent). Step 2 copies the last 90 days of articles into the deduplicated Article model (idempotent, self-continuing). Legacy tables are not modified.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 4 1 1 *",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "article_migration_manual",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "sources": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "migrateToSources",
+            "args": {
+              "mode": "apply"
+            }
+          },
+          "then": "articles"
+        }
+      },
+      {
+        "articles": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "migrateArticles",
+            "args": {
+              "days": 90
+            }
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}
