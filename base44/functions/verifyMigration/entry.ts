@@ -71,7 +71,16 @@ Deno.serve(async (req) => {
         const articles = await scan(svc.Article, {}, ['id', 'created_date', 'enrichment_status']);
         const articleIds = new Set(articles.map(a => a.id));
         const migratedArticles = new Set(migratedLinks.map(l => l.article_id)).size;
-        const brokenLinks = links.filter(l => !articleIds.has(l.article_id)).length;
+        // Paging with skip over bulk-created rows (identical created_date) can drop rows between
+        // pages, so a link that looks broken is re-checked by direct id lookup before counting it.
+        const suspect = [...new Set(links.filter(l => !articleIds.has(l.article_id)).map(l => l.article_id))];
+        const found = new Set();
+        for (let i = 0; i < suspect.length; i += 100) {
+            for (const a of rowsOf(await svc.Article.filter({ id: { $in: suspect.slice(i, i + 100) } }, 'created_date', 200, 0, ['id']))) found.add(a.id);
+        }
+        const brokenIds = suspect.filter(id => !found.has(id));
+        const brokenLinks = links.filter(l => brokenIds.includes(l.article_id)).length;
+        const pagingMisses = suspect.length - brokenIds.length;
         const statusMix = {};
         for (const a of articles) statusMix[a.enrichment_status || 'none'] = (statusMix[a.enrichment_status || 'none'] || 0) + 1;
         const lensScores = (await scan(svc.LensScore, {}, ['id'])).length;
@@ -91,6 +100,8 @@ Deno.serve(async (req) => {
             articles_total_now: allArticles, links_total_now: allLinks,
             enrichment_status: statusMix, lens_scores: lensScores, read_states: readStates,
             broken_links: brokenLinks,
+            broken_article_ids_sample: brokenIds.slice(0, 10),
+            paging_misses: pagingMisses,
             mismatches: mismatches.slice(0, 20),
         };
 
