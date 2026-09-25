@@ -1,0 +1,43 @@
+{
+  "name": "Verify Migration (manual)",
+  "description": "Read-only: compares legacy articles in the 90-day window against migrated links per subscription, checks Sources exist and sampled links resolve to Articles. Writes a migration_verify report to System Health.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 4 1 1 *",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "verify_migration_manual",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "verify": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "verifyMigration",
+            "args": {
+              "cutoff": "2026-06-27T13:31:07.260Z"
+            }
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}
