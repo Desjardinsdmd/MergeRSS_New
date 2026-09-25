@@ -90,10 +90,13 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
   const checkFeedHealth = async (url) => {
     // Use the same proxy to do a real check
     try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 12000);
-      const res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`, { signal: controller.signal });
-      clearTimeout(timeout);
+      // Checked server-side (checkFeedUrl). This used to go through api.allorigins.win,
+      // handing every typed feed URL, private tokens included, to a third party.
+      const { data } = await base44.functions.invoke('checkFeedUrl', { url });
+      if (data?.blocked) return { ok: false, category: 'network_error' };
+      if (data?.timeout) return { ok: false, category: 'timeout' };
+      if (data?.error) return { ok: false, category: 'network_error' };
+      const res = { status: data.http_status, ok: data.ok, text: async () => data.body_head || '' };
 
       const httpStatus = res.status;
       if (!res.ok) {
