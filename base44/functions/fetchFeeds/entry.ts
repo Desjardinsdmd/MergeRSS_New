@@ -23,9 +23,9 @@ async function requireAdminOrScheduler(base44) {
         if (user && user.role !== 'admin') {
             return { error: Response.json({ error: 'Forbidden' }, { status: 403 }) };
         }
-        return { user: user || null };
+        return { user: user || null, path: user ? 'admin_user' : 'null_user' };
     } catch {
-        return { user: null }; // scheduler context — allow
+        return { user: null, path: 'auth_threw' }; // scheduler context — allow (under audit)
     }
 }
 
@@ -481,8 +481,9 @@ Deno.serve(async (req) => {
         }
     }
 
-    const { error: authError } = await requireAdminOrScheduler(base44);
+    const { error: authError, path: authPath } = await requireAdminOrScheduler(base44);
     if (authError) return authError;
+    const hasInternalHeader = !!req.headers.get('x-internal-secret');
 
     const startedAt = new Date().toISOString();
     const runStartMs = Date.now();
@@ -620,7 +621,7 @@ Deno.serve(async (req) => {
         await base44.asServiceRole.entities.SystemHealth.update(lockRecord.id, {
             status: 'completed',
             completed_at: new Date().toISOString(),
-            metadata: { ...finalSummary, instance_id: instanceId, run_type: 'main' },
+            metadata: { ...finalSummary, instance_id: instanceId, run_type: 'main', auth_path: authPath, has_internal_header: hasInternalHeader },
         }).catch(() => {});
     }
 
