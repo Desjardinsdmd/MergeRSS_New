@@ -29,8 +29,8 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me().catch(() => null);
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    // If no specific publication, require admin for scheduled runs
-    if (!publication_id && user.role !== 'admin') {
+    // Publishing is admin-only in every path (manual trigger included).
+    if (user.role !== 'admin') {
         return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 
