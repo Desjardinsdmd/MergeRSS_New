@@ -1,39 +1,77 @@
 {
   "name": "FeedAlert",
-  "type": "object",
   "properties": {
-    "feed_id": {
-      "type": "string",
-      "description": "Reference to the Feed"
-    },
     "channel_type": {
-      "type": "string",
+      "description": "Where to send alerts",
       "enum": [
         "slack",
         "discord"
       ],
-      "description": "Where to send alerts"
+      "type": "string"
     },
-    "webhook_url": {
-      "type": "string",
-      "description": "Webhook URL to post to"
-    },
-    "label": {
-      "type": "string",
-      "description": "Optional label for this alert"
+    "feed_id": {
+      "description": "Reference to the Feed",
+      "type": "string"
     },
     "is_active": {
-      "type": "boolean",
-      "default": true
+      "default": true,
+      "type": "boolean"
+    },
+    "label": {
+      "description": "Optional label for this alert",
+      "type": "string"
     },
     "last_sent": {
-      "type": "string",
-      "format": "date-time"
+      "format": "date-time",
+      "type": "string"
+    },
+    "webhook_url": {
+      "description": "Webhook URL to post to",
+      "type": "string"
     }
   },
   "required": [
     "feed_id",
     "channel_type",
     "webhook_url"
-  ]
+  ],
+  "rls": {
+    "delete": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  },
+  "type": "object"
 }
