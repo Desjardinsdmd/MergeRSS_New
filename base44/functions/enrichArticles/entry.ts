@@ -145,7 +145,7 @@ async function skipStale(svc, cutoffIso, stats, t0) {
     const query = { enrichment_status: 'pending', first_seen_at: { $lt: cutoffIso } };
     try {
         // One server-side call instead of 200 row updates.
-        const r = await svc.Article.updateMany(query, { enrichment_status: 'skipped' });
+        const r = await svc.Article.updateMany(query, { $set: { enrichment_status: 'skipped' } });
         stats.skipped_stale += Number(r?.updated ?? r?.modified_count ?? r?.count ?? 0);
         return;
     } catch (e) {
