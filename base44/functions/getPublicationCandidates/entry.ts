@@ -94,7 +94,9 @@ Deno.serve(async (req) => {
 
     // Dedup: get recently posted cluster IDs
     const recentPosts = extractItems(await base44.asServiceRole.entities.PublicationPost.filter(
-        { publication_id: pub.id, created_date: { $gte: skipCutoff } }, '-created_date', 50
+        // Look back at least as far as the candidate window so a story drafted or posted
+        // earlier in the window never resurfaces (it was posted up to 3x before this fix).
+        { publication_id: pub.id, created_date: { $gte: windowCutoff < skipCutoff ? windowCutoff : skipCutoff } }, '-created_date', 200
     ));
     const recentClusterIds = new Set(recentPosts.map(p => p.cluster_id).filter(Boolean));
 
