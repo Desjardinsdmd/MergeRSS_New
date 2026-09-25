@@ -1,62 +1,107 @@
 {
   "name": "PublicationPost",
-  "type": "object",
   "properties": {
-    "publication_id": {
-      "type": "string"
-    },
-    "cluster_id": {
-      "type": "string",
-      "description": "Selected StoryCluster ID"
-    },
     "candidate_pool": {
-      "type": "array",
+      "description": "Other cluster_ids that were considered for this slot",
       "items": {
         "type": "string"
       },
-      "description": "Other cluster_ids that were considered for this slot"
+      "type": "array"
     },
-    "selection_reason": {
-      "type": "string",
-      "description": "LLM-generated rationale for why this cluster was selected over others"
+    "chosen_variant_index": {
+      "description": "Which variant the user approved (0-indexed)",
+      "type": "number"
+    },
+    "cluster_id": {
+      "description": "Selected StoryCluster ID",
+      "type": "string"
     },
     "draft_variants": {
-      "type": "array",
+      "description": "Generated draft options",
       "items": {
-        "type": "object",
         "properties": {
-          "label": {
-            "type": "string",
-            "description": "e.g. 'wire', 'thread', 'take'"
-          },
           "content": {
-            "type": "array",
+            "description": "One element for single post; multiple for thread",
             "items": {
               "type": "string"
             },
-            "description": "One element for single post; multiple for thread"
+            "type": "array"
+          },
+          "label": {
+            "description": "e.g. 'wire', 'thread', 'take'",
+            "type": "string"
           },
           "metadata": {
-            "type": "object",
-            "additionalProperties": true
+            "additionalProperties": true,
+            "type": "object"
           }
+        },
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "engagement_metrics": {
+      "properties": {
+        "bookmarks": {
+          "type": "number"
+        },
+        "fetched_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "impressions": {
+          "type": "number"
+        },
+        "likes": {
+          "type": "number"
+        },
+        "replies": {
+          "type": "number"
+        },
+        "reposts": {
+          "type": "number"
         }
       },
-      "description": "Generated draft options"
+      "type": "object"
     },
-    "chosen_variant_index": {
-      "type": "number",
-      "description": "Which variant the user approved (0-indexed)"
+    "error_message": {
+      "description": "Set if status=failed",
+      "type": "string"
     },
-    "final_content": {
-      "type": "array",
+    "external_post_ids": {
+      "description": "X tweet IDs after posting",
       "items": {
         "type": "string"
       },
-      "description": "The actual posted content after any human edits"
+      "type": "array"
+    },
+    "final_content": {
+      "description": "The actual posted content after any human edits",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "human_notes": {
+      "type": "string"
+    },
+    "posted_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "publication_id": {
+      "type": "string"
+    },
+    "scheduled_for": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "selection_reason": {
+      "description": "LLM-generated rationale for why this cluster was selected over others",
+      "type": "string"
     },
     "status": {
-      "type": "string",
+      "default": "draft",
       "enum": [
         "draft",
         "approved",
@@ -66,56 +111,54 @@
         "archived",
         "failed"
       ],
-      "default": "draft"
-    },
-    "scheduled_for": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "posted_at": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "external_post_ids": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "description": "X tweet IDs after posting"
-    },
-    "engagement_metrics": {
-      "type": "object",
-      "properties": {
-        "impressions": {
-          "type": "number"
-        },
-        "likes": {
-          "type": "number"
-        },
-        "reposts": {
-          "type": "number"
-        },
-        "replies": {
-          "type": "number"
-        },
-        "bookmarks": {
-          "type": "number"
-        },
-        "fetched_at": {
-          "type": "string",
-          "format": "date-time"
-        }
-      }
-    },
-    "human_notes": {
       "type": "string"
-    },
-    "error_message": {
-      "type": "string",
-      "description": "Set if status=failed"
     }
   },
   "required": [
     "publication_id"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  },
+  "type": "object"
 }
