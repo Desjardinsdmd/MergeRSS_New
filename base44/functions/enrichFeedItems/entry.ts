@@ -283,6 +283,8 @@ ${JSON.stringify(articlesPayload, null, 2)}`,
                     const matchingItems = needsEnrichment.filter(item => {
                         const feed = feedMap[item.feed_id];
                         if (!feed) return false;
+                        // Tenant guard (2026-09-25): a lens only scores feeds its owner subscribes to
+                        if (feed.created_by !== lens.created_by) return false;
                         // Check category filter (if set, feed category must match one)
                         if (lens.feed_filter_categories?.length > 0) {
                             if (!lens.feed_filter_categories.includes(feed.category)) return false;

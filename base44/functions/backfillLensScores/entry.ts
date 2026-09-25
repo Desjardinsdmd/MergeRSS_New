@@ -79,7 +79,8 @@ Deno.serve(async (req) => {
     console.log(`[backfill] Processing lens "${lens.name}" (${LENS_ID})${lensesToProcess.length > 1 ? ` (+${lensesToProcess.length - 1} more)` : ''}`);
 
     // Find matching feeds
-    let feedFilter = {};
+    // Tenant guard (2026-09-25): a lens only scores feeds its owner subscribes to
+    let feedFilter = { created_by: lens.created_by };
     if (lens.feed_filter_tags?.length > 0) {
         feedFilter.tags = { $in: lens.feed_filter_tags };
     }
@@ -302,7 +303,7 @@ ${JSON.stringify(articlesPayload, null, 2)}`,
             const extraLens = lensesToProcess[li];
             console.log(`[backfill] Processing additional lens "${extraLens.name}" (${extraLens.id})`);
             // Score items for this lens (reuse same feed matching logic inline)
-            let extraFeedFilter = {};
+            let extraFeedFilter = { created_by: extraLens.created_by }; // tenant guard
             if (extraLens.feed_filter_tags?.length > 0) extraFeedFilter.tags = { $in: extraLens.feed_filter_tags };
             const extraFeeds = extractItems(await base44.asServiceRole.entities.Feed.filter(
                 Object.keys(extraFeedFilter).length ? extraFeedFilter : {}, '-created_date', 200

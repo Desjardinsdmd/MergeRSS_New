@@ -89,6 +89,11 @@
           }
         }
       ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
     }
   },
   "type": "object"
