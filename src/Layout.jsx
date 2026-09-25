@@ -46,13 +46,10 @@ const navigation = [
   { name: 'Inbox', href: 'Inbox', icon: Inbox },
   { name: 'Read Later', href: 'Bookmarks', icon: Bookmark },
 
-  { name: 'Email Feeds', href: 'EmailFeeds', icon: Mail },
   { name: 'Search', href: 'ArticleSearch', icon: Search },
   { name: 'Directory', href: 'Directory', icon: Globe },
   { name: 'Team', href: 'Team', icon: Users },
-  { name: 'Publications', href: 'Publications', icon: Newspaper },
   { name: 'Integrations', href: 'Integrations', icon: Link2 },
-  { name: 'Lenses', href: 'SettingsLenses', icon: SlidersHorizontal },
   { name: 'Settings', href: 'Settings', icon: Settings },
 ];
 
@@ -60,6 +57,11 @@ const navigation = [
 // { name: 'RSS Generator', href: 'RssFeedGenerator', icon: Rss }, // → now backend-only via addSource()
 
 const adminNav = [
+  // Admin-only features (single-tenant by design for now: they run on the app
+  // owner's Gmail connector and X account). Backend functions enforce this too.
+  { name: 'Publications', href: 'Publications', icon: Newspaper },
+  { name: 'Lenses', href: 'SettingsLenses', icon: SlidersHorizontal },
+  { name: 'Email Feeds', href: 'EmailFeeds', icon: Mail },
   { name: 'System Health', href: 'AdminHealth', icon: Activity },
   { name: 'Problem Reports', href: 'AdminReports', icon: AlertCircle },
   { name: 'Import Feeds', href: 'AdminImport', icon: Globe },
