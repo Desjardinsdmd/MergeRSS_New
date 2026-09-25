@@ -355,10 +355,12 @@ ${JSON.stringify(articlesPayload, null, 2)}`,
     }
 
     // ── Chain: trigger clustering to recompute lens aggregates ──────────────
-    if (CHAIN_CLUSTER && totalScored > 0) {
+    // Single clustering entry point per fetch cycle (2026-09-25): chain whenever asked,
+    // even if no lens items needed scoring, so non-lens items still get grouped.
+    if (CHAIN_CLUSTER) {
         console.log(`[backfill] Chaining → clusterStories`);
         try {
-            await base44.asServiceRole.functions.invoke('clusterStories', {});
+            await base44.asServiceRole.functions.invoke('clusterStories', { window_hours: 48 });
             console.log(`[backfill] Clustering chain complete`);
         } catch (clusterErr) {
             console.warn(`[backfill] Clustering chain failed (non-fatal): ${clusterErr.message}`);
