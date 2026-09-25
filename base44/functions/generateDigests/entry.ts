@@ -94,13 +94,14 @@ Deno.serve(async (req) => {
 
         // Auth check
         let callerEmail = null;
-        try {
-            const user = await base44.auth.me();
-            callerEmail = user?.email;
-        } catch {
-            if (digest_id) {
-                return Response.json({ error: 'Unauthorized' }, { status: 401 });
-            }
+        let callerUser = null;
+        try { callerUser = await base44.auth.me(); } catch { callerUser = null; }
+        callerEmail = callerUser?.email || null;
+        // Hardened 2026-09-25: single-digest runs need a logged-in owner;
+        // the full batch (no digest_id) is admin/scheduler only.
+        if (!callerUser) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+        if (!digest_id && callerUser.role !== 'admin') {
+            return Response.json({ error: 'Forbidden' }, { status: 403 });
         }
 
         let digests;

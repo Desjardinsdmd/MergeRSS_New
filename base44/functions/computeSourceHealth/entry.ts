@@ -32,15 +32,13 @@ async function safeList(entity, sort, limit = 1000) {
 }
 
 async function requireAdminOrScheduler(base44) {
-    try {
-        const user = await base44.auth.me();
-        if (user && user.role !== 'admin') {
-            return { error: Response.json({ error: 'Forbidden' }, { status: 403 }) };
-        }
-        return { user: user || null };
-    } catch {
-        return { user: null };
-    }
+    let user = null;
+    try { user = await base44.auth.me(); } catch { user = null; }
+    // Hardened 2026-09-25: scheduled and chained runs arrive as the app admin
+    // (verified via auth_path telemetry). Anything without an admin user is rejected.
+    if (!user) return { error: Response.json({ error: 'Unauthorized' }, { status: 401 }) };
+    if (user.role !== 'admin') return { error: Response.json({ error: 'Forbidden' }, { status: 403 }) };
+    return { user, path: 'admin_user' };
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }

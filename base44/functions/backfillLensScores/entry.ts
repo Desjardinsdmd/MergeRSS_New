@@ -34,14 +34,10 @@ Deno.serve(async (req) => {
 
     // Allow admin users and scheduler (no user session)
     let user = null;
-    try {
-        user = await base44.auth.me();
-        if (user && user.role !== 'admin') {
-            return Response.json({ error: 'Forbidden' }, { status: 403 });
-        }
-    } catch {
-        // Scheduler call — no user session, proceed with service role
-    }
+    try { user = await base44.auth.me(); } catch { user = null; }
+    // Hardened 2026-09-25: scheduled/chained runs arrive as the app admin.
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    if (user.role !== 'admin') return Response.json({ error: 'Forbidden' }, { status: 403 });
 
     let body = {};
     try { body = await req.json(); } catch {}
