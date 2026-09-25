@@ -106,9 +106,8 @@ Deno.serve(async (req) => {
     }
 
     const done = !outOfTime && !error;
-    const [articles, allLinks] = done
-        ? [await countAll(svc.Article, {}, Date.now()), await countAll(svc.SourceItem, {}, Date.now())]
-        : [null, null];
+    // Totals come from the migration's own SystemHealth logs; counting ~90k rows here would blow the time budget.
+    const articles = null, allLinks = null;
 
     const report = {
         hop, days, cutoff, done, error, cursor: i, subscriptions: subs.length,
