@@ -147,7 +147,10 @@ async function fetchFeed(source) {
     if (parsed.rss?.channel) {
         items = (parsed.rss.channel.item || []).map(i => ({
             title: decodeHtml(txt(i.title)) || 'Untitled',
-            url: txt(i.link) || txt(i.guid),
+            // Podcast feeds often have no <link>; fall back to the episode's audio file, then to a
+            // guid that is itself a URL. (Legacy stored the bare guid, which isn't a link at all.)
+            url: txt(i.link) || (Array.isArray(i.enclosure) ? i.enclosure[0] : i.enclosure)?.['@_url'] ||
+                (/^https?:\/\//i.test(txt(i.guid)) ? txt(i.guid) : ''),
             description: decodeHtml(txt(i.description)),
             content: decodeHtml(txt(i['content:encoded']) || txt(i.description)),
             author: decodeHtml(txt(i.author) || txt(i['dc:creator'])),
