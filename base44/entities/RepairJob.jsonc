@@ -1,41 +1,9 @@
 {
   "name": "RepairJob",
-  "type": "object",
   "properties": {
-    "status": {
-      "type": "string",
-      "enum": [
-        "idle",
-        "running",
-        "completed",
-        "failed",
-        "cancelled"
-      ],
-      "default": "idle"
-    },
-    "total_count": {
-      "type": "number",
-      "default": 0
-    },
-    "processed_count": {
-      "type": "number",
-      "default": 0
-    },
-    "repaired_count": {
-      "type": "number",
-      "default": 0
-    },
-    "deleted_count": {
-      "type": "number",
-      "default": 0
-    },
-    "quarantined_count": {
-      "type": "number",
-      "default": 0
-    },
-    "failed_count": {
-      "type": "number",
-      "default": 0
+    "completed_at": {
+      "format": "date-time",
+      "type": "string"
     },
     "current_feed_id": {
       "type": "string"
@@ -43,32 +11,86 @@
     "current_feed_name": {
       "type": "string"
     },
-    "started_at": {
-      "type": "string",
-      "format": "date-time"
+    "deleted_count": {
+      "default": 0,
+      "type": "number"
     },
-    "completed_at": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "last_heartbeat_at": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "summary": {
-      "type": "object",
-      "additionalProperties": true,
-      "description": "Final summary with breakdown by failure category"
+    "failed_count": {
+      "default": 0,
+      "type": "number"
     },
     "feed_ids_snapshot": {
-      "type": "array",
+      "description": "IDs of all feeds captured at job start",
       "items": {
         "type": "string"
       },
-      "description": "IDs of all feeds captured at job start"
+      "type": "array"
+    },
+    "last_heartbeat_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "processed_count": {
+      "default": 0,
+      "type": "number"
+    },
+    "quarantined_count": {
+      "default": 0,
+      "type": "number"
+    },
+    "repaired_count": {
+      "default": 0,
+      "type": "number"
+    },
+    "started_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "status": {
+      "default": "idle",
+      "enum": [
+        "idle",
+        "running",
+        "completed",
+        "failed",
+        "cancelled"
+      ],
+      "type": "string"
+    },
+    "summary": {
+      "additionalProperties": true,
+      "description": "Final summary with breakdown by failure category",
+      "type": "object"
+    },
+    "total_count": {
+      "default": 0,
+      "type": "number"
     }
   },
   "required": [
     "status"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object"
 }
