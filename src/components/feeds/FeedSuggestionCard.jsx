@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
+import { safeUrl } from '@/components/utils/htmlUtils';
 const categoryColors = {
   CRE: 'bg-amber-950 text-amber-400 border-amber-700',
   Markets: 'bg-blue-950 text-blue-400 border-blue-700',
@@ -35,7 +36,7 @@ export default function FeedSuggestionCard({ feed, onAdd, added, adding }) {
             </Badge>
           </div>
           <a
-            href={feed.url}
+            href={safeUrl(feed.url)}
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-stone-500 hover:text-[hsl(var(--primary))] flex items-center gap-1 truncate transition"

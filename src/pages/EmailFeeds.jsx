@@ -9,6 +9,7 @@ import { Mail, Trash2, Plus, Loader2, CheckCircle2, XCircle, WifiOff, Wifi, Exte
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 
+import { safeUrl } from '@/components/utils/htmlUtils';
 function NewsletterEmailCard({ email, onMarkRead }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -64,7 +65,7 @@ function NewsletterEmailCard({ email, onMarkRead }) {
                   {email.links.map((link, i) => (
                     <a
                       key={i}
-                      href={link.url}
+                      href={safeUrl(link.url)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-start gap-2 group text-sm text-stone-300 hover:text-[hsl(var(--primary))] transition-colors"

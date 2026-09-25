@@ -400,7 +400,9 @@ Write a well-organized, professional digest. Group related stories where appropr
                     (async () => {
                         if (!digest.delivery_teams) return;
                         const teamsIntegrations = extractItems(await base44.asServiceRole.entities.Integration.filter({ type: 'teams', status: 'connected' }));
-                        const teamsInt = teamsIntegrations.find(i => i.created_by === digest.created_by) || teamsIntegrations[0];
+                        // Owner's own integration only. The old `|| teamsIntegrations[0]` fallback posted digests
+                        // into another account's Teams channel when the owner had none (2026-09-25).
+                        const teamsInt = teamsIntegrations.find(i => i.created_by === digest.created_by);
                         if (!teamsInt?.webhook_url) return;
                         if (!isAllowedWebhookUrl(teamsInt.webhook_url)) {
                             console.warn(`[generateDigests] Blocked Teams webhook to disallowed host: ${teamsInt.webhook_url}`);

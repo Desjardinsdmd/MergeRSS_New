@@ -6,6 +6,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LineChart, Line, ResponsiveContainer } from 'recharts';
 
+import { safeUrl } from '@/components/utils/htmlUtils';
 const TAB_KEYS = ['CRE', 'AI/Tech', 'Macro'];
 
 function MultiplierBadge({ multiplier }) {
@@ -71,7 +72,7 @@ function SignalRow({ signal }) {
       </p>
       {topArticle && (
         <a
-          href={topArticle.url}
+          href={safeUrl(topArticle.url)}
           target="_blank"
           rel="noopener noreferrer"
           className="text-[11px] text-stone-400 hover:text-[hsl(var(--primary))] transition mt-1 flex items-center gap-1 line-clamp-1"

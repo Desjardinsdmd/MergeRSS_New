@@ -21,7 +21,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import InboxFolderSidebar from '@/components/inbox/InboxFolderSidebar';
-import { decodeHtml } from '@/components/utils/htmlUtils';
+import { decodeHtml, safeUrl } from '@/components/utils/htmlUtils';
 import InboxToolbar from '@/components/inbox/InboxToolbar';
 import { jsPDF } from 'jspdf';
 import { generatePremiumPdf } from '@/lib/generatePremiumPdf';
@@ -458,7 +458,7 @@ export default function Inbox() {
                       {selectedDelivery.items.map((item, i) => (
                         <a
                           key={i}
-                          href={item.url}
+                          href={safeUrl(item.url)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-start gap-2 px-4 py-2.5 hover:bg-stone-700 transition group"

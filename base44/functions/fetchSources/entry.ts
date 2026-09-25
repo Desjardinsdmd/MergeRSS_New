@@ -178,7 +178,11 @@ async function fetchFeed(source) {
 
     return {
         notModified: false,
-        items: items.filter(i => i.url || i.guid),
+        // Only http(s) article links are stored; javascript:/data: URLs from a hostile feed
+        // would otherwise flow into every user's inbox and widgets.
+        items: items
+            .map(i => ({ ...i, url: /^https?:\/\//i.test(String(i.url || '').trim()) ? String(i.url).trim() : '' }))
+            .filter(i => i.url || i.guid),
         etag: res.headers.get('etag') || '',
         lastModified: res.headers.get('last-modified') || '',
     };

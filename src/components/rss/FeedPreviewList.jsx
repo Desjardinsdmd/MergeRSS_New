@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ExternalLink, Calendar, User } from 'lucide-react';
 import { format } from 'date-fns';
 
+import { safeUrl } from '@/components/utils/htmlUtils';
 function safeDate(str) {
     if (!str) return null;
     try {
@@ -27,7 +28,7 @@ export default function FeedPreviewList({ items }) {
                     {items.slice(0, 10).map((item, i) => (
                         <div key={i} className="py-3 first:pt-0 last:pb-0">
                             <a
-                                href={item.url}
+                                href={safeUrl(item.url)}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="group block"

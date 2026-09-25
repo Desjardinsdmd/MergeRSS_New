@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { TrendingUp, ExternalLink, Clock, ArrowRight, Zap } from 'lucide-react';
-import { decodeHtml } from '@/components/utils/htmlUtils';
+import { decodeHtml, safeUrl } from '@/components/utils/htmlUtils';
 import { getArticleImage, normalizeImageUrl } from '@/components/utils/imageUtils';
 import { calculateReadTime, getFaviconUrl } from '@/components/utils/articleUtils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -65,7 +65,7 @@ export default function TrendingArticles({ articles }) {
             return (
               <a
                 key={item.id}
-                href={item.url}
+                href={safeUrl(item.url)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-start gap-3 p-4 hover:bg-stone-800/80 hover:shadow-md transition-all duration-200 group border-b border-stone-800/30 last:border-0"
