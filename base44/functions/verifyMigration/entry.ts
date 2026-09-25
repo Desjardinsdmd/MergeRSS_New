@@ -1,141 +1,87 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.51';
 
 /**
  * verifyMigration — read-only check of the Feed -> Source/Article migration.
  *
- * For each Subscription, compares the number of legacy FeedItems in the window
- * with the number of SourceItem links migrated from that feed, and checks that
- * every Subscription points to a real Source and sampled links point to real
- * Articles. Writes nothing except a SystemHealth report (job_type
- * 'migration_verify'). Time-budgeted with self-continuation; the report from
- * the final hop has done: true and the full totals.
+ * Uses server-side aggregate() instead of paging rows (the previous version paged
+ * full FeedItem records, including content, and crashed the worker on large feeds).
  *
- * Admin only.
+ * Compares, per Source, legacy FeedItems in the window (grouped by feed_id, summed
+ * across the feeds that map to the Source) with migrated SourceItem links (links
+ * that carry a legacy_item_id). Also reports Article totals, the dedup rate among
+ * migrated rows, enrichment status mix, and Subscriptions pointing at missing Sources.
+ *
+ * Body: { days = 90, migration_cutoff?: ISO } — migration_cutoff separates rows the
+ * migration wrote from rows the new fetch worker wrote afterwards.
+ * Writes only a SystemHealth report (job_type 'migration_verify'). Admin only.
  */
 
-const BUDGET_MS = 45_000;
-const PAGE = 500;
-
-function extractItems(raw) {
-    if (!raw) return [];
-    if (Array.isArray(raw)) return raw;
-    if (Array.isArray(raw?.items)) return raw.items;
-    if (Array.isArray(raw?.data)) return raw.data;
-    return [];
-}
-
-async function countAll(entity, query, t0) {
-    let n = 0;
-    for (let skip = 0; ; skip += PAGE) {
-        if (Date.now() - t0 > BUDGET_MS) return { n, partial: true };
-        const page = extractItems(await entity.filter(query, 'created_date', PAGE, skip));
-        n += page.length;
-        if (page.length < PAGE) return { n, partial: false };
-    }
-}
+const rowsOf = (r) => (Array.isArray(r) ? r : (r?.rows || r?.items || r?.data || []));
 
 Deno.serve(async (req) => {
-    const t0 = Date.now();
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me().catch(() => null);
     if (!user || user.role !== 'admin') return Response.json({ error: 'Forbidden' }, { status: 403 });
 
     const body = await req.json().catch(() => ({}));
     const days = Number(body.days) > 0 ? Number(body.days) : 90;
-    const hop = body.hop || 0;
-    const start = body.cursor || 0;
-    const acc = body.acc || { legacy: 0, migrated: 0, mismatches: [], missing_sources: [], broken_links: 0, checked_links: 0 };
-    const cutoff = body.cutoff || new Date(Date.now() - days * 86400_000).toISOString();
+    const migrationCutoff = body.migration_cutoff || '2026-09-25T13:44:00Z';
     const svc = base44.asServiceRole.entities;
 
-    const subs = extractItems(await svc.Subscription.filter({}, 'created_date', 5000));
-    const sourceIds = new Set(extractItems(await svc.Source.list('created_date', 5000)).map(s => s.id));
-
-    let i = start;
-    let outOfTime = false;
-    let error = null;
     try {
-    for (; i < subs.length; i++) {
-        if (Date.now() - t0 > BUDGET_MS) { outOfTime = true; break; }
-        const sub = subs[i];
-        if (!sourceIds.has(sub.source_id)) acc.missing_sources.push({ subscription: sub.id, name: sub.display_name });
+        const subs = rowsOf(await svc.Subscription.list({ limit: 5000, fields: ['id', 'source_id', 'legacy_feed_id', 'display_name'] }));
+        const sources = rowsOf(await svc.Source.list({ limit: 5000, fields: ['id', 'title'] }));
+        const sourceTitle = Object.fromEntries(sources.map(s => [s.id, s.title]));
+        const missingSources = subs.filter(s => !sourceTitle[s.source_id]).map(s => s.display_name);
 
-        // One pass over the legacy window, one pass over this source's links.
-        // A single feed is never split across hops, so a slow feed is retried whole next hop.
-        const legacyIds = new Set();
-        let partial = false;
-        for (let skip = 0; ; skip += PAGE) {
-            if (Date.now() - t0 > BUDGET_MS) { partial = true; break; }
-            const page = extractItems(await svc.FeedItem.filter(
-                { feed_id: sub.legacy_feed_id, published_date: { $gte: cutoff } }, 'created_date', PAGE, skip));
-            page.forEach(p => legacyIds.add(p.id));
-            if (page.length < PAGE) break;
-        }
-        const links = [];
-        for (let skip = 0; !partial; skip += PAGE) {
-            if (Date.now() - t0 > BUDGET_MS) { partial = true; break; }
-            const page = extractItems(await svc.SourceItem.filter({ source_id: sub.source_id }, 'created_date', PAGE, skip));
-            links.push(...page);
-            if (page.length < PAGE) break;
-        }
-        if (partial) {
-            // If even a fresh hop can't finish this feed, record it and move on instead of looping.
-            if (i === start && hop > 0) { acc.mismatches.push({ name: sub.display_name, error: 'too large to verify in one hop' }); continue; }
-            outOfTime = true; break;
-        }
-        const legacy = { n: legacyIds.size };
-        const migrated = links.filter(l => legacyIds.has(l.legacy_item_id)).length;
+        // The migration filtered on published_date >= (its run time - 90d); add a 1h margin so
+        // items that aged out between the migration and this check aren't counted as missing.
+        const legacyWindow = new Date(new Date(migrationCutoff).getTime() - days * 86400_000 + 3600_000).toISOString();
+        const legacyRows = rowsOf(await svc.FeedItem.aggregate({ query: { published_date: { $gte: legacyWindow } }, groupBy: 'feed_id' }));
+        const legacyByFeed = Object.fromEntries(legacyRows.map(r => [r.feed_id, r.count]));
 
-        acc.legacy += legacy.n;
-        acc.migrated += migrated;
-        if (migrated !== legacy.n) {
-            acc.mismatches.push({ name: sub.display_name, legacy: legacy.n, migrated, missing: legacy.n - migrated });
-        }
+        const linkRows = rowsOf(await svc.SourceItem.aggregate({ query: { legacy_item_id: { $gt: '' } }, groupBy: 'source_id' }));
+        const migratedBySource = Object.fromEntries(linkRows.map(r => [r.source_id, r.count]));
 
-        // Sample up to 20 links and confirm their Articles exist (one batched lookup)
-        const sample = [...new Set(links.slice(0, 20).map(l => l.article_id))];
-        if (sample.length) {
-            const found = new Set(extractItems(await svc.Article.filter({ id: { $in: sample } }, '-created_date', sample.length)).map(a => a.id));
-            acc.checked_links += sample.length;
-            acc.broken_links += sample.filter(id => !found.has(id)).length;
-        }
+        const legacyBySource = {};
+        for (const s of subs) legacyBySource[s.source_id] = (legacyBySource[s.source_id] || 0) + (legacyByFeed[s.legacy_feed_id] || 0);
+
+        const perSource = Object.keys(legacyBySource).map(id => ({
+            source: sourceTitle[id] || id, legacy: legacyBySource[id], migrated: migratedBySource[id] || 0,
+        }));
+        const mismatches = perSource.filter(p => p.legacy !== p.migrated).sort((a, b) => Math.abs(b.legacy - b.migrated) - Math.abs(a.legacy - a.migrated));
+        const legacyTotal = perSource.reduce((n, p) => n + p.legacy, 0);
+        const migratedTotal = perSource.reduce((n, p) => n + p.migrated, 0);
+
+        const total = async (entity, query) => rowsOf(await entity.aggregate(query ? { query } : {}))[0]?.count ?? 0;
+        const migratedArticles = await total(svc.Article, { created_date: { $lt: migrationCutoff } });
+        const allArticles = await total(svc.Article);
+        const allLinks = await total(svc.SourceItem);
+        const statusMix = Object.fromEntries(rowsOf(await svc.Article.aggregate({ groupBy: 'enrichment_status' })).map(r => [r.enrichment_status || 'none', r.count]));
+        const lensScores = await total(svc.LensScore);
+        const readStates = await total(svc.UserItemState);
+
+        const report = {
+            days, migration_cutoff: migrationCutoff,
+            subscriptions: subs.length, sources: sources.length, missing_sources: missingSources,
+            legacy_items_in_window: legacyTotal,
+            migrated_links: migratedTotal,
+            coverage_pct: legacyTotal ? Math.round((migratedTotal / legacyTotal) * 1000) / 10 : null,
+            migrated_articles: migratedArticles,
+            duplicates_collapsed: migratedTotal - migratedArticles,
+            dedup_rate_pct: migratedTotal ? Math.round((1 - migratedArticles / migratedTotal) * 1000) / 10 : null,
+            articles_total_now: allArticles, links_total_now: allLinks,
+            enrichment_status: statusMix, lens_scores: lensScores, read_states: readStates,
+            mismatches: mismatches.slice(0, 20),
+        };
+
+        await svc.SystemHealth.create({
+            job_type: 'migration_verify', status: 'completed',
+            started_at: new Date().toISOString(), completed_at: new Date().toISOString(), metadata: report,
+        }).catch((e) => console.error('[verifyMigration] health log failed:', e.message));
+        return Response.json(report);
+    } catch (err) {
+        await svc.SystemHealth.create({ job_type: 'migration_verify', status: 'failed', error_message: String(err.message).slice(0, 1000) }).catch(() => {});
+        return Response.json({ error: err.message }, { status: 500 });
     }
-
-    } catch (e) {
-        error = `sub ${i}: ${String(e?.message || e).slice(0, 400)}`;
-    }
-
-    const done = !outOfTime && !error;
-    // Totals come from the migration's own SystemHealth logs; counting ~90k rows here would blow the time budget.
-    const articles = null, allLinks = null;
-
-    const report = {
-        hop, days, cutoff, done, error, cursor: i, subscriptions: subs.length,
-        legacy_items_in_window: acc.legacy,
-        migrated_items: acc.migrated,
-        missing_items: acc.legacy - acc.migrated,
-        articles_total: articles?.n ?? null,
-        links_total: allLinks?.n ?? null,
-        dedup_rate_pct: articles && allLinks && allLinks.n ? Math.round((1 - articles.n / allLinks.n) * 1000) / 10 : null,
-        mismatches: acc.mismatches.slice(0, 30),
-        missing_sources: acc.missing_sources,
-        checked_links: acc.checked_links,
-        broken_links: acc.broken_links,
-    };
-
-    await svc.SystemHealth.create({
-        job_type: 'migration_verify', status: 'completed',
-        started_at: new Date(t0).toISOString(), completed_at: new Date().toISOString(),
-        metadata: report,
-    }).catch(() => {});
-
-    if (outOfTime && !error && hop < 100) {
-        try {
-            await Promise.race([
-                base44.asServiceRole.functions.invoke('verifyMigration', { days, hop: hop + 1, cursor: i, cutoff, acc }),
-                new Promise(r => setTimeout(r, 1500)),
-            ]);
-        } catch { /* re-run manually with the cursor from the report */ }
-    }
-    return Response.json(report);
 });
