@@ -186,6 +186,24 @@ Deno.serve(async (req) => {
                 started_at: new Date().toISOString(),
                 metadata: { instance_id: instanceId, last_heartbeat_at: new Date().toISOString() },
             });
+            // Race guard (2026-09-25): two runs can both pass the check above in the same
+            // instant. Re-read the live locks; the earliest-started one wins, the rest stand down.
+            await sleep(250 + Math.floor(Math.random() * 500));
+            const contenders = (await safeFilter(
+                base44.asServiceRole.entities.SystemHealth,
+                { job_type: 'clustering', status: 'running' },
+                'started_at', 10
+            )).filter(r => (Date.now() - new Date(r.started_at).getTime()) < LOCK_WINDOW_MS);
+            const winner = contenders.sort((a, b) =>
+                (a.started_at || '').localeCompare(b.started_at || '') || String(a.id).localeCompare(String(b.id))
+            )[0];
+            if (winner && lockRecord?.id && winner.id !== lockRecord.id) {
+                await base44.asServiceRole.entities.SystemHealth.update(lockRecord.id, {
+                    status: 'completed', completed_at: new Date().toISOString(),
+                    metadata: { instance_id: instanceId, skipped: true, reason: `Lost lock race to ${winner.id}` },
+                }).catch(() => {});
+                return Response.json({ skipped: true, reason: 'Another clustering run won the lock' });
+            }
             heartbeatTimer = setInterval(() => {
                 base44.asServiceRole.entities.SystemHealth.update(lockRecord.id, {
                     metadata: { instance_id: instanceId, last_heartbeat_at: new Date().toISOString() },
