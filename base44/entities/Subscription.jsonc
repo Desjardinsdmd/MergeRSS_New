@@ -1,7 +1,36 @@
 {
   "name": "Subscription",
-  "type": "object",
   "properties": {
+    "cancel_at_period_end": {
+      "default": false,
+      "type": "boolean"
+    },
+    "current_period_end": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "current_period_start": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "plan": {
+      "default": "free",
+      "enum": [
+        "free",
+        "premium"
+      ],
+      "type": "string"
+    },
+    "status": {
+      "default": "active",
+      "enum": [
+        "active",
+        "canceled",
+        "past_due",
+        "trialing"
+      ],
+      "type": "string"
+    },
     "stripe_customer_id": {
       "type": "string"
     },
@@ -9,42 +38,42 @@
       "type": "string"
     },
     "user_id": {
-      "type": "string",
-      "description": "Reference to the user who owns this subscription"
-    },
-    "plan": {
-      "type": "string",
-      "enum": [
-        "free",
-        "premium"
-      ],
-      "default": "free"
-    },
-    "status": {
-      "type": "string",
-      "enum": [
-        "active",
-        "canceled",
-        "past_due",
-        "trialing"
-      ],
-      "default": "active"
-    },
-    "current_period_start": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "current_period_end": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "cancel_at_period_end": {
-      "type": "boolean",
-      "default": false
+      "description": "Reference to the user who owns this subscription",
+      "type": "string"
     }
   },
   "required": [
     "plan",
     "user_id"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object"
 }
