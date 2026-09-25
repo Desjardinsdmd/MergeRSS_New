@@ -1,42 +1,41 @@
 {
   "name": "SelectionFeedback",
-  "type": "object",
   "properties": {
-    "publication_id": {
-      "type": "string"
-    },
-    "cluster_id": {
-      "type": "string"
-    },
-    "lens_id": {
-      "type": "string"
-    },
     "action": {
-      "type": "string",
+      "description": "What happened to this cluster",
       "enum": [
         "manual_select",
         "auto_select",
         "skip",
         "reject"
       ],
-      "description": "What happened to this cluster"
-    },
-    "original_score": {
-      "type": "number",
-      "description": "The combined score at time of decision"
-    },
-    "lens_score": {
-      "type": "number",
-      "description": "The lens importance score at time of decision"
-    },
-    "cluster_title": {
       "type": "string"
     },
     "cluster_category": {
       "type": "string"
     },
+    "cluster_id": {
+      "type": "string"
+    },
     "cluster_source_count": {
       "type": "number"
+    },
+    "cluster_title": {
+      "type": "string"
+    },
+    "lens_id": {
+      "type": "string"
+    },
+    "lens_score": {
+      "description": "The lens importance score at time of decision",
+      "type": "number"
+    },
+    "original_score": {
+      "description": "The combined score at time of decision",
+      "type": "number"
+    },
+    "publication_id": {
+      "type": "string"
     },
     "user_notes": {
       "type": "string"
@@ -46,5 +45,28 @@
     "publication_id",
     "cluster_id",
     "action"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object"
 }
