@@ -136,6 +136,34 @@ async function fetchFeed(source) {
     };
 }
 
+// Fetch cadence: sources that feed an active digest or lens are fetched every 10 min,
+// everything else hourly. Conditional requests (ETag / Last-Modified) keep the frequent
+// fetches cheap. Matching mirrors how digests and lenses select feeds: same owner, and
+// explicit feed_ids, a category match, a tag overlap, or no filter at all.
+const HOT_MIN = 10;
+const COLD_MIN = 60;
+async function hotSourceIds(svc) {
+    const subs = extractItems(await svc.Subscription.filter({}, 'created_date', 5000));
+    const digests = extractItems(await svc.Digest.filter({ status: 'active' }, '-created_date', 1000));
+    const lenses = extractItems(await svc.CustomLens.filter({ is_active: true }, '-created_date', 500));
+    const lower = (a) => (a || []).map(x => String(x).toLowerCase());
+    const selects = (owner, feedIds, cats, tags, sub) => {
+        if (owner !== sub.user_email) return false;
+        if (feedIds?.length) return feedIds.includes(sub.legacy_feed_id);
+        if (cats?.length && !cats.includes(sub.category)) return false;
+        if (tags?.length && !lower(tags).some(t => lower(sub.tags).includes(t))) return false;
+        return true;
+    };
+    const hot = new Set();
+    for (const sub of subs) {
+        if (digests.some(d => selects(d.created_by, d.feed_ids, d.categories, d.tags, sub)) ||
+            lenses.some(l => selects(l.created_by, null, l.feed_filter_categories, l.feed_filter_tags, sub))) {
+            hot.add(sub.source_id);
+        }
+    }
+    return hot;
+}
+
 async function claim(svc, runId) {
     const now = new Date();
     const nowIso = now.toISOString();
@@ -222,6 +250,8 @@ Deno.serve(async (req) => {
     const stats = { sources_fetched: 0, not_modified: 0, errors: 0, articles_created: 0, articles_reused: 0, links_created: 0, error_samples: [] };
 
     try {
+    const hot = await hotSourceIds(svc);
+    stats.hot_sources = hot.size;
     while (Date.now() - t0 < BUDGET_MS - 20_000) {
         const batch = await claim(svc, runId);
         if (!batch.length) break;
@@ -234,7 +264,7 @@ Deno.serve(async (req) => {
         await Promise.all(Array.from({ length: CONCURRENCY }, async () => {
             while (queue.length) {
                 const source = queue.shift();
-                const interval = source.fetch_interval_min || 60;
+                const interval = hot.has(source.id) ? HOT_MIN : COLD_MIN;
                 const nowIso = new Date().toISOString();
                 try {
                     const r = await fetchFeed(source);
@@ -247,6 +277,7 @@ Deno.serve(async (req) => {
                         etag: r.notModified ? source.etag : (r.etag || ''),
                         last_modified: r.notModified ? source.last_modified : (r.lastModified || ''),
                         item_count: (source.item_count || 0) + added,
+                        fetch_interval_min: interval,
                         next_fetch_at: new Date(Date.now() + interval * 60_000).toISOString(),
                         lease_until: nowIso,
                     });
