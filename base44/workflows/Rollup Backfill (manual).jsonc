@@ -1,0 +1,44 @@
+{
+  "name": "Rollup Backfill (manual)",
+  "description": "One-off: rebuilds 28 days of FeedDailyRollup for all feeds. Self-continues in 45s slices. Kept inactive; use Run now after schema or logic changes.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 4 1 1 *",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "rollup_backfill_manual",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "rollupFeedDays",
+            "args": {
+              "mode": "backfill",
+              "days_back": 28
+            }
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}
