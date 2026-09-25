@@ -365,17 +365,11 @@ ${JSON.stringify(articlesForLens, null, 2)}`,
             console.warn(`[enrichFeedItems] CustomLens load failed (non-fatal): ${lensLoadErr.message}`);
         }
 
-        // ── Trigger story clustering after enrichment ──
-        let clusterResult = null;
-        if (enriched > 0) {
-            try {
-                const clusterRes = await base44.asServiceRole.functions.invoke('clusterStories', { window_hours: 48 });
-                clusterResult = clusterRes?.data || clusterRes;
-                console.log(`[enrichFeedItems] Clustering triggered — ${JSON.stringify(clusterResult?.multi_article_clusters ?? 'ok')}`);
-            } catch (clusterErr) {
-                console.warn(`[enrichFeedItems] Clustering call failed (non-fatal): ${clusterErr.message}`);
-            }
-        }
+        // Clustering is no longer triggered here (2026-09-25). fetchFeeds runs once per
+        // cycle and chains backfillLensScores -> clusterStories a single time. Triggering it
+        // from every per-feed enrichment call launched parallel clustering runs that raced
+        // the lock and left zombie jobs behind.
+        const clusterResult = null;
 
         const durationMs = Date.now() - startTime;
         console.log(`[enrichFeedItems] Done — enriched=${enriched} failed=${failed} customLensScored=${customLensScored} duration=${durationMs}ms`);
