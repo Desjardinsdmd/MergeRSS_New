@@ -1,5 +1,16 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+
+// Strict webhook host check: parse the URL, https only, exact host or subdomain.
+// (A substring check let "https://attacker.example/?hooks.slack.com" through.)
+function isAllowedWebhook(url, hosts) {
+    try {
+        const u = new URL(url);
+        if (u.protocol !== 'https:') return false;
+        return hosts.some(h => u.hostname === h || u.hostname.endsWith('.' + h));
+    } catch { return false; }
+}
+
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
@@ -28,6 +39,9 @@ Deno.serve(async (req) => {
         }
 
         if (!url) return Response.json({ error: 'webhook_url or digest_name required' }, { status: 400 });
+        if (!isAllowedWebhook(url, ['discord.com', 'discordapp.com'])) {
+            return Response.json({ error: 'Invalid Discord webhook URL' }, { status: 400 });
+        }
 
         let content = `✅ **MergeRSS Test Message**\nYour Discord integration is working correctly! Digests will be delivered here.`;
 
@@ -76,8 +90,7 @@ Deno.serve(async (req) => {
         });
 
         if (!res.ok) {
-            const text = await res.text();
-            return Response.json({ error: `Discord returned ${res.status}: ${text}` }, { status: 400 });
+            return Response.json({ error: `Discord returned HTTP ${res.status}` }, { status: 400 });
         }
 
         return Response.json({ success: true });

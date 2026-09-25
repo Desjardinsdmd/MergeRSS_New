@@ -580,7 +580,17 @@ Deno.serve(async (req) => {
     let alertsByFeedId = {};
     try {
         const allAlerts = extractItems(await base44.asServiceRole.entities.FeedAlert.filter({ is_active: true }));
+        // Tenant guard (2026-09-25): FeedAlert create is open, so a user could point an alert at
+        // someone else's feed_id and have new items POSTed to their own webhook. Only honour
+        // alerts created by the feed's owner, sent to real Slack/Discord hosts.
+        const feedOwner = Object.fromEntries(allFeeds.map(f => [f.id, f.created_by]));
+        const hostsFor = { slack: ['hooks.slack.com'], discord: ['discord.com', 'discordapp.com'] };
         for (const alert of allAlerts) {
+            if (!feedOwner[alert.feed_id] || feedOwner[alert.feed_id] !== alert.created_by) continue;
+            const hosts = hostsFor[alert.channel_type] || [];
+            let okHost = false;
+            try { const u = new URL(alert.webhook_url); okHost = u.protocol === 'https:' && hosts.some(h => u.hostname === h || u.hostname.endsWith('.' + h)); } catch { okHost = false; }
+            if (!okHost) continue;
             if (!alertsByFeedId[alert.feed_id]) alertsByFeedId[alert.feed_id] = [];
             alertsByFeedId[alert.feed_id].push(alert);
         }

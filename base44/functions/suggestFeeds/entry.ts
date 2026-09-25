@@ -77,7 +77,11 @@ Return ONLY real, working RSS feed URLs. Do not make up URLs. Search for actual 
         testedFeeds.push(feed);
         
         // Check if this feed already exists in directory
-        const existing = await base44.asServiceRole.entities.DirectoryFeed.filter({ url: feed.url });
+        // Only admins' searches add to the public directory; a regular user's LLM-steered
+        // query could otherwise publish unvetted feeds there (2026-09-25).
+        const existing = user.role === 'admin'
+          ? await base44.asServiceRole.entities.DirectoryFeed.filter({ url: feed.url })
+          : [{ skip: true }];
         if (existing.length === 0) {
           // Add to directory automatically
           await base44.asServiceRole.entities.DirectoryFeed.create({

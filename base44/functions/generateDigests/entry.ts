@@ -219,11 +219,14 @@ Deno.serve(async (req) => {
                     ? new Date(digest.last_sent)
                     : new Date(now - lookbackDays * 24 * 60 * 60 * 1000);
 
-                // Gather feed items scoped to digest owner
+                // Gather feed items scoped to digest owner. digest.feed_ids is user-editable, so it is
+                // intersected with feeds the owner actually has (tenant guard, 2026-09-25).
+                const ownerFeedIdSet = new Set(extractItems(await base44.asServiceRole.entities.Feed.filter({ created_by: digest.created_by })).map(f => f.id));
+                const scopedFeedIds = (digest.feed_ids || []).filter(id => ownerFeedIdSet.has(id));
                 let allItems = [];
                 if (digest.feed_ids?.length > 0) {
-                    allItems = extractItems(await base44.asServiceRole.entities.FeedItem.filter({
-                        feed_id: { $in: digest.feed_ids },
+                    allItems = scopedFeedIds.length === 0 ? [] : extractItems(await base44.asServiceRole.entities.FeedItem.filter({
+                        feed_id: { $in: scopedFeedIds },
                         published_date: { $gte: since.toISOString() },
                     }, '-published_date', 200));
                 } else {
@@ -257,8 +260,8 @@ Deno.serve(async (req) => {
                     // Forced test: use most recent items regardless of date
                     let fallbackItems = [];
                     if (digest.feed_ids?.length > 0) {
-                        fallbackItems = extractItems(await base44.asServiceRole.entities.FeedItem.filter({
-                            feed_id: { $in: digest.feed_ids }
+                        fallbackItems = scopedFeedIds.length === 0 ? [] : extractItems(await base44.asServiceRole.entities.FeedItem.filter({
+                            feed_id: { $in: scopedFeedIds }
                         }, '-published_date', 50));
                     } else {
                         const ownerFeeds = extractItems(await base44.asServiceRole.entities.Feed.filter({ created_by: digest.created_by }));

@@ -321,6 +321,9 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    // Admin-only (2026-09-25): paid image generation with caller-controlled input and no
+    // rate limit let any account spend the app's image budget.
+    if (user.role !== 'admin') return Response.json({ error: 'Forbidden' }, { status: 403 });
 
     const { article_id, title, content, url } = await req.json();
 

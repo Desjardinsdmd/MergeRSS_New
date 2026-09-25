@@ -1,5 +1,16 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+
+// Strict webhook host check: parse the URL, https only, exact host or subdomain.
+// (A substring check let "https://attacker.example/?hooks.slack.com" through.)
+function isAllowedWebhook(url, hosts) {
+    try {
+        const u = new URL(url);
+        if (u.protocol !== 'https:') return false;
+        return hosts.some(h => u.hostname === h || u.hostname.endsWith('.' + h));
+    } catch { return false; }
+}
+
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
@@ -8,7 +19,7 @@ Deno.serve(async (req) => {
 
         const { webhook_url, text } = await req.json();
 
-        if (!webhook_url || !webhook_url.includes('hooks.slack.com')) {
+        if (!webhook_url || !isAllowedWebhook(webhook_url, ['hooks.slack.com'])) {
             return Response.json({ error: 'Invalid Slack webhook URL' }, { status: 400 });
         }
 
@@ -19,8 +30,8 @@ Deno.serve(async (req) => {
         });
 
         if (!res.ok) {
-            const errText = await res.text();
-            return Response.json({ success: false, error: errText }, { status: 200 });
+            // Never echo the upstream body back to the caller.
+            return Response.json({ success: false, error: `Slack returned HTTP ${res.status}` }, { status: 200 });
         }
 
         return Response.json({ success: true });
