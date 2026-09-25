@@ -239,7 +239,7 @@ async function store(svc, source, items, category, stats) {
     const floor = Date.now() - 90 * 86400_000;
     items = items.filter(it => new Date(it.published_date).getTime() >= floor);
     stats.items_seen = (stats.items_seen || 0) + items.length;
-    if (!items.length) return 0;
+    if (!items.length) return { added: 0, seen: 0 };
     // Dedupe within the fetch itself
     const byKey = new Map();
     for (const it of items) { const k = itemKey(it); if (!byKey.has(k)) byKey.set(k, it); }
@@ -296,7 +296,7 @@ async function store(svc, source, items, category, stats) {
     }
     for (const c of chunks(links, CHUNK)) await svc.SourceItem.bulkCreate(c);
     stats.links_created += links.length;
-    return links.length;
+    return { added: links.length, seen: keys.length };
 }
 
 Deno.serve(async (req) => {
@@ -332,11 +332,7 @@ Deno.serve(async (req) => {
                     let added = 0;
                     let seen = 0;
                     if (r.notModified) stats.not_modified++;
-                    else {
-                        const before = stats.items_seen || 0;
-                        added = await store(svc, source, r.items, categoryBySource[source.id], stats);
-                        seen = (stats.items_seen || 0) - before;
-                    }
+                    else ({ added, seen } = await store(svc, source, r.items, categoryBySource[source.id], stats));
                     // Adaptive cadence for cold sources. If every item in the feed was new, items
                     // are scrolling off between polls (Djinni, Slickdeals, The Athletic lost items
                     // this way in the shadow comparison), so halve the interval. If under 20% was
