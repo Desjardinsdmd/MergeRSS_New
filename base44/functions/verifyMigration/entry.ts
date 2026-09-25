@@ -53,6 +53,8 @@ Deno.serve(async (req) => {
 
     let i = start;
     let outOfTime = false;
+    let error = null;
+    try {
     for (; i < subs.length; i++) {
         if (Date.now() - t0 > BUDGET_MS) { outOfTime = true; break; }
         const sub = subs[i];
@@ -90,21 +92,26 @@ Deno.serve(async (req) => {
             acc.mismatches.push({ name: sub.display_name, legacy: legacy.n, migrated, missing: legacy.n - migrated });
         }
 
-        // Sample up to 5 links and confirm their Articles exist
-        for (const l of links.slice(0, 5)) {
-            acc.checked_links++;
-            const a = extractItems(await svc.Article.filter({ id: l.article_id }, '-created_date', 1))[0];
-            if (!a) acc.broken_links++;
+        // Sample up to 20 links and confirm their Articles exist (one batched lookup)
+        const sample = [...new Set(links.slice(0, 20).map(l => l.article_id))];
+        if (sample.length) {
+            const found = new Set(extractItems(await svc.Article.filter({ id: { $in: sample } }, '-created_date', sample.length)).map(a => a.id));
+            acc.checked_links += sample.length;
+            acc.broken_links += sample.filter(id => !found.has(id)).length;
         }
     }
 
-    const done = !outOfTime;
+    } catch (e) {
+        error = `sub ${i}: ${String(e?.message || e).slice(0, 400)}`;
+    }
+
+    const done = !outOfTime && !error;
     const [articles, allLinks] = done
         ? [await countAll(svc.Article, {}, Date.now()), await countAll(svc.SourceItem, {}, Date.now())]
         : [null, null];
 
     const report = {
-        hop, days, cutoff, done, cursor: i, subscriptions: subs.length,
+        hop, days, cutoff, done, error, cursor: i, subscriptions: subs.length,
         legacy_items_in_window: acc.legacy,
         migrated_items: acc.migrated,
         missing_items: acc.legacy - acc.migrated,
@@ -123,7 +130,7 @@ Deno.serve(async (req) => {
         metadata: report,
     }).catch(() => {});
 
-    if (outOfTime && hop < 100) {
+    if (outOfTime && !error && hop < 100) {
         base44.asServiceRole.functions.invoke('verifyMigration', { days, hop: hop + 1, cursor: i, cutoff, acc }).catch(() => {});
     }
     return Response.json(report);
