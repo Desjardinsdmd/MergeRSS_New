@@ -1,0 +1,43 @@
+{
+  "name": "Cleanup Blank Articles (apply)",
+  "description": "One-off: deletes url-less Articles created by the new fetcher before the podcast-link fix, with their links and scores. Migrated and legacy data untouched.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 4 1 1 *",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "cleanup_blank_articles",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "cleanup": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "cleanupBlankArticles",
+            "args": {
+              "mode": "apply"
+            }
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}
