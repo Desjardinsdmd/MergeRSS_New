@@ -81,6 +81,8 @@ function extractLinks(html) {
 
 Deno.serve(async (req) => {
   const base44 = createClientFromRequest(req);
+  const caller = await base44.auth.me().catch(() => null);
+  if (!caller || caller.role !== 'admin') return Response.json({ error: 'Forbidden' }, { status: 403 });
 
   let body = {};
   try { body = await req.json(); } catch {}
