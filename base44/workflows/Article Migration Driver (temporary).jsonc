@@ -1,0 +1,43 @@
+{
+  "name": "Article Migration Driver (temporary)",
+  "description": "Every 5 minutes, resumes the article migration from its last recorded cursor. No-op once the migration reports done or while a hop holds the lease. Pause or delete after the migration completes.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "*/5 * * * *",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "article_migration_driver",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "resume": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "migrateArticles",
+            "args": {
+              "resume": true
+            }
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}
