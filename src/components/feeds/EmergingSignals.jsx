@@ -5,6 +5,7 @@ import { Zap, ExternalLink, TrendingUp, AlertTriangle, Lightbulb, Minus } from '
 import { formatDistanceToNow } from 'date-fns';
 import { decodeHtml, safeUrl } from '@/components/utils/htmlUtils';
 import { inferTag, whatHappened, generateInsight, signalLevelStyle, decisionState, clusterItems } from './intelligenceUtils';
+import { queryArticles, queryArticlesWithClusters, summarizeArticle } from '@/api/articles';
 
 const TAG_CONFIG = {
     Trending:    { textClass: 'text-blue-400',    icon: TrendingUp },
@@ -21,11 +22,7 @@ export default function EmergingSignals({ feedIds = [], feeds = [], top5Ids = ne
         queryKey: ['emerging-signals', feedIds.join(',')],
         queryFn: async () => {
             if (!feedIds.length) return [];
-            const raw = await base44.entities.FeedItem.filter(
-                { feed_id: { $in: feedIds }, published_date: { $gte: since24h } },
-                '-importance_score',
-                100
-            );
+            const raw = await queryArticles({ feed_ids: feedIds, since: since24h, sort: '-importance_score', limit: 100 });
             if (!raw?.length) return [];
 
             const clusters = clusterItems(raw, feedMap);

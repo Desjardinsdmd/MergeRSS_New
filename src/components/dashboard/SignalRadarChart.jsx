@@ -8,6 +8,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import {
   RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer
 } from 'recharts';
+import { queryArticles, queryArticlesWithClusters, summarizeArticle } from '@/api/articles';
 
 const CATEGORIES = [
   { key: 'CRE', label: 'CRE', cats: ['cre'] },
@@ -50,10 +51,7 @@ export default function SignalRadarChart({ user, feeds }) {
 
   const { data: items = [], isLoading } = useQuery({
     queryKey: ['radar-items', user?.email],
-    queryFn: () => base44.entities.FeedItem.filter(
-      { feed_id: { $in: feedIds }, published_date: { $gte: since28d }, importance_score: { $gte: 80 } },
-      '-published_date', 500
-    ),
+    queryFn: () => queryArticles({ feed_ids: feedIds, since: since28d, min_score: 80, sort: '-published_date', limit: 500 }),
     enabled: !!user && feedIds.length > 0,
     staleTime: 5 * 60 * 1000,
   });

@@ -9,6 +9,7 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, X, FlaskConical } from 'lucide-react';
 import { toast } from 'sonner';
+import { queryArticles, queryArticlesWithClusters, summarizeArticle } from '@/api/articles';
 
 const DEFAULT_PROMPT = `LENS: [Your Lens Name]
 You are scoring for [describe your audience].
@@ -84,9 +85,7 @@ export default function LensForm({ lens, onSave, onCancel }) {
   const handleTest = async () => {
     setTesting(true);
     setTestResults(null);
-    const recentItems = await base44.entities.FeedItem.filter(
-      { enrichment_status: 'done' }, '-published_date', 5
-    );
+    const recentItems = await queryArticles({ enrichment_status: 'done', sort: '-published_date', limit: 5 });
     const items = Array.isArray(recentItems) ? recentItems : (recentItems?.items || recentItems?.data || []);
     if (!items.length) {
       toast.error('No enriched items found to test against');

@@ -10,6 +10,7 @@ import {
     deduplicateItems, clusterItems
 } from './intelligenceUtils';
 import { updateAndGetEvolution, recordInteraction, getInteractionScore } from './storyMemory';
+import { queryArticles, queryArticlesWithClusters, summarizeArticle } from '@/api/articles';
 
 const TAG_CONFIG = {
     Trending:    { textClass: 'text-blue-400',    icon: TrendingUp },
@@ -327,11 +328,7 @@ export default function TopFiveToday({ feedIds, feeds, onItemsLoaded }) {
         queryKey: ['top5today', feedIds?.join(',')],
         queryFn: async () => {
             if (!feedIds?.length) return [];
-            const raw = await base44.entities.FeedItem.filter(
-                { feed_id: { $in: feedIds }, published_date: { $gte: since48h } },
-                '-importance_score',
-                200
-            );
+            const raw = await queryArticles({ feed_ids: feedIds, since: since48h, sort: '-importance_score', limit: 200 });
             if (!raw?.length) return [];
 
             const boosted = raw.map(item => {

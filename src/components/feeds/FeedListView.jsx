@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { safeUrl, decodeHtml } from '@/components/utils/htmlUtils';
 import { base44 } from '@/api/base44Client';
 import SourceHealthIndicator from './SourceHealthIndicator';
+import { queryArticles, queryArticlesWithClusters, summarizeArticle } from '@/api/articles';
 
 export default function FeedListView({ feeds, selectedIds, onSelectionChange, onEdit, onDelete, onToggleStatus }) {
   const [expandedFeedId, setExpandedFeedId] = useState(null);
@@ -23,7 +24,7 @@ export default function FeedListView({ feeds, selectedIds, onSelectionChange, on
     setExpandedFeedId(feed.id);
     if (articlesByFeed[feed.id]) return;
     setLoadingFeedId(feed.id);
-    const items = await base44.entities.FeedItem.filter({ feed_id: feed.id }, '-published_date', 20);
+    const items = await queryArticles({ feed_ids: [feed.id], sort: '-published_date', limit: 20 });
     setArticlesByFeed(prev => ({ ...prev, [feed.id]: items }));
     setLoadingFeedId(null);
   };

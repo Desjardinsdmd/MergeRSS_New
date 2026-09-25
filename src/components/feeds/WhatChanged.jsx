@@ -5,6 +5,7 @@ import { Bell, ExternalLink, ArrowUp } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { decodeHtml, safeUrl } from '@/components/utils/htmlUtils';
 import { inferTag, whatHappened, generateInsight, confidenceFromCluster, decisionState, clusterItems } from './intelligenceUtils';
+import { queryArticles, queryArticlesWithClusters, summarizeArticle } from '@/api/articles';
 
 const LAST_VISIT_KEY = 'mergerss_last_visit';
 
@@ -36,11 +37,7 @@ export default function WhatChanged({ feedIds = [], feeds = [] }) {
         queryKey: ['what-changed', feedIds.join(','), since],
         queryFn: async () => {
             if (!feedIds.length) return [];
-            const raw = await base44.entities.FeedItem.filter(
-                { feed_id: { $in: feedIds }, published_date: { $gte: since } },
-                '-importance_score',
-                80
-            );
+            const raw = await queryArticles({ feed_ids: feedIds, since, sort: '-importance_score', limit: 80 });
             if (!raw?.length) return [];
             const clusters = clusterItems(raw, feedMap);
             const filtered = clusters

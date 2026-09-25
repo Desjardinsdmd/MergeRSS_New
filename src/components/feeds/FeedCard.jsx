@@ -33,6 +33,7 @@ import SourceCleanupDialog from './SourceCleanupDialog';
 import RepairEscalationPanel from './RepairEscalationPanel';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { queryArticles, queryArticlesWithClusters, summarizeArticle } from '@/api/articles';
 
 const categoryColors = {
   CRE: 'bg-blue-950 text-blue-400',
@@ -67,7 +68,7 @@ export default function FeedCard({ feed, onEdit, onDelete, onToggleStatus, onRef
     setExpanded(true);
     if (articles.length > 0) return;
     setLoadingArticles(true);
-    const items = await base44.entities.FeedItem.filter({ feed_id: feed.id }, '-published_date', 20);
+    const items = await queryArticles({ feed_ids: [feed.id], sort: '-published_date', limit: 20 });
     setArticles(items);
     setLoadingArticles(false);
   };

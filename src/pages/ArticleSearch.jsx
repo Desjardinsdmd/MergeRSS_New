@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import ArticleSummarizeButton from '@/components/feeds/ArticleSummarizeButton';
 import RelatedArticles from '@/components/feeds/RelatedArticles';
+import { queryArticles, queryArticlesWithClusters, summarizeArticle } from '@/api/articles';
 
 const CATEGORIES = ['CRE', 'Markets', 'Tech', 'News', 'Finance', 'Crypto', 'AI', 'Other'];
 
@@ -53,20 +54,18 @@ export default function ArticleSearch() {
   const { data: allItems = [], isLoading, isFetching } = useQuery({
     queryKey: ['allFeedItems', searchQuery, author, selectedCategory, dateFrom, dateTo],
     queryFn: async () => {
-      const filters = {};
-      if (selectedCategory) filters.category = selectedCategory;
-      if (author.trim()) filters.author = { $regex: author.trim(), $options: 'i' };
-      if (dateFrom || dateTo) {
-        filters.published_date = {};
-        if (dateFrom) filters.published_date.$gte = new Date(dateFrom).toISOString();
-        if (dateTo) {
-          const toEnd = new Date(dateTo);
-          toEnd.setHours(23, 59, 59, 999);
-          filters.published_date.$lte = toEnd.toISOString();
-        }
+      // Server-side scoped to the user's own feeds. (The old filter on created_by matched
+      // nothing for regular users, because articles are written by the fetch job.)
+      const params = { sort: '-published_date', limit: 500 };
+      if (selectedCategory) params.category = selectedCategory;
+      if (author.trim()) params.author = author.trim();
+      if (dateFrom) params.since = new Date(dateFrom).toISOString();
+      if (dateTo) {
+        const toEnd = new Date(dateTo);
+        toEnd.setHours(23, 59, 59, 999);
+        params.until = toEnd.toISOString();
       }
-      if (user?.email) filters.created_by = user.email;
-      return base44.entities.FeedItem.filter(filters, '-published_date', 500);
+      return queryArticles(params);
     },
     enabled: !!user,
     staleTime: 0

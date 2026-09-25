@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Sparkles, Loader2, ChevronDown, ChevronUp, XCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { queryArticles, queryArticlesWithClusters, summarizeArticle } from '@/api/articles';
 
 export default function ArticleSummarizeButton({ item, onSummaryUpdate, compact = false }) {
   const [loading, setLoading] = useState(false);
@@ -14,11 +15,8 @@ export default function ArticleSummarizeButton({ item, onSummaryUpdate, compact 
     setLoading(true);
     setError(false);
     try {
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Summarize the following article in 2-3 concise sentences. Focus on the key points and takeaways.\n\nTitle: ${item.title}\n\n${item.description || item.content || 'No content available.'}`,
-      });
-      const summary = typeof result === 'string' ? result : result?.summary || result?.text || String(result);
-      await base44.entities.FeedItem.update(item.id, { ai_summary: summary });
+      // Backend checks the user owns this article's feed before writing the summary.
+      const summary = await summarizeArticle(item.id);
       onSummaryUpdate?.({ ...item, ai_summary: summary });
       setShowSummary(true);
     } catch (err) {

@@ -12,6 +12,7 @@ import WhatChanged from './WhatChanged';
 import EmergingSignals from './EmergingSignals';
 import NarrativeGrouping from './NarrativeGrouping';
 import DailyBriefingSummary from './DailyBriefingSummary';
+import { queryArticles, queryArticlesWithClusters, summarizeArticle } from '@/api/articles';
 
 export default function IntelligenceDashboard({ user, feeds = [], digests = [], unreadDeliveries = [] }) {
     const queryClient = useQueryClient();
@@ -27,12 +28,7 @@ export default function IntelligenceDashboard({ user, feeds = [], digests = [], 
         queryFn: async () => {
             if (!feedIds.length) return [];
             const since48h = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
-            const raw = await base44.entities.FeedItem.filter(
-                { feed_id: { $in: feedIds }, published_date: { $gte: since48h } },
-                '-importance_score',
-                100
-            );
-            return Array.isArray(raw) ? raw : (raw?.items || raw?.data || []);
+            return queryArticles({ feed_ids: feedIds, since: since48h, sort: '-importance_score', limit: 100 });
         },
         enabled: !!feedIds.length,
         staleTime: 3 * 60 * 1000,
@@ -40,13 +36,14 @@ export default function IntelligenceDashboard({ user, feeds = [], digests = [], 
 
     // Backend StoryClusters — provides persisted trend_score for ranking
     const { data: storyClusters = [] } = useQuery({
-        queryKey: ['story-clusters-active'],
+        // Only clusters the user's own articles belong to (was: every active cluster system-wide).
+        queryKey: ['story-clusters-mine', feedIds.join(',')],
         queryFn: async () => {
-            const raw = await base44.entities.StoryCluster.filter(
-                { status: 'active' }, '-trend_score', 300
-            );
-            return Array.isArray(raw) ? raw : (raw?.items || raw?.data || []);
+            const since48h = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+            const { clusters } = await queryArticlesWithClusters({ feed_ids: feedIds, since: since48h, sort: '-importance_score', limit: 100 });
+            return clusters;
         },
+        enabled: !!feedIds.length,
         staleTime: 5 * 60 * 1000,
     });
 
