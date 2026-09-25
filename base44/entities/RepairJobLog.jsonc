@@ -1,40 +1,22 @@
 {
   "name": "RepairJobLog",
-  "type": "object",
   "properties": {
-    "job_id": {
-      "type": "string"
-    },
-    "feed_id": {
-      "type": "string"
-    },
-    "feed_name": {
-      "type": "string"
-    },
-    "original_url": {
-      "type": "string"
-    },
     "action": {
-      "type": "string",
+      "description": "Outcome of the repair attempt",
       "enum": [
         "repaired",
         "quarantined",
         "failed",
         "skipped"
       ],
-      "description": "Outcome of the repair attempt"
-    },
-    "message": {
       "type": "string"
     },
-    "new_url": {
-      "type": "string"
-    },
-    "repair_method": {
-      "type": "string"
+    "diagnostics": {
+      "additionalProperties": true,
+      "description": "Detailed diagnostics: http_status, redirects, bot_blocked, item_count, etc.",
+      "type": "object"
     },
     "failure_category": {
-      "type": "string",
       "enum": [
         "404_gone",
         "blocked_antibot",
@@ -47,17 +29,57 @@
         "network_error",
         "unexpected_error",
         "none"
-      ]
+      ],
+      "type": "string"
     },
-    "diagnostics": {
-      "type": "object",
-      "additionalProperties": true,
-      "description": "Detailed diagnostics: http_status, redirects, bot_blocked, item_count, etc."
+    "feed_id": {
+      "type": "string"
+    },
+    "feed_name": {
+      "type": "string"
+    },
+    "job_id": {
+      "type": "string"
+    },
+    "message": {
+      "type": "string"
+    },
+    "new_url": {
+      "type": "string"
+    },
+    "original_url": {
+      "type": "string"
+    },
+    "repair_method": {
+      "type": "string"
     }
   },
   "required": [
     "job_id",
     "feed_id",
     "action"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object"
 }
