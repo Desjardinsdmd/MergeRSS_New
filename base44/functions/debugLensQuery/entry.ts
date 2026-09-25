@@ -6,6 +6,7 @@ Deno.serve(async (req) => {
     
     // 1. Who is the authenticated user?
     const user = await base44.auth.me();
+    if (!user || user.role !== 'admin') return Response.json({ error: 'Forbidden' }, { status: 403 });
     
     // 2. Try .list() as the user
     let userListResult, userListError;

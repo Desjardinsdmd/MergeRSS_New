@@ -10,7 +10,7 @@ Deno.serve(async (req) => {
     }
 
     const testEmail = 'test@mergerss.com';
-    const testPassword = 'TestPassword123!';
+    const testPassword = crypto.randomUUID().replace(/-/g, '').slice(0, 16) + 'Aa1!';
     
     // Invite test user
     await base44.users.inviteUser(testEmail, 'user');

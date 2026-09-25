@@ -3,6 +3,8 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    const caller = await base44.auth.me().catch(() => null);
+    if (!caller || caller.role !== 'admin') return Response.json({ error: 'Forbidden' }, { status: 403 });
 
     const { event, data } = await req.json();
 

@@ -3,11 +3,25 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me().catch(() => null);
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
     const { url } = await req.json();
 
     if (!url) {
       return Response.json({ error: 'URL is required' }, { status: 400 });
     }
+
+    // SSRF guard: http(s) only, no localhost / private / link-local / metadata hosts
+    let parsed;
+    try { parsed = new URL(url); } catch { return Response.json({ error: 'Invalid URL' }, { status: 400 }); }
+    const host = parsed.hostname.toLowerCase();
+    const blocked = !['http:', 'https:'].includes(parsed.protocol)
+      || host === 'localhost' || host.endsWith('.local') || host.endsWith('.internal')
+      || host === 'metadata.google.internal' || host === '0.0.0.0' || host.startsWith('[')
+      || /^127\./.test(host) || /^10\./.test(host) || /^192\.168\./.test(host)
+      || /^169\.254\./.test(host) || /^172\.(1[6-9]|2\d|3[01])\./.test(host);
+    if (blocked) return Response.json({ error: 'URL not allowed' }, { status: 400 });
 
     // Fetch the article page with a timeout
     const controller = new AbortController();
