@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
 
     // Fetch recent items scoped to user's feeds only
     const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
-    const allItems = await base44.entities.FeedItem.filter(
+    const allItems = await base44.asServiceRole.entities.FeedItem.filter(
       { feed_id: { $in: feedIds } },
       '-published_date',
       100

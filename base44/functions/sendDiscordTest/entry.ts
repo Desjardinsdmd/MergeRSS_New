@@ -35,10 +35,13 @@ Deno.serve(async (req) => {
         if (digest) {
             let recentItems = [];
 
-            if (digest.feed_ids?.length > 0) {
-                // Fetch items only from this digest's configured feeds (user-scoped)
-                recentItems = await base44.entities.FeedItem.filter(
-                    { feed_id: { $in: digest.feed_ids } },
+            // Articles are admin-only at the entity level; read via service role but only
+            // from feeds this user owns (a digest's feed_ids are user-editable, so intersect).
+            const ownIds = new Set((await base44.entities.Feed.filter({ created_by: user.email })).map(f => f.id));
+            const digestFeedIds = (digest.feed_ids || []).filter(id => ownIds.has(id));
+            if (digestFeedIds.length > 0) {
+                recentItems = await base44.asServiceRole.entities.FeedItem.filter(
+                    { feed_id: { $in: digestFeedIds } },
                     '-published_date',
                     10
                 );
@@ -47,7 +50,7 @@ Deno.serve(async (req) => {
                 const userFeeds = await base44.entities.Feed.filter({ created_by: user.email, status: 'active' });
                 const feedIds = userFeeds.map(f => f.id);
                 if (feedIds.length > 0) {
-                    recentItems = await base44.entities.FeedItem.filter(
+                    recentItems = await base44.asServiceRole.entities.FeedItem.filter(
                         { feed_id: { $in: feedIds } },
                         '-published_date',
                         10

@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
       for (let i = 0; i < feeds.length; i += batchSize) {
         const batch = feeds.slice(i, i + batchSize);
         const batchResults = await Promise.allSettled(
-          batch.map(f => base44.entities.FeedItem.filter({ feed_id: f.id }, '-published_date', limitPerFeed))
+          batch.map(f => base44.asServiceRole.entities.FeedItem.filter({ feed_id: f.id }, '-published_date', limitPerFeed))
         );
         for (const r of batchResults) {
           if (r.status === 'fulfilled') results.push(...(r.value || []));
