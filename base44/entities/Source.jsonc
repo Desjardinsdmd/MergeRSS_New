@@ -1,0 +1,120 @@
+{
+  "name": "Source",
+  "type": "object",
+  "description": "Canonical feed source, unique by normalized_url. Fetched and enriched ONCE regardless of subscriber count. Never exposed directly to users (URLs can carry private tokens).",
+  "properties": {
+    "normalized_url": {
+      "type": "string",
+      "description": "Dedup key: lowercase host, no www, no trailing slash, tracking params stripped"
+    },
+    "url": {
+      "type": "string"
+    },
+    "resolved_url": {
+      "type": "string"
+    },
+    "site_domain": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "source_type": {
+      "type": "string",
+      "enum": [
+        "rss_native",
+        "rss_discovered",
+        "generated",
+        "email"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "paused",
+        "error"
+      ],
+      "default": "active"
+    },
+    "is_private": {
+      "type": "boolean",
+      "default": false,
+      "description": "True if the URL looks tokenized/private; never listed publicly"
+    },
+    "subscriber_count": {
+      "type": "number",
+      "default": 0
+    },
+    "item_count": {
+      "type": "number",
+      "default": 0
+    },
+    "fetch_interval_min": {
+      "type": "number",
+      "default": 60
+    },
+    "next_fetch_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "lease_until": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Worker claim lease; a source is only fetched by the worker holding a live lease"
+    },
+    "last_fetched_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_success_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "consecutive_errors": {
+      "type": "number",
+      "default": 0
+    },
+    "last_error": {
+      "type": "string"
+    },
+    "etag": {
+      "type": "string"
+    },
+    "last_modified": {
+      "type": "string"
+    },
+    "legacy_feed_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "normalized_url",
+    "url"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

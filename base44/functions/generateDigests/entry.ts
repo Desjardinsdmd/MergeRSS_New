@@ -322,6 +322,7 @@ Write a well-organized, professional digest. Group related stories where appropr
 
                 // Web delivery
                 const webDelivery = await base44.asServiceRole.entities.DigestDelivery.create({
+                    owner_email: digest.created_by,
                     digest_id: digest.id,
                     delivery_type: 'web',
                     status: 'sent',
@@ -378,6 +379,7 @@ Write a well-organized, professional digest. Group related stories where appropr
                             body: JSON.stringify({ text: slackMsg, mrkdwn: true }),
                         });
                         await base44.asServiceRole.entities.DigestDelivery.create({
+                    owner_email: digest.created_by,
                             digest_id: digest.id,
                             delivery_type: 'slack',
                             status: slackRes.ok ? 'sent' : 'failed',
@@ -450,6 +452,7 @@ Write a well-organized, professional digest. Group related stories where appropr
                         });
                         const ok = discordRes.ok || discordRes.status === 204;
                         await base44.asServiceRole.entities.DigestDelivery.create({
+                    owner_email: digest.created_by,
                             digest_id: digest.id,
                             delivery_type: 'discord',
                             status: ok ? 'sent' : 'failed',

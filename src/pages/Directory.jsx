@@ -188,7 +188,8 @@ export default function Directory() {
   const { data: publicFeeds = [] } = useQuery({
     queryKey: ['public-feeds'],
     queryFn: async () => {
-      const userPublic = await base44.entities.Feed.filter({ is_public: true });
+      const pub = await base44.functions.invoke('publicDirectory', {});
+      const userPublic = pub?.data?.feeds || [];
       const directoryFeeds = await base44.entities.DirectoryFeed.list();
       const combined = [...userPublic, ...directoryFeeds];
       const seenUrls = new Set();
@@ -202,7 +203,7 @@ export default function Directory() {
 
   const { data: publicDigests = [] } = useQuery({
     queryKey: ['public-digests'],
-    queryFn: () => base44.entities.Digest.filter({ is_public: true }),
+    queryFn: async () => (await base44.functions.invoke('publicDirectory', {}))?.data?.digests || [],
   });
 
   // Show public items to everyone (including creators)

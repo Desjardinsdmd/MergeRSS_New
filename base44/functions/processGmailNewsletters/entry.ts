@@ -160,6 +160,7 @@ Deno.serve(async (req) => {
     const receivedAt = dateHeader ? new Date(dateHeader).toISOString() : new Date().toISOString();
 
     await base44.asServiceRole.entities.NewsletterEmail.create({
+      owner_email: matchedSub.created_by,
       gmail_message_id: msgId,
       subscription_id: matchedSub.id,
       from_email: senderEmail,

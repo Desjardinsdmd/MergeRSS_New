@@ -80,10 +80,50 @@
         "type": "string"
       },
       "description": "User-assigned tags"
+    },
+    "owner_email": {
+      "type": "string",
+      "description": "Email of the user who owns this record (tenant key)"
     }
   },
   "required": [
     "digest_id",
     "delivery_type"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }

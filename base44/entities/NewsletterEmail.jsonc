@@ -45,11 +45,51 @@
     "is_read": {
       "type": "boolean",
       "default": false
+    },
+    "owner_email": {
+      "type": "string",
+      "description": "Email of the user who owns this record (tenant key)"
     }
   },
   "required": [
     "gmail_message_id",
     "subject",
     "from_email"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }

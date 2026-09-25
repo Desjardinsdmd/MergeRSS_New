@@ -1,52 +1,33 @@
 {
-  "name": "Subscription",
+  "name": "UserItemState",
   "type": "object",
-  "description": "A user's subscription to a Source. All user-specific settings live here, never on the shared Source.",
+  "description": "Per-user state on a shared SourceItem (read, saved). Replaces is_read on shared items.",
   "properties": {
     "user_email": {
+      "type": "string"
+    },
+    "item_id": {
       "type": "string"
     },
     "source_id": {
       "type": "string"
     },
-    "legacy_feed_id": {
-      "type": "string"
-    },
-    "display_name": {
-      "type": "string"
-    },
-    "url": {
-      "type": "string",
-      "description": "URL as the user entered it (their own copy)"
-    },
-    "category": {
-      "type": "string"
-    },
-    "tags": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "status": {
-      "type": "string",
-      "enum": [
-        "active",
-        "paused"
-      ],
-      "default": "active"
-    },
-    "is_public": {
+    "is_read": {
       "type": "boolean",
       "default": false
     },
-    "public_description": {
-      "type": "string"
+    "is_saved": {
+      "type": "boolean",
+      "default": false
+    },
+    "read_at": {
+      "type": "string",
+      "format": "date-time"
     }
   },
   "required": [
     "user_email",
-    "source_id"
+    "item_id"
   ],
   "rls": {
     "create": {

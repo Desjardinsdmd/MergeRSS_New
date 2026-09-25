@@ -1,0 +1,117 @@
+{
+  "name": "SourceItem",
+  "type": "object",
+  "description": "One article per Source (deduped by guid/canonical_url). Shared enrichment. Users read these only through backend functions that check their subscriptions.",
+  "properties": {
+    "source_id": {
+      "type": "string"
+    },
+    "guid": {
+      "type": "string"
+    },
+    "canonical_url": {
+      "type": "string"
+    },
+    "dedupe_hash": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "content": {
+      "type": "string"
+    },
+    "author": {
+      "type": "string"
+    },
+    "published_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "fetched_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "category": {
+      "type": "string"
+    },
+    "entities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ai_summary": {
+      "type": "string"
+    },
+    "importance_score": {
+      "type": "number"
+    },
+    "intelligence_tag": {
+      "type": "string",
+      "enum": [
+        "Trending",
+        "Risk",
+        "Opportunity",
+        "Neutral"
+      ]
+    },
+    "enrichment_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "processing",
+        "done",
+        "fallback",
+        "failed"
+      ],
+      "default": "pending"
+    },
+    "enrichment_attempts": {
+      "type": "number",
+      "default": 0
+    },
+    "enrich_lease_until": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "legacy_item_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "source_id",
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
