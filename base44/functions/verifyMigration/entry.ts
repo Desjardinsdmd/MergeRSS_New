@@ -58,18 +58,30 @@ Deno.serve(async (req) => {
         const sub = subs[i];
         if (!sourceIds.has(sub.source_id)) acc.missing_sources.push({ subscription: sub.id, name: sub.display_name });
 
-        const legacy = await countAll(svc.FeedItem, { feed_id: sub.legacy_feed_id, published_date: { $gte: cutoff } }, t0);
-        if (legacy.partial) { outOfTime = true; break; }
-
-        // Links migrated from this feed (legacy_item_id set, same source)
-        const links = extractItems(await svc.SourceItem.filter({ source_id: sub.source_id }, '-created_date', 5000));
+        // One pass over the legacy window, one pass over this source's links.
+        // A single feed is never split across hops, so a slow feed is retried whole next hop.
         const legacyIds = new Set();
+        let partial = false;
         for (let skip = 0; ; skip += PAGE) {
+            if (Date.now() - t0 > BUDGET_MS) { partial = true; break; }
             const page = extractItems(await svc.FeedItem.filter(
                 { feed_id: sub.legacy_feed_id, published_date: { $gte: cutoff } }, 'created_date', PAGE, skip));
             page.forEach(p => legacyIds.add(p.id));
-            if (page.length < PAGE || Date.now() - t0 > BUDGET_MS) break;
+            if (page.length < PAGE) break;
         }
+        const links = [];
+        for (let skip = 0; !partial; skip += PAGE) {
+            if (Date.now() - t0 > BUDGET_MS) { partial = true; break; }
+            const page = extractItems(await svc.SourceItem.filter({ source_id: sub.source_id }, 'created_date', PAGE, skip));
+            links.push(...page);
+            if (page.length < PAGE) break;
+        }
+        if (partial) {
+            // If even a fresh hop can't finish this feed, record it and move on instead of looping.
+            if (i === start && hop > 0) { acc.mismatches.push({ name: sub.display_name, error: 'too large to verify in one hop' }); continue; }
+            outOfTime = true; break;
+        }
+        const legacy = { n: legacyIds.size };
         const migrated = links.filter(l => legacyIds.has(l.legacy_item_id)).length;
 
         acc.legacy += legacy.n;
