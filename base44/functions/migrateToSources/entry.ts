@@ -22,7 +22,7 @@ function extractItems(raw) {
 const PAGE = 500;
 const TRACKING = /^(utm_[a-z]+|fbclid|gclid|mc_cid|mc_eid|ref|ref_src)$/i;
 
-export function normalizeUrl(raw = '') {
+function normalizeUrl(raw = '') {
     try {
         const u = new URL(String(raw).trim());
         u.protocol = 'https:';
