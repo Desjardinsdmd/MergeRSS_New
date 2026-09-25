@@ -1,0 +1,43 @@
+{
+  "name": "Enrich Articles (shadow)",
+  "description": "Scoring queue for the new Article model. Adopts scores the legacy pipeline already produced before calling the LLM, so shadow mode does not double AI spend.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "8,18,28,38,48,58 * * * *",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "enrich_articles_shadow",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "enrich": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "enrichArticles",
+            "args": {
+              "adopt_legacy": true
+            }
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}
