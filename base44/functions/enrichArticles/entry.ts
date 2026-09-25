@@ -26,7 +26,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 const BUDGET_MS = 45_000;
 const BATCH = 20;
 const LEASE_MS = 5 * 60_000;
-const GRACE_MS = 20 * 60_000;
+const GRACE_MS = 60 * 60_000; // legacy pipeline can take well over 20 min to score
 const MAX_AGE_MS = 48 * 3600_000;
 const CHUNK = 100;
 
@@ -259,9 +259,16 @@ Deno.serve(async (req) => {
                 }
             }
             toScore = [];
+            const shadowSkipped = [];
             for (const a of batch) {
                 const f = legacyByUrl[a.url];
-                if (!f || f.importance_score == null) { toScore.push(a); continue; }
+                if (!f || f.importance_score == null) {
+                    // Shadow mode never calls the LLM. If the old pipeline didn't score it, the
+                    // new one doesn't either: those are mostly job ads and sports the legacy
+                    // pipeline never enriches. (Cutover resets recent skips to pending.)
+                    shadowSkipped.push(a);
+                    continue;
+                }
                 try {
                     await svc.Article.update(a.id, {
                         ai_summary: f.ai_summary || '', importance_score: f.importance_score,
@@ -275,8 +282,12 @@ Deno.serve(async (req) => {
                         const lens = lensById[cls.lens_id];
                         if (lens && lensMatches(lens, subs)) addScore(lens, a, cls);
                     }
-                } catch (e) { stats.errors++; toScore.push(a); }
+                } catch (e) { stats.errors++; }
             }
+            for (const a of shadowSkipped) {
+                await svc.Article.update(a.id, { enrichment_status: 'skipped', enrich_lease_until: new Date().toISOString() }).catch(() => {});
+            }
+            stats.shadow_skipped = (stats.shadow_skipped || 0) + shadowSkipped.length;
         }
 
         // 2. Base scoring by lens
