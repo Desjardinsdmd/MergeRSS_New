@@ -1,35 +1,73 @@
 {
   "name": "Bookmark",
-  "type": "object",
   "properties": {
+    "category": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
     "feed_item_id": {
-      "type": "string",
-      "description": "Reference to the bookmarked FeedItem"
+      "description": "Reference to the bookmarked FeedItem",
+      "type": "string"
+    },
+    "is_read": {
+      "default": false,
+      "type": "boolean"
+    },
+    "published_date": {
+      "format": "date-time",
+      "type": "string"
     },
     "title": {
       "type": "string"
     },
     "url": {
       "type": "string"
-    },
-    "description": {
-      "type": "string"
-    },
-    "category": {
-      "type": "string"
-    },
-    "published_date": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "is_read": {
-      "type": "boolean",
-      "default": false
     }
   },
   "required": [
     "feed_item_id",
     "title",
     "url"
-  ]
+  ],
+  "rls": {
+    "delete": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  },
+  "type": "object"
 }
