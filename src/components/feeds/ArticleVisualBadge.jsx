@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Sparkles, Loader2, Eye, CheckCircle2, XCircle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -8,6 +8,11 @@ export default function ArticleVisualBadge({ item, onVisualReady }) {
   const [status, setStatus] = useState(null); // null | 'running' | 'accepted' | 'rejected'
   const [imageUrl, setImageUrl] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
+  // Visual generation is admin-only on the backend; hide the control for everyone else.
+  const [isAdmin, setIsAdmin] = useState(false);
+  useEffect(() => { base44.auth.me().then(u => setIsAdmin(u?.role === 'admin')).catch(() => {}); }, []);
+
+  const hidden = !isAdmin;
 
   const handleGenerate = async (e) => {
     e.stopPropagation();
