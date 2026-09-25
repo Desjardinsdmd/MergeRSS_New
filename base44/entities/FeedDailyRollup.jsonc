@@ -1,0 +1,99 @@
+{
+  "description": "One row per feed per UTC day. Precomputed so trend/change-over-time queries read O(feeds x days) small rows instead of scanning raw articles. Written only by rollupFeedDays.",
+  "name": "FeedDailyRollup",
+  "properties": {
+    "avg_importance": {
+      "type": "number"
+    },
+    "category": {
+      "description": "Feed category at rollup time",
+      "type": "string"
+    },
+    "computed_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "day": {
+      "description": "UTC date YYYY-MM-DD (by article published_date)",
+      "type": "string"
+    },
+    "enriched_count": {
+      "default": 0,
+      "type": "number"
+    },
+    "entity_counts": {
+      "description": "[{e: entity (display form), k: lowercase key, n: mentions}] sorted by n desc, capped at 150",
+      "items": {
+        "properties": {
+          "e": {
+            "type": "string"
+          },
+          "k": {
+            "type": "string"
+          },
+          "n": {
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "feed_id": {
+      "type": "string"
+    },
+    "item_count": {
+      "default": 0,
+      "type": "number"
+    },
+    "top_items": {
+      "description": "Top articles of the day by importance, for drill-down without scanning raw items",
+      "items": {
+        "properties": {
+          "entity_keys": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "id": {
+            "type": "string"
+          },
+          "importance_score": {
+            "type": "number"
+          },
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "feed_id",
+    "day"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object"
+}
