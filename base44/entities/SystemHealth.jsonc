@@ -1,47 +1,69 @@
 {
   "name": "SystemHealth",
-  "type": "object",
   "properties": {
+    "completed_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "error_message": {
+      "type": "string"
+    },
     "job_type": {
-      "type": "string",
       "enum": [
         "feed_fetch",
         "digest_generation",
         "slack_delivery",
         "discord_delivery"
-      ]
+      ],
+      "type": "string"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "type": "object"
+    },
+    "retry_count": {
+      "default": 0,
+      "type": "number"
+    },
+    "started_at": {
+      "format": "date-time",
+      "type": "string"
     },
     "status": {
-      "type": "string",
       "enum": [
         "running",
         "completed",
         "failed",
         "scheduled"
-      ]
-    },
-    "started_at": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "completed_at": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "error_message": {
+      ],
       "type": "string"
-    },
-    "metadata": {
-      "type": "object",
-      "additionalProperties": true
-    },
-    "retry_count": {
-      "type": "number",
-      "default": 0
     }
   },
   "required": [
     "job_type",
     "status"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object"
 }
