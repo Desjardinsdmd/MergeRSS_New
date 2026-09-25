@@ -1,16 +1,38 @@
 {
   "name": "AlertSettings",
-  "type": "object",
   "properties": {
     "destination_email": {
-      "type": "string",
-      "description": "Email address to send system alerts to. If empty, all admin users are emailed."
+      "description": "Email address to send system alerts to. If empty, all admin users are emailed.",
+      "type": "string"
     },
     "frequency_hours": {
-      "type": "number",
       "default": 24,
-      "description": "How often (in hours) the scheduled alert check runs"
+      "description": "How often (in hours) the scheduled alert check runs",
+      "type": "number"
     }
   },
-  "required": []
+  "required": [],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object"
 }
