@@ -130,7 +130,12 @@ Deno.serve(async (req) => {
     }).catch(() => {});
 
     if (outOfTime && !error && hop < 100) {
-        base44.asServiceRole.functions.invoke('verifyMigration', { days, hop: hop + 1, cursor: i, cutoff, acc }).catch(() => {});
+        try {
+            await Promise.race([
+                base44.asServiceRole.functions.invoke('verifyMigration', { days, hop: hop + 1, cursor: i, cutoff, acc }),
+                new Promise(r => setTimeout(r, 1500)),
+            ]);
+        } catch { /* re-run manually with the cursor from the report */ }
     }
     return Response.json(report);
 });
