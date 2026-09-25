@@ -89,6 +89,9 @@
       "items": {
         "type": "string"
       }
+    },
+    "lease_owner": {
+      "type": "string"
     }
   },
   "required": [

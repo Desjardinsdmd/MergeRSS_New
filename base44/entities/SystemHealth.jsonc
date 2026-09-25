@@ -9,13 +9,8 @@
       "type": "string"
     },
     "job_type": {
-      "enum": [
-        "feed_fetch",
-        "digest_generation",
-        "slack_delivery",
-        "discord_delivery"
-      ],
-      "type": "string"
+      "type": "string",
+      "description": "Free-form job type. Was an enum of 4 values, which silently rejected clustering, scoring, recovery, migration and health logs."
     },
     "metadata": {
       "additionalProperties": true,

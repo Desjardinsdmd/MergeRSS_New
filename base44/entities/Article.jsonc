@@ -61,7 +61,8 @@
         "processing",
         "done",
         "fallback",
-        "failed"
+        "failed",
+        "skipped"
       ],
       "default": "pending"
     },
@@ -82,6 +83,20 @@
       "items": {
         "type": "string"
       }
+    },
+    "enrich_lease_owner": {
+      "type": "string"
+    },
+    "scoring_lens": {
+      "type": "string"
+    },
+    "enrichment_source": {
+      "type": "string",
+      "enum": [
+        "llm",
+        "legacy",
+        "migration"
+      ]
     }
   },
   "required": [
