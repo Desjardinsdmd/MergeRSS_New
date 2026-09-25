@@ -13,9 +13,10 @@ const THRESHOLDS = {
     error_feeds_critical: 10,
     // Zombie lock (running job older than this)
     zombie_lock_min: 20,
-    // Feed lag
-    max_lag_warn_min: 60,
-    max_lag_critical_min: 120,
+    // Feed lag (2026-09-25: feeds are refetched on a ~60 min cadence by design, so the
+    // old 60 min warn threshold fired on every healthy run)
+    max_lag_warn_min: 120,
+    max_lag_critical_min: 240,
     // Skipped % per run
     skipped_pct_warn: 40,
     skipped_pct_critical: 70,
@@ -71,7 +72,23 @@ Deno.serve(async (req) => {
     }
 
     // ── Check 2: Zombie locks ─────────────────────────────────────────────────
+    // Only feed_fetch locks block fetching. Stuck clustering jobs are reported separately
+    // as a warning; they were previously mislabelled as "feed fetching is blocked".
+    const stuckClustering = healthJobs.filter(j =>
+        j.job_type === 'clustering' && j.status === 'running' && j.started_at &&
+        (now - new Date(j.started_at).getTime()) > THRESHOLDS.zombie_lock_min * 60 * 1000
+    );
+    if (stuckClustering.length > 0) {
+        alerts.push({
+            id: 'stuck-clustering',
+            severity: 'warning',
+            title: `${stuckClustering.length} story-grouping job(s) stuck`,
+            detail: `Oldest started ${stuckClustering[stuckClustering.length - 1].started_at}. Feed fetching is NOT blocked; these are reclaimed automatically after 15 min.`,
+            action: 'No action unless this repeats daily.',
+        });
+    }
     const zombieJobs = healthJobs.filter(j =>
+        j.job_type === 'feed_fetch' &&
         j.status === 'running' &&
         j.started_at &&
         (now - new Date(j.started_at).getTime()) > THRESHOLDS.zombie_lock_min * 60 * 1000
