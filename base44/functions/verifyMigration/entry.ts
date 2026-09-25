@@ -71,6 +71,23 @@ Deno.serve(async (req) => {
         const articles = await scan(svc.Article, {}, ['id', 'created_date', 'enrichment_status']);
         const articleIds = new Set(articles.map(a => a.id));
         const migratedArticles = new Set(migratedLinks.map(l => l.article_id)).size;
+        // Where did the collapsed duplicates come from? Same source storing one article several
+        // times (legacy dedup failures) vs the same article arriving from different sources.
+        const perArticle = {};
+        for (const l of migratedLinks) (perArticle[l.article_id] ||= []).push(l.source_id);
+        let dupWithinSource = 0, dupAcrossSources = 0, multiSourceArticles = 0;
+        const dupBySource = {};
+        for (const srcs of Object.values(perArticle)) {
+            if (srcs.length < 2) continue;
+            const distinct = new Set(srcs).size;
+            dupWithinSource += srcs.length - distinct;
+            dupAcrossSources += distinct - 1;
+            if (distinct > 1) multiSourceArticles++;
+            const seen = new Set();
+            for (const s of srcs) { if (seen.has(s)) dupBySource[s] = (dupBySource[s] || 0) + 1; seen.add(s); }
+        }
+        const topWithinSourceDups = Object.entries(dupBySource).sort((a, b) => b[1] - a[1]).slice(0, 8)
+            .map(([id, n]) => ({ source: sourceTitle[id] || id, duplicates: n }));
         // Paging with skip over bulk-created rows (identical created_date) can drop rows between
         // pages, so a link that looks broken is re-checked by direct id lookup before counting it.
         const suspect = [...new Set(links.filter(l => !articleIds.has(l.article_id)).map(l => l.article_id))];
@@ -99,6 +116,10 @@ Deno.serve(async (req) => {
             dedup_rate_pct: migratedTotal ? Math.round((1 - migratedArticles / migratedTotal) * 1000) / 10 : null,
             articles_total_now: allArticles, links_total_now: allLinks,
             enrichment_status: statusMix, lens_scores: lensScores, read_states: readStates,
+            duplicates_within_same_source: dupWithinSource,
+            duplicates_across_sources: dupAcrossSources,
+            articles_carried_by_multiple_sources: multiSourceArticles,
+            top_within_source_duplicates: topWithinSourceDups,
             broken_links: brokenLinks,
             broken_article_ids_sample: brokenIds.slice(0, 10),
             paging_misses: pagingMisses,
