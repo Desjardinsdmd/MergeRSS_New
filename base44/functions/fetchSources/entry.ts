@@ -221,6 +221,7 @@ Deno.serve(async (req) => {
     const runId = `fs_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     const stats = { sources_fetched: 0, not_modified: 0, errors: 0, articles_created: 0, articles_reused: 0, links_created: 0, error_samples: [] };
 
+    try {
     while (Date.now() - t0 < BUDGET_MS - 20_000) {
         const batch = await claim(svc, runId);
         if (!batch.length) break;
@@ -262,6 +263,14 @@ Deno.serve(async (req) => {
                 }
             }
         }));
+    }
+    } catch (fatal) {
+        await svc.SystemHealth.create({
+            job_type: 'source_fetch', status: 'failed',
+            error_message: `${fatal?.message}\n${String(fatal?.stack || '').slice(0, 1500)}`,
+            metadata: { ...stats, run_id: runId },
+        }).catch(() => {});
+        return Response.json({ error: fatal?.message, stats }, { status: 500 });
     }
 
     await svc.SystemHealth.create({
