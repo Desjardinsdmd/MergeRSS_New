@@ -141,11 +141,14 @@ const RESULT_SCHEMA = (withEntities) => ({
     required: ['results'],
 });
 
-async function skipStale(svc, cutoffIso, stats) {
+async function skipStale(svc, cutoffIso, stats, t0) {
     const stale = extractItems(await svc.Article.filter(
         { enrichment_status: 'pending', first_seen_at: { $lt: cutoffIso } }, 'first_seen_at', 200));
-    for (const a of stale) await svc.Article.update(a.id, { enrichment_status: 'skipped' }).catch(() => {});
-    stats.skipped_stale += stale.length;
+    for (const a of stale) {
+        if (Date.now() - t0 > BUDGET_MS - 3_000) break;
+        await svc.Article.update(a.id, { enrichment_status: 'skipped' }).catch(() => {});
+        stats.skipped_stale++;
+    }
 }
 
 async function claim(svc, runId) {
@@ -207,8 +210,6 @@ Deno.serve(async (req) => {
     const llm = base44.asServiceRole.integrations.Core.InvokeLLM;
     const runId = `ea_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     const stats = { claimed: 0, adopted_legacy: 0, llm_scored: 0, llm_fallback: 0, lens_scores_written: 0, llm_calls: 0, skipped_stale: 0, errors: 0 };
-
-    await skipStale(svc, new Date(Date.now() - MAX_AGE_MS).toISOString(), stats);
 
     const lenses = extractItems(await svc.CustomLens.filter({ is_active: true }, '-created_date', 200));
     const authority = {};
@@ -341,6 +342,12 @@ ${JSON.stringify(payload, null, 2)}`,
 
         for (const c of chunks(newScores, CHUNK)) await svc.LensScore.bulkCreate(c);
         stats.lens_scores_written += newScores.length;
+    }
+
+    // Backlog housekeeping runs AFTER real work. It used to run first and ate the whole
+    // time budget (200 updates ~ 25-40s), so fresh articles were never claimed.
+    if (Date.now() - t0 < BUDGET_MS - 15_000) {
+        await skipStale(svc, new Date(Date.now() - MAX_AGE_MS).toISOString(), stats, t0);
     }
 
     await svc.SystemHealth.create({
