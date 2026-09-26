@@ -105,11 +105,9 @@ Write like an analyst briefing a principal. Lead with the consequence, keep sent
 
 ## Known drift in the codebase
 
-These are live inconsistencies found during the review. Fixing them brings the product in line with this spec.
+Fixed on September 26, 2026: `globals.css` now loads after `index.css`, every amber token and the "Electric Amber" picker option resolve to #FBBF24, Trending is blue in the admin panels, and `index.html` carries the MergeRSS title and favicon.
 
-1. `src/main.jsx` imports `index.css` (stock shadcn neutral tokens). The warm brand tokens in `globals.css` are never loaded, so `--primary` falls back to near-black unless a user has picked an accent colour.
-2. Three different ambers are in use: #FBBF24 hardcoded across 48 files, #F9A71A in the unused `globals.css` token, and #FFC857 in the "Electric Amber" accent picker. This spec standardises on #FBBF24.
-3. The accent picker lets each user recolour the brand (violet, coral, cyan and others). Keep it if you want personalisation, but it should recolour interface highlights only, never the logo or emails.
-4. Trending renders amber in admin panels and blue in user-facing feeds. Blue is the standard.
-5. `index.html` still ships the Base44 favicon and the title "Base44 APP".
-6. One user record holds the accent value "indigo", which the picker no longer offers.
+Still open:
+
+1. The accent picker lets each user recolour the brand (violet, coral, cyan and others), including the logo mark. It should recolour interface highlights only, never the logo or emails.
+2. One user record holds the accent value "indigo", which the picker no longer offers.
