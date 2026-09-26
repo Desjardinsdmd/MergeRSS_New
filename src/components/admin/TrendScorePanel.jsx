@@ -10,7 +10,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { TIER_LABELS } from '@/lib/trendScoring';
 
 const TAG_COLORS = {
-    Trending:    'bg-amber-900/30 text-amber-400',
+    Trending:    'bg-blue-900/30 text-blue-400',
     Risk:        'bg-red-900/30 text-red-400',
     Opportunity: 'bg-green-900/30 text-green-400',
     Neutral:     'bg-stone-800 text-stone-400',

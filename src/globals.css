@@ -14,7 +14,7 @@
     --popover-foreground: 36 30% 93%;
 
     /* Brand accent (dynamic, defaults to amber) */
-    --accent-primary: 38 95% 54%;     /* amber-400 #fbbf24 */
+    --accent-primary: 43 96% 56%;     /* amber-400 #fbbf24 */
     --accent-primary-foreground: 22 16% 5%;  /* near-black on accent */
     --primary: var(--accent-primary);
     --primary-foreground: var(--accent-primary-foreground);
@@ -36,7 +36,7 @@
     /* Chrome */
     --border: 22 12% 18%;
     --input: 22 12% 14%;
-    --ring: 38 95% 54%;
+    --ring: 43 96% 56%;
     --radius: 0.375rem;
   }
 
@@ -48,7 +48,7 @@
     --card-foreground: 36 30% 93%;
     --popover: 22 14% 9%;
     --popover-foreground: 36 30% 93%;
-    --primary: 38 95% 54%;
+    --primary: 43 96% 56%;
     --primary-foreground: 22 16% 5%;
     --secondary: 22 12% 13%;
     --secondary-foreground: 36 20% 80%;
@@ -60,7 +60,7 @@
     --destructive-foreground: 0 0% 98%;
     --border: 22 12% 18%;
     --input: 22 12% 14%;
-    --ring: 38 95% 54%;
+    --ring: 43 96% 56%;
   }
 
   /* High-contrast dark mode — WCAG AAA contrast (7:1+) */

@@ -16,7 +16,7 @@ export const ACCENT_COLORS = [
   { id: 'cyan',    label: 'Neon Cyan',      color: '#00E5FF', hsl: '187 100% 50%' },
   { id: 'emerald', label: 'Emerald Neon',   color: '#00FF9C', hsl: '156 100% 50%' },
   { id: 'violet',  label: 'Violet Pulse',   color: '#8B5CF6', hsl: '263 70% 64%' },
-  { id: 'amber',   label: 'Electric Amber', color: '#FFC857', hsl: '40 100% 67%' },
+  { id: 'amber',   label: 'Electric Amber', color: '#FBBF24', hsl: '43 96% 56%' },
   { id: 'magenta', label: 'Hot Magenta',    color: '#FF2E88', hsl: '333 100% 59%' },
 ];
 
@@ -45,7 +45,7 @@ function applyHCOverrides(isHC) {
     root.style.setProperty('--muted-foreground', '0 0% 85%');   /* Lighter text (8:1 on muted) */
     root.style.setProperty('--input', '0 0% 20%');              /* Lighter input for visibility */
     root.style.setProperty('--destructive', '0 100% 45%');      /* Brighter red for visibility */
-    root.style.setProperty('--ring', '38 95% 54%');             /* Maintain accent for focus */
+    root.style.setProperty('--ring', '43 96% 56%');             /* Maintain accent for focus */
   } else {
     // Remove inline overrides so CSS vars take back control
     root.style.removeProperty('--background');
