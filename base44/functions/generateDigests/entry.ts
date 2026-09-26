@@ -74,14 +74,14 @@ const BRAND = {
     muted: '#938876',      // --muted-foreground
     meta: '#78716c',       // stone-500
     dim: '#57534e',        // stone-600
-    amber: '#f9a71a',      // --primary
+    amber: '#fbbf24',      // brand amber (amber-400)
     onAmber: '#0f0c0b',    // --primary-foreground
-    amber50: '#885e16',    // primary / 50 on card
-    amber60: '#9f6c17',    // primary / 60 on card
-    amber25: '#503914',    // primary / 25 on card
-    amber20: '#443114',    // primary / 20 on card
-    amber7: '#271e13',     // primary / 7 on card
-    amber4: '#201a12',     // primary / 4 on card
+    amber50: '#896a1b',    // primary / 50 on card
+    amber60: '#a07b1d',    // primary / 60 on card
+    amber25: '#503f16',    // primary / 25 on card
+    amber20: '#453616',    // primary / 20 on card
+    amber7: '#272013',     // primary / 7 on card
+    amber4: '#201b13',     // primary / 4 on card
 };
 const FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
 const TAG_STYLE = {
