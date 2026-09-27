@@ -6,24 +6,24 @@
   /* ─── Design Tokens ─────────────────────────────────────────────────────── */
   :root {
     /* Base palette: Tailwind stone, matching component classes (see BRAND.md) */
-    --background: 34.3 36.8% 3.7%;          /* #0a0805 – deepest bg */
-    --foreground: 60 4.8% 95.9%;         /* near-white warm – 15:1 on bg */
-    --card: 24 9.8% 10%;                /* #0f0c08 */
+    --background: 34.3 36.8% 3.7%;          /* #0d0a06 app shell */
+    --foreground: 60 4.8% 95.9%;         /* stone-100 */
+    --card: 24 9.8% 10%;                /* stone-900 */
     --card-foreground: 60 4.8% 95.9%;
     --popover: 24 9.8% 10%;
     --popover-foreground: 60 4.8% 95.9%;
 
-    /* Brand accent (dynamic, defaults to amber) */
+    /* Brand accent (defaults to violet; users can override via accent picker) */
     --accent-primary: 263 70% 64%;     /* brand violet #9463e3 */
-    --accent-primary-foreground: 24 9.8% 10%;  /* near-black on accent */
+    --accent-primary-foreground: 24 9.8% 10%;  /* stone-900 on primary */
     --primary: var(--accent-primary);
     --primary-foreground: 24 9.8% 10%;
 
     /* Surface layers */
-    --secondary: 12 6.5% 15.1%;          /* stone-800 equivalent */
+    --secondary: 12 6.5% 15.1%;          /* stone-800 */
     --secondary-foreground: 20 5.9% 90%;
     --muted: 12 6.5% 15.1%;
-    --muted-foreground: 24 5.4% 63.9%;   /* stone-500 — ≥4.5:1 on card */
+    --muted-foreground: 24 5.4% 63.9%;   /* stone-400 */
 
     /* Interactive */
     --accent: 12 6.5% 15.1%;
