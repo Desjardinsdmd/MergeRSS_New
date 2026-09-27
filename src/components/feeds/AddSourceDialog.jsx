@@ -395,7 +395,7 @@ export default function AddSourceDialog({ open, onOpenChange, onSuccess, editFee
             </Button>
             <Button
               type="submit"
-              disabled={loading || (sourceStatus?.type === 'error')}
+              disabled={loading || success}
               className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900"
             >
               {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
