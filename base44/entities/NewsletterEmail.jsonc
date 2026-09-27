@@ -2,13 +2,40 @@
   "name": "NewsletterEmail",
   "type": "object",
   "properties": {
+    "source": {
+      "type": "string",
+      "enum": [
+        "gmail",
+        "inbound"
+      ],
+      "description": "gmail: admin Gmail path (processGmailNewsletters). inbound: per-user inbound address (mailgunWebhook). Missing means gmail (legacy rows)."
+    },
     "gmail_message_id": {
       "type": "string",
-      "description": "Gmail message ID for deduplication"
+      "description": "Gmail message ID for deduplication (gmail source only)"
+    },
+    "message_id": {
+      "type": "string",
+      "description": "RFC Message-Id of an inbound email, for deduplication"
     },
     "subscription_id": {
       "type": "string",
-      "description": "Reference to the EmailSubscription that matched"
+      "description": "gmail source: EmailSubscription id. inbound source: NewsletterSubscription id"
+    },
+    "email_feed_id": {
+      "type": "string",
+      "description": "inbound source: EmailFeed (address) the email arrived at"
+    },
+    "feed_id": {
+      "type": "string",
+      "description": "inbound source: per-sender Feed the FeedItem was attached to"
+    },
+    "feed_item_id": {
+      "type": "string",
+      "description": "inbound source: FeedItem created from this email, if any"
+    },
+    "recipient": {
+      "type": "string"
     },
     "from_email": {
       "type": "string"
@@ -25,7 +52,18 @@
     },
     "text_content": {
       "type": "string",
-      "description": "Plain text body"
+      "description": "Plain text body (cleaned)"
+    },
+    "html_content": {
+      "type": "string",
+      "description": "Sanitized HTML body, truncated; rendered only inside a script-less sandboxed iframe"
+    },
+    "view_url": {
+      "type": "string",
+      "description": "'View in browser' / web version link, if found"
+    },
+    "list_unsubscribe": {
+      "type": "string"
     },
     "links": {
       "type": "array",
@@ -42,6 +80,34 @@
       },
       "description": "Extracted hyperlinks from the email body"
     },
+    "ingest_status": {
+      "type": "string",
+      "enum": [
+        "ingested",
+        "sender_paused",
+        "over_limit",
+        "confirmation",
+        "duplicate"
+      ],
+      "description": "What happened to this inbound email"
+    },
+    "is_confirmation": {
+      "type": "boolean",
+      "default": false,
+      "description": "Looks like a double opt-in / forwarding confirmation email"
+    },
+    "confirm_url": {
+      "type": "string",
+      "description": "Best-guess confirmation link (never auto-clicked)"
+    },
+    "confirmation_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "done",
+        "dismissed"
+      ]
+    },
     "is_read": {
       "type": "boolean",
       "default": false
@@ -52,7 +118,6 @@
     }
   },
   "required": [
-    "gmail_message_id",
     "subject",
     "from_email"
   ],
@@ -75,16 +140,9 @@
       ]
     },
     "update": {
-      "$or": [
-        {
-          "data.owner_email": "{{user.email}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "user_condition": {
+        "role": "admin"
+      }
     },
     "delete": {
       "user_condition": {
