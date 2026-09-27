@@ -232,6 +232,20 @@ function LayoutContent({ children, currentPageName }) {
     return null;
   }
 
+  // First run: anyone who has not finished onboarding goes to the Welcome flow.
+  if (user.onboarding_complete !== true && !ONBOARDING_EXEMPT.includes(currentPageName)) {
+    return <Navigate to={createPageUrl('Welcome')} replace />;
+  }
+
+  // Welcome is full-screen: no sidebar or header chrome.
+  if (currentPageName === 'Welcome') {
+    return (
+      <div className="min-h-screen bg-[#0a0805]">
+        <ErrorBoundary>{children}</ErrorBoundary>
+      </div>
+    );
+  }
+
   return (
     <div className={cn(
       "min-h-screen transition-colors duration-300",
@@ -263,7 +277,7 @@ function LayoutContent({ children, currentPageName }) {
             </div>
             <span className="font-bold text-stone-100 tracking-tight">MergeRSS</span>
           </Link>
-          <button onClick={() => setSidebarOpen(false)} aria-label="Close navigation menu" className="lg:hidden p-1 text-stone-600 hover:text-stone-300">
+          <button type="button" onClick={() => setSidebarOpen(false)} aria-label="Close navigation menu" className="lg:hidden p-1 text-stone-600 hover:text-stone-300 rounded outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))]">
             <X className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
@@ -271,37 +285,51 @@ function LayoutContent({ children, currentPageName }) {
         {/* Nav */}
         <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
           {navigation.map((item) => {
-          const isActive = currentPageName === item.href;
+          const isActive = (item.match || [item.href]).includes(currentPageName);
+          const isExact = currentPageName === item.href;
           const isInbox = item.href === 'Inbox';
           return (
-            <TooltipProvider key={item.name}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Link
-                    to={createPageUrl(item.href)}
-                    aria-current={isActive ? 'page' : undefined}
-                    aria-label={item.name}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2 text-sm font-medium transition-all duration-150 rounded-md group focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0a06]",
-                      isActive
-                        ? "bg-stone-800 text-[hsl(var(--primary))]"
-                        : "text-stone-400 hover:bg-stone-900 hover:text-stone-100"
-                    )}
-                  >
-                    <item.icon className={cn(
-                      "w-4 h-4 flex-shrink-0 transition-transform duration-150 group-hover:scale-110",
-                      isActive ? "text-[hsl(var(--primary))]" : "text-stone-500"
-                    )} aria-hidden="true" />
-                    <span className="flex-1">{item.name}</span>
-                    {isInbox && <InboxNavBadge user={user} />}
-                    {item.href === 'Bookmarks' && <BookmarkNavBadge user={user} />}
-                  </Link>
-                </TooltipTrigger>
-                <TooltipContent side="right" className="bg-stone-950 border border-stone-700 text-stone-100 text-xs">
-                  {item.name}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <div key={item.name}>
+              <Link
+                to={createPageUrl(item.href)}
+                aria-current={isExact ? 'page' : undefined}
+                onClick={() => setSidebarOpen(false)}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2 text-sm font-medium transition-all duration-150 rounded-md group outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0a06]",
+                  isActive
+                    ? "bg-stone-800 text-[hsl(var(--primary))]"
+                    : "text-stone-400 hover:bg-stone-900 hover:text-stone-100"
+                )}
+              >
+                <item.icon className={cn(
+                  "w-4 h-4 flex-shrink-0 transition-transform duration-150 group-hover:scale-110",
+                  isActive ? "text-[hsl(var(--primary))]" : "text-stone-500"
+                )} aria-hidden="true" />
+                <span className="flex-1">{item.name}</span>
+                {isInbox && <InboxNavBadge user={user} />}
+              </Link>
+              {item.children && isActive && (
+                <div className="ml-7 mt-0.5 mb-1 border-l border-stone-800 pl-2 space-y-0.5">
+                  {item.children.map(child => {
+                    const childActive = currentPageName === child.href;
+                    return (
+                      <Link
+                        key={child.href}
+                        to={createPageUrl(child.href)}
+                        aria-current={childActive ? 'page' : undefined}
+                        onClick={() => setSidebarOpen(false)}
+                        className={cn(
+                          "block px-2 py-1.5 text-xs font-medium rounded outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))]",
+                          childActive ? "text-[hsl(var(--primary))]" : "text-stone-500 hover:text-stone-200"
+                        )}
+                      >
+                        {child.name}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           );
           })}
 
@@ -399,11 +427,13 @@ function LayoutContent({ children, currentPageName }) {
         )}>
           <div className="h-16 px-8 flex items-center justify-end gap-2">
             <button
+              type="button"
               onClick={() => setReportDialogOpen(true)}
               title="Report a problem"
-              className="p-1.5 text-stone-500 hover:text-[hsl(var(--primary))] transition"
+              aria-label="Report a problem"
+              className="p-1.5 text-stone-500 hover:text-[hsl(var(--primary))] transition rounded outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))]"
             >
-              <AlertCircle className="w-5 h-5" />
+              <AlertCircle className="w-5 h-5" aria-hidden="true" />
             </button>
             <BookmarkBell user={user} />
             <InboxBell user={user} />
@@ -417,7 +447,7 @@ function LayoutContent({ children, currentPageName }) {
           "light:bg-stone-50 light:border-stone-200"
         )}>
           <div className="flex items-center justify-between h-14 px-4">
-            <button onClick={() => setSidebarOpen(true)} aria-label="Open navigation menu" className="p-1.5 text-stone-500">
+            <button type="button" onClick={() => setSidebarOpen(true)} aria-label="Open navigation menu" className="p-1.5 text-stone-500 rounded outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))]">
               <Menu className="w-5 h-5" aria-hidden="true" />
             </button>
             <div className="flex items-center gap-2">
@@ -428,11 +458,13 @@ function LayoutContent({ children, currentPageName }) {
             </div>
             <div className="flex items-center gap-1">
               <button
+                type="button"
                 onClick={() => setReportDialogOpen(true)}
                 title="Report a problem"
-                className="p-1.5 text-stone-500 hover:text-[hsl(var(--primary))] transition"
+                aria-label="Report a problem"
+                className="p-1.5 text-stone-500 hover:text-[hsl(var(--primary))] transition rounded outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))]"
               >
-                <AlertCircle className="w-5 h-5" />
+                <AlertCircle className="w-5 h-5" aria-hidden="true" />
               </button>
               <BookmarkBell user={user} />
               <InboxBell user={user} />
