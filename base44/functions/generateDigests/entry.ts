@@ -894,7 +894,7 @@ Deno.serve(async (req) => {
 
             } catch (err) {
                 console.error(`[generateDigests] Error processing digest="${digest.name}":`, err.message);
-                results.push({ digest: digest.name, error: err.message, status: 'error' });
+                results.push({ digest: digest.name, digest_id: digest.id, owner: digest.created_by || null, error: err.message, status: 'error' });
             }
         }
 
