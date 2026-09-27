@@ -29,6 +29,8 @@ import DigestWizard from '@/components/digests/DigestWizard';
 import DigestCard from '@/components/digests/DigestCard';
 import DigestListView from '@/components/digests/DigestListView';
 import DigestCompactView from '@/components/digests/DigestCompactView';
+import SharedDigestsSection from '@/components/digests/SharedDigestsSection';
+import { useWorkspace } from '@/components/feeds/workspaceApi';
 
 export default function Digests() {
   const [user, setUser] = useState(null);
@@ -42,7 +44,10 @@ export default function Digests() {
   const [selectedDigests, setSelectedDigests] = useState([]);
   const [deletingBulk, setDeletingBulk] = useState(false);
   const [onboardingDismissed, setOnboardingDismissed] = useState(() => localStorage.getItem('digestOnboardingDismissed') === '1');
+  const [sharedDialog, setSharedDialog] = useState({ open: false, digest: null });
   const queryClient = useQueryClient();
+  const { workspace, canManage: canManageTeam } = useWorkspace();
+  const team = workspace && canManageTeam ? workspace : null;
 
   useEffect(() => {
     const loadUser = async () => {
@@ -56,11 +61,20 @@ export default function Digests() {
     loadUser();
   }, []);
 
-  const { data: digests = [], isLoading } = useQuery({
+  const { data: allDigests = [], isLoading } = useQuery({
     queryKey: ['digests', user?.email],
     queryFn: () => base44.entities.Digest.filter({ created_by: user?.email }, '-created_date', 1000),
     enabled: !!user,
   });
+  // Briefings shared with the current workspace are listed in the Shared section instead.
+  const digests = React.useMemo(
+    () => allDigests.filter(d => !(workspace && d.workspace_id === workspace.id)),
+    [allDigests, workspace],
+  );
+  const refreshAllDigests = () => {
+    queryClient.invalidateQueries({ queryKey: ['digests'] });
+    queryClient.invalidateQueries({ queryKey: ['shared-digests'] });
+  };
 
   const handleDelete = async () => {
     if (deleteConfirm) {
@@ -92,7 +106,7 @@ export default function Digests() {
     setSendingTest(digest.id);
     try {
       const res = await base44.functions.invoke('generateDigests', { digest_id: digest.id, force: true });
-      queryClient.invalidateQueries({ queryKey: ['digests'] });
+      refreshAllDigests();
       const d = res?.data || {};
       if (d.error) {
         toast.error(`Failed to send test: ${d.error}`);
@@ -141,7 +155,7 @@ export default function Digests() {
 
   const isPremium = user?.plan === 'premium';
   const maxDigests = getLimit(isPremium, 'digests');
-  const canAddMore = digests.length < maxDigests;
+  const canAddMore = allDigests.length < maxDigests;
 
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto">
@@ -169,8 +183,20 @@ export default function Digests() {
         </Button>
       </div>
 
+      {/* Team: shared briefings */}
+      {workspace && (
+        <SharedDigestsSection
+          workspace={workspace}
+          canManage={canManageTeam}
+          onCreate={() => setSharedDialog({ open: true, digest: null })}
+          onEdit={(d) => setSharedDialog({ open: true, digest: d })}
+          onSendNow={handleSendTest}
+          sendingId={sendingTest}
+        />
+      )}
+
       {/* Free plan limit banner */}
-      {!isPremium && digests.length >= maxDigests && (
+      {!isPremium && allDigests.length >= maxDigests && (
         <div className="mb-6 flex items-center justify-between gap-4 bg-stone-900 border border-stone-800 rounded-xl px-4 py-3">
           <p className="text-sm text-stone-400 font-medium">
             You've reached the {maxDigests}-digest limit on the Free plan. Upgrade to Premium for unlimited digests.
@@ -344,9 +370,22 @@ export default function Digests() {
           setShowDialog(open);
           if (!open) setEditDigest(null);
         }}
-        onSuccess={() => queryClient.invalidateQueries({ queryKey: ['digests'] })}
+        onSuccess={refreshAllDigests}
         editDigest={editDigest}
+        team={team}
       />
+
+      {/* Shared briefing create/edit */}
+      {team && (
+        <DigestDialog
+          open={sharedDialog.open}
+          onOpenChange={(open) => setSharedDialog(s => (open ? { ...s, open } : { open: false, digest: null }))}
+          onSuccess={refreshAllDigests}
+          editDigest={sharedDialog.digest}
+          team={team}
+          defaultShared
+        />
+      )}
 
       {/* Delete Confirmation */}
       <AlertDialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
