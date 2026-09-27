@@ -26,7 +26,22 @@ const THRESHOLDS = {
     // Digest errors per run
     digest_error_warn: 1,
     digest_error_critical: 3,
+    // Platform-wide signals from OTHER users' records (counts only, never names).
+    // Individual user failures are the user's problem; only a mass failure means
+    // something is wrong with MergeRSS itself.
+    platform_feed_error_min: 10,
+    platform_feed_error_pct: 30,
+    platform_digest_error_min: 3,
+    platform_delivery_fail_min: 5,
 };
+
+// A record is in admin scope if an admin owns it or it has no human owner
+// (system/service-created). Everything else belongs to a user and is private.
+function isAdminScope(ownerEmail, adminEmailSet) {
+    if (!ownerEmail || ownerEmail === 'anonymous') return true;
+    if (ownerEmail.startsWith('service+') && ownerEmail.endsWith('@no-reply.base44.com')) return true;
+    return adminEmailSet.has(ownerEmail.toLowerCase());
+}
 
 function severity(value, warn, critical) {
     if (value >= critical) return 'critical';
@@ -48,7 +63,7 @@ Deno.serve(async (req) => {
     const alerts = [];
 
     // ── Fetch state in parallel ───────────────────────────────────────────────
-    const [feeds, healthJobs, deliveries, digests] = await Promise.all([
+    const [allFeeds, healthJobs, allDeliveries, digests, adminUsers] = await Promise.all([
         base44.asServiceRole.entities.Feed.filter({ status: { $in: ['active', 'error', 'paused'] } }, '-updated_date', 2000),
         base44.asServiceRole.entities.SystemHealth.list('-created_date', 100),
         base44.asServiceRole.entities.DigestDelivery.filter(
@@ -56,7 +71,15 @@ Deno.serve(async (req) => {
             '-created_date', 100
         ),
         base44.asServiceRole.entities.Digest.filter({ status: 'active' }),
+        base44.asServiceRole.entities.User.filter({ role: 'admin' }),
     ]);
+
+    const adminEmailSet = new Set(adminUsers.map(u => (u.email || '').toLowerCase()).filter(Boolean));
+    const feeds      = allFeeds.filter(f => isAdminScope(f.created_by, adminEmailSet));
+    const userFeeds  = allFeeds.filter(f => !isAdminScope(f.created_by, adminEmailSet));
+    const deliveries = allDeliveries.filter(d => isAdminScope(d.owner_email, adminEmailSet));
+    const userDeliveryFailures = allDeliveries.length - deliveries.length;
+    const digestOwnerById = Object.fromEntries(digests.map(d => [d.id, d.created_by]));
 
     // ── Check 1: Error feeds ──────────────────────────────────────────────────
     const errorFeeds = feeds.filter(f => f.status === 'error');
@@ -68,6 +91,20 @@ Deno.serve(async (req) => {
             title: `${errorFeeds.length} feed(s) in error state`,
             detail: errorFeeds.slice(0, 5).map(f => `• ${f.name}: ${f.fetch_error || 'unknown error'}`).join('\n'),
             action: 'Review and fix feeds in AdminHealth → Feed Status',
+        });
+    }
+
+    // ── Check 1b: Platform-wide feed failure (other users, counts only) ────────
+    const userLive       = userFeeds.filter(f => f.status === 'active' || f.status === 'error');
+    const userErrorCount = userLive.filter(f => f.status === 'error').length;
+    const userErrorPct   = userLive.length ? Math.round((userErrorCount / userLive.length) * 100) : 0;
+    if (userErrorCount >= THRESHOLDS.platform_feed_error_min && userErrorPct >= THRESHOLDS.platform_feed_error_pct) {
+        alerts.push({
+            id: 'platform-feed-errors',
+            severity: 'critical',
+            title: `Platform-wide fetch failure: ${userErrorCount}/${userLive.length} user feeds erroring (${userErrorPct}%)`,
+            detail: 'Error rate across user feeds is high enough to suggest a fetcher or network problem rather than individual bad sources.',
+            action: 'Check fetchFeeds logs and recent deploys.',
         });
     }
 
@@ -140,7 +177,32 @@ Deno.serve(async (req) => {
     // ── Check 5: Digest errors in last run ────────────────────────────────────
     const digestJobs = healthJobs.filter(j => j.job_type === 'digest_generation');
     const lastDigest = digestJobs[0];
-    const digestErrors = (lastDigest?.metadata?.results || []).filter(r => r.status === 'error');
+    const allDigestErrors = (lastDigest?.metadata?.results || []).filter(r => r.status === 'error');
+    const digestErrors = allDigestErrors.filter(r => {
+        const owner = r.owner ?? (r.digest_id ? digestOwnerById[r.digest_id] : undefined);
+        // Older results carry only a name; without an owner we can't prove it's
+        // the admin's, so keep it out of the named list.
+        return owner !== undefined && isAdminScope(owner, adminEmailSet);
+    });
+    const userDigestErrorCount = allDigestErrors.length - digestErrors.length;
+    if (userDigestErrorCount >= THRESHOLDS.platform_digest_error_min) {
+        alerts.push({
+            id: 'platform-digest-errors',
+            severity: 'warning',
+            title: `${userDigestErrorCount} user digest(s) errored in last generation run`,
+            detail: 'Multiple user digests failing together usually means an LLM quota or platform issue.',
+            action: 'Check generateDigests logs and LLM quota.',
+        });
+    }
+    if (userDeliveryFailures >= THRESHOLDS.platform_delivery_fail_min) {
+        alerts.push({
+            id: 'platform-delivery-failures',
+            severity: 'warning',
+            title: `${userDeliveryFailures} user digest deliveries failed in last 24h`,
+            detail: 'Counts only. Individual webhook misconfigurations are shown to each user, not here.',
+            action: 'Check delivery integrations if this keeps climbing.',
+        });
+    }
     const digestErrSev = severity(digestErrors.length, THRESHOLDS.digest_error_warn, THRESHOLDS.digest_error_critical);
     if (digestErrSev !== 'ok') {
         alerts.push({
@@ -178,7 +240,6 @@ Deno.serve(async (req) => {
         if (alertSettings?.destination_email?.trim()) {
             adminEmails = [alertSettings.destination_email.trim()];
         } else {
-            const adminUsers = await base44.asServiceRole.entities.User.filter({ role: 'admin' });
             adminEmails = adminUsers.map(u => u.email).filter(Boolean);
         }
 
