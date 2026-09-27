@@ -21,8 +21,11 @@ Deno.serve(async (req) => {
 
         // Fallback: look the customer up in Stripe by email.
         if (!customerId && email) {
-            const customers = await stripe.customers.list({ email, limit: 1 });
-            customerId = customers.data[0]?.id || null;
+            for (const e of new Set([user.email, email])) {
+                const customers = await stripe.customers.list({ email: e, limit: 1 });
+                customerId = customers.data[0]?.id || null;
+                if (customerId) break;
+            }
         }
 
         if (!customerId) {
