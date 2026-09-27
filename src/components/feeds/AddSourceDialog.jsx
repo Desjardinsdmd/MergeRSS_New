@@ -9,6 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2, X, Plus, Globe, AlertCircle, CheckCircle2, ShieldAlert, WifiOff, Lock, FileX, Sparkles } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+import { addSourceViaApi } from '@/components/feeds/sourceApi';
 
 const DEFAULT_CATEGORIES = ['CRE', 'Markets', 'Tech', 'News', 'Finance', 'Crypto', 'AI', 'Other'];
 
@@ -17,6 +19,7 @@ export default function AddSourceDialog({ open, onOpenChange, onSuccess, editFee
   const [success, setSuccess] = useState(false);
   const [errors, setErrors] = useState({});
   const [customCategoryInput, setCustomCategoryInput] = useState('');
+  const [showCustomCategory, setShowCustomCategory] = useState(false);
   const [formData, setFormData] = useState({
     name: editFeed?.name || prefillName || '',
     url: editFeed?.url || prefillUrl || '',
@@ -52,14 +55,35 @@ export default function AddSourceDialog({ open, onOpenChange, onSuccess, editFee
     }
     setTagInput('');
     setSourceStatus(null);
+    setErrors({});
+    const cat = editFeed?.category;
+    const isCustom = !!cat && !DEFAULT_CATEGORIES.includes(cat);
+    setShowCustomCategory(isCustom);
+    setCustomCategoryInput(isCustom ? cat : '');
   }, [editFeed, open]);
 
   const validate = () => {
     const errs = {};
-    if (!formData.name.trim()) errs.name = 'Source name is required';
+    if (editFeed && !formData.name.trim()) errs.name = 'Source name is required';
     if (!formData.url.trim()) errs.url = 'URL is required';
-    else if (!formData.url.startsWith('http')) errs.url = 'URL must start with http:// or https://';
+    else if (!formData.url.trim().startsWith('http')) errs.url = 'URL must start with http:// or https://';
+    if (showCustomCategory && !customCategoryInput.trim()) errs.category = 'Enter a category name';
     return errs;
+  };
+
+  const finishSuccess = (message) => {
+    setLoading(false);
+    setSuccess(true);
+    setSourceStatus({ phase: 'success', message, type: 'success' });
+    setTimeout(() => {
+      setSuccess(false);
+      setSourceStatus(null);
+      onSuccess?.();
+      onOpenChange(false);
+      setFormData({ name: '', url: '', category: 'Other', tags: [], is_public: false, public_description: '' });
+      setShowCustomCategory(false);
+      setCustomCategoryInput('');
+    }, 1200);
   };
 
   const handleSubmit = async (e) => {
@@ -71,62 +95,71 @@ export default function AddSourceDialog({ open, onOpenChange, onSuccess, editFee
     }
     setErrors({});
     setLoading(true);
-    setSourceStatus({ phase: 'analyzing', message: 'Analyzing source…', type: 'info' });
+
+    const category = showCustomCategory ? customCategoryInput.trim() : formData.category;
+    const url = formData.url.trim();
+
+    const showFailure = (result) => {
+      const d = result.data || {};
+      setSourceStatus({
+        phase: 'error',
+        message: result.error,
+        guidance: d.guidance,
+        isSocial: !!d.is_social,
+        platform: d.social_platform,
+        type: 'error',
+      });
+      setLoading(false);
+    };
 
     try {
-      const response = await base44.functions.invoke('addSource', {
-        url: formData.url.trim(),
-        name: formData.name.trim(),
-        category: formData.category,
-        tags: formData.tags || [],
-      });
-
-      if (!response.data.success) {
-        if (response.data.is_social) {
-          setSourceStatus({
-            phase: 'error',
-            message: response.data.error,
-            guidance: response.data.guidance,
-            isSocial: true,
-            platform: response.data.social_platform,
-            type: 'error',
-          });
+      if (editFeed) {
+        // Edit mode: only ever update the existing record. Re-run discovery only when the URL changed.
+        const urlChanged = url !== (editFeed.url || '').trim();
+        if (urlChanged) {
+          setSourceStatus({ phase: 'analyzing', message: 'Checking the new URL…', type: 'info' });
+          const result = await addSourceViaApi({ feed_id: editFeed.id, url, category, tags: formData.tags || [] });
+          if (!result.ok) return showFailure(result);
         } else {
-          setSourceStatus({
-            phase: 'error',
-            message: response.data.error,
-            type: 'error',
-          });
+          setSourceStatus({ phase: 'analyzing', message: 'Saving…', type: 'info' });
         }
-        setLoading(false);
+        await base44.entities.Feed.update(editFeed.id, {
+          name: formData.name.trim(),
+          category,
+          tags: formData.tags,
+          ...(canShareToDirectory ? {
+            is_public: !!formData.is_public,
+            public_description: formData.public_description || '',
+          } : {}),
+        });
+        finishSuccess('Changes saved');
         return;
       }
 
-      // Success: update or create feed record
-      if (editFeed) {
-        await base44.entities.Feed.update(editFeed.id, {
-          name: formData.name,
-          url: formData.url,
-          category: formData.category,
-          tags: formData.tags,
-        });
-      } else {
-        // Feed already created by addSource, just refresh
+      setSourceStatus({ phase: 'analyzing', message: 'Analyzing source and fetching first articles…', type: 'info' });
+      const result = await addSourceViaApi({
+        url,
+        name: formData.name.trim(),
+        category,
+        tags: formData.tags || [],
+      });
+      if (!result.ok) return showFailure(result);
+
+      if (result.duplicate) {
+        toast.info(`You already follow "${result.data.name || 'this source'}"`);
+        finishSuccess('Already in your sources');
+        return;
       }
 
-      setLoading(false);
-      setSuccess(true);
-      setSourceStatus({ phase: 'success', message: 'Source added!', type: 'success' });
+      const ff = result.data.first_fetch;
+      if (ff && ff.success === false) {
+        toast.warning(`Source added, but the first fetch failed: ${ff.error || 'unknown error'}. It will retry automatically.`);
+      } else if (ff && typeof ff.new_items === 'number') {
+        toast.success(`"${result.data.name}" added with ${ff.new_items} article${ff.new_items === 1 ? '' : 's'}`);
+      }
+      finishSuccess('Source added!');
 
-      setTimeout(() => {
-        setSuccess(false);
-        setSourceStatus(null);
-        onSuccess();
-        onOpenChange(false);
-        setFormData({ name: '', url: '', category: 'Other', tags: [], is_public: false, public_description: '' });
-      }, 1200);
-
-      base44.analytics.track({ eventName: 'source_added', properties: { category: formData.category, sourceType: response.data.sourceType } });
+      base44.analytics.track({ eventName: 'source_added', properties: { category, sourceType: result.data.sourceType } });
     } catch (err) {
       setSourceStatus({
         phase: 'error',
@@ -188,7 +221,7 @@ export default function AddSourceDialog({ open, onOpenChange, onSuccess, editFee
 
           <div>
             <Label htmlFor="name">
-              Source Name <span className="text-[hsl(var(--primary))]">*</span>
+              Source Name {editFeed ? <span className="text-[hsl(var(--primary))]">*</span> : <span className="text-stone-500 font-normal">(optional)</span>}
             </Label>
             <Input
               id="name"
@@ -197,8 +230,8 @@ export default function AddSourceDialog({ open, onOpenChange, onSuccess, editFee
                 setFormData({ ...formData, name: e.target.value });
                 setErrors((prev) => ({ ...prev, name: '' }));
               }}
-              placeholder="e.g., TechCrunch, Bloomberg, My Blog"
-              aria-required="true"
+              placeholder={editFeed ? 'e.g., TechCrunch, Bloomberg, My Blog' : 'Leave blank to use the feed\'s own title'}
+              aria-required={editFeed ? 'true' : 'false'}
               aria-invalid={!!errors.name}
               className={cn(errors.name && 'border-red-500')}
             />
@@ -243,13 +276,20 @@ export default function AddSourceDialog({ open, onOpenChange, onSuccess, editFee
           <div>
             <Label htmlFor="category">Category</Label>
             <Select
-              value={DEFAULT_CATEGORIES.includes(formData.category) ? formData.category : '__custom__'}
+              value={showCustomCategory ? '__custom__' : (DEFAULT_CATEGORIES.includes(formData.category) ? formData.category : '__custom__')}
               onValueChange={(value) => {
-                if (value !== '__custom__') setFormData({ ...formData, category: value });
+                if (value === '__custom__') {
+                  setShowCustomCategory(true);
+                } else {
+                  setShowCustomCategory(false);
+                  setCustomCategoryInput('');
+                  setFormData({ ...formData, category: value });
+                }
+                setErrors((prev) => ({ ...prev, category: '' }));
               }}
             >
               <SelectTrigger id="category">
-                <SelectValue>{formData.category}</SelectValue>
+                <SelectValue>{showCustomCategory ? (customCategoryInput.trim() || 'Custom category…') : formData.category}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {DEFAULT_CATEGORIES.map((cat) => (
@@ -260,10 +300,28 @@ export default function AddSourceDialog({ open, onOpenChange, onSuccess, editFee
                 <SelectItem value="__custom__">+ Custom category…</SelectItem>
               </SelectContent>
             </Select>
-            {!DEFAULT_CATEGORIES.includes(formData.category) && formData.category && (
-              <p className="mt-1 text-xs text-stone-400">
-                Custom: <span className="text-[hsl(var(--primary))]">{formData.category}</span>
-              </p>
+            {showCustomCategory && (
+              <div className="mt-2">
+                <Input
+                  id="custom-category"
+                  value={customCategoryInput}
+                  onChange={(e) => {
+                    setCustomCategoryInput(e.target.value.slice(0, 40));
+                    setErrors((prev) => ({ ...prev, category: '' }));
+                  }}
+                  placeholder="Type a category name"
+                  aria-label="Custom category name"
+                  aria-invalid={!!errors.category}
+                  className={cn(errors.category && 'border-red-500')}
+                  autoFocus
+                />
+                {errors.category && (
+                  <p className="mt-1 text-xs text-red-400 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    {errors.category}
+                  </p>
+                )}
+              </div>
             )}
           </div>
 
@@ -277,7 +335,7 @@ export default function AddSourceDialog({ open, onOpenChange, onSuccess, editFee
                 placeholder="Add tag..."
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
               />
-              <Button type="button" variant="outline" onClick={addTag}>
+              <Button type="button" variant="outline" onClick={addTag} aria-label="Add tag">
                 <Plus className="w-4 h-4" />
               </Button>
             </div>
@@ -290,6 +348,7 @@ export default function AddSourceDialog({ open, onOpenChange, onSuccess, editFee
                       type="button"
                       onClick={() => removeTag(tag)}
                       className="hover:opacity-70"
+                      aria-label={`Remove tag ${tag}`}
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -313,8 +372,20 @@ export default function AddSourceDialog({ open, onOpenChange, onSuccess, editFee
                   checked={formData.is_public}
                   onCheckedChange={(v) => setFormData({ ...formData, is_public: v })}
                   disabled={!canShareToDirectory}
+                  aria-label="Share to public directory"
                 />
               </div>
+              {canShareToDirectory && formData.is_public && (
+                <Input
+                  value={formData.public_description}
+                  onChange={(e) => setFormData({ ...formData, public_description: e.target.value.slice(0, 280) })}
+                  placeholder="Short description for the directory (optional)"
+                  aria-label="Public directory description"
+                />
+              )}
+              {!canShareToDirectory && (
+                <p className="text-xs text-stone-500">Sources added from the directory can't be re-shared.</p>
+              )}
             </div>
           )}
 
