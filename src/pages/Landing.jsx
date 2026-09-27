@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import {
-  Rss, ArrowRight, CheckCircle, Star, Zap, BarChart3, TrendingUp,
-  Users, Flame, Radio, Filter, X
+  Rss, ArrowRight, CheckCircle, TrendingUp,
+  Users, Flame, Radio, X, Mail, Send
 } from 'lucide-react';
 
 function useFadeIn() {
@@ -114,7 +114,7 @@ function BriefingMockup() {
 export default function Landing() {
   const [user, setUser] = React.useState(null);
   const [userLoaded, setUserLoaded] = React.useState(false);
-  const [stats, setStats] = React.useState({ users: 0, articles: 0, digests: 0 });
+  const [stats, setStats] = React.useState(null);
 
   React.useEffect(() => {
     base44.auth.me().then(u => { setUser(u); setUserLoaded(true); }).catch(() => setUserLoaded(true));
@@ -124,7 +124,7 @@ export default function Landing() {
     base44.functions.invoke('publicStats', {})
       .then(res => {
         const d = res.data;
-        if (d && !d.error) setStats({ users: d.users, articles: d.feeds, digests: d.digests });
+        if (d && !d.error) setStats({ users: Number(d.users) || 0, feeds: Number(d.feeds) || 0, digests: Number(d.digests) || 0 });
       })
       .catch(() => {});
   }, []);
@@ -150,31 +150,24 @@ export default function Landing() {
                 className="inline-flex items-center gap-2 px-3 py-1.5 border border-[hsl(var(--primary))]/40 text-xs font-semibold text-[hsl(var(--primary))]/80 mb-8"
                 style={{ animation: 'fadeSlideDown 0.5s ease both' }}
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--primary))] animate-pulse" />
-                Your morning briefing, rebuilt
+                <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--primary))] animate-pulse" aria-hidden="true" />
+                Free to start
               </div>
 
               <h1
-                className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tight leading-[0.93] mb-4"
+                className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-[0.98] mb-5"
                 style={{ animation: 'fadeSlideDown 0.6s ease 0.1s both' }}
               >
-                <span className="text-stone-100">Stop scanning.</span>
+                <span className="text-stone-100">An AI briefing on your field,</span>
                 <br />
-                <span className="bg-gradient-to-r from-[hsl(var(--primary))] via-[hsl(var(--primary))]/80 to-[hsl(var(--primary))]/60 bg-clip-text text-transparent">Start knowing.</span>
+                <span className="bg-gradient-to-r from-[hsl(var(--primary))] via-[hsl(var(--primary))]/80 to-[hsl(var(--primary))]/60 bg-clip-text text-transparent">in your inbox every morning.</span>
               </h1>
-
-              <p
-                className="text-sm text-stone-500 italic mb-5"
-                style={{ animation: 'fadeSlideDown 0.6s ease 0.15s both' }}
-              >
-                Most people read more. You just need to know better.
-              </p>
 
               <p
                 className="text-lg text-stone-400 mb-8 max-w-lg leading-relaxed"
                 style={{ animation: 'fadeSlideDown 0.6s ease 0.2s both' }}
               >
-                MergeRSS turns hundreds of headlines into a clear daily briefing — so you know what matters before everyone else.
+                Tell us what you follow and what matters to your work. MergeRSS reads the sources you choose, newsletters included, ranks every story by what you told us matters, and emails you a short briefing before your day starts.
               </p>
 
               <div
@@ -185,8 +178,8 @@ export default function Landing() {
                   onClick={() => handleCTA('hero')}
                   className="inline-flex items-center gap-2 bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-black px-8 py-4 text-base transition-all duration-200 hover:shadow-[0_0_40px_hsl(var(--primary))/0.4] group"
                 >
-                  Get your daily briefing
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                  Get your first briefing
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
                 </button>
                 <a
                   href="#how-it-works"
@@ -197,11 +190,7 @@ export default function Landing() {
               </div>
 
               <p style={{ animation: 'fadeSlideDown 0.6s ease 0.4s both' }} className="text-xs text-stone-600">
-                Takes 2 minutes to set up
-              </p>
-
-              <p style={{ animation: 'fadeSlideDown 0.6s ease 0.45s both' }} className="text-xs text-stone-600 mt-2">
-                Used instead of Twitter, newsletters, and 10+ tabs every morning
+                Your first briefing lands in about two minutes. No credit card.
               </p>
 
               {userLoaded && user && (
@@ -218,24 +207,26 @@ export default function Landing() {
             {/* Right — briefing mockup */}
             <div style={{ animation: 'fadeSlideUp 0.7s ease 0.25s both' }}>
               <BriefingMockup />
-              <p className="text-center text-xs text-stone-600 mt-3">This is what your morning looks like now</p>
+              <p className="text-center text-xs text-stone-600 mt-3">Example briefing</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* ── STATS STRIP ────────────────────────────────────────── */}
-      <section className="border-y border-stone-800 py-8 bg-[#0d0a06]">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-10 sm:gap-16 text-center">
-            <AnimatedStat value={stats.users} label="Active users" delay={0} />
-            <span className="hidden sm:block w-px h-10 bg-stone-800" />
-            <AnimatedStat value={stats.articles} label="Feeds tracked" delay={80} />
-            <span className="hidden sm:block w-px h-10 bg-stone-800" />
-            <AnimatedStat value={stats.digests} label="Digests delivered" delay={160} />
+      {stats && (stats.users > 0 || stats.feeds > 0 || stats.digests > 0) && (
+        <section className="border-y border-stone-800 py-8 bg-[#0d0a06]">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-10 sm:gap-16 text-center">
+              <AnimatedStat value={stats.users} label="Users" delay={0} />
+              <span className="hidden sm:block w-px h-10 bg-stone-800" aria-hidden="true" />
+              <AnimatedStat value={stats.feeds} label="Sources tracked" delay={80} />
+              <span className="hidden sm:block w-px h-10 bg-stone-800" aria-hidden="true" />
+              <AnimatedStat value={stats.digests} label="Briefings delivered" delay={160} />
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ── PAIN SECTION ───────────────────────────────────────── */}
       <section className="py-24 bg-[#0a0805]">
@@ -270,9 +261,9 @@ export default function Landing() {
           </FadeIn>
           <div className="space-y-px bg-stone-800/40">
             {[
-              { n: '01', title: 'Add your sources', desc: 'Paste any RSS or newsletter URL. Done.' },
-              { n: '02', title: 'We cut through the noise', desc: 'AI reads everything and surfaces what actually matters — nothing else gets through.' },
-              { n: '03', title: 'You get a clear, ranked briefing every morning', desc: 'Structured, prioritized, and ready before your day starts.' },
+              { n: '01', title: 'Pick your field', desc: 'Choose a starter pack or describe your work. Keep the suggested sources, add any site, or import an OPML file.' },
+              { n: '02', title: 'AI ranks what matters to you', desc: 'Every story is scored against what you told us matters, across your sources and the newsletters you forward in.', old: desc: 'AI reads everything and surfaces what actually matters — nothing else gets through.' },
+              { n: '03', title: 'A short briefing lands every morning', desc: 'By email on the free plan. Slack and Discord on Premium. One shared briefing for your team on the Team plan.' },
             ].map(({ n, title, desc }, i) => (
               <FadeIn key={n} delay={i * 80}>
                 <div className="bg-[#0d0a06] hover:bg-stone-900/50 transition-colors px-8 py-6 flex items-center gap-6 group">
@@ -341,12 +332,12 @@ export default function Landing() {
       <section className="py-24 bg-[#0a0805] border-t border-stone-800">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <FadeIn className="mb-12">
-            <h2 className="text-4xl md:text-5xl font-black tracking-tight text-stone-100 mb-3">Three things done right.</h2>
+            <h2 className="text-4xl md:text-5xl font-black tracking-tight text-stone-100 mb-3">What you get</h2>
           </FadeIn>
           <div className="grid md:grid-cols-3 gap-px bg-stone-800/40">
             {[
-              { icon: Filter, title: 'Signal extraction', desc: 'AI reads every article and separates what matters from everything else.' },
-              { icon: Radio, title: 'Daily briefing', desc: 'A ranked, structured briefing delivered on your schedule. Not an inbox dump.' },
+              { icon: Mail, title: 'Your sources, newsletters included', desc: 'Any site or RSS feed, plus a private address for forwarding the newsletters you already get.' },
+              { icon: Send, title: 'Delivered where you work', desc: 'Email and web inbox on every plan. Slack, Discord and Teams on Premium. Shared briefings on Team.' },
               { icon: TrendingUp, title: 'Smart ranking', desc: 'Stories ranked by importance, source convergence, and category weight — not recency.' },
             ].map(({ icon: Icon, title, desc }, i) => (
               <FadeIn key={title} delay={i * 70}>
