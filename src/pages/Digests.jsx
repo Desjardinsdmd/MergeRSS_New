@@ -170,6 +170,9 @@ export default function Digests() {
                 ({allDigests.length}/{maxDigests} used)
               </span>
             )}
+            <Link to={createPageUrl('DigestReports')} className="ml-3 text-xs text-[hsl(var(--primary))] hover:underline">
+              View digest reports
+            </Link>
           </p>
         </div>
         <Button
