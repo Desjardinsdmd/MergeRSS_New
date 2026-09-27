@@ -85,8 +85,10 @@ export default function Team() {
         status: 'pending',
         invited_by: user?.email,
       });
-      // Invite to the app
-      await base44.users.inviteUser(inviteEmail.trim(), inviteRole === 'admin' ? 'admin' : 'user');
+      // Invite to the app. SECURITY: always invite as a regular platform user.
+      // The team role (admin/editor/viewer) lives only on the TeamMember record
+      // and must never grant platform-level admin.
+      await base44.users.inviteUser(inviteEmail.trim(), 'user');
       queryClient.invalidateQueries({ queryKey: ['team-members'] });
       toast.success(`Invite sent to ${inviteEmail}`);
       setInviteEmail('');
