@@ -199,62 +199,28 @@ export default function Directory() {
     });
   }, []);
 
-  const { data: publicFeeds = [] } = useQuery({
-    queryKey: ['public-feeds'],
+  // One call returns public feeds (user-shared + curated), digests, vote tallies, add counts,
+  // and (when signed in) my_vote / added_by_me / is_mine per item.
+  const { data: directory = { feeds: [], digests: [] } } = useQuery({
+    queryKey: ['public-directory', user?.email || 'anon'],
     queryFn: async () => {
-      const pub = await base44.functions.invoke('publicDirectory', {});
-      const userPublic = pub?.data?.feeds || [];
-      const directoryFeeds = await base44.entities.DirectoryFeed.list();
-      const combined = [...userPublic, ...directoryFeeds];
-      const seenUrls = new Set();
-      return combined.filter(feed => {
-        if (seenUrls.has(feed.url)) return false;
-        seenUrls.add(feed.url);
-        return true;
-      });
+      const res = await base44.functions.invoke('publicDirectory', {});
+      return { feeds: res?.data?.feeds || [], digests: res?.data?.digests || [] };
     },
+    enabled: !authLoading,
   });
+  const directoryFeeds = directory.feeds;
+  const directoryDigests = directory.digests;
+  const [votingKey, setVotingKey] = useState(null);
 
-  const { data: publicDigests = [] } = useQuery({
-    queryKey: ['public-digests'],
-    queryFn: async () => (await base44.functions.invoke('publicDirectory', {}))?.data?.digests || [],
-  });
-
-  // Show public items to everyone (including creators)
-  const directoryFeeds = publicFeeds;
-  const directoryDigests = publicDigests;
-
-  const { data: votes = [] } = useQuery({
-    queryKey: ['directory-votes', user?.email],
-    queryFn: () => base44.entities.DirectoryVote.filter({ voter_email: user?.email }),
-    enabled: !!user?.email,
-  });
-
-  const { data: userFeeds = [] } = useQuery({
-    queryKey: ['user-feeds', user?.email],
-    queryFn: () => base44.entities.Feed.filter({ created_by: user?.email }),
-    enabled: !!user?.email,
-  });
-
-  const { data: userDigests = [] } = useQuery({
-    queryKey: ['user-digests', user?.email],
-    queryFn: () => base44.entities.Digest.filter({ created_by: user?.email }),
-    enabled: !!user?.email,
-  });
-
-  // Track which directory items user has already added
-  useEffect(() => {
-    const feedIds = userFeeds.filter(f => f.sourced_from_directory).map(f => f.directory_feed_id).filter(Boolean);
-    const digestIds = userDigests.map(d => d.directory_digest_id).filter(Boolean);
-    setAddedItems([...feedIds, ...digestIds]);
-  }, [userFeeds, userDigests]);
+  const refreshDirectory = () => queryClient.invalidateQueries({ queryKey: ['public-directory'] });
 
   const filterAndSort = (items) => {
     let filtered = items.filter(item => {
       const matchSearch = !search ||
-        item.name.toLowerCase().includes(search.toLowerCase()) ||
+        (item.name || '').toLowerCase().includes(search.toLowerCase()) ||
         (item.public_description || item.description || '').toLowerCase().includes(search.toLowerCase());
-      const matchCat = category === 'All' || item.category === category;
+      const matchCat = category === 'All' || item.category === category || (item.categories || []).includes(category);
       return matchSearch && matchCat;
     });
 
@@ -268,79 +234,99 @@ export default function Directory() {
     return filtered;
   };
 
+  // Votes go through publicDirectory (service role): one vote per user per item, and nobody
+  // writes to another user's Feed/Digest record.
   const handleVote = async (item, itemType, voteType) => {
-    if (!user) return;
-    const existing = votes.find(v => v.item_id === item.id && v.voter_email === user.email);
-
-    if (existing) {
-      if (existing.vote === voteType) {
-        // Undo vote
-        await base44.entities.DirectoryVote.delete(existing.id);
-        const entity = itemType === 'feed' ? base44.entities.Feed : base44.entities.Digest;
-        await entity.update(item.id, {
-          upvotes: Math.max(0, (item.upvotes || 0) - (voteType === 'up' ? 1 : 0)),
-          downvotes: Math.max(0, (item.downvotes || 0) - (voteType === 'down' ? 1 : 0)),
-        });
-      } else {
-        // Change vote
-        await base44.entities.DirectoryVote.update(existing.id, { vote: voteType });
-        const entity = itemType === 'feed' ? base44.entities.Feed : base44.entities.Digest;
-        await entity.update(item.id, {
-          upvotes: (item.upvotes || 0) + (voteType === 'up' ? 1 : -1),
-          downvotes: (item.downvotes || 0) + (voteType === 'down' ? 1 : -1),
-        });
-      }
-    } else {
-      await base44.entities.DirectoryVote.create({ item_id: item.id, item_type: itemType, vote: voteType, voter_email: user.email });
-      const entity = itemType === 'feed' ? base44.entities.Feed : base44.entities.Digest;
-      await entity.update(item.id, {
-        upvotes: (item.upvotes || 0) + (voteType === 'up' ? 1 : 0),
-        downvotes: (item.downvotes || 0) + (voteType === 'down' ? 1 : 0),
+    if (!user || votingKey) return;
+    const key = `${itemType}-${item.id}`;
+    setVotingKey(key);
+    const qk = ['public-directory', user?.email || 'anon'];
+    const prev = queryClient.getQueryData(qk);
+    // Optimistic update
+    const nextVote = item.my_vote === voteType ? null : voteType;
+    const apply = (it) => {
+      if (it.id !== item.id) return it;
+      let up = it.upvotes || 0, down = it.downvotes || 0;
+      if (it.my_vote === 'up') up--; if (it.my_vote === 'down') down--;
+      if (nextVote === 'up') up++; if (nextVote === 'down') down++;
+      return { ...it, upvotes: up, downvotes: down, score: up - down, my_vote: nextVote };
+    };
+    if (prev) {
+      queryClient.setQueryData(qk, {
+        feeds: itemType === 'feed' ? prev.feeds.map(apply) : prev.feeds,
+        digests: itemType === 'digest' ? prev.digests.map(apply) : prev.digests,
       });
     }
+    try {
+      await base44.functions.invoke('publicDirectory', { action: 'vote', item_id: item.id, item_type: itemType, vote: voteType });
+    } catch (err) {
+      if (prev) queryClient.setQueryData(qk, prev);
+      toast.error(err?.response?.data?.error || 'Could not record your vote');
+    } finally {
+      setVotingKey(null);
+      refreshDirectory();
+    }
+  };
 
-    queryClient.invalidateQueries({ queryKey: ['public-feeds'] });
-    queryClient.invalidateQueries({ queryKey: ['public-digests'] });
-    queryClient.invalidateQueries({ queryKey: ['directory-votes', user?.email] });
+  const recordAdd = (item, itemType) =>
+    base44.functions.invoke('publicDirectory', { action: 'record_add', item_id: item.id, item_type: itemType }).catch(() => {});
+
+  // Adds a directory feed through addSource (validation, plan limit, dedupe, first fetch).
+  // Returns the caller's Feed id (new or existing) or null.
+  const addFeedItem = async (item, { quiet = false } = {}) => {
+    const result = await addSourceViaApi({
+      url: item.url,
+      name: item.name,
+      category: item.category || 'Other',
+      tags: item.tags || [],
+      sourced_from_directory: true,
+      directory_feed_id: item.id,
+    });
+    if (!result.ok) {
+      if (!quiet) toast.error(`${item.name}: ${result.error}`);
+      return { ok: false, limitReached: result.limitReached, error: result.error };
+    }
+    setAddedItems(prev => (prev.includes(item.id) ? prev : [...prev, item.id]));
+    if (!result.duplicate) recordAdd(item, 'feed');
+    if (!quiet) {
+      toast.success(result.duplicate ? `"${item.name}" is already in your sources` : `"${item.name}" added to your sources`);
+    }
+    return { ok: true, duplicate: result.duplicate, feedId: result.feedId };
   };
 
   const handleAdd = async (item, itemType) => {
-    if (!user || addedItems.includes(item.id)) return;
-    
+    if (!user || item.added_by_me || addedItems.includes(item.id)) return;
+
     if (itemType === 'feed') {
-      await base44.entities.Feed.create({
-        name: item.name,
-        url: item.url,
-        category: item.category,
-        tags: item.tags || [],
-        status: 'active',
-        item_count: 0,
-        sourced_from_directory: true,
-        directory_feed_id: item.id,
-      });
-      await base44.entities.DirectoryFeed.update(item.id, { added_count: (item.added_count || 0) + 1 });
-      setAddedItems([...addedItems, item.id]);
-      queryClient.invalidateQueries({ queryKey: ['user-feeds'] });
-      queryClient.invalidateQueries({ queryKey: ['public-feeds'] });
-      toast.success(`"${item.name}" added to your feeds!`);
-    } else {
-      await base44.entities.Digest.create({
-        name: item.name,
-        description: item.description,
-        categories: item.categories || [],
-        frequency: item.frequency,
-        schedule_time: item.schedule_time,
-        output_length: item.output_length,
-        delivery_web: true,
-        status: 'active',
-        directory_digest_id: item.id,
-      });
-      await base44.entities.Digest.update(item.id, { added_count: (item.added_count || 0) + 1 });
-      setAddedItems([...addedItems, item.id]);
-      queryClient.invalidateQueries({ queryKey: ['user-digests'] });
-      queryClient.invalidateQueries({ queryKey: ['public-digests'] });
-      toast.success(`"${item.name}" added to your digests!`);
+      await addFeedItem(item);
+      queryClient.invalidateQueries({ queryKey: ['feeds'] });
+      refreshDirectory();
+      return;
     }
+
+    const result = await saveDigestViaApi({
+      name: item.name,
+      description: item.public_description || item.description || '',
+      categories: item.categories || [],
+      tags: item.tags || [],
+      frequency: item.frequency || 'daily',
+      ...(item.schedule_time ? { schedule_time: item.schedule_time } : {}),
+      ...(item.schedule_day_of_week !== undefined ? { schedule_day_of_week: item.schedule_day_of_week } : {}),
+      ...(item.schedule_day_of_month !== undefined ? { schedule_day_of_month: item.schedule_day_of_month } : {}),
+      ...(item.output_length ? { output_length: item.output_length } : {}),
+      delivery_web: true,
+      status: 'active',
+    });
+    if (!result.ok) {
+      toast.error(result.error);
+      return;
+    }
+    result.warnings.forEach(w => toast.warning(w));
+    setAddedItems(prev => [...prev, item.id]);
+    await recordAdd(item, 'digest');
+    queryClient.invalidateQueries({ queryKey: ['digests'] });
+    refreshDirectory();
+    toast.success(`"${item.name}" added to your digests`);
   };
 
   const filteredFeeds = filterAndSort(directoryFeeds);
@@ -373,16 +359,39 @@ export default function Directory() {
     setSelectedItems({});
   };
 
+  // Adds each selected feed via addSource (existing ones come back as duplicates, not copies).
+  // Returns the caller's own Feed ids for the selection.
+  const addSelectedFeeds = async () => {
+    const ids = [];
+    let added = 0, dupes = 0, failed = 0;
+    for (const feed of selectedFeeds) {
+      const r = await addFeedItem(feed, { quiet: true });
+      if (!r.ok) {
+        failed++;
+        if (r.limitReached) {
+          toast.error(r.error);
+          break;
+        }
+        continue;
+      }
+      if (r.feedId) ids.push(r.feedId);
+      if (r.duplicate) dupes++; else added++;
+    }
+    return { ids, added, dupes, failed };
+  };
+
   const handleBulkAdd = async () => {
     if (selectedFeeds.length === 0) return;
     setBulkAdding(true);
     try {
-      for (const feed of selectedFeeds) {
-        if (!addedItems.includes(feed.id)) {
-          await handleAdd(feed, 'feed');
-        }
-      }
+      const { added, dupes, failed } = await addSelectedFeeds();
+      const parts = [`${added} added`];
+      if (dupes) parts.push(`${dupes} already in your sources`);
+      if (failed) parts.push(`${failed} failed`);
+      (failed && !added ? toast.error : toast.success)(parts.join(' · '));
       setSelectedItems({});
+      queryClient.invalidateQueries({ queryKey: ['feeds'] });
+      refreshDirectory();
     } finally {
       setBulkAdding(false);
     }
@@ -392,11 +401,17 @@ export default function Directory() {
     if (selectedFeeds.length === 0) return;
     setDigestCreating(true);
     try {
-      const feedIds = selectedFeeds.map(f => f.id);
-      await base44.entities.Digest.create({
+      // The digest must point at the caller's own feeds, so add (or find) them first.
+      const { ids } = await addSelectedFeeds();
+      if (ids.length === 0) {
+        toast.error('None of the selected feeds could be added, so no digest was created.');
+        return;
+      }
+      const result = await saveDigestViaApi({
         name: `${category === 'All' ? 'Feeds' : category} Digest`,
-        description: `Digest created from ${selectedFeeds.length} directory feed${selectedFeeds.length > 1 ? 's' : ''}`,
-        categories: selectedFeeds.map(f => f.category).filter(Boolean),
+        description: `Digest created from ${ids.length} directory feed${ids.length > 1 ? 's' : ''}`,
+        categories: Array.from(new Set(selectedFeeds.map(f => f.category).filter(Boolean))),
+        feed_ids: ids,
         frequency: 'daily',
         schedule_time: '09:00',
         output_length: 'medium',
@@ -404,9 +419,16 @@ export default function Directory() {
         status: 'active',
         tags: Array.from(new Set(selectedFeeds.flatMap(f => f.tags || []))),
       });
+      if (!result.ok) {
+        toast.error(result.error);
+        return;
+      }
+      result.warnings.forEach(w => toast.warning(w));
       setSelectedItems({});
-      queryClient.invalidateQueries({ queryKey: ['user-digests'] });
-      toast.success(`Digest created from ${selectedFeeds.length} feed${selectedFeeds.length > 1 ? 's' : ''}!`);
+      queryClient.invalidateQueries({ queryKey: ['feeds'] });
+      queryClient.invalidateQueries({ queryKey: ['digests'] });
+      refreshDirectory();
+      toast.success(`Digest created from ${ids.length} feed${ids.length > 1 ? 's' : ''}`);
     } finally {
       setDigestCreating(false);
     }
