@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { createPageUrl } from '@/utils';
@@ -29,7 +29,9 @@ import {
   Bookmark,
   AlertCircle,
   Newspaper,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Sun,
+  MailPlus
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeProvider } from '@/components/ThemeProvider';
@@ -37,21 +39,28 @@ import { applyAccentColor } from '@/components/settings/ThemeSettings';
 import { Toaster } from 'sonner';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
+// Primary navigation. `match` lists pages that highlight the item (routes that were removed
+// from the sidebar still work and light up their parent). `children` show only while the
+// parent or a child is active.
 const navigation = [
-  { name: 'Dashboard', href: 'Dashboard', icon: LayoutDashboard },
-  { name: 'AI Curator', href: 'FeedCurator', icon: Zap },
-  { name: 'Feeds', href: 'Feeds', icon: Rss },
-  { name: 'Digests', href: 'Digests', icon: FileText },
-  { name: 'Digest Reports', href: 'DigestReports', icon: BarChart3 },
-  { name: 'Inbox', href: 'Inbox', icon: Inbox },
-  { name: 'Read Later', href: 'Bookmarks', icon: Bookmark },
-
-  { name: 'Search', href: 'ArticleSearch', icon: Search },
-  { name: 'Directory', href: 'Directory', icon: Globe },
-  { name: 'Team', href: 'Team', icon: Users },
-  { name: 'Integrations', href: 'Integrations', icon: Link2 },
-  { name: 'Settings', href: 'Settings', icon: Settings },
+  { name: 'Today', href: 'Dashboard', icon: Sun, match: ['Dashboard'] },
+  {
+    name: 'Briefings', href: 'Digests', icon: FileText, match: ['Digests', 'DigestReports'],
+    children: [{ name: 'Reports', href: 'DigestReports' }],
+  },
+  { name: 'Inbox', href: 'Inbox', icon: Inbox, match: ['Inbox', 'Bookmarks'] },
+  { name: 'Sources', href: 'Feeds', icon: Rss, match: ['Feeds', 'Directory', 'FeedCurator', 'RssFeedGenerator'] },
+  { name: 'Search', href: 'ArticleSearch', icon: Search, match: ['ArticleSearch'] },
+  { name: 'Newsletters', href: 'Newsletters', icon: MailPlus, match: ['Newsletters'] },
+  { name: 'Team', href: 'Team', icon: Users, match: ['Team'] },
+  {
+    name: 'Settings', href: 'Settings', icon: Settings, match: ['Settings', 'Integrations'],
+    children: [{ name: 'Integrations', href: 'Integrations' }],
+  },
 ];
+
+// Pages a signed-in user can open before finishing onboarding.
+const ONBOARDING_EXEMPT = ['Welcome'];
 
 // Hidden admin routes — removed from main navigation
 // { name: 'RSS Generator', href: 'RssFeedGenerator', icon: Rss }, // → now backend-only via addSource()
@@ -67,22 +76,6 @@ const adminNav = [
   { name: 'Import Feeds', href: 'AdminImport', icon: Globe },
   { name: 'Analytics', href: 'AdminAnalytics', icon: BarChart3 },
 ];
-
-function BookmarkNavBadge({ user }) {
-  const { data: bookmarks = [] } = useQuery({
-    queryKey: ['bookmarks-unread', user?.email],
-    queryFn: () => base44.entities.Bookmark.filter({ created_by: user?.email }, '-created_date', 200),
-    enabled: !!user,
-    refetchInterval: 60000,
-  });
-  const unread = bookmarks.filter(b => !b.is_read).length;
-  if (!unread) return null;
-  return (
-    <span className="min-w-[18px] h-[18px] bg-[hsl(var(--primary))] text-stone-900 text-[10px] font-bold rounded-full flex items-center justify-center px-1 leading-none flex-shrink-0">
-      {unread > 99 ? '99+' : unread}
-    </span>
-  );
-}
 
 function InboxNavBadge({ user }) {
   const { data: digests = [] } = useQuery({
