@@ -233,7 +233,8 @@ function LayoutContent({ children, currentPageName }) {
   }
 
   // First run: anyone who has not finished onboarding goes to the Welcome flow.
-  if (user.onboarding_complete !== true && !ONBOARDING_EXEMPT.includes(currentPageName)) {
+  // Admins are exempt so the operator console is never blocked by the flow.
+  if (user.onboarding_complete !== true && user.role !== 'admin' && !ONBOARDING_EXEMPT.includes(currentPageName)) {
     return <Navigate to={createPageUrl('Welcome')} replace />;
   }
 
