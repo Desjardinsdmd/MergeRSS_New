@@ -85,8 +85,14 @@ function fieldLabel(field: string, custom: string): string {
     return FIELD_LABELS[field] || field.slice(0, 60);
 }
 
+// User.last_visit_date is a required field; new accounts may not have it yet, and a partial
+// update could be rejected without it.
+function visitStamp(user: any): Record<string, string> {
+    return user?.last_visit_date ? {} : { last_visit_date: new Date().toISOString().slice(0, 10) };
+}
+
 async function saveProfile(base44: any, user: any, body: any) {
-    const data: Record<string, string> = {};
+    const data: Record<string, string> = { ...visitStamp(user) };
     const custom = cleanText(body.custom_field, 120);
     const field = cleanText(body.field, 120);
     const label = custom || (field ? (FIELD_LABELS[field] || field) : '');
@@ -96,7 +102,7 @@ async function saveProfile(base44: any, user: any, body: any) {
     const tz = body.delivery?.timezone;
     if (isValidTimezone(tz)) data.timezone = tz;
     if (!Object.keys(data).length) return { ok: true, saved: [] };
-    // Only these three fields are ever written here: never plan/role/workspace_id/newsletter_address.
+    // Only these fields are ever written here: never plan/role/workspace_id/newsletter_address.
     try {
         await base44.auth.updateMe(data);
     } catch {
@@ -280,12 +286,13 @@ Deno.serve(async (req) => {
         // Mark onboarding done once a digest exists, even if the first run found nothing yet:
         // the schedule will pick it up and the user should not be sent back to Welcome.
         if (built.digest.ok) {
+            const done = { onboarding_complete: true, setup_walkthrough_complete: true, ...visitStamp(user) };
             try {
-                await base44.auth.updateMe({ onboarding_complete: true, setup_walkthrough_complete: true });
+                await base44.auth.updateMe(done);
                 steps.onboarding = { ok: true };
             } catch {
                 try {
-                    await base44.asServiceRole.entities.User.update(user.id, { onboarding_complete: true, setup_walkthrough_complete: true });
+                    await base44.asServiceRole.entities.User.update(user.id, done);
                     steps.onboarding = { ok: true };
                 } catch (e: any) {
                     steps.onboarding = { ok: false, error: e?.message };
