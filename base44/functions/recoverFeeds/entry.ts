@@ -404,6 +404,8 @@ Deno.serve(async (req) => {
                     consecutive_errors: 0,
                     last_failure_reason: null,
                     repair_status: 'resolved',
+                    // Re-arm the owner's feed-paused email for any future pause (2026-09-26)
+                    owner_notified_pause_at: null,
                     last_repair_attempt_at: now,
                     last_fetched: now,
                     last_successful_fetch_at: now,
