@@ -374,7 +374,7 @@ export default function Welcome() {
             <div className="w-6 h-6 bg-[hsl(var(--primary))] flex items-center justify-center" aria-hidden="true">
               <Rss className="w-3 h-3 text-stone-900" />
             </div>
-            <span className="font-bold text-stone-100 tracking-tight">MergeRSS</span>
+            <span className="hidden min-[400px]:inline font-bold text-stone-100 tracking-tight">MergeRSS</span>
           </div>
           {step !== 'build' && <StepDots current={step} />}
           {progress.phase !== 'done' ? <SkipLink /> : <span className="w-16" aria-hidden="true" />}
