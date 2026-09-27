@@ -461,10 +461,13 @@ function isRssFeed(text) {
 
 function extractFeedTitle(xml) {
   try {
-    const m = xml.match(/<title[^>]*>([^<]+)<\/title>/i);
-    return m ? m[1].slice(0, 100) : 'Feed';
+    const m = xml.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+    if (!m) return '';
+    const t = m[1].replace(/<!\[CDATA\[|\]\]>/g, '').replace(/<[^>]+>/g, '')
+      .replace(/&amp;/g, '&').replace(/&#39;|&apos;/g, "'").replace(/&quot;/g, '"').trim();
+    return t.slice(0, 100);
   } catch {
-    return 'Feed';
+    return '';
   }
 }
 
