@@ -5,61 +5,61 @@
 @layer base {
   /* ─── Design Tokens ─────────────────────────────────────────────────────── */
   :root {
-    /* Base palette — warm dark */
-    --background: 22 16% 5%;          /* #0a0805 – deepest bg */
-    --foreground: 36 30% 93%;         /* near-white warm – 15:1 on bg */
-    --card: 22 14% 8%;                /* #0f0c08 */
-    --card-foreground: 36 30% 93%;
-    --popover: 22 14% 9%;
-    --popover-foreground: 36 30% 93%;
+    /* Base palette: Tailwind stone, matching component classes (see BRAND.md) */
+    --background: 34.3 36.8% 3.7%;          /* #0a0805 – deepest bg */
+    --foreground: 60 4.8% 95.9%;         /* near-white warm – 15:1 on bg */
+    --card: 24 9.8% 10%;                /* #0f0c08 */
+    --card-foreground: 60 4.8% 95.9%;
+    --popover: 24 9.8% 10%;
+    --popover-foreground: 60 4.8% 95.9%;
 
     /* Brand accent (dynamic, defaults to amber) */
     --accent-primary: 263 70% 64%;     /* brand violet #9463e3 */
-    --accent-primary-foreground: 22 16% 5%;  /* near-black on accent */
+    --accent-primary-foreground: 24 9.8% 10%;  /* near-black on accent */
     --primary: var(--accent-primary);
-    --primary-foreground: var(--accent-primary-foreground);
+    --primary-foreground: 24 9.8% 10%;
 
     /* Surface layers */
-    --secondary: 22 12% 13%;          /* stone-800 equivalent */
-    --secondary-foreground: 36 20% 80%;
-    --muted: 22 12% 11%;
-    --muted-foreground: 36 12% 52%;   /* stone-500 — ≥4.5:1 on card */
+    --secondary: 12 6.5% 15.1%;          /* stone-800 equivalent */
+    --secondary-foreground: 20 5.9% 90%;
+    --muted: 12 6.5% 15.1%;
+    --muted-foreground: 24 5.4% 63.9%;   /* stone-500 — ≥4.5:1 on card */
 
     /* Interactive */
-    --accent: 22 12% 14%;
-    --accent-foreground: 36 30% 93%;
+    --accent: 12 6.5% 15.1%;
+    --accent-foreground: 60 4.8% 95.9%;
 
     /* Semantic */
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
 
     /* Chrome */
-    --border: 22 12% 18%;
-    --input: 22 12% 14%;
+    --border: 12 6.5% 15.1%;
+    --input: 12 6.5% 15.1%;
     --ring: 263 70% 64%;
     --radius: 0.375rem;
   }
 
   /* Dark mode mirrors :root (app is dark-first) */
   .dark {
-    --background: 22 16% 5%;
-    --foreground: 36 30% 93%;
-    --card: 22 14% 8%;
-    --card-foreground: 36 30% 93%;
-    --popover: 22 14% 9%;
-    --popover-foreground: 36 30% 93%;
+    --background: 34.3 36.8% 3.7%;
+    --foreground: 60 4.8% 95.9%;
+    --card: 24 9.8% 10%;
+    --card-foreground: 60 4.8% 95.9%;
+    --popover: 24 9.8% 10%;
+    --popover-foreground: 60 4.8% 95.9%;
     --primary: 263 70% 64%;
-    --primary-foreground: 22 16% 5%;
-    --secondary: 22 12% 13%;
-    --secondary-foreground: 36 20% 80%;
-    --muted: 22 12% 11%;
-    --muted-foreground: 36 12% 52%;
-    --accent: 22 12% 14%;
-    --accent-foreground: 36 30% 93%;
+    --primary-foreground: 24 9.8% 10%;
+    --secondary: 12 6.5% 15.1%;
+    --secondary-foreground: 20 5.9% 90%;
+    --muted: 12 6.5% 15.1%;
+    --muted-foreground: 24 5.4% 63.9%;
+    --accent: 12 6.5% 15.1%;
+    --accent-foreground: 60 4.8% 95.9%;
     --destructive: 0 62% 40%;
     --destructive-foreground: 0 0% 98%;
-    --border: 22 12% 18%;
-    --input: 22 12% 14%;
+    --border: 12 6.5% 15.1%;
+    --input: 12 6.5% 15.1%;
     --ring: 263 70% 64%;
   }
 
