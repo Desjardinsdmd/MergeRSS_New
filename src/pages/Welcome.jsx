@@ -159,7 +159,7 @@ export default function Welcome() {
   };
 
   const markOnboarded = async () => {
-    const stamp = user?.last_visit_date ? {} : { last_visit_date: new Date().toISOString().slice(0, 10) };
+    const stamp = user?.last_visit_date ? {} : { last_visit_date: new Date().toDateString() };
     try { await base44.auth.updateMe({ onboarding_complete: true, setup_walkthrough_complete: true, ...stamp }); } catch { /* still leave */ }
   };
 
