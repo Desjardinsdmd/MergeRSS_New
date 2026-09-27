@@ -21,7 +21,8 @@ import {
   Bell,
   ChevronDown,
   ChevronUp,
-  Loader2
+  Loader2,
+  Users
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { safeUrl, decodeHtml } from '@/components/utils/htmlUtils';
@@ -46,7 +47,7 @@ const categoryColors = {
   Other: 'bg-stone-800 text-stone-300',
 };
 
-export default function FeedCard({ feed, onEdit, onDelete, onToggleStatus, onRefresh }) {
+export default function FeedCard({ feed, onEdit, onDelete, onToggleStatus, onRefresh, onToggleShare }) {
   const [showAlerts, setShowAlerts] = useState(false);
   const [cleanupOpen, setCleanupOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -100,6 +101,12 @@ export default function FeedCard({ feed, onEdit, onDelete, onToggleStatus, onRef
                     {feed.name}
                   </h3>
                   {(currentHealth || feed.paused_by_system) && <SourceHealthBadge health={currentHealth} feed={feed} compact />}
+                  {feed.workspace_id && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-[hsl(var(--primary))]/15 text-[hsl(var(--primary))] flex-shrink-0" title="Shared with your team">
+                      <Users className="w-3 h-3" aria-hidden="true" />
+                      Shared
+                    </span>
+                  )}
                 </div>
                 <a 
                   href={safeUrl(feed.url)}
@@ -152,6 +159,12 @@ export default function FeedCard({ feed, onEdit, onDelete, onToggleStatus, onRef
                       </>
                     )}
                   </DropdownMenuItem>
+                  {onToggleShare && (
+                    <DropdownMenuItem onClick={() => onToggleShare(feed)}>
+                      <Users className="w-4 h-4 mr-2" />
+                      {feed.workspace_id ? 'Stop sharing with team' : 'Share with team'}
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem 
                     onClick={() => onDelete(feed)}
                     className="text-red-600"
