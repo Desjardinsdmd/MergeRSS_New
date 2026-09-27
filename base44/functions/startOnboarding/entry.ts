@@ -88,7 +88,7 @@ function fieldLabel(field: string, custom: string): string {
 // User.last_visit_date is a required field; new accounts may not have it yet, and a partial
 // update could be rejected without it.
 function visitStamp(user: any): Record<string, string> {
-    return user?.last_visit_date ? {} : { last_visit_date: new Date().toISOString().slice(0, 10) };
+    return user?.last_visit_date ? {} : { last_visit_date: new Date().toDateString() };
 }
 
 async function saveProfile(base44: any, user: any, body: any) {
