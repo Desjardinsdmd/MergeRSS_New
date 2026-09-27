@@ -1,0 +1,425 @@
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
+
+/**
+ * newsletterInbox — user-facing API for the per-user newsletter inbox.
+ *
+ * Every user gets a private inbound address (<first-name-slug>.<6 random chars>@MAILGUN_DOMAIN).
+ * Mail sent there is POSTed by one Mailgun catch-all route to mailgunWebhook, which turns each
+ * newsletter into a FeedItem on a per-sender Feed owned by the user.
+ *
+ * Body: { action, ... }
+ *   get              -> { configured, address, senders[], confirmations[], limit }   (never creates)
+ *   get_or_create    -> same, provisioning the address (and the Mailgun route) if needed
+ *   list             -> alias of get
+ *   pause            { subscription_id }  stop turning this sender's emails into items
+ *   unpause          { subscription_id }  resume (checks the free-plan source limit, backfills stored emails)
+ *   remove           { subscription_id, delete_items? }  delete the sender's Feed; future emails are ignored
+ *   restore          { subscription_id }  undo remove (same as unpause)
+ *   dismiss_confirmation { email_id, done? }
+ *   get_email        { email_id }  one stored email for the in-app reader
+ *   ensure_route     (admin) create/update the Mailgun catch-all route now
+ *
+ * When MAILGUN_API_KEY / MAILGUN_DOMAIN are missing every action returns configured:false with
+ * reason 'newsletter inbox not configured' (reads of existing data still work).
+ */
+
+const FREE_FEED_LIMIT = 50; // sync with lib/planLimits.js PLAN_LIMITS.free.feeds
+const ROUTE_STATE_KEY = 'mailgun_inbound_route';
+const ROUTE_DESCRIPTION = 'MergeRSS newsletter inbox (catch-all)';
+const APP_ID_FALLBACK = '69a09b2e568729a30e5400b4';
+const NOT_CONFIGURED = 'newsletter inbox not configured';
+
+function extractItems(raw) {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw;
+  if (Array.isArray(raw?.items)) return raw.items;
+  if (Array.isArray(raw?.data)) return raw.data;
+  return [];
+}
+
+function mailgunConfig() {
+  const apiKey = Deno.env.get('MAILGUN_API_KEY') || '';
+  const domain = (Deno.env.get('MAILGUN_DOMAIN') || '').trim().toLowerCase();
+  const region = (Deno.env.get('MAILGUN_REGION') || '').trim().toLowerCase();
+  const apiBase = (Deno.env.get('MAILGUN_API_BASE') || (region === 'eu' ? 'https://api.eu.mailgun.net' : 'https://api.mailgun.net')).replace(/\/+$/, '');
+  return { configured: !!(apiKey && domain), apiKey, domain, apiBase };
+}
+
+function webhookUrl() {
+  const override = Deno.env.get('MAILGUN_WEBHOOK_URL');
+  if (override) return override;
+  const appId = Deno.env.get('BASE44_APP_ID') || APP_ID_FALLBACK;
+  return `https://base44.app/api/apps/${appId}/functions/mailgunWebhook`;
+}
+
+function isPremium(user) {
+  return user?.plan === 'premium' || user?.role === 'admin';
+}
+
+// ── Address generation ─────────────────────────────────────────────────────────
+const ALPHABET = 'abcdefghjkmnpqrstuvwxyz23456789';
+function randomSuffix(n = 6) {
+  const bytes = new Uint8Array(n);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, b => ALPHABET[b % ALPHABET.length]).join('');
+}
+function nameSlug(user) {
+  const first = String(user?.full_name || '').trim().split(/\s+/)[0] || String(user?.email || '').split('@')[0] || '';
+  const slug = first.normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 12);
+  return slug || 'inbox';
+}
+function isLegacyAddress(addr, domain) {
+  if (!addr) return true;
+  const a = String(addr).toLowerCase();
+  // initEmailFeed v1 derived the address from base64(email): guessable, so it is replaced.
+  if (a.startsWith('newsletter-')) return true;
+  return !a.endsWith('@' + domain);
+}
+
+// ── Mailgun route (one catch-all for the whole domain) ─────────────────────────
+async function mailgunFetch(cfg, path, init = {}) {
+  const res = await fetch(`${cfg.apiBase}${path}`, {
+    ...init,
+    headers: { Authorization: `Basic ${btoa(`api:${cfg.apiKey}`)}`, ...(init.headers || {}) },
+    signal: AbortSignal.timeout(15000),
+  });
+  const text = await res.text();
+  let json = null;
+  try { json = JSON.parse(text); } catch { /* not json */ }
+  if (!res.ok) throw new Error(`Mailgun ${res.status}: ${(json?.message || text || '').slice(0, 200)}`);
+  return json || {};
+}
+
+async function ensureRoute(svc, cfg, force = false) {
+  const stateRows = extractItems(await svc.SyncState.filter({ key: ROUTE_STATE_KEY }, '-created_date', 1).catch(() => []));
+  const state = stateRows[0] || null;
+  if (state?.history_id && !force) return { route_id: state.history_id, created: false };
+
+  const url = webhookUrl();
+  const expression = `match_recipient(".*@${cfg.domain.replace(/\./g, '\\.')}")`;
+  const actions = [`forward("${url}")`, 'stop()'];
+
+  const list = await mailgunFetch(cfg, '/v3/routes?limit=1000');
+  const existing = (list.items || []).find(r => r.description === ROUTE_DESCRIPTION && String(r.expression || '').includes(cfg.domain.replace(/\./g, '\\.')));
+
+  let routeId;
+  const form = new FormData();
+  form.append('priority', '0');
+  form.append('description', ROUTE_DESCRIPTION);
+  form.append('expression', expression);
+  for (const a of actions) form.append('action', a);
+
+  if (existing) {
+    routeId = existing.id;
+    const sameActions = JSON.stringify(existing.actions || []) === JSON.stringify(actions);
+    if (!sameActions || existing.expression !== expression) {
+      await mailgunFetch(cfg, `/v3/routes/${routeId}`, { method: 'PUT', body: form });
+    }
+  } else {
+    const created = await mailgunFetch(cfg, '/v3/routes', { method: 'POST', body: form });
+    routeId = created.route?.id || created.id;
+  }
+  if (!routeId) throw new Error('Mailgun did not return a route id');
+
+  if (state) await svc.SyncState.update(state.id, { history_id: routeId, enabled: true });
+  else await svc.SyncState.create({ key: ROUTE_STATE_KEY, history_id: routeId, enabled: true });
+  return { route_id: routeId, created: !existing };
+}
+
+// ── Data loaders ───────────────────────────────────────────────────────────────
+async function getEmailFeed(svc, email) {
+  const rows = extractItems(await svc.EmailFeed.filter({ user_email: email }, '-created_date', 5));
+  return rows.find(r => r.user_email === email) || null;
+}
+
+async function listOwnFeeds(svc, email) {
+  const out = [];
+  for (let skip = 0; skip < 5000; skip += 500) {
+    const page = extractItems(await svc.Feed.filter({ created_by: email }, '-created_date', 500, skip, ['id', 'created_by']));
+    out.push(...page.filter(f => f.created_by === email));
+    if (page.length < 500) break;
+  }
+  return out;
+}
+
+async function ownSubscription(svc, email, id) {
+  if (!id) return null;
+  const sub = await svc.NewsletterSubscription.get(String(id)).catch(() => null);
+  if (!sub || sub.owner_email !== email) return null;
+  return sub;
+}
+
+async function buildState(svc, user, cfg, emailFeed) {
+  const subs = extractItems(await svc.NewsletterSubscription.filter({ owner_email: user.email }, '-last_email_date', 500))
+    .filter(s => s.owner_email === user.email);
+  const feedIds = subs.map(s => s.feed_id).filter(Boolean);
+  const feeds = feedIds.length
+    ? extractItems(await svc.Feed.filter({ id: { $in: feedIds } }, '-created_date', 500, 0, ['id', 'item_count', 'status', 'created_by']))
+    : [];
+  const feedById = Object.fromEntries(feeds.map(f => [f.id, f]));
+
+  const confirmations = extractItems(await svc.NewsletterEmail.filter(
+    { owner_email: user.email, is_confirmation: true, confirmation_status: 'pending' }, '-received_at', 20,
+    0, ['id', 'from_email', 'from_name', 'subject', 'received_at', 'confirm_url', 'owner_email']))
+    .filter(e => e.owner_email === user.email);
+
+  const ownFeedCount = isPremium(user) ? null : (await listOwnFeeds(svc, user.email)).length;
+
+  return {
+    success: true,
+    configured: cfg.configured,
+    reason: cfg.configured ? null : NOT_CONFIGURED,
+    address: emailFeed?.is_active !== false && emailFeed && !isLegacyAddress(emailFeed.unique_email, cfg.domain || '') ? emailFeed.unique_email : null,
+    total_received: emailFeed?.total_received || 0,
+    last_email_date: emailFeed?.last_email_date || null,
+    plan: isPremium(user) ? 'premium' : 'free',
+    limit: isPremium(user) ? null : FREE_FEED_LIMIT,
+    source_count: ownFeedCount,
+    senders: subs.map(s => ({
+      id: s.id,
+      name: s.newsletter_name || s.from_name || s.from_email,
+      from_email: s.from_email,
+      status: s.status || (s.is_active === false ? 'paused' : 'active'),
+      paused_reason: s.paused_reason || null,
+      email_count: s.email_count || 0,
+      item_count: feedById[s.feed_id]?.item_count ?? null,
+      last_email_date: s.last_email_date || null,
+      feed_id: s.feed_id || null,
+      has_unsubscribe: !!s.list_unsubscribe,
+    })),
+    confirmations: confirmations.map(e => ({
+      id: e.id, from_email: e.from_email, from_name: e.from_name, subject: e.subject,
+      received_at: e.received_at, confirm_url: e.confirm_url || null,
+    })),
+  };
+}
+
+// ── CANONICAL COPY (keep in sync with mailgunWebhook): newsletter Feed + FeedItem ──
+async function createSenderFeed(svc, ownerEmail, sub) {
+  const base = {
+    name: String(sub.newsletter_name || sub.from_name || sub.from_email).slice(0, 200),
+    url: `newsletter://${sub.from_email}`,
+    category: guessCategory(`${sub.newsletter_name || ''} ${sub.from_email}`),
+    tags: ['newsletter'],
+    status: 'active',
+    item_count: 0,
+    metadata_json: JSON.stringify({ newsletter: true, sender_email: sub.from_email, subscription_id: sub.id }),
+    created_by: ownerEmail,
+  };
+  try {
+    return await svc.Feed.create({ ...base, source_type: 'newsletter' });
+  } catch {
+    // Feed.source_type does not allow 'newsletter' yet: create without it (metadata + url mark it).
+    return await svc.Feed.create(base);
+  }
+}
+
+function guessCategory(text) {
+  const t = String(text || '').toLowerCase();
+  if (/\b(real estate|multifamily|housing|rental|property|properties|cre|reit|mortgage|apartment)\b/.test(t)) return 'CRE';
+  if (/\b(ai|a\.i\.|machine learning|llm|gpt|artificial intelligence)\b/.test(t)) return 'AI';
+  if (/\b(crypto|bitcoin|ethereum|blockchain|defi)\b/.test(t)) return 'Crypto';
+  if (/\b(markets?|stocks?|equities|bonds|trading|investor|investing|macro)\b/.test(t)) return 'Markets';
+  if (/\b(finance|fintech|banking|money|economy|economics)\b/.test(t)) return 'Finance';
+  if (/\b(tech|software|startup|startups|developer|engineering|saas|product)\b/.test(t)) return 'Tech';
+  if (/\b(news|daily|briefing|politics|world|times|post|journal)\b/.test(t)) return 'News';
+  return 'Other';
+}
+
+function appUrl() {
+  return (Deno.env.get('BASE44_APP_URL') || 'https://mergerss.app').replace(/\/+$/, '');
+}
+
+function feedItemFromEmail(email, feed) {
+  const text = String(email.text_content || '');
+  return {
+    feed_id: feed.id,
+    title: String(email.subject || '(no subject)').slice(0, 500),
+    url: email.view_url || `${appUrl()}/Newsletters?email=${email.id}`,
+    description: text.replace(/\s+/g, ' ').trim().slice(0, 500),
+    content: text.slice(0, 20000),
+    author: String(email.from_name || email.from_email || '').slice(0, 200),
+    published_date: email.received_at || new Date().toISOString(),
+    guid: email.message_id || `newsletter:${email.id}`,
+    category: feed.category,
+    tags: ['newsletter'],
+    is_read: false,
+  };
+}
+
+function triggerEnrichment(base44, ids) {
+  if (!ids.length) return;
+  base44.asServiceRole.functions.invoke('enrichFeedItems', { item_ids: ids.slice(0, 20) }, {
+    headers: { 'x-internal-secret': Deno.env.get('INTERNAL_SECRET') || '' },
+  }).catch(() => {});
+}
+// ───────────────────────────────────────────────────────────────────────────────
+
+// Resume a sender: make sure a Feed exists (plan limit permitting) and turn the most recent
+// stored-but-not-ingested emails into FeedItems.
+async function activateSender(base44, svc, user, sub) {
+  let feed = sub.feed_id ? await svc.Feed.get(sub.feed_id).catch(() => null) : null;
+  if (feed && feed.created_by !== user.email) feed = null;
+
+  if (!feed) {
+    if (!isPremium(user)) {
+      const count = (await listOwnFeeds(svc, user.email)).length;
+      if (count >= FREE_FEED_LIMIT) {
+        await svc.NewsletterSubscription.update(sub.id, {
+          status: 'over_limit', is_active: false,
+          paused_reason: `Free plan limit of ${FREE_FEED_LIMIT} sources reached`,
+        });
+        return { ok: false, limit_reached: true, error: `Free plan limit reached: you can have up to ${FREE_FEED_LIMIT} sources. Remove a source or upgrade to Premium.` };
+      }
+    }
+    feed = await createSenderFeed(svc, user.email, sub);
+  } else if (feed.status !== 'active') {
+    await svc.Feed.update(feed.id, { status: 'active' });
+  }
+
+  await svc.NewsletterSubscription.update(sub.id, { status: 'active', is_active: true, paused_reason: '', feed_id: feed.id });
+
+  // Backfill up to 10 recent emails that were stored while paused / over limit.
+  const stored = extractItems(await svc.NewsletterEmail.filter(
+    { owner_email: user.email, subscription_id: sub.id, ingest_status: { $in: ['sender_paused', 'over_limit'] } }, '-received_at', 10))
+    .filter(e => e.owner_email === user.email && !e.feed_item_id);
+  const existing = extractItems(await svc.FeedItem.filter({ feed_id: feed.id }, '-created_date', 300, 0, ['id', 'guid']));
+  const seen = new Set(existing.map(i => i.guid).filter(Boolean));
+  const created = [];
+  for (const e of stored) {
+    const item = feedItemFromEmail(e, feed);
+    if (seen.has(item.guid)) continue;
+    try {
+      const fi = await svc.FeedItem.create(item);
+      seen.add(item.guid);
+      created.push(fi.id);
+      await svc.NewsletterEmail.update(e.id, { feed_item_id: fi.id, feed_id: feed.id, ingest_status: 'ingested' });
+    } catch (err) {
+      console.warn('[newsletterInbox] backfill item failed:', err?.message);
+    }
+  }
+  if (created.length) {
+    await svc.Feed.update(feed.id, { item_count: (feed.item_count || 0) + created.length, last_fetched: new Date().toISOString(), last_successful_fetch_at: new Date().toISOString() }).catch(() => {});
+    triggerEnrichment(base44, created);
+  }
+  return { ok: true, feed_id: feed.id, backfilled: created.length };
+}
+
+Deno.serve(async (req) => {
+  try {
+    const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me().catch(() => null);
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const body = await req.json().catch(() => ({}));
+    const action = String(body.action || 'get');
+    const svc = base44.asServiceRole.entities;
+    const cfg = mailgunConfig();
+
+    if (action === 'get' || action === 'list') {
+      const ef = await getEmailFeed(svc, user.email);
+      return Response.json(await buildState(svc, user, cfg, ef));
+    }
+
+    if (action === 'get_or_create') {
+      let ef = await getEmailFeed(svc, user.email);
+      if (!cfg.configured) {
+        return Response.json(await buildState(svc, user, cfg, ef));
+      }
+
+      let routeError = null;
+      try { await ensureRoute(svc, cfg); } catch (e) { routeError = e?.message || 'route setup failed'; console.error('[newsletterInbox] ensureRoute:', routeError); }
+
+      if (!ef || isLegacyAddress(ef.unique_email, cfg.domain) || ef.is_active === false) {
+        let address = null;
+        for (let i = 0; i < 6 && !address; i++) {
+          const candidate = `${nameSlug(user)}.${randomSuffix(6)}@${cfg.domain}`;
+          const clash = extractItems(await svc.EmailFeed.filter({ unique_email: candidate }, '-created_date', 1));
+          if (!clash.length) address = candidate;
+        }
+        if (!address) return Response.json({ error: 'Could not allocate an address, try again' }, { status: 500 });
+
+        if (ef) ef = await svc.EmailFeed.update(ef.id, { unique_email: address, is_active: true, user_id: user.id });
+        else ef = await svc.EmailFeed.create({ user_email: user.email, user_id: user.id, unique_email: address, is_active: true, total_received: 0 });
+        ef = { ...ef, unique_email: address, is_active: true };
+      }
+
+      if (user.newsletter_address !== ef.unique_email) {
+        await svc.User.update(user.id, { newsletter_address: ef.unique_email }).catch(e => console.warn('[newsletterInbox] User.newsletter_address write failed:', e?.message));
+      }
+
+      const state = await buildState(svc, user, cfg, ef);
+      return Response.json({ ...state, route_error: user.role === 'admin' ? routeError : (routeError ? 'Inbox routing is not set up yet; emails may not arrive.' : null) });
+    }
+
+    if (action === 'ensure_route') {
+      if (user.role !== 'admin') return Response.json({ error: 'Forbidden' }, { status: 403 });
+      if (!cfg.configured) return Response.json({ configured: false, reason: NOT_CONFIGURED });
+      const r = await ensureRoute(svc, cfg, true);
+      return Response.json({ success: true, configured: true, webhook_url: webhookUrl(), ...r });
+    }
+
+    if (action === 'pause') {
+      const sub = await ownSubscription(svc, user.email, body.subscription_id);
+      if (!sub) return Response.json({ error: 'Sender not found' }, { status: 404 });
+      await svc.NewsletterSubscription.update(sub.id, { status: 'paused', is_active: false, paused_reason: 'Paused by you' });
+      if (sub.feed_id) {
+        const feed = await svc.Feed.get(sub.feed_id).catch(() => null);
+        if (feed && feed.created_by === user.email) await svc.Feed.update(feed.id, { status: 'paused', paused_by_system: false });
+      }
+      return Response.json({ success: true });
+    }
+
+    if (action === 'unpause' || action === 'restore') {
+      const sub = await ownSubscription(svc, user.email, body.subscription_id);
+      if (!sub) return Response.json({ error: 'Sender not found' }, { status: 404 });
+      const r = await activateSender(base44, svc, user, sub);
+      if (!r.ok) return Response.json({ success: false, ...r }, { status: 403 });
+      return Response.json({ success: true, ...r });
+    }
+
+    if (action === 'remove') {
+      const sub = await ownSubscription(svc, user.email, body.subscription_id);
+      if (!sub) return Response.json({ error: 'Sender not found' }, { status: 404 });
+      let deletedItems = 0;
+      if (sub.feed_id) {
+        const feed = await svc.Feed.get(sub.feed_id).catch(() => null);
+        if (feed && feed.created_by === user.email) {
+          if (body.delete_items !== false) {
+            // Bounded cleanup so the call stays fast; anything left is orphaned by a deleted feed.
+            const items = extractItems(await svc.FeedItem.filter({ feed_id: feed.id }, '-created_date', 200, 0, ['id']));
+            for (const it of items) { try { await svc.FeedItem.delete(it.id); deletedItems++; } catch { /* ignore */ } }
+          }
+          await svc.Feed.delete(feed.id).catch(() => {});
+        }
+      }
+      await svc.NewsletterSubscription.update(sub.id, { status: 'removed', is_active: false, feed_id: '', paused_reason: 'Removed by you' });
+      return Response.json({ success: true, deleted_items: deletedItems });
+    }
+
+    if (action === 'dismiss_confirmation') {
+      const e = body.email_id ? await svc.NewsletterEmail.get(String(body.email_id)).catch(() => null) : null;
+      if (!e || e.owner_email !== user.email) return Response.json({ error: 'Not found' }, { status: 404 });
+      await svc.NewsletterEmail.update(e.id, { confirmation_status: body.done ? 'done' : 'dismissed' });
+      return Response.json({ success: true });
+    }
+
+    if (action === 'get_email') {
+      const e = body.email_id ? await svc.NewsletterEmail.get(String(body.email_id)).catch(() => null) : null;
+      if (!e || e.owner_email !== user.email) return Response.json({ error: 'Not found' }, { status: 404 });
+      return Response.json({
+        success: true,
+        email: {
+          id: e.id, subject: e.subject, from_name: e.from_name, from_email: e.from_email,
+          received_at: e.received_at, html_content: e.html_content || '', text_content: e.text_content || '',
+          view_url: e.view_url || null, confirm_url: e.confirm_url || null, is_confirmation: !!e.is_confirmation,
+        },
+      });
+    }
+
+    return Response.json({ error: `Unknown action: ${action}` }, { status: 400 });
+  } catch (error) {
+    console.error('[newsletterInbox] error:', error);
+    return Response.json({ error: error?.message || 'Server error' }, { status: 500 });
+  }
+});
