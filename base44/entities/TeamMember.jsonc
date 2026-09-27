@@ -34,6 +34,18 @@
     "role"
   ],
   "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.invited_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
     "read": {
       "$or": [
         {
