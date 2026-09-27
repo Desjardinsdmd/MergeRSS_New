@@ -222,8 +222,7 @@ async function handleSubscriptionChange(base44, stripe, subscription, eventType)
         return;
     }
 
-    const { row: matched, via } = await findBillingBySubOrCustomer(base44, subscription.id, customerId);
-    const row = matched;
+    const { row, via } = await findBillingBySubOrCustomer(base44, subscription.id, customerId);
 
     // A customer can have an older subscription ending while a newer one is live.
     // If we only matched by customer and the stored row points at a different, still-live
