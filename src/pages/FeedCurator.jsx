@@ -11,6 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import FeedSuggestionCard from '@/components/feeds/FeedSuggestionCard';
 import TrendingTopics from '@/components/feeds/TrendingTopics';
 import RecommendedFeeds from '@/components/feeds/RecommendedFeeds';
+import { toast } from 'sonner';
+import { addSourceViaApi } from '@/components/feeds/sourceApi';
 
 const EXAMPLE_QUERIES = [
   'Canadian commercial real estate news',
@@ -118,34 +120,25 @@ export default function FeedCurator() {
     }
   };
 
+  // Adds go through addSource: URL discovery, plan limit, dedupe and the first fetch all apply.
+  // (Moderation is only relevant when sharing to the directory, which this flow never does.)
+  const addOne = async (feed) => {
+    const result = await addSourceViaApi({
+      url: feed.url,
+      name: feed.name,
+      category: feed.category || 'Other',
+      tags: feed.tags || [],
+    });
+    if (result.ok) setAddedFeeds(prev => new Set([...prev, feed.url]));
+    return result;
+  };
+
   const handleAddFeed = async (feed) => {
     setAddingFeed(feed.url);
     try {
-      // Check content moderation before adding to directory
-      let sourcedFromDirectory = false;
-      try {
-        const moderationResult = await base44.functions.invoke('moderateDirectoryContent', {
-          name: feed.name,
-          description: feed.description || '',
-          tags: feed.tags || []
-        });
-        sourcedFromDirectory = moderationResult.data.is_safe;
-      } catch (err) {
-        // If moderation fails, don't add to directory
-        sourcedFromDirectory = false;
-      }
-
-      await base44.entities.Feed.create({
-        name: feed.name,
-        url: feed.url,
-        category: feed.category || 'Other',
-        tags: feed.tags || [],
-        status: 'active',
-        sourced_from_directory: sourcedFromDirectory,
-      });
-      setAddedFeeds(prev => new Set([...prev, feed.url]));
-    } catch (e) {
-      console.error('Failed to add feed:', e);
+      const result = await addOne(feed);
+      if (!result.ok) toast.error(`${feed.name}: ${result.error}`);
+      else toast.success(result.duplicate ? `"${feed.name}" is already in your sources` : `"${feed.name}" added`);
     } finally {
       setAddingFeed(null);
     }
@@ -153,9 +146,24 @@ export default function FeedCurator() {
 
   const handleAddAll = async () => {
     const unadded = suggestions.filter(f => !addedFeeds.has(f.url));
+    let added = 0, dupes = 0, failed = 0;
     for (const feed of unadded) {
-      await handleAddFeed(feed);
+      setAddingFeed(feed.url);
+      const result = await addOne(feed);
+      if (!result.ok) {
+        failed++;
+        if (result.limitReached) {
+          toast.error(result.error);
+          break;
+        }
+      } else if (result.duplicate) dupes++;
+      else added++;
     }
+    setAddingFeed(null);
+    const parts = [`${added} added`];
+    if (dupes) parts.push(`${dupes} already in your sources`);
+    if (failed) parts.push(`${failed} failed`);
+    (failed && !added ? toast.error : toast.success)(parts.join(' · '));
   };
 
   const [userFeeds, setUserFeeds] = useState(null);
