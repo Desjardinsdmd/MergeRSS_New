@@ -21,11 +21,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, X, Crown, Globe } from 'lucide-react';
+import { Loader2, X, Crown, Globe, Users } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { saveDigestViaApi } from '@/components/feeds/sourceApi';
+import { workspaceCall } from '@/components/feeds/workspaceApi';
 
 const CATEGORIES = ['CRE', 'Markets', 'Tech', 'News', 'Finance', 'Crypto', 'AI', 'Other'];
 const TIMEZONES = [
@@ -40,9 +41,11 @@ const TIMEZONES = [
   'Australia/Sydney',
 ];
 
-export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest = null }) {
+// `team`: the caller's workspace when they are its owner/editor (enables "Share with team").
+export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest = null, team = null }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [shareWithTeam, setShareWithTeam] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -85,6 +88,7 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
   }, []);
 
   useEffect(() => {
+    setShareWithTeam(!!(team && editDigest?.workspace_id && editDigest.workspace_id === team.id));
     if (editDigest) {
       setFormData({
         name: editDigest.name || '',
@@ -143,6 +147,19 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
     enabled: !!user?.email,
   });
 
+  const { data: sharedFeedData } = useQuery({
+    queryKey: ['shared-feeds', team?.id],
+    queryFn: () => workspaceCall('list_shared_feeds'),
+    enabled: !!team && shareWithTeam && open,
+  });
+  const pickableFeeds = shareWithTeam ? (sharedFeedData?.feeds || []) : feeds;
+
+  const toggleShareWithTeam = (on) => {
+    setShareWithTeam(on);
+    // Personal and shared briefings draw from different source pools.
+    setFormData(f => ({ ...f, feed_ids: [] }));
+  };
+
   const { data: integrations = [] } = useQuery({
     queryKey: ['integrations'],
     queryFn: () => base44.entities.Integration.list(),
@@ -166,6 +183,20 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
     // Auto-populate Discord webhook from integration if enabling Discord delivery
     if (formData.delivery_discord && discordIntegration && !data.discord_webhook_url) {
       data.discord_webhook_url = discordIntegration.webhook_url;
+    }
+
+    // Team sharing (server re-checks role and sources). Shared briefings use the team
+    // channel, not personal Slack/Discord/Teams, and stay out of the public directory.
+    if (team) {
+      data.workspace_id = shareWithTeam ? team.id : '';
+      if (shareWithTeam) {
+        data.is_public = false;
+        data.delivery_slack = false;
+        data.delivery_discord = false;
+        data.delivery_teams = false;
+        data.discord_webhook_url = '';
+        data.slack_channel_id = '';
+      }
     }
 
     // Check content moderation if making public
@@ -252,6 +283,23 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
             </div>
           </div>
 
+          {team && (
+            <div className="border border-slate-100 rounded-xl p-4 bg-slate-50 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <Users className="w-4 h-4 text-indigo-500 flex-shrink-0" aria-hidden="true" />
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-slate-900">Share with {team.name}</p>
+                  <p className="text-xs text-slate-500">Uses shared sources and goes to every team member</p>
+                </div>
+              </div>
+              <Switch
+                checked={shareWithTeam}
+                onCheckedChange={toggleShareWithTeam}
+                aria-label={`Share this briefing with ${team.name}`}
+              />
+            </div>
+          )}
+
           {/* Content Selection */}
           <div className="space-y-4">
             <div>
@@ -276,9 +324,9 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
             </div>
 
             <div>
-              <Label className="mb-2 block">Specific Feeds (optional)</Label>
+              <Label className="mb-2 block">{shareWithTeam ? 'Shared sources (optional)' : 'Specific Feeds (optional)'}</Label>
               <div className="max-h-32 overflow-y-auto border rounded-lg p-2 space-y-1">
-                {feeds.map((feed) => (
+                {pickableFeeds.map((feed) => (
                   <label
                     key={feed.id}
                     className="flex items-center gap-2 p-1 rounded hover:bg-slate-50 cursor-pointer"
@@ -293,8 +341,10 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
                     </Badge>
                   </label>
                 ))}
-                {feeds.length === 0 && (
-                  <p className="text-sm text-slate-500 p-2">No feeds available</p>
+                {pickableFeeds.length === 0 && (
+                  <p className="text-sm text-slate-500 p-2">
+                    {shareWithTeam ? 'No sources are shared with the team yet. Share one from the Sources page.' : 'No feeds available'}
+                  </p>
                 )}
               </div>
             </div>
@@ -400,6 +450,15 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
           </div>
 
           {/* Delivery Options */}
+          {shareWithTeam ? (
+            <div className="border rounded-lg p-3 text-sm text-slate-600">
+              <Label className="mb-1 block">Delivery</Label>
+              Every team member gets this briefing in their inbox and by email (unless they turned email off).
+              {team?.plan === 'team'
+                ? ' It also posts once to the team channel set on the Team page.'
+                : ' Upgrade the workspace to Team to also post it to a shared Slack, Discord or Teams channel.'}
+            </div>
+          ) : (
           <div>
             <Label className="mb-3 block">Delivery Channels</Label>
             <div className="space-y-3">
@@ -531,8 +590,10 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
               )}
             </div>
           </div>
+          )}
 
           {/* Share to Directory */}
+          {!shareWithTeam && (
           <div className="border border-slate-100 rounded-xl p-4 space-y-3 bg-slate-50">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -559,6 +620,7 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
               </div>
             )}
           </div>
+          )}
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
