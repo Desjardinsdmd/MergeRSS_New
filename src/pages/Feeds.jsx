@@ -494,7 +494,10 @@ export default function Feeds() {
            setShowAddDialog(open);
            if (!open) setEditFeed(null);
          }}
-         onSuccess={() => queryClient.invalidateQueries({ queryKey: ['feeds'] })}
+         onSuccess={() => {
+           queryClient.invalidateQueries({ queryKey: ['feeds'] });
+           queryClient.invalidateQueries({ queryKey: ['feedItems'] });
+         }}
          editFeed={editFeed}
          existingFeedCount={feeds.length}
        />
