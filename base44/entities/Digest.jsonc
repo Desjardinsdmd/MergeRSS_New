@@ -161,6 +161,10 @@
     "auto_adjustment_note": {
       "type": "string",
       "description": "What the system changed or ignored to keep this digest sending (pruned feeds, ignored tags)"
+    },
+    "workspace_id": {
+      "type": "string",
+      "description": "Team workspace this briefing is shared with. Set only by saveDigest for workspace owners/editors."
     }
   },
   "required": [
