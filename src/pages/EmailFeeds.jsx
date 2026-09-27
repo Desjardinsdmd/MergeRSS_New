@@ -117,7 +117,11 @@ function EmailFeedsPage() {
 
   const { data: emails = [], isLoading: loadingEmails } = useQuery({
     queryKey: ['newsletter-emails'],
-    queryFn: () => base44.entities.NewsletterEmail.filter({}, '-received_at', 100),
+    // Gmail rows only; inbound (Mailgun) newsletters belong to individual users' inboxes.
+    queryFn: async () => {
+      const rows = await base44.entities.NewsletterEmail.filter({}, '-received_at', 200);
+      return (Array.isArray(rows) ? rows : []).filter(r => r.source !== 'inbound').slice(0, 100);
+    },
     enabled: !!user,
     refetchInterval: 30000,
   });
