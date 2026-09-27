@@ -16,9 +16,10 @@ export default function FeedHealthWidget({ feeds }) {
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
-      const res = await base44.functions.invoke('fetchFeeds');
-      const newItems = (res.data?.results || []).reduce((sum, r) => sum + (r.new_items || 0), 0);
-      toast.success(`Feeds refreshed — ${newItems} new items`);
+      const res = await base44.functions.invoke('refreshMyFeeds');
+      const d = res.data || {};
+      const newItems = d.new_items ?? d.newItems ?? (d.results || []).reduce((sum, r) => sum + (r.new_items || 0), 0);
+      toast.success(`Feeds refreshed: ${newItems || 0} new items`);
     } catch {
       toast.error('Failed to refresh feeds');
     } finally {
