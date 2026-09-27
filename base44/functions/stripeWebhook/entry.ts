@@ -86,9 +86,72 @@ async function upsertBillingByEmail(base44, email, data) {
     return created?.id;
 }
 
+// ── Team plan (workspace subscriptions) ─────────────────────────────────────────
+// createCheckoutSession stamps metadata { plan: 'team', workspace_id } on the session and
+// the subscription. Those events update Workspace.plan ('team' | 'none') keyed by the
+// subscription id, and never touch the buyer's personal User.plan or BillingSubscription.
+async function findTeamWorkspace(base44, subscriptionId, workspaceId) {
+    const WS = base44.asServiceRole.entities.Workspace;
+    if (subscriptionId) {
+        const rows = await WS.filter({ stripe_subscription_id: subscriptionId }).catch(() => []);
+        if (rows.length) return rows[0];
+    }
+    if (workspaceId) {
+        try { return await WS.get(workspaceId); } catch { return null; }
+    }
+    return null;
+}
+
+async function isTeamSubscription(base44, subscription) {
+    if (subscription?.metadata?.plan === 'team') return true;
+    return !!(await findTeamWorkspace(base44, subscription?.id, null));
+}
+
+async function applyTeamSubscription(base44, { workspaceId, subscriptionId, customerId, status, periodEnd, eventType }) {
+    const ws = await findTeamWorkspace(base44, subscriptionId, workspaceId);
+    if (!ws) {
+        console.log(`[Stripe] WARNING: ${eventType}: no workspace for team subscription ${subscriptionId} (workspace_id=${workspaceId})`);
+        return;
+    }
+    const plan = PREMIUM_STATUSES.has(status) ? 'team' : 'none';
+    // An older team subscription ending must not downgrade a workspace that moved to a newer live one.
+    if (ws.stripe_subscription_id && subscriptionId && ws.stripe_subscription_id !== subscriptionId &&
+        ws.plan === 'team' && plan === 'none') {
+        console.log(`[Stripe] Ignoring ${eventType} for ${subscriptionId}; workspace ${ws.id} is on ${ws.stripe_subscription_id}`);
+        return;
+    }
+    const data = { plan, subscription_status: status };
+    if (subscriptionId) data.stripe_subscription_id = subscriptionId;
+    if (customerId) data.stripe_customer_id = customerId;
+    if (periodEnd) data.current_period_end = periodEnd;
+    await base44.asServiceRole.entities.Workspace.update(ws.id, data);
+    console.log(`[Stripe] ${eventType}: workspace ${ws.id} plan ${ws.plan || 'none'} -> ${plan} (sub=${subscriptionId} status=${status})`);
+}
+
 async function handleCheckoutCompleted(base44, stripe, session) {
     if (session.mode && session.mode !== 'subscription') {
         console.log(`[Stripe] Ignoring checkout session ${session.id} with mode=${session.mode}`);
+        return;
+    }
+
+    if (session.metadata?.plan === 'team') {
+        let status = 'active';
+        let periodEnd;
+        if (session.subscription) {
+            try {
+                const sub = await stripe.subscriptions.retrieve(session.subscription);
+                status = sub.status;
+                periodEnd = periodEndIso(sub);
+            } catch (e) {
+                console.log(`[Stripe] Could not retrieve team subscription ${session.subscription}: ${e.message}`);
+            }
+        }
+        await applyTeamSubscription(base44, {
+            workspaceId: session.metadata.workspace_id,
+            subscriptionId: session.subscription,
+            customerId: session.customer,
+            status, periodEnd, eventType: 'checkout.session.completed',
+        });
         return;
     }
 
@@ -147,7 +210,20 @@ async function handleSubscriptionChange(base44, stripe, subscription, eventType)
     const plan = planForStatus(status);
     const customerId = typeof subscription.customer === 'string' ? subscription.customer : subscription.customer?.id;
 
-    const { row, via } = await findBillingBySubOrCustomer(base44, subscription.id, customerId);
+    if (await isTeamSubscription(base44, subscription)) {
+        await applyTeamSubscription(base44, {
+            workspaceId: subscription.metadata?.workspace_id,
+            subscriptionId: subscription.id,
+            customerId,
+            status,
+            periodEnd: periodEndIso(subscription),
+            eventType,
+        });
+        return;
+    }
+
+    const { row: matched, via } = await findBillingBySubOrCustomer(base44, subscription.id, customerId);
+    const row = matched;
 
     // A customer can have an older subscription ending while a newer one is live.
     // If we only matched by customer and the stored row points at a different, still-live
