@@ -31,7 +31,16 @@ export default function AddSourceDialog({ open, onOpenChange, onSuccess, editFee
   const [tagInput, setTagInput] = useState('');
   const [sourceStatus, setSourceStatus] = useState(null); // { phase, message, type }
 
-  const canShareToDirectory = editFeed && !editFeed.sourced_from_directory;
+  // Newsletter feeds (inbound email) have a synthetic newsletter:// url that must never go
+  // through addSource; only name/category/tags are editable.
+  const isNewsletter = !!editFeed && (
+    editFeed.source_type === 'newsletter' ||
+    String(editFeed.url || '').startsWith('newsletter://') ||
+    (typeof editFeed.metadata_json === 'object'
+      ? editFeed.metadata_json?.newsletter === true
+      : /"newsletter"\s*:\s*true/.test(String(editFeed.metadata_json || '')))
+  );
+  const canShareToDirectory = editFeed && !editFeed.sourced_from_directory && !isNewsletter;
 
   useEffect(() => {
     if (editFeed) {
@@ -65,7 +74,8 @@ export default function AddSourceDialog({ open, onOpenChange, onSuccess, editFee
   const validate = () => {
     const errs = {};
     if (editFeed && !formData.name.trim()) errs.name = 'Source name is required';
-    if (!formData.url.trim()) errs.url = 'URL is required';
+    if (isNewsletter) { /* URL is fixed for newsletter feeds */ }
+    else if (!formData.url.trim()) errs.url = 'URL is required';
     else if (!formData.url.trim().startsWith('http')) errs.url = 'URL must start with http:// or https://';
     if (showCustomCategory && !customCategoryInput.trim()) errs.category = 'Enter a category name';
     return errs;
@@ -115,7 +125,7 @@ export default function AddSourceDialog({ open, onOpenChange, onSuccess, editFee
     try {
       if (editFeed) {
         // Edit mode: only ever update the existing record. Re-run discovery only when the URL changed.
-        const urlChanged = url !== (editFeed.url || '').trim();
+        const urlChanged = !isNewsletter && url !== (editFeed.url || '').trim();
         if (urlChanged) {
           setSourceStatus({ phase: 'analyzing', message: 'Checking the new URL…', type: 'info' });
           const result = await addSourceViaApi({ feed_id: editFeed.id, url, category, tags: formData.tags || [] });
@@ -243,6 +253,11 @@ export default function AddSourceDialog({ open, onOpenChange, onSuccess, editFee
             )}
           </div>
 
+          {isNewsletter ? (
+            <p className="text-xs text-stone-500">
+              This is a newsletter source delivered to your inbox address. Its address can't be changed here.
+            </p>
+          ) : (
           <div>
             <Label htmlFor="url">
               Website or Feed URL <span className="text-[hsl(var(--primary))]">*</span>
@@ -272,6 +287,7 @@ export default function AddSourceDialog({ open, onOpenChange, onSuccess, editFee
               </p>
             )}
           </div>
+          )}
 
           <div>
             <Label htmlFor="category">Category</Label>
@@ -358,7 +374,7 @@ export default function AddSourceDialog({ open, onOpenChange, onSuccess, editFee
             )}
           </div>
 
-          {editFeed && (
+          {editFeed && !isNewsletter && (
             <div className="border border-stone-800 rounded-lg p-4 space-y-3 bg-stone-800">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
