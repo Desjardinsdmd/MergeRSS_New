@@ -129,6 +129,14 @@ async function parseFeed(url) {
     throw new Error('Unrecognized feed format');
 }
 
+function isNewsletterFeed(f) {
+    if (!f) return false;
+    if (f.source_type === 'newsletter') return true;
+    if (typeof f.url === 'string' && f.url.startsWith('newsletter://')) return true;
+    try { if (f.metadata_json && JSON.parse(f.metadata_json)?.newsletter === true) return true; } catch { /* ignore */ }
+    return false;
+}
+
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
@@ -145,6 +153,12 @@ Deno.serve(async (req) => {
 
         // Only allow the owner to trigger an immediate fetch
         if (feed.created_by !== user.email) return Response.json({ error: 'Forbidden' }, { status: 403 });
+
+        // Newsletter feeds are filled by inbound email (mailgunWebhook); there is no URL to fetch.
+        // Report success with zero items and never touch the error fields.
+        if (isNewsletterFeed(feed)) {
+            return Response.json({ success: true, new_items: 0, skipped: 'newsletter' });
+        }
 
         let items;
         try {
