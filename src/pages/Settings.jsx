@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { 
   User, 
@@ -11,6 +11,8 @@ import {
   ExternalLink,
   PlayCircle,
   Target,
+  Plug,
+  ChevronRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -79,6 +81,7 @@ const TIMEZONES = getTimezones();
 const INTEREST_PROFILE_MAX = 1500;
 
 export default function Settings() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [editingProfile, setEditingProfile] = useState(false);
@@ -357,6 +360,22 @@ export default function Settings() {
           </CardContent>
         </Card>
 
+        {/* Integrations (moved out of the sidebar) */}
+        <Link to={createPageUrl('Integrations')} className="block">
+          <Card className="border-stone-800 bg-stone-900 hover:border-stone-700 transition-colors">
+            <CardContent className="flex items-center justify-between py-4">
+              <div className="flex items-center gap-3">
+                <Plug className="w-5 h-5 text-[hsl(var(--primary))]" />
+                <div>
+                  <p className="font-medium text-stone-100">Integrations</p>
+                  <p className="text-sm text-stone-500">Connect Slack, email, webhooks and other destinations</p>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-stone-500" />
+            </CardContent>
+          </Card>
+        </Link>
+
         {/* Help Section */}
         <Card className="border-stone-800 bg-stone-900">
           <CardHeader>
@@ -367,18 +386,22 @@ export default function Settings() {
           </CardHeader>
           <CardContent className="flex items-center justify-between">
             <div>
-              <p className="font-medium text-stone-100">Restart the tour</p>
-              <p className="text-sm text-stone-500">Walk through the key features of MergeRSS again</p>
+              <p className="font-medium text-stone-100">Run setup again</p>
+              <p className="text-sm text-stone-500">Go back through the welcome setup: interests, sources and your first briefing</p>
             </div>
             <Button
               variant="outline"
               onClick={async () => {
-                await base44.auth.updateMe({ onboarding_complete: false });
-                toast.success('Tour reset — go to the Dashboard to restart it');
+                try {
+                  await base44.auth.updateMe({ onboarding_complete: false });
+                  navigate(createPageUrl('Welcome'));
+                } catch (e) {
+                  toast.error(e?.message || 'Could not restart setup');
+                }
               }}
               className="border-stone-700 text-stone-300 hover:bg-stone-800"
             >
-              Restart Tour
+              Run setup again
             </Button>
           </CardContent>
         </Card>
