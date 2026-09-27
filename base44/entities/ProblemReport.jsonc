@@ -1,5 +1,6 @@
 {
   "name": "ProblemReport",
+  "type": "object",
   "properties": {
     "admin_notes": {
       "description": "Private notes for admin",
@@ -50,10 +51,17 @@
     "description"
   ],
   "rls": {
-    "delete": {
-      "user_condition": {
-        "role": "admin"
-      }
+    "create": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     },
     "read": {
       "user_condition": {
@@ -64,7 +72,11 @@
       "user_condition": {
         "role": "admin"
       }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
     }
-  },
-  "type": "object"
+  }
 }
