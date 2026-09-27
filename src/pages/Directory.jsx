@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { addSourceViaApi, saveDigestViaApi } from '@/components/feeds/sourceApi';
 
 const CATEGORIES = ['All', 'CRE', 'Markets', 'Tech', 'News', 'Finance', 'Crypto', 'AI', 'Other'];
 
@@ -30,18 +31,21 @@ const categoryColors = {
   Other: 'bg-stone-800 text-stone-400',
 };
 
-function VoteButtons({ item, itemType, user, votes, onVote }) {
-  const myVote = votes?.find(v => v.item_id === item.id && v.voter_email === user?.email);
+function VoteButtons({ item, itemType, user, onVote, voting }) {
+  const myVote = item.my_vote || null;
   const score = (item.upvotes || 0) - (item.downvotes || 0);
 
   return (
     <div className="flex flex-col items-center gap-0.5">
       <button
+        type="button"
         onClick={() => onVote(item, itemType, 'up')}
-        disabled={!user}
+        disabled={!user || voting}
+        aria-label={myVote === 'up' ? `Remove upvote for ${item.name}` : `Upvote ${item.name}`}
+        aria-pressed={myVote === 'up'}
         className={cn(
           'p-1 rounded transition',
-          myVote?.vote === 'up'
+          myVote === 'up'
             ? 'text-[hsl(var(--primary))]'
             : 'text-stone-400 hover:text-[hsl(var(--primary))]',
           !user && 'opacity-40 cursor-not-allowed'
@@ -50,18 +54,21 @@ function VoteButtons({ item, itemType, user, votes, onVote }) {
       >
         <ArrowUp className="w-4 h-4" />
       </button>
-      <span className={cn(
+      <span aria-label={`Score ${score}`} className={cn(
         'text-xs font-bold leading-none',
         score > 0 ? 'text-[hsl(var(--primary))]' : score < 0 ? 'text-red-500' : 'text-stone-400'
       )}>
         {score}
       </span>
       <button
+        type="button"
         onClick={() => onVote(item, itemType, 'down')}
-        disabled={!user}
+        disabled={!user || voting}
+        aria-label={myVote === 'down' ? `Remove downvote for ${item.name}` : `Downvote ${item.name}`}
+        aria-pressed={myVote === 'down'}
         className={cn(
           'p-1 rounded transition',
-          myVote?.vote === 'down'
+          myVote === 'down'
             ? 'text-red-500'
             : 'text-stone-400 hover:text-red-400',
           !user && 'opacity-40 cursor-not-allowed'
@@ -74,28 +81,34 @@ function VoteButtons({ item, itemType, user, votes, onVote }) {
   );
 }
 
-function DirectoryCard({ item, itemType, user, votes, onVote, onAdd, addedItems, isSelected, onToggleSelect }) {
+function DirectoryCard({ item, itemType, user, onVote, votingKey, onAdd, addedItems, isSelected, onToggleSelect }) {
   const [adding, setAdding] = React.useState(false);
   const Icon = itemType === 'feed' ? Rss : FileText;
-  const isAdded = addedItems?.includes(item.id);
-  const isCreator = item.created_by === user?.email;
-  
+  const isAdded = item.added_by_me || addedItems?.includes(item.id);
+  const isCreator = !!item.is_mine;
+
   const handleAddClick = async () => {
     setAdding(true);
-    await onAdd(item, itemType);
-    setAdding(false);
+    try {
+      await onAdd(item, itemType);
+    } finally {
+      setAdding(false);
+    }
   };
   
   return (
      <div className={cn("bg-stone-900 border rounded-xl p-4 flex gap-4 hover:shadow-sm transition", isSelected ? "border-amber-400 bg-stone-800" : "border-stone-800")}>
        <button
+         type="button"
          onClick={() => onToggleSelect && onToggleSelect(item.id, itemType)}
          className="flex-shrink-0 mt-0.5 text-stone-600 hover:text-amber-400 transition"
          title={isSelected ? 'Deselect' : 'Select'}
+         aria-label={`${isSelected ? 'Deselect' : 'Select'} ${item.name}`}
+         aria-pressed={!!isSelected}
        >
          {isSelected ? <CheckCircle2 className="w-5 h-5 text-amber-400" /> : <Circle className="w-5 h-5" />}
        </button>
-       <VoteButtons item={item} itemType={itemType} user={user} votes={votes} onVote={onVote} />
+       <VoteButtons item={item} itemType={itemType} user={user} onVote={onVote} voting={votingKey === `${itemType}-${item.id}`} />
 
        <div className="flex-1 min-w-0">
          <div className="flex items-start justify-between gap-2">
@@ -112,7 +125,7 @@ function DirectoryCard({ item, itemType, user, votes, onVote, onAdd, addedItems,
               )}
             </div>
           </div>
-          {isCreator && isAdded ? (
+          {isCreator ? (
             <Badge variant="outline" className="text-xs h-7 px-2.5 flex-shrink-0 border-stone-700 text-stone-400">
               Your {itemType}
             </Badge>
@@ -127,6 +140,7 @@ function DirectoryCard({ item, itemType, user, votes, onVote, onAdd, addedItems,
               disabled={!user || adding}
               className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold rounded-lg text-xs h-7 px-2.5 flex-shrink-0"
               title={user ? undefined : 'Sign in to add'}
+              aria-label={`Add ${item.name} to your ${itemType === 'feed' ? 'sources' : 'digests'}`}
             >
               {adding ? (
                 <>
