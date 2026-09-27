@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus, Search, Filter, Rss, Loader2, RefreshCw, Upload, Grid3x3, List, Trash2, ArrowUpDown, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Plus, Search, Filter, Rss, Loader2, RefreshCw, Upload, Grid3x3, List, Trash2, ArrowUpDown, AlertCircle, CheckCircle2, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import SourcesControl from '@/components/feeds/SourcesControl';
@@ -68,8 +68,11 @@ export default function Feeds() {
       setUser(userData);
     };
     loadUser();
-    
-    // View mode is initialized in useState already
+
+    // Deep link from onboarding/settings: ?import=opml opens the bulk import dialog.
+    try {
+      if (new URLSearchParams(window.location.search).get('import') === 'opml') setShowBulkImport(true);
+    } catch {}
   }, []);
 
   // Save view mode preference whenever it changes
@@ -282,6 +285,12 @@ export default function Feeds() {
             <RefreshCw className={`w-4 h-4 mr-2 ${fetching ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
+          <Link to={createPageUrl('FeedCurator')}>
+            <Button variant="outline">
+              <Sparkles className="w-4 h-4 mr-2" />
+              Suggest sources
+            </Button>
+          </Link>
           <Button
             variant="outline"
             onClick={() => setShowBulkImport(true)}
