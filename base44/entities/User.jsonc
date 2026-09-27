@@ -34,6 +34,23 @@
     "last_visit_date": {
       "type": "string",
       "description": "Date string of the user's last visit"
+    },
+    "timezone": {
+      "type": "string",
+      "description": "IANA timezone name (e.g. America/Toronto). Default for new digests and date display."
+    },
+    "notification_prefs": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Email notification toggles. Keys read by the backend: emailNotifications (master switch), digestReminders (digest skipped/stalled alerts), feedErrors (feed auto-paused alerts). Missing keys default to on."
+    },
+    "interest_profile": {
+      "type": "string",
+      "description": "Free-text description of what matters to this user. Enrichment scores the importance of their articles against it."
+    },
+    "interest_field": {
+      "type": "string",
+      "description": "Short label for the user's field (e.g. Multifamily development)"
     }
   },
   "required": [
