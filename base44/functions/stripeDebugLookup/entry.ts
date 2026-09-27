@@ -18,18 +18,33 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Email required' }, { status: 400 });
     }
 
-    // Find Stripe customer
-    const customers = await stripe.customers.list({ email, limit: 1 });
+    // Local billing record (BillingSubscription, never the Source `Subscription` entity)
+    const billingRows = await base44.asServiceRole.entities.BillingSubscription.filter({
+      user_email: String(email).trim().toLowerCase()
+    });
+    const billing_record = billingRows[0] || null;
 
-    if (!customers.data.length) {
+    // Find Stripe customer: stored id first, then by email
+    let customer = null;
+    if (billing_record?.stripe_customer_id) {
+      try {
+        const c = await stripe.customers.retrieve(billing_record.stripe_customer_id);
+        if (c && !c.deleted) customer = c;
+      } catch { customer = null; }
+    }
+    if (!customer) {
+      const customers = await stripe.customers.list({ email, limit: 1 });
+      customer = customers.data[0] || null;
+    }
+
+    if (!customer) {
       return Response.json({ 
         email,
         stripe_customer_id: null,
+        billing_record,
         message: 'No Stripe customer found'
       });
     }
-
-    const customer = customers.data[0];
 
     // Get subscriptions
     const subscriptions = await stripe.subscriptions.list({
@@ -43,6 +58,7 @@ Deno.serve(async (req) => {
       email,
       stripe_customer_id: customer.id,
       stripe_customer_name: customer.name,
+      billing_record,
       subscriptions_count: subscriptions.data.length,
       stripe_subscription_id: activeSubscription?.id || null,
       subscription_status: activeSubscription?.status || 'no active subscription',
