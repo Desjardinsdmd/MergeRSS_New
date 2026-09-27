@@ -8,23 +8,24 @@ MergeRSS reads like an intelligence terminal for people who make capital decisio
 
 ## Logo
 
-The mark is a solid amber square holding the RSS glyph in near-black. It has square corners. The wordmark "MergeRSS" sits to the right in Inter Bold, tight tracking (-0.02em), set in the foreground colour.
+The mark is a solid violet square holding the RSS glyph in near-black. It has square corners. The wordmark "MergeRSS" sits to the right in Inter Bold, tight tracking (-0.02em), set in the foreground colour.
 
 - Minimum mark size is 24px on screen. Below that, drop the glyph and use the plain square.
 - Clear space around the lockup equals the width of the mark.
-- The mark always sits on the dark field. On light backgrounds, use the near-black wordmark and keep the amber square.
+- The mark always sits on the dark field. On light backgrounds, use the near-black wordmark and keep the violet square.
 - Email clients strip SVG, so email uses the plain square until a hosted PNG of the mark exists.
 
 ## Colour
 
-Amber is the brand. It marks priority, calls to action and the logo, and nothing else. When everything is amber, nothing is urgent.
+Violet is the brand. It marks priority, calls to action and the logo, and nothing else. When everything is violet, nothing is urgent. Amber, yellow and red stay available for warnings and health states only.
 
 ### Core palette
 
 | Role | Hex | Token / source |
 |---|---|---|
-| Brand amber | #FBBF24 | amber-400 |
-| Text on amber | #0F0C0B | --primary-foreground |
+| Brand violet | #9463E3 | --primary (263 70% 64%) |
+| Brand violet, light mode | #733BCE | --primary in .light (263 60% 52%) |
+| Text on violet | #0F0C0B | --primary-foreground |
 | Field (page background) | #0F0C0B | --background |
 | Card | #171412 | --card |
 | Raised surface | #25201D | --secondary |
@@ -36,22 +37,22 @@ Amber is the brand. It marks priority, calls to action and the logo, and nothing
 | Metadata | #78716C | stone-500 |
 | Rules and quiet accents | #57534E | stone-600 |
 
-### Amber tints
+### Violet tints
 
-The app builds depth from amber at low opacity over the card. Use these pre-blended values anywhere alpha is unreliable (email, PDF, exports).
+The app builds depth from violet at low opacity over the card. Use these pre-blended values anywhere alpha is unreliable (email, PDF, exports).
 
 | Use | Opacity | Hex on card |
 |---|---|---|
-| Card outline on briefing surfaces | 50% | #896A1B |
-| Callout rule ("Why this matters") | 60% | #A07B1D |
-| Header band divider | 25% | #503F16 |
-| Signal block divider | 20% | #453616 |
-| Header band fill | 7% | #272013 |
-| Signal and lead story fill | 4% | #201B13 |
+| Card outline on briefing surfaces | 50% | #563C7A |
+| Callout rule ("Why this matters") | 60% | #62438F |
+| Header band divider | 25% | #362846 |
+| Signal block divider | 20% | #30243C |
+| Header band fill | 7% | #201A21 |
+| Signal and lead story fill | 4% | #1C171A |
 
 ### Intelligence tags
 
-Tags are outlined chips on a faint fill. They never use amber, since amber already means priority.
+Tags are outlined chips on a faint fill. They never use violet, since violet already means priority.
 
 | Tag | Text | Border | Fill |
 |---|---|---|---|
@@ -72,25 +73,25 @@ Inter is the only typeface. Fallback stack: -apple-system, BlinkMacSystemFont, S
 | Meta | 12px, 500 | 0 | Source, date, counts |
 | Micro label | 10px, 800, uppercase | 0.1 to 0.2em | Section names, "Today's key signal", "Why this matters" |
 
-Micro labels carry the system. They are always uppercase, always tracked wide, and almost always amber. Headlines stay in sentence case.
+Micro labels carry the system. They are always uppercase, always tracked wide, and almost always violet. Headlines stay in sentence case.
 
 ## Shape and space
 
 Corners are square. The logo, primary buttons, chips and briefing cards have no radius, which is what separates MergeRSS from the rounded consumer look of most reader apps. Round only what is genuinely circular: count badges, spinners, avatars.
 
-Borders do the structural work in place of shadows. Priority is shown with a left rule: 4px amber for the lead story, 2px amber at 60% for callouts, 2px stone-600 for supporting stories. Spacing runs on a 4px grid with 32px card gutters on desktop and 20px on mobile.
+Borders do the structural work in place of shadows. Priority is shown with a left rule: 4px violet for the lead story, 2px violet at 60% for callouts, 2px stone-600 for supporting stories. Spacing runs on a 4px grid with 32px card gutters on desktop and 20px on mobile.
 
 ## Components
 
-**Primary button.** Amber fill, near-black text, weight 800, uppercase micro-label styling at 12 to 14px, square corners. One per view.
+**Primary button.** Violet fill, near-black text, weight 800, uppercase micro-label styling at 12 to 14px, square corners. One per view.
 
-**Briefing card.** Card fill, 2px amber outline at 50%, a header band (7% amber fill) carrying the digest name as a micro label with the date right-aligned, then a key signal block (4% amber fill) holding the display headline.
+**Briefing card.** Card fill, 2px violet outline at 50%, a header band (7% violet fill) carrying the digest name as a micro label with the date right-aligned, then a key signal block (4% violet fill) holding the display headline.
 
-**Lead story.** 4px amber left rule on a 4% amber fill, a solid amber "Read first" chip, then headline, summary, the "Why this matters" callout and a meta line.
+**Lead story.** 4px violet left rule on a 4% violet fill, a solid violet "Read first" chip, then headline, summary, the "Why this matters" callout and a meta line.
 
 **Supporting story.** 2px stone-600 left rule, optional tag chip, headline, summary, meta line. Thumbnails are square, 88px, with a 1px border.
 
-**Meta line.** Source host in stone-500, a mid-dot separator in stone-600, then "Read source" in amber bold.
+**Meta line.** Source host in stone-500, a mid-dot separator in stone-600, then "Read source" in violet bold.
 
 ## Voice
 
@@ -100,14 +101,15 @@ Write like an analyst briefing a principal. Lead with the consequence, keep sent
 
 - Dark field and dark card, matching the product. The template declares a dark colour scheme so Apple Mail and iOS Mail leave it alone.
 - Solid hex only. Every alpha value in the app is replaced with its pre-blended equivalent from the tint table.
-- Inter loads from Google Fonts where the client allows it and falls back to the system stack everywhere else.
+- Same font stack as the app, with no webfont call, so the email renders in the same face as the product on each platform.
 - Maximum width 600px, table layout, all styles inline.
 
 ## Known drift in the codebase
 
-Fixed on September 26, 2026: `globals.css` now loads after `index.css`, every amber token and the "Electric Amber" picker option resolve to #FBBF24, Trending is blue in the admin panels, and `index.html` carries the MergeRSS title and favicon.
+Fixed on September 26, 2026: `globals.css` now loads after `index.css`, the default `--primary` is Violet Pulse (#9463E3) in every theme, Trending is blue in the admin panels, and `index.html` carries the MergeRSS title and favicon.
 
 Still open:
 
 1. The accent picker lets each user recolour the brand (violet, coral, cyan and others), including the logo mark. It should recolour interface highlights only, never the logo or emails.
-2. One user record holds the accent value "indigo", which the picker no longer offers.
+2. About 250 hardcoded `amber-*` Tailwind classes remain across 56 files. Some are warning states and should stay; the rest are old brand accents that should move to `hsl(var(--primary))`.
+3. One user record holds the accent value "indigo", which the picker no longer offers.
