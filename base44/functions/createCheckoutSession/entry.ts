@@ -37,6 +37,17 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Invalid cancel_url' }, { status: 400 });
         }
 
+        // Reuse the user's existing Stripe customer (from BillingSubscription) to avoid duplicates.
+        let existingCustomerId = null;
+        try {
+            const rows = await base44.asServiceRole.entities.BillingSubscription.filter({
+                user_email: (user.email || '').trim().toLowerCase()
+            });
+            existingCustomerId = rows.find(r => r.stripe_customer_id)?.stripe_customer_id || null;
+        } catch (e) {
+            console.log(`[Checkout] BillingSubscription lookup failed: ${e.message}`);
+        }
+
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             line_items: [{
@@ -46,10 +57,16 @@ Deno.serve(async (req) => {
             mode: 'subscription',
             success_url: success_url || `${APP_ORIGIN}${createPageUrl('Pricing')}?payment=success`,
             cancel_url: cancel_url || `${APP_ORIGIN}${createPageUrl('Pricing')}`,
-            customer_email: user.email,
+            ...(existingCustomerId ? { customer: existingCustomerId } : { customer_email: user.email }),
             metadata: {
                 user_id: user.id,
                 user_email: user.email,
+            },
+            subscription_data: {
+                metadata: {
+                    user_id: user.id,
+                    user_email: user.email,
+                },
             },
         });
 
