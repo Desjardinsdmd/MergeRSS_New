@@ -674,7 +674,15 @@ Deno.serve(async (req) => {
             const all = extractItems(await base44.asServiceRole.entities.Digest.list());
             const d = all.find(x => x.id === digest_id);
             if (d && callerEmail && d.created_by !== callerEmail) {
-                return Response.json({ error: 'Forbidden' }, { status: 403 });
+                // Shared briefing: an active owner/editor of its workspace may also run it.
+                let teamOk = false;
+                if (d.workspace_id) {
+                    const mine = extractItems(await base44.asServiceRole.entities.WorkspaceMember.filter(
+                        { workspace_id: d.workspace_id, user_email: callerEmail.toLowerCase(), status: 'active' }, '-created_date', 1
+                    ).catch(() => []));
+                    teamOk = !!mine[0] && ['owner', 'editor'].includes(mine[0].role);
+                }
+                if (!teamOk) return Response.json({ error: 'Forbidden' }, { status: 403 });
             }
             digests = d ? [d] : [];
         } else {
@@ -691,6 +699,46 @@ Deno.serve(async (req) => {
             ).catch(() => []));
             for (const u of owners) if (u?.email) ownerByEmail[u.email] = u;
         }
+        // ── Team workspaces (shared briefings) ──────────────────────────────────
+        // A digest with workspace_id is a shared briefing only while the workspace is live
+        // and the digest's creator is still an active member. Its feed pool is the feeds
+        // shared into the workspace by active members; it is delivered web + email to every
+        // active member (email respects each member's master switch) and, only when
+        // workspace.plan === 'team', once to the workspace's Slack / Discord / Teams webhooks.
+        // A digest whose workspace context is invalid is dropped from this run (never sent to
+        // a stale audience, never silently turned personal). Personal digests are unchanged.
+        const sharedCtx = new Map(); // digest.id -> { ws, members: [{ email, role, user }] }
+        const wsIds = [...new Set(digests.map(d => d.workspace_id).filter(Boolean))];
+        if (wsIds.length) {
+            const svcE = base44.asServiceRole.entities;
+            const wss = extractItems(await svcE.Workspace.filter({ id: { $in: wsIds } }, '-created_date', 500).catch(() => []))
+                .filter(w => w.status !== 'deleted');
+            const wsMap = Object.fromEntries(wss.map(w => [w.id, w]));
+            const mems = extractItems(await svcE.WorkspaceMember.filter(
+                { workspace_id: { $in: wsIds }, status: 'active' }, '-created_date', 2000
+            ).catch(() => []));
+            const memEmails = [...new Set(mems.map(m => String(m.user_email || '').toLowerCase()).filter(Boolean))];
+            const memUsers = {};
+            if (memEmails.length) {
+                for (const u of extractItems(await svcE.User.filter({ email: { $in: memEmails } }, '-created_date', 1000).catch(() => []))) {
+                    if (u?.email) memUsers[u.email.toLowerCase()] = u;
+                }
+            }
+            for (const d of digests) {
+                if (!d.workspace_id) continue;
+                const ws = wsMap[d.workspace_id];
+                const members = mems.filter(m => m.workspace_id === d.workspace_id).map(m => {
+                    const email = String(m.user_email || '').toLowerCase();
+                    return { email, role: m.role, user: memUsers[email] || null };
+                });
+                const creatorActive = members.some(m => m.email === String(d.created_by || '').toLowerCase());
+                if (ws && creatorActive) sharedCtx.set(d.id, { ws, members });
+            }
+            const before = digests.length;
+            digests = digests.filter(d => !d.workspace_id || sharedCtx.has(d.id));
+            if (digests.length < before) console.log(`[generateDigests] Dropped ${before - digests.length} shared digest(s) with no live workspace context`);
+        }
+
         const ownerTz = (d) => {
             const tz = ownerByEmail[d.created_by]?.timezone;
             if (!tz) return null;
@@ -766,9 +814,14 @@ Deno.serve(async (req) => {
                 // owner actually has (tenant guard, 2026-09-25). Dangling ids are pruned
                 // from the digest (2026-09-26); if none are left the digest falls back to
                 // its categories, or all owner feeds, and the change is recorded.
-                const ownerFeeds = extractItems(await base44.asServiceRole.entities.Feed.filter(
-                    { created_by: digest.created_by }, '-created_date', 1000
-                ));
+                const shared = sharedCtx.get(digest.id) || null;
+                const ownerFeeds = shared
+                    ? extractItems(await base44.asServiceRole.entities.Feed.filter(
+                        { workspace_id: shared.ws.id }, '-created_date', 1000
+                    )).filter(f => shared.members.some(m => m.email === String(f.created_by || '').toLowerCase()))
+                    : extractItems(await base44.asServiceRole.entities.Feed.filter(
+                        { created_by: digest.created_by }, '-created_date', 1000
+                    ));
                 const ownerFeedById = Object.fromEntries(ownerFeeds.map(f => [f.id, f]));
                 const notes = [];
                 const digestPatch = {};
@@ -940,9 +993,9 @@ Deno.serve(async (req) => {
 
                 const itemsList = topItems.map(i => ({ title: i.title, url: i.url }));
 
-                // Web delivery
-                const webDelivery = await base44.asServiceRole.entities.DigestDelivery.create({
-                    owner_email: digest.created_by,
+                // Web delivery (shared briefings: one inbox copy per active member)
+                const webRecord = (ownerEmail) => base44.asServiceRole.entities.DigestDelivery.create({
+                    owner_email: ownerEmail,
                     digest_id: digest.id,
                     delivery_type: 'web',
                     status: 'sent',
@@ -953,8 +1006,23 @@ Deno.serve(async (req) => {
                     date_range_end: now.toISOString(),
                     sent_at: now.toISOString(),
                 });
-
                 const origin = req.headers.get('origin') || req.headers.get('referer')?.replace(/\/$/, '') || 'https://mergerss.com';
+                const memberInbox = {}; // member email -> inbox url of their own copy
+                let webDelivery;
+                if (shared) {
+                    for (const m of shared.members) {
+                        try {
+                            const rec = await webRecord(m.email);
+                            memberInbox[m.email] = `${origin}/Inbox?delivery_id=${rec.id}`;
+                            if (!webDelivery || m.email === String(digest.created_by || '').toLowerCase()) webDelivery = rec;
+                        } catch (e) {
+                            console.warn(`[generateDigests] web copy failed for member ${m.email}: ${e.message}`);
+                        }
+                    }
+                    if (!webDelivery) webDelivery = await webRecord(digest.created_by);
+                } else {
+                    webDelivery = await webRecord(digest.created_by);
+                }
                 const inboxUrl = `${origin}/Inbox?delivery_id=${webDelivery.id}`;
                 const deliveryTypes = ['web'];
                 const skippedChannels = [];
@@ -963,6 +1031,37 @@ Deno.serve(async (req) => {
                 // only. Slack, Teams and Discord need premium (admins are exempt).
                 const ownerPlan = ownerUser?.plan || 'free';
                 const paidChannelsAllowed = ownerPlan === 'premium' || ownerUser?.role === 'admin';
+                const teamChannels = !!shared && shared.ws.plan === 'team';
+                const teamDateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                const teamInbox = `${origin}/Inbox`;
+                const postTeam = async (channel, url, payload) => {
+                    if (!teamChannels) {
+                        if (url) skippedChannels.push({ channel, reason: 'team_plan' });
+                        return;
+                    }
+                    if (!url) return;
+                    if (!isAllowedWebhookUrl(url)) {
+                        console.warn(`[generateDigests] Blocked team ${channel} webhook to disallowed host`);
+                        return;
+                    }
+                    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    const ok = res.ok || res.status === 202 || res.status === 204;
+                    if (channel !== 'teams') {
+                        await base44.asServiceRole.entities.DigestDelivery.create({
+                            owner_email: shared.ws.owner_email,
+                            digest_id: digest.id,
+                            delivery_type: channel,
+                            status: ok ? 'sent' : 'failed',
+                            content: content,
+                            item_count: items.length,
+                            date_range_start: since.toISOString(),
+                            date_range_end: now.toISOString(),
+                            sent_at: now.toISOString(),
+                            error_message: ok ? '' : `HTTP ${res.status}`,
+                        }).catch(() => {});
+                    }
+                    if (ok) deliveryTypes.push(`team_${channel}`);
+                };
                 const planBlocks = (channel) => {
                     if (paidChannelsAllowed) return false;
                     console.log(`[generateDigests] ${channel} skipped for "${digest.name}": owner plan=${ownerPlan}`);
@@ -971,7 +1070,75 @@ Deno.serve(async (req) => {
                 };
 
                 // Run all channel deliveries in parallel to save time
-                await Promise.allSettled([
+                await Promise.allSettled(shared ? [
+                    // Shared briefing email: every active member, respecting their master switch.
+                    (async () => {
+                        let tz = digest.timezone || ownerTz(digest) || 'America/New_York';
+                        try { new Intl.DateTimeFormat('en-US', { timeZone: tz }); } catch { tz = 'America/New_York'; }
+                        const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: tz });
+                        const shortDate = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: tz });
+                        await attachImages(brief, 4);
+                        let sent = 0;
+                        for (const m of shared.members) {
+                            const prefs = (m.user?.notification_prefs && typeof m.user.notification_prefs === 'object') ? m.user.notification_prefs : {};
+                            if (prefs.emailNotifications === false) continue;
+                            try {
+                                await base44.asServiceRole.integrations.Core.SendEmail({
+                                    to: m.email,
+                                    from_name: 'MergeRSS',
+                                    subject: clip(`${digest.name}, ${shortDate}: ${brief.title_line}`, 110),
+                                    body: renderDigestEmail({
+                                        digestName: digest.name,
+                                        dateStr,
+                                        scannedCount: items.length,
+                                        brief,
+                                        inboxUrl: memberInbox[m.email] || teamInbox,
+                                        manageUrl: `${origin}/Digests`,
+                                    }),
+                                });
+                                sent++;
+                            } catch (e) {
+                                console.warn(`[generateDigests] team email failed for ${m.email}: ${e.message}`);
+                            }
+                        }
+                        if (sent) deliveryTypes.push(`email x${sent}`);
+                    })(),
+                    // Team channels: once per briefing, only on an active Team plan.
+                    (async () => {
+                        const slackContent = content.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<$2|$1>');
+                        await postTeam('slack', shared.ws.slack_webhook_url, {
+                            text: `*📰 ${digest.name}*\n_${teamDateStr} • ${items.length} articles_\n\n${slackContent.slice(0, 2600)}${slackContent.length > 2600 ? '...' : ''}\n\n<${teamInbox}|📥 View in MergeRSS>`,
+                            mrkdwn: true,
+                        });
+                    })(),
+                    (async () => {
+                        const header = `**📰 ${digest.name}**\n*${teamDateStr} • ${items.length} articles*\n\n`;
+                        const footer = `\n\n[📥 View in MergeRSS](${teamInbox})`;
+                        const max = 1990 - header.length - footer.length - 3;
+                        await postTeam('discord', shared.ws.discord_webhook_url, {
+                            content: header + (content.length > max ? content.slice(0, max) + '...' : content) + footer,
+                        });
+                    })(),
+                    (async () => {
+                        await postTeam('teams', shared.ws.teams_webhook_url, {
+                            type: 'message',
+                            attachments: [{
+                                contentType: 'application/vnd.microsoft.card.adaptive',
+                                content: {
+                                    type: 'AdaptiveCard',
+                                    $schema: 'http://adaptivecards.io/schemas/adaptive-card.json',
+                                    version: '1.4',
+                                    body: [
+                                        { type: 'TextBlock', text: `📰 ${digest.name}`, weight: 'Bolder', size: 'Large' },
+                                        { type: 'TextBlock', text: `${teamDateStr} • ${items.length} articles`, isSubtle: true, spacing: 'None' },
+                                        { type: 'TextBlock', text: content.slice(0, 2000) + (content.length > 2000 ? '…' : ''), wrap: true },
+                                        { type: 'ActionSet', actions: [{ type: 'Action.OpenUrl', title: '📥 View in MergeRSS', url: teamInbox }] },
+                                    ],
+                                },
+                            }],
+                        });
+                    })(),
+                ] : [
                     // Email
                     (async () => {
                         if (!digest.delivery_email || !digest.created_by) return;
@@ -1110,7 +1277,7 @@ Deno.serve(async (req) => {
                 ]);
 
                 console.log(`[generateDigests] Delivered digest="${digest.name}" via ${deliveryTypes.join(',')}`);
-                results.push({ digest: digest.name, items_included: items.length, deliveries: deliveryTypes, skipped_channels: skippedChannels, status: 'ok' });
+                results.push({ digest: digest.name, items_included: items.length, deliveries: deliveryTypes, skipped_channels: skippedChannels, status: 'ok', ...(shared ? { workspace_id: shared.ws.id, members: shared.members.length } : {}) });
 
             } catch (err) {
                 console.error(`[generateDigests] Error processing digest="${digest.name}":`, err.message);
