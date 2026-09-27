@@ -167,7 +167,7 @@ export default function Digests() {
             Create and manage your curated content digests
             {!isPremium && (
               <span className="text-stone-600 ml-2">
-                ({digests.length}/{maxDigests} used)
+                ({allDigests.length}/{maxDigests} used)
               </span>
             )}
           </p>
