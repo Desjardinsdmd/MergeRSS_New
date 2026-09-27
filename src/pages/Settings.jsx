@@ -10,11 +10,13 @@ import {
   Crown,
   ExternalLink,
   PlayCircle,
+  Target,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -28,17 +30,53 @@ import DashboardLayoutSettings from '@/components/settings/DashboardLayoutSettin
 import NotificationPreferences from '@/components/settings/NotificationPreferences';
 import ThemeSettings from '@/components/settings/ThemeSettings';
 
-const TIMEZONES = [
+// IANA zone names only: digests default to User.timezone and the backend passes it
+// straight to Intl.DateTimeFormat.
+const FALLBACK_TIMEZONES = [
   'America/New_York',
+  'America/Toronto',
   'America/Chicago',
   'America/Denver',
+  'America/Edmonton',
+  'America/Phoenix',
   'America/Los_Angeles',
+  'America/Vancouver',
+  'America/Halifax',
+  'America/St_Johns',
   'Europe/London',
   'Europe/Paris',
+  'Europe/Berlin',
+  'Asia/Dubai',
+  'Asia/Kolkata',
+  'Asia/Singapore',
   'Asia/Tokyo',
   'Asia/Shanghai',
   'Australia/Sydney',
+  'Pacific/Auckland',
+  'UTC',
 ];
+
+function getTimezones() {
+  try {
+    if (typeof Intl.supportedValuesOf === 'function') {
+      const list = Intl.supportedValuesOf('timeZone');
+      if (Array.isArray(list) && list.length) return list;
+    }
+  } catch { /* older browsers */ }
+  return FALLBACK_TIMEZONES;
+}
+
+function browserTimezone() {
+  try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/New_York'; } catch { return 'America/New_York'; }
+}
+
+function isValidTimezone(tz) {
+  if (!tz || typeof tz !== 'string') return false;
+  try { new Intl.DateTimeFormat('en-US', { timeZone: tz }); return true; } catch { return false; }
+}
+
+const TIMEZONES = getTimezones();
+const INTEREST_PROFILE_MAX = 1500;
 
 export default function Settings() {
   const [user, setUser] = useState(null);
@@ -50,6 +88,8 @@ export default function Settings() {
     timezone: 'America/New_York',
   });
   const [notifPrefs, setNotifPrefs] = useState({});
+  const [interestProfile, setInterestProfile] = useState('');
+  const [interestField, setInterestField] = useState('');
   const [dashboardLayout, setDashboardLayout] = useState({});
   const [accentColor, setAccentColor] = useState('amber');
 
@@ -60,9 +100,11 @@ export default function Settings() {
       setFormData({
         full_name: userData.full_name || '',
         email: userData.email || '',
-        timezone: userData.timezone || 'America/New_York',
+        timezone: isValidTimezone(userData.timezone) ? userData.timezone : browserTimezone(),
       });
       setNotifPrefs(userData.notification_prefs || {});
+      setInterestProfile(userData.interest_profile || '');
+      setInterestField(userData.interest_field || '');
       setDashboardLayout(userData.dashboard_layout || {});
       setAccentColor(userData.accent_color || 'amber');
     };
@@ -77,8 +119,10 @@ export default function Settings() {
       await base44.auth.updateMe({
         full_name: formData.full_name,
         email: formData.email,
-        timezone: formData.timezone,
+        timezone: isValidTimezone(formData.timezone) ? formData.timezone : browserTimezone(),
         notification_prefs: notifPrefs,
+        interest_profile: interestProfile.trim().slice(0, INTEREST_PROFILE_MAX),
+        interest_field: interestField.trim().slice(0, 80),
         dashboard_layout: dashboardLayout,
         accent_color: accentColor,
       });
@@ -177,16 +221,57 @@ export default function Settings() {
                  <SelectTrigger id="settings-tz" className="w-full sm:w-72 bg-stone-800 border-stone-700 text-stone-100 mt-1.5" aria-label="Select your timezone">
                    <SelectValue />
                  </SelectTrigger>
-                 <SelectContent className="bg-stone-800 border-stone-700">
-                   {TIMEZONES.map((tz) => (
-                     <SelectItem key={tz} value={tz} className="text-stone-100">{tz.replace('_', ' ')}</SelectItem>
+                 <SelectContent className="bg-stone-800 border-stone-700 max-h-72">
+                   {(TIMEZONES.includes(formData.timezone) ? TIMEZONES : [formData.timezone, ...TIMEZONES]).map((tz) => (
+                     <SelectItem key={tz} value={tz} className="text-stone-100">{tz.replace(/_/g, ' ')}</SelectItem>
                    ))}
                  </SelectContent>
                </Select>
                <p className="text-xs text-stone-500 mt-1.5">
-                 Affects all digest delivery times and date-based features throughout the app
+                 Default for digest delivery times and dates throughout the app. A digest with its own timezone keeps it.
                </p>
              </div>
+          </CardContent>
+        </Card>
+
+        {/* Interest profile: enrichment scores article importance against this */}
+        <Card className="border-stone-800 bg-stone-900">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg text-stone-100">
+              <Target className="w-5 h-5 text-[hsl(var(--primary))]" />
+              What matters to you
+            </CardTitle>
+            <CardDescription className="text-stone-500">
+              New articles from your feeds are scored for importance against this description. Leave it blank for general newsworthiness.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="settings-interest-field" className="text-stone-400 font-medium">Your field</Label>
+              <Input
+                id="settings-interest-field"
+                value={interestField}
+                maxLength={80}
+                onChange={(e) => setInterestField(e.target.value)}
+                placeholder="e.g. Multifamily development"
+                className="mt-1.5 bg-stone-800 border-stone-700 text-stone-100 placeholder-stone-600"
+              />
+            </div>
+            <div>
+              <Label htmlFor="settings-interest-profile" className="text-stone-400 font-medium">What you care about</Label>
+              <Textarea
+                id="settings-interest-profile"
+                value={interestProfile}
+                maxLength={INTEREST_PROFILE_MAX}
+                onChange={(e) => setInterestProfile(e.target.value)}
+                rows={5}
+                placeholder="e.g. I'm a Canadian multifamily developer in Ottawa. I care about CMHC financing, zoning changes, construction costs, rents and cap rates."
+                className="mt-1.5 bg-stone-800 border-stone-700 text-stone-100 placeholder-stone-600"
+              />
+              <p className="text-xs text-stone-500 mt-1.5">
+                {interestProfile.length}/{INTEREST_PROFILE_MAX} characters. Applies to articles fetched after you save.
+              </p>
+            </div>
           </CardContent>
         </Card>
 
