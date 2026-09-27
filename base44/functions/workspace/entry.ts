@@ -210,7 +210,13 @@ Deno.serve(async (req) => {
                 let appInvited = false;
                 if (!known.length) {
                     try { await base44.users.inviteUser(email, 'user'); appInvited = true; } catch (e) {
-                        console.warn(`[workspace] inviteUser failed for ${email}: ${e.message}`);
+                        console.warn(`[workspace] inviteUser (caller) failed for ${email}: ${e.message}`);
+                        try {
+                            await base44.asServiceRole.users.inviteUser(email, 'user');
+                            appInvited = true;
+                        } catch (e2) {
+                            console.warn(`[workspace] inviteUser (service) failed for ${email}: ${e2.message}`);
+                        }
                     }
                 }
                 let emailed = false;
