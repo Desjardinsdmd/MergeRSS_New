@@ -3,6 +3,8 @@ import { base44 } from '@/api/base44Client';
 import { Sparkles, Loader2, RefreshCw, Rss, Plus, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+import { addSourceViaApi } from '@/components/feeds/sourceApi';
 
 const categoryColors = {
   CRE: 'bg-amber-950 text-amber-400',
@@ -30,6 +32,8 @@ export default function RecommendedFeeds() {
       setRecommendations(res.data.recommendations || []);
       setSummary(res.data.summary || '');
       setLoaded(true);
+    } catch (err) {
+      toast.error(err?.response?.data?.error || 'Could not load recommendations');
     } finally {
       setLoading(false);
     }
@@ -38,16 +42,20 @@ export default function RecommendedFeeds() {
   const handleAdd = async (feed) => {
     setAdding(feed.id);
     try {
-      await base44.entities.Feed.create({
-        name: feed.name,
+      const result = await addSourceViaApi({
         url: feed.url,
+        name: feed.name,
         category: feed.category || 'Other',
         tags: feed.tags || [],
-        status: 'active',
         sourced_from_directory: true,
         directory_feed_id: feed.id,
       });
+      if (!result.ok) {
+        toast.error(result.error);
+        return;
+      }
       setAdded(prev => new Set([...prev, feed.id]));
+      toast.success(result.duplicate ? `"${feed.name}" is already in your sources` : `"${feed.name}" added`);
     } finally {
       setAdding(null);
     }
