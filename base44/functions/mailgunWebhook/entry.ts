@@ -131,8 +131,9 @@ function stripFooter(text) {
 }
 
 function stripHeaderNoise(text) {
-  // Drop leading "View in browser" / preheader lines.
-  return text.replace(/^(?:.*(view (this )?(email|it|online|in (your )?browser)|web version|read online|open in browser).*\n)+/i, '').trim();
+  // Drop a leading "View in browser" style phrase (only the phrase, so same-line content survives).
+  const head = text.slice(0, 400).replace(new RegExp(VIEW_RE.source + '[.!:]?', 'i'), '').replace(/^[\s|·-]+/, '');
+  return (head + text.slice(400)).trim();
 }
 
 function extractLinks(html) {
