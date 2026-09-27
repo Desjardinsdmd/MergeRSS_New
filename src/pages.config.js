@@ -68,6 +68,7 @@ import RssFeedGenerator from './pages/RssFeedGenerator';
 import Settings from './pages/Settings';
 import Team from './pages/Team';
 import Terms from './pages/Terms';
+import Welcome from './pages/Welcome';
 import __Layout from './Layout.jsx';
 
 
@@ -93,6 +94,7 @@ export const PAGES = {
     "Settings": Settings,
     "Team": Team,
     "Terms": Terms,
+    "Welcome": Welcome,
 }
 
 export const pagesConfig = {
