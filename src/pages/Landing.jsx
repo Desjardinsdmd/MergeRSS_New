@@ -262,7 +262,7 @@ export default function Landing() {
           <div className="space-y-px bg-stone-800/40">
             {[
               { n: '01', title: 'Pick your field', desc: 'Choose a starter pack or describe your work. Keep the suggested sources, add any site, or import an OPML file.' },
-              { n: '02', title: 'AI ranks what matters to you', desc: 'Every story is scored against what you told us matters, across your sources and the newsletters you forward in.', old: desc: 'AI reads everything and surfaces what actually matters — nothing else gets through.' },
+              { n: '02', title: 'AI ranks what matters to you', desc: 'Every story is scored against what you told us matters, across your sources and the newsletters you forward in.' },
               { n: '03', title: 'A short briefing lands every morning', desc: 'By email on the free plan. Slack and Discord on Premium. One shared briefing for your team on the Team plan.' },
             ].map(({ n, title, desc }, i) => (
               <FadeIn key={n} delay={i * 80}>
@@ -338,7 +338,7 @@ export default function Landing() {
             {[
               { icon: Mail, title: 'Your sources, newsletters included', desc: 'Any site or RSS feed, plus a private address for forwarding the newsletters you already get.' },
               { icon: Send, title: 'Delivered where you work', desc: 'Email and web inbox on every plan. Slack, Discord and Teams on Premium. Shared briefings on Team.' },
-              { icon: TrendingUp, title: 'Smart ranking', desc: 'Stories ranked by importance, source convergence, and category weight — not recency.' },
+              { icon: TrendingUp, title: 'Ranked for you', desc: 'Stories are ordered by importance to the work you described, and by how many of your sources cover them.' },
             ].map(({ icon: Icon, title, desc }, i) => (
               <FadeIn key={title} delay={i * 70}>
                 <div className="bg-[#0a0805] hover:bg-stone-900/50 transition-colors p-8 h-full group">
