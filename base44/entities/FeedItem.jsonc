@@ -52,11 +52,11 @@
     },
     "ai_summary": {
       "type": "string",
-      "description": "AI-generated summary answering So what? with lens-specific implication"
+      "description": "AI-generated summary answering So what? for the feed owner"
     },
     "importance_score": {
       "type": "number",
-      "description": "AI-ranked importance score 0-100 scored against TCU/AI-TECH/MACRO lens"
+      "description": "AI-ranked importance score 0-100, scored against the feed owner's interest profile (or a general lens)"
     },
     "intelligence_tag": {
       "type": "string",
@@ -73,7 +73,9 @@
       "enum": [
         "TCU",
         "AI_TECH",
-        "MACRO"
+        "MACRO",
+        "PROFILE",
+        "GENERAL"
       ],
       "description": "Which scoring lens was applied during enrichment"
     },
