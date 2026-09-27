@@ -375,7 +375,7 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {TIMEZONES.map((tz) => (
+                  {(TIMEZONES.includes(formData.timezone) || !formData.timezone ? TIMEZONES : [formData.timezone, ...TIMEZONES]).map((tz) => (
                     <SelectItem key={tz} value={tz}>{tz}</SelectItem>
                   ))}
                 </SelectContent>
