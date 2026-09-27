@@ -199,7 +199,7 @@ Deno.serve(async (req) => {
             id: 'platform-delivery-failures',
             severity: 'warning',
             title: `${userDeliveryFailures} user digest deliveries failed in last 24h`,
-            detail: 'Counts only; user delivery details are not included. A single user misconfiguring a webhook will not trigger this.',
+            detail: 'Counts only; user delivery details are not included. Occasional individual failures stay below this threshold.',
             action: 'Check delivery integrations if this keeps climbing.',
         });
     }
