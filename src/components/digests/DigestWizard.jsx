@@ -12,6 +12,16 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, Crown, Globe, ChevronRight, ChevronLeft, Check, FileText, Clock, Send, Rss } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+import { saveDigestViaApi } from '@/components/feeds/sourceApi';
+
+function browserTimezone() {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/New_York';
+  } catch {
+    return 'America/New_York';
+  }
+}
 
 const CATEGORIES = ['CRE', 'Markets', 'Tech', 'News', 'Finance', 'Crypto', 'AI', 'Other'];
 const TIMEZONES = [
@@ -258,8 +268,8 @@ function StepSchedule({ formData, setFormData }) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {TIMEZONES.map((tz) => (
-                <SelectItem key={tz} value={tz}>{tz.replace('_', ' ')}</SelectItem>
+              {(TIMEZONES.includes(formData.timezone) || !formData.timezone ? TIMEZONES : [formData.timezone, ...TIMEZONES]).map((tz) => (
+                <SelectItem key={tz} value={tz}>{tz.replace(/_/g, ' ')}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -424,13 +434,23 @@ export default function DigestWizard({ open, onOpenChange, onSuccess }) {
   useEffect(() => {
     if (open) {
       setStep('basics');
-      setFormData(DEFAULT_FORM);
+      setFormData({ ...DEFAULT_FORM, timezone: user?.timezone || browserTimezone() });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+
+  // If the user record arrives after the wizard opened, adopt their saved timezone.
+  useEffect(() => {
+    if (open && user?.timezone && step === 'basics') {
+      setFormData(prev => (prev.timezone === browserTimezone() ? { ...prev, timezone: user.timezone } : prev));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.timezone]);
 
   const { data: feeds = [] } = useQuery({
     queryKey: ['feeds'],
-    queryFn: () => base44.entities.Feed.list(),
+    queryFn: () => base44.entities.Feed.filter({ created_by: user?.email }, '-created_date', 1000),
+    enabled: !!user?.email,
   });
 
   const { data: integrations = [] } = useQuery({
@@ -469,7 +489,13 @@ export default function DigestWizard({ open, onOpenChange, onSuccess }) {
     if (formData.delivery_discord && discordIntegration && !data.discord_webhook_url) {
       data.discord_webhook_url = discordIntegration.webhook_url;
     }
-    await base44.entities.Digest.create(data);
+    const result = await saveDigestViaApi(data);
+    if (!result.ok) {
+      toast.error(result.error);
+      setLoading(false);
+      return;
+    }
+    result.warnings.forEach(w => toast.warning(w));
     base44.analytics.track({ eventName: 'digest_created', properties: { frequency: data.frequency } });
     setLoading(false);
     setStep('success');
