@@ -99,7 +99,8 @@ function stripTracking(html) {
 function sanitizeHtml(html) {
   let h = String(html || '');
   h = h.replace(/<!--[\s\S]*?-->/g, '')
-    .replace(/<(script|iframe|object|embed|form|frameset|frame|applet|meta|link|base)\b[\s\S]*?(?:<\/\1\s*>|\/?>)/gi, '')
+    .replace(/<(script|iframe|object|applet|frameset|noscript)\b[\s\S]*?<\/\1\s*>/gi, '')
+    .replace(/<(meta|link|base|embed|frame)\b[^>]*>/gi, '')
     .replace(/<\/?(script|iframe|object|embed|form|input|button|textarea|select)\b[^>]*>/gi, '')
     .replace(/\s+on[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '')
     .replace(/(href|src|action|xlink:href)\s*=\s*(["'])\s*(?:javascript|vbscript|data:text\/html)[^"']*\2/gi, '$1="#"');
