@@ -4,11 +4,16 @@ import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 
-const CATEGORIES = ['CRE', 'Markets', 'Tech', 'News', 'Finance', 'Crypto', 'AI', 'Other'];
+// Keys are read by the backend (generateDigests, fetchFeeds, notifyUser).
+// A missing key means ON. Keep these names in sync with the functions.
+//   emailNotifications  master switch for operational email
+//   digestReminders     digest skipped two scheduled times in a row
+//   feedErrors          feed auto-paused after repeated failures
+export const NOTIFICATION_PREF_KEYS = ['emailNotifications', 'digestReminders', 'feedErrors'];
 
-function SwitchRow({ label, description, checked, onChange }) {
+function SwitchRow({ label, description, checked, onChange, disabled }) {
   return (
-    <div className="flex items-center justify-between gap-4">
+    <div className={`flex items-center justify-between gap-4 ${disabled ? 'opacity-50' : ''}`}>
       <div className="flex-1 min-w-0">
         <p className="font-medium text-stone-200 text-sm">{label}</p>
         {description && <p className="text-xs text-stone-500">{description}</p>}
@@ -16,15 +21,16 @@ function SwitchRow({ label, description, checked, onChange }) {
       <div className="flex items-center gap-2 flex-shrink-0">
         <span
           aria-hidden="true"
-          className={`text-xs font-semibold min-w-[22px] text-right transition-colors ${checked ? 'text-emerald-400' : 'text-stone-600'}`}
+          className={`text-xs font-semibold min-w-[22px] text-right transition-colors ${checked && !disabled ? 'text-emerald-400' : 'text-stone-600'}`}
         >
-          {checked ? 'On' : 'Off'}
+          {checked && !disabled ? 'On' : 'Off'}
         </span>
         <Switch
-          checked={checked}
+          checked={checked && !disabled}
+          disabled={disabled}
           onCheckedChange={onChange}
-          aria-label={`${label}: ${checked ? 'on' : 'off'}`}
-          className={checked ? 'data-[state=checked]:bg-[hsl(var(--primary))]' : ''}
+          aria-label={`${label}: ${checked && !disabled ? 'on' : 'off'}`}
+          className={checked && !disabled ? 'data-[state=checked]:bg-[hsl(var(--primary))]' : ''}
         />
       </div>
     </div>
@@ -33,14 +39,8 @@ function SwitchRow({ label, description, checked, onChange }) {
 
 export default function NotificationPreferences({ prefs, onChange }) {
   const get = (key) => prefs?.[key] ?? true;
-  const getCategory = (cat) => prefs?.categories?.[cat] ?? true;
-
-  const set = (key, val) => onChange({ ...prefs, [key]: val });
-
-  const setCategory = (cat, val) => onChange({
-    ...prefs,
-    categories: { ...prefs?.categories, [cat]: val },
-  });
+  const set = (key, val) => onChange({ ...(prefs || {}), [key]: val });
+  const masterOn = get('emailNotifications');
 
   return (
     <Card className="border-stone-800 bg-stone-900">
@@ -52,52 +52,27 @@ export default function NotificationPreferences({ prefs, onChange }) {
       </CardHeader>
       <CardContent className="space-y-4">
         <SwitchRow
-          label="Email Notifications"
-          description="Receive important updates via email"
-          checked={get('emailNotifications')}
+          label="Email alerts"
+          description="Service emails about problems with your digests and feeds. Digest emails themselves are set per digest."
+          checked={masterOn}
           onChange={v => set('emailNotifications', v)}
         />
         <Separator />
         <SwitchRow
-          label="Digest Delivery Alerts"
-          description="Get notified when digests are delivered"
+          label="Digest problem alerts"
+          description="Email me when a digest is skipped two scheduled times in a row, with the reason and how to fix it"
           checked={get('digestReminders')}
+          disabled={!masterOn}
           onChange={v => set('digestReminders', v)}
         />
         <Separator />
         <SwitchRow
-          label="Feed Error Alerts"
-          description="Alert when a feed fails to fetch"
+          label="Feed paused alerts"
+          description="Email me when one of my feeds keeps failing and is paused automatically"
           checked={get('feedErrors')}
+          disabled={!masterOn}
           onChange={v => set('feedErrors', v)}
         />
-
-        <Separator />
-        <div>
-          <p className="font-medium text-stone-200 text-sm mb-1">Notify by Category</p>
-          <p className="text-xs text-stone-500 mb-3">Only show inbox badges for categories you care about.</p>
-          <div className="grid grid-cols-2 gap-2">
-            {CATEGORIES.map(cat => {
-              const on = getCategory(cat);
-              return (
-                <div key={cat} className="flex items-center justify-between py-1.5 px-3 bg-stone-800 rounded-lg">
-                  <span className="text-sm text-stone-300">{cat}</span>
-                  <div className="flex items-center gap-1.5">
-                    <span aria-hidden="true" className={`text-xs font-semibold min-w-[22px] text-right transition-colors ${on ? 'text-emerald-400' : 'text-stone-600'}`}>
-                      {on ? 'On' : 'Off'}
-                    </span>
-                    <Switch
-                      checked={on}
-                      onCheckedChange={v => setCategory(cat, v)}
-                      aria-label={`${cat} notifications: ${on ? 'on' : 'off'}`}
-                      className={on ? 'data-[state=checked]:bg-[hsl(var(--primary))]' : ''}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
       </CardContent>
     </Card>
   );
