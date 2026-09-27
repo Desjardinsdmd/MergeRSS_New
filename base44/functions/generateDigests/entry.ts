@@ -832,9 +832,11 @@ Deno.serve(async (req) => {
                     if (dangling > 0) {
                         digestPatch.feed_ids = valid;
                         if (valid.length === 0) {
-                            notes.push(`All ${dangling} selected feed(s) were removed from your account, so this digest now uses ${digest.categories?.length ? `your ${digest.categories.join(', ')} feeds` : 'all of your feeds'}.`);
+                            notes.push(digest.workspace_id
+                                ? `All ${dangling} selected source(s) are no longer shared with the team, so this briefing now uses ${digest.categories?.length ? `shared ${digest.categories.join(', ')} sources` : 'all shared sources'}.`
+                                : `All ${dangling} selected feed(s) were removed from your account, so this digest now uses ${digest.categories?.length ? `your ${digest.categories.join(', ')} feeds` : 'all of your feeds'}.`);
                         } else {
-                            notes.push(`${dangling} selected feed(s) no longer exist and were removed from this digest.`);
+                            notes.push(`${dangling} selected source(s) are no longer available and were removed from this ${digest.workspace_id ? 'briefing' : 'digest'}.`);
                         }
                     }
                     if (valid.length > 0) scopedFeeds = valid.map(id => ownerFeedById[id]);
