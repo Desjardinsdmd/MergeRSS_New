@@ -151,6 +151,11 @@
     },
     "escalation_reason": {
       "type": "string"
+    },
+    "owner_notified_pause_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the feed owner was last emailed that the system auto-paused this feed. Cleared when the feed recovers."
     }
   },
   "required": [
