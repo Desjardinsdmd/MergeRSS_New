@@ -305,6 +305,82 @@ async function withConcurrency(tasks, limit) {
     return results;
 }
 
+// ─── CANONICAL COPY: notifyOwner (source of truth: functions/notifyUser/entry.ts) ──
+const NOTIFY_PRIMARY = '#9463e3';
+const NOTIFY_FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif";
+function notifyEsc(s) {
+    return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function renderNotifyEmail({ heading, lines, ctaUrl, ctaLabel }) {
+    const paras = (lines || []).filter(Boolean).map(l =>
+        `<p style="margin:0 0 12px;font:400 14px/1.7 ${NOTIFY_FONT};color:#d6d3d1;">${notifyEsc(l)}</p>`).join('');
+    const cta = ctaUrl
+        ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:8px;"><tr><td style="background:${NOTIFY_PRIMARY};"><a href="${notifyEsc(ctaUrl)}" style="display:inline-block;padding:11px 18px;font:600 14px/1 ${NOTIFY_FONT};color:#1c1917;text-decoration:none;">${notifyEsc(ctaLabel || 'Open MergeRSS')}</a></td></tr></table>`
+        : '';
+    return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#0d0a06;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0d0a06;"><tr><td align="center" style="padding:24px 12px 40px;">
+<table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="width:560px;max-width:100%;">
+<tr><td style="padding:0 0 16px;font:700 18px/1 ${NOTIFY_FONT};color:#f5f5f4;">MergeRSS</td></tr>
+<tr><td style="background:#0c0a09;border:1px solid #292524;padding:24px;">
+<h1 style="margin:0 0 14px;font:700 19px/1.35 ${NOTIFY_FONT};color:#f5f5f4;">${notifyEsc(heading)}</h1>
+${paras}${cta}
+</td></tr>
+<tr><td style="padding:16px 0 0;font:400 12px/1.6 ${NOTIFY_FONT};color:#78716c;">You can turn these emails off in MergeRSS under Settings, Notification Preferences.</td></tr>
+</table></td></tr></table></body></html>`;
+}
+async function notifyOwner(base44, { email, pref, subject, heading, lines, ctaUrl, ctaLabel }) {
+    if (!email) return { sent: false, reason: 'no_email' };
+    let user = null;
+    try {
+        const raw = await base44.asServiceRole.entities.User.filter({ email }, '-created_date', 1);
+        const list = Array.isArray(raw) ? raw : (raw?.items || raw?.data || []);
+        user = list[0] || null;
+    } catch { user = null; }
+    if (!user) return { sent: false, reason: 'user_not_found' };
+    const prefs = (user.notification_prefs && typeof user.notification_prefs === 'object') ? user.notification_prefs : {};
+    if (prefs.emailNotifications === false) return { sent: false, reason: 'email_off' };
+    if (pref && prefs[pref] === false) return { sent: false, reason: `${pref}_off` };
+    try {
+        await base44.asServiceRole.integrations.Core.SendEmail({
+            to: email,
+            from_name: 'MergeRSS',
+            subject: String(subject || heading || 'MergeRSS').slice(0, 140),
+            body: renderNotifyEmail({ heading, lines, ctaUrl, ctaLabel }),
+        });
+        return { sent: true };
+    } catch (e) {
+        console.warn(`[notifyOwner] SendEmail failed for ${email}: ${e?.message}`);
+        return { sent: false, reason: 'send_failed' };
+    }
+}
+// ─── end CANONICAL COPY ─────────────────────────────────────────────────
+
+// Feed auto-pause notice (2026-09-26). Emails the feed's own owner once per pause
+// episode; owner_notified_pause_at is cleared when the feed fetches cleanly again.
+// Never emails anyone other than feed.created_by.
+async function notifyFeedPaused(feed, fetchError, newConsecutive, base44) {
+    if (!feed?.created_by || feed.owner_notified_pause_at) return;
+    const reason = String(fetchError || 'Unknown error').replace(/^[A-Z_]+\d*:\s*/, '').slice(0, 200);
+    const res = await notifyOwner(base44, {
+        email: feed.created_by,
+        pref: 'feedErrors',
+        subject: `Feed paused: ${String(feed.name || 'one of your feeds').slice(0, 80)}`,
+        heading: `We paused "${feed.name || 'a feed'}"`,
+        lines: [
+            `This feed failed ${newConsecutive} times in a row, so MergeRSS stopped fetching it for now. It will retry automatically in a few hours.`,
+            `Last error: ${reason}`,
+            `Feed address: ${feed.url || 'unknown'}`,
+            'If the site moved its feed, update the address or remove the feed. Digests that rely on it may send fewer stories until it is fixed.',
+        ],
+        ctaUrl: 'https://mergerss.com/Feeds',
+        ctaLabel: 'Review your feeds',
+    }).catch(() => ({ sent: false }));
+    if (res?.sent) {
+        await base44.asServiceRole.entities.Feed.update(feed.id, { owner_notified_pause_at: new Date().toISOString() }).catch(() => {});
+    }
+}
+
 // ─── Per-feed write handlers ───────────────────────────────────────────────────
 // These are the two canonical write paths: one for fetch failures, one for success.
 // The batch runner calls these after pre-fetching all HTTP results concurrently.
@@ -351,6 +427,10 @@ async function handleFeedError(feed, fetchError, summary, base44) {
         console.warn(`[fetchFeeds] DB write failed for errored feed "${feed.name}": ${dbErr.message}`);
         summary.db_write_errors++;
     });
+
+    if (shouldPause) {
+        await notifyFeedPaused(feed, fetchError, newConsecutive, base44).catch(() => {});
+    }
 
     return {
         feed_id: feed.id, feed: feed.name,
@@ -408,6 +488,7 @@ async function handleFeedSuccess(feed, items, existingItems, alertsByFeedId, sum
         paused_by_system: false,
         paused_reason: null,
         retry_after_at: null,
+        ...(feed.owner_notified_pause_at ? { owner_notified_pause_at: null } : {}),
     }).catch(dbErr => {
         console.warn(`[fetchFeeds] Feed status update failed for "${feed.name}": ${dbErr.message}`);
         summary.db_write_errors++;
