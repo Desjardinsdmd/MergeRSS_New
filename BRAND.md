@@ -1,115 +1,104 @@
 # MergeRSS Brand Guidelines
 
-Version 1.0, September 2026. Derived from the live MergeRSS codebase (Layout, Landing, globals.css, Tailwind config). This file lives at the app root so the Base44 builder and anyone editing the product works from one spec.
+Version 2.0, September 26, 2026. Built from a full audit of the MergeRSS source: 189 files, every Tailwind colour class, hex literal and token reference counted. Where this spec and the code disagree, the code usage below is the ground truth and the spec wins going forward. The reference implementation is `src/components/reports/ReportViewer.jsx`.
 
-## Brand position
+## How the palette is built
 
-MergeRSS reads like an intelligence terminal for people who make capital decisions. The design borrows from trading desks and briefing rooms: a dark working surface and a single hot signal colour against dense, ranked information. Everything visual serves triage, so the reader knows in two seconds what to read first and what to skim.
+MergeRSS runs on two systems. Neutrals come from the Tailwind stone scale, used directly in components (2,512 class uses). The accent comes from one token, `--primary`, referenced about 470 times as `hsl(var(--primary))`. Everything else is semantic colour with a fixed meaning.
 
-## Logo
+## Accent
 
-The mark is a solid violet square holding the RSS glyph in near-black. It has square corners. The wordmark "MergeRSS" sits to the right in Inter Bold, tight tracking (-0.02em), set in the foreground colour.
-
-- Minimum mark size is 24px on screen. Below that, drop the glyph and use the plain square.
-- Clear space around the lockup equals the width of the mark.
-- The mark always sits on the dark field. On light backgrounds, use the near-black wordmark and keep the violet square.
-- Email clients strip SVG, so email uses the plain square until a hosted PNG of the mark exists.
-
-## Colour
-
-Violet is the brand. It marks priority, calls to action and the logo, and nothing else. When everything is violet, nothing is urgent. Amber, yellow and red stay available for warnings and health states only.
-
-### Core palette
-
-| Role | Hex | Token / source |
+| Role | Value | Notes |
 |---|---|---|
-| Brand violet | #9463E3 | --primary (263 70% 64%) |
-| Brand violet, light mode | #733BCE | --primary in .light (263 60% 52%) |
-| Text on violet | #0F0C0B | --primary-foreground |
-| Field (page background) | #0F0C0B | --background |
-| Card | #171412 | --card |
-| Raised surface | #25201D | --secondary |
-| Border | #332C28 | --border |
-| Primary text | #F3EEE8 | --foreground |
-| Secondary text | #D6CEC2 | --secondary-foreground |
-| Body text on cards | #C6BAA9 | .card-body |
-| Muted text | #938876 | --muted-foreground |
-| Metadata | #78716C | stone-500 |
-| Rules and quiet accents | #57534E | stone-600 |
+| Primary | #9463E3 | Violet Pulse, `263 70% 64%`, the default `--primary` |
+| Primary, light mode | #733BCE | `263 60% 52%` |
+| Text on primary | stone-900 #1C1917 | Always dark text on violet, never white |
 
-### Violet tints
+Primary appears as solid fills (buttons, the 01 section band, the logo square), text (micro labels, links, dates in timelines), and rules (4px left border on key takeaways). Tints in use: /5, /10 and /20 for fills, /30 to /50 for borders, /70 and /80 for softened labels.
 
-The app builds depth from violet at low opacity over the card. Use these pre-blended values anywhere alpha is unreliable (email, PDF, exports).
+## Neutrals
 
-| Use | Opacity | Hex on card |
+| Stone shade | Hex | Use in the code |
 |---|---|---|
-| Card outline on briefing surfaces | 50% | #563C7A |
-| Callout rule ("Why this matters") | 60% | #62438F |
-| Header band divider | 25% | #362846 |
-| Signal block divider | 20% | #30243C |
-| Header band fill | 7% | #201A21 |
-| Signal and lead story fill | 4% | #1C171A |
+| App shell | #0D0A06 | `bg-[#0d0a06]`, signed-in page background |
+| Public shell | #0A0805 | `bg-[#0a0805]`, landing, pricing, legal pages |
+| stone-950 | #0C0A09 | Report section bodies, deepest panels |
+| stone-900 | #1C1917 | Cards, section bands, callout fills (129 uses) |
+| stone-800 | #292524 | Inputs, raised fills and the main border (266 bg, 196 border) |
+| stone-700 | #44403C | Secondary border, band dividers (177 border) |
+| stone-600 | #57534E | Faint text, row numbers (260 text) |
+| stone-500 | #78716C | Metadata, dates, subtitles (384 text, the most used) |
+| stone-400 | #A8A29E | Secondary copy, band labels (247 text) |
+| stone-300 | #D6D3D1 | Body copy on dark (162 text) |
+| stone-200 | #E7E5E4 | Emphasised body, takeaway text (151 text) |
+| stone-100 | #F5F5F4 | Headlines and titles (191 text) |
 
-### Intelligence tags
+Text hierarchy runs stone-100 for titles, stone-300 for reading copy, stone-400 for supporting copy, stone-500 for metadata and stone-600 for anything that should recede.
 
-Tags are outlined chips on a faint fill. They never use violet, since violet already means priority.
+## Semantic colour
 
-| Tag | Text | Border | Fill |
-|---|---|---|---|
-| Risk | #F87171 (red-400) | #581816 | #251110 |
-| Opportunity | #34D399 (emerald-400) | #0E3A2C | #111B17 |
-| Trending | #60A5FA (blue-400) | #1A2A60 | #171926 |
-| Neutral | no chip | | |
+Each colour means one thing. They always render as the -400 shade on a 10% fill of the same hue, with no border.
+
+| Meaning | Colour | Where it appears |
+|---|---|---|
+| Rising, escalating, opportunity | emerald-400 #34D399 | Trajectory badges, trend columns, Opportunity tag |
+| Falling, risk, errors | red-400 #F87171 | Falling badge, Risk tag, destructive states |
+| De-escalating, resolving, trending | blue-400 #60A5FA | Trend columns, Trending tag |
+| Volatile, warnings | amber-400 #FBBF24 | Volatile badge, warning banners (`amber-950/20` fill, `amber-900/40` border, `amber-300` text) |
+| Peaked | orange-400 | Trajectory badge only |
+| Supporting | sky-400 | Landing briefing mock |
+
+Slack aubergine, Discord blurple and Teams indigo appear only on their own integration buttons.
 
 ## Typography
 
-Inter is the only typeface. Fallback stack: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif. No serifs anywhere in product or email.
+The font stack is Inter, then the system sans (Segoe UI on Windows, San Francisco on Apple). Inter is declared but never loaded as a webfont, so most people see their system face. Semibold (243 uses) and medium (191) carry the interface, bold (159) carries titles and labels, and black (30) is kept for landing headlines and big stat numbers.
 
-| Style | Size / weight | Tracking | Use |
-|---|---|---|---|
-| Display | 26 to 40px, 800 | -0.02em | Key signal headline, page titles |
-| Headline | 17 to 21px, 700 to 800 | -0.01em | Story titles |
-| Body | 14.5 to 16px, 400, line-height 1.6 | 0 | Summaries |
-| Meta | 12px, 500 | 0 | Source, date, counts |
-| Micro label | 10px, 800, uppercase | 0.1 to 0.2em | Section names, "Today's key signal", "Why this matters" |
+| Style | Classes | Use |
+|---|---|---|
+| Page title | `text-2xl` to `text-4xl font-bold` | Page and report titles |
+| Section title | `text-sm font-semibold text-stone-100` | Theme rows, list items |
+| Body | `text-sm text-stone-300 leading-[1.8]` | Report and summary copy |
+| Meta | `text-xs` or `text-sm text-stone-500` | Dates, counts, sources |
+| Micro label | `text-[10px] font-bold uppercase tracking-widest` | Section names, "Key takeaway", timeline dates |
+| Eyebrow | `text-[10px] font-bold tracking-[0.2em] uppercase` in primary | "Intelligence Report" over a title |
 
-Micro labels carry the system. They are always uppercase, always tracked wide, and almost always violet. Headlines stay in sentence case.
+## Shape
 
-## Shape and space
+The general interface uses a small radius. `rounded-lg` (6px) is the most common value at 156 uses, followed by plain `rounded` and `rounded-md`, on inputs, cards and dialogs. Intelligence surfaces are square: the report viewer, its section bands, trajectory badges, the Export PDF button, the landing briefing card and the logo mark all have no radius. `rounded-full` is reserved for count badges, timeline dots and spinners.
 
-Corners are square. The logo, primary buttons, chips and briefing cards have no radius, which is what separates MergeRSS from the rounded consumer look of most reader apps. Round only what is genuinely circular: count badges, spinners, avatars.
+Structure comes from 1px stone-800 borders and stacked panels with `border-t-0`. Shadows are rare and only used for hover lift.
 
-Borders do the structural work in place of shadows. Priority is shown with a left rule: 4px violet for the lead story, 2px violet at 60% for callouts, 2px stone-600 for supporting stories. Spacing runs on a 4px grid with 32px card gutters on desktop and 20px on mobile.
+## Signature components
 
-## Components
+**Numbered section band.** A full-width strip, `px-6 py-3`, holding a two-digit number, a 1px by 12px divider and a micro label. Section 01 is solid primary with stone-900 text. Later sections are stone-900 with a stone-500 number, a stone-700 divider and a stone-400 label, sitting on a stone-800 bottom border.
 
-**Primary button.** Violet fill, near-black text, weight 800, uppercase micro-label styling at 12 to 14px, square corners. One per view.
+**Key takeaway.** `border-l-4` in primary on a stone-900 fill, `px-5 py-4`, with a primary micro label above stone-200 or stone-100 text.
 
-**Briefing card.** Card fill, 2px violet outline at 50%, a header band (7% violet fill) carrying the digest name as a micro label with the date right-aligned, then a key signal block (4% violet fill) holding the display headline.
+**Theme row.** A stone-600 number in a fixed 24px column, a stone-100 semibold title, a trajectory badge on the right, and stone-400 description copy indented under the title. Rows are divided by stone-800 at 60%.
 
-**Lead story.** 4px violet left rule on a 4% violet fill, a solid violet "Read first" chip, then headline, summary, the "Why this matters" callout and a meta line.
+**Trajectory badge.** `text-[10px] px-2 py-0.5 font-semibold` with a -400 text colour on a /10 fill. Sentence case labels such as "Rising ↑" and "Stable →".
 
-**Supporting story.** 2px stone-600 left rule, optional tag chip, headline, summary, meta line. Thumbnails are square, 88px, with a 1px border.
+**Timeline.** A 1px stone-800 spine, 14px primary dots with a stone-950 ring, primary date labels, stone-100 event titles and stone-400 significance copy.
 
-**Meta line.** Source host in stone-500, a mid-dot separator in stone-600, then "Read source" in violet bold.
+**Primary button.** Primary fill, stone-900 text, `font-semibold`, square in intelligence surfaces and `rounded-lg` in general UI.
+
+## Logo
+
+A primary-coloured square containing the Lucide RSS icon in stone-900, followed by "MergeRSS" in bold stone-100 with tight tracking. It sits in the header at 28px. Email uses a plain primary square because mail clients strip SVG.
 
 ## Voice
 
-Write like an analyst briefing a principal. Lead with the consequence, keep sentences short, name numbers. Labels are plain nouns such as "Key signal" or "Bottom line". Avoid hype words such as "game-changing" or "revolutionary", and avoid exclamation marks.
+Copy reads like an analyst briefing a principal: consequence first, short sentences, real numbers. Labels are plain nouns such as "Key takeaway" or "Inflection points". Hype words and exclamation marks are out.
 
-## Email rules
+## Email
 
-- Dark field and dark card, matching the product. The template declares a dark colour scheme so Apple Mail and iOS Mail leave it alone.
-- Solid hex only. Every alpha value in the app is replaced with its pre-blended equivalent from the tint table.
-- Same font stack as the app, with no webfont call, so the email renders in the same face as the product on each platform.
-- Maximum width 600px, table layout, all styles inline.
+The digest email is a direct translation of the report viewer: a report header, then numbered bands (01 Key signal in primary, 02 Read first, then one band per topic), theme-style story rows and trajectory-style tag chips. Every Tailwind alpha value is pre-blended to solid hex so Outlook renders it, and the font stack matches the app with no webfont call.
 
-## Known drift in the codebase
+## Known drift
 
-Fixed on September 26, 2026: `globals.css` now loads after `index.css`, the default `--primary` is Violet Pulse (#9463E3) in every theme, Trending is blue in the admin panels, and `index.html` carries the MergeRSS title and favicon.
-
-Still open:
-
-1. The accent picker lets each user recolour the brand (violet, coral, cyan and others), including the logo mark. It should recolour interface highlights only, never the logo or emails.
-2. About 250 hardcoded `amber-*` Tailwind classes remain across 56 files. Some are warning states and should stay; the rest are old brand accents that should move to `hsl(var(--primary))`.
-3. One user record holds the accent value "indigo", which the picker no longer offers.
+1. **PDF export palette.** `src/lib/generatePremiumPdf.js` uses its own light palette with a print amber (170, 110, 0) and a navy purple (55, 35, 115), neither of which matches the product. Exported reports look like a different company made them.
+2. **Hardcoded amber.** About 250 `amber-*` classes across 56 files. Warning banners and Volatile badges are correct. Leftover brand accents from the amber era should move to `hsl(var(--primary))`.
+3. **Accent picker.** Users can switch primary to coral, cyan, emerald, magenta or amber. That recolours the logo and buttons with it. The logo should stay violet.
+4. **Two page backgrounds.** #0D0A06 inside the app and #0A0805 on public pages. The difference is invisible; picking one would simplify things.
+5. **Stale accent value.** One user record holds "indigo", which the picker no longer offers.
