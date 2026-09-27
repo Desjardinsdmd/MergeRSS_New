@@ -91,11 +91,33 @@ export default function Digests() {
   const handleSendTest = async (digest) => {
     setSendingTest(digest.id);
     try {
-      await base44.functions.invoke('generateDigests', { digest_id: digest.id, force: true });
+      const res = await base44.functions.invoke('generateDigests', { digest_id: digest.id, force: true });
       queryClient.invalidateQueries({ queryKey: ['digests'] });
-      toast.success('Sent!');
+      const d = res?.data || {};
+      if (d.error) {
+        toast.error(`Failed to send test: ${d.error}`);
+        return;
+      }
+      if (d.skipped && !Array.isArray(d.results)) {
+        toast.warning(`Not sent: ${d.reason || 'the run was skipped'}`);
+        return;
+      }
+      const results = Array.isArray(d.results) ? d.results : [];
+      const r = results.find(x => x.digest_id === digest.id) || results.find(x => x.digest === digest.name) || results[0];
+      if (!r) {
+        toast.warning(d.deferred ? 'Not sent yet: the run was deferred. Try again in a minute.' : 'Nothing was sent. The digest was not processed.');
+      } else if (r.status === 'error' || r.error) {
+        toast.error(`Failed to send test: ${r.error || 'unknown error'}`);
+      } else if (r.skipped) {
+        toast.warning(`Not sent: ${String(r.reason || 'skipped').replace(/_/g, ' ')}`);
+      } else {
+        const channels = Array.isArray(r.deliveries) && r.deliveries.length ? ` via ${r.deliveries.join(', ')}` : '';
+        const skippedCh = Array.isArray(r.skipped_channels) && r.skipped_channels.length
+          ? ` (${r.skipped_channels.map(c => c.channel).join(', ')} skipped: Premium only)` : '';
+        toast.success(`Sent${channels} with ${r.items_included ?? 0} item${r.items_included === 1 ? '' : 's'}${skippedCh}`);
+      }
     } catch (error) {
-      toast.error(`Failed to send test: ${error.message}`);
+      toast.error(`Failed to send test: ${error?.response?.data?.error || error.message}`);
     } finally {
       setSendingTest(null);
     }
