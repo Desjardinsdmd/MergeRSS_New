@@ -2,8 +2,9 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 
 // Hard wall-clock budget — stop before Deno's CPU limit hits
 const WALL_BUDGET_MS = 45000;
-// Max digests to process per scheduled run (lower cap to stay under budget)
-const MAX_DIGESTS_PER_RUN = 8;
+// Max digests per scheduled run. The loop stops earlier when WALL_BUDGET_MS is spent;
+// skipped slots no longer re-enter the queue every hour, so the cap is spent on real sends.
+const MAX_DIGESTS_PER_RUN = 25;
 // Lock constants — same pattern as other background jobs
 const LOCK_WINDOW_MS = 10 * 60 * 1000;
 const ZOMBIE_TTL_MS  = 15 * 60 * 1000;
@@ -917,6 +918,11 @@ Deno.serve(async (req) => {
                     last_sent: now.toISOString(),
                     // Store nonce in metadata so admin can inspect it if needed
                     metadata_json: JSON.stringify({ last_delivery_nonce: deliveryNonce }),
+                    // Successful send: mark the slot and reset the skip tracking (2026-09-26)
+                    ...(slot ? { last_evaluated_slot: slot.toISOString() } : {}),
+                    ...(digest.consecutive_skips || digest.last_notified_skip_at || digest.last_skip_reason
+                        ? { consecutive_skips: 0, last_skip_reason: '', last_notified_skip_at: null }
+                        : {}),
                 });
 
                 // Structured output so the email can be laid out properly. Falls back to a
@@ -951,13 +957,25 @@ Deno.serve(async (req) => {
                 const origin = req.headers.get('origin') || req.headers.get('referer')?.replace(/\/$/, '') || 'https://mergerss.com';
                 const inboxUrl = `${origin}/Inbox?delivery_id=${webDelivery.id}`;
                 const deliveryTypes = ['web'];
+                const skippedChannels = [];
+
+                // Plan enforcement at send time (2026-09-26): free accounts get web + email
+                // only. Slack, Teams and Discord need premium (admins are exempt).
+                const ownerPlan = ownerUser?.plan || 'free';
+                const paidChannelsAllowed = ownerPlan === 'premium' || ownerUser?.role === 'admin';
+                const planBlocks = (channel) => {
+                    if (paidChannelsAllowed) return false;
+                    console.log(`[generateDigests] ${channel} skipped for "${digest.name}": owner plan=${ownerPlan}`);
+                    skippedChannels.push({ channel, reason: 'plan' });
+                    return true;
+                };
 
                 // Run all channel deliveries in parallel to save time
                 await Promise.allSettled([
                     // Email
                     (async () => {
                         if (!digest.delivery_email || !digest.created_by) return;
-                        let tz = digest.timezone || 'America/New_York';
+                        let tz = digest.timezone || ownerTz(digest) || 'America/New_York';
                         try { new Intl.DateTimeFormat('en-US', { timeZone: tz }); } catch { tz = 'America/New_York'; }
                         const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: tz });
                         const shortDate = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: tz });
@@ -982,6 +1000,7 @@ Deno.serve(async (req) => {
                     // Slack
                     (async () => {
                         if (!digest.delivery_slack) return;
+                        if (planBlocks('slack')) return;
                         const slackIntegrations = extractItems(await base44.asServiceRole.entities.Integration.filter({ type: 'slack', status: 'connected', created_by: digest.created_by }));
                         const slackInt = slackIntegrations[0];
                         if (!slackInt?.webhook_url) return;
@@ -1015,6 +1034,7 @@ Deno.serve(async (req) => {
                     // Teams
                     (async () => {
                         if (!digest.delivery_teams) return;
+                        if (planBlocks('teams')) return;
                         const teamsIntegrations = extractItems(await base44.asServiceRole.entities.Integration.filter({ type: 'teams', status: 'connected' }));
                         // Owner's own integration only. The old `|| teamsIntegrations[0]` fallback posted digests
                         // into another account's Teams channel when the owner had none (2026-09-25).
@@ -1049,6 +1069,7 @@ Deno.serve(async (req) => {
                     // Discord
                     (async () => {
                         if (!digest.delivery_discord || !digest.discord_webhook_url) return;
+                        if (planBlocks('discord')) return;
                         if (!isAllowedWebhookUrl(digest.discord_webhook_url)) {
                             console.warn(`[generateDigests] Blocked Discord webhook to disallowed host: ${digest.discord_webhook_url}`);
                             return;
@@ -1089,7 +1110,7 @@ Deno.serve(async (req) => {
                 ]);
 
                 console.log(`[generateDigests] Delivered digest="${digest.name}" via ${deliveryTypes.join(',')}`);
-                results.push({ digest: digest.name, items_included: items.length, deliveries: deliveryTypes, status: 'ok' });
+                results.push({ digest: digest.name, items_included: items.length, deliveries: deliveryTypes, skipped_channels: skippedChannels, status: 'ok' });
 
             } catch (err) {
                 console.error(`[generateDigests] Error processing digest="${digest.name}":`, err.message);
@@ -1104,7 +1125,8 @@ Deno.serve(async (req) => {
         console.log(`[generateDigests] Run complete — ok=${okCount} errors=${errorCount} skipped=${skippedCount}`);
 
         const finalStatus = errorCount > 0 && okCount === 0 ? 'failed' : 'completed';
-        const finalMeta = { total: digests.length, processed: toProcess.length, ok: okCount, errors: errorCount, skipped: skippedCount, results };
+        if (deferred > 0) console.log(`[generateDigests] ${deferred} due digest(s) deferred to next run (budget)`);
+        const finalMeta = { total: digests.length, due: dueDigests.length, processed: toProcess.length - deferred, deferred, ok: okCount, errors: errorCount, skipped: skippedCount, results };
 
         // Close the lock record (if we acquired one) or create a log entry for single-digest runs
         if (lockRecord?.id) {
@@ -1124,7 +1146,7 @@ Deno.serve(async (req) => {
             }).catch(() => {});
         }
 
-        return Response.json({ success: true, results });
+        return Response.json({ success: true, deferred, results });
     } catch (error) {
         return Response.json({ error: error.message }, { status: 500 });
     }
