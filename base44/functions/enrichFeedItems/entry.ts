@@ -149,20 +149,51 @@ Deno.serve(async (req) => {
             } catch { /* skip */ }
         }
 
-        // Group items by lens for batch LLM calls
-        const byLens = { TCU: [], AI_TECH: [], MACRO: [] };
+        // Group items by OWNER (FeedItem -> Feed -> created_by) for one LLM call each.
+        const byOwner = new Map();
         for (let i = 0; i < needsEnrichment.length; i++) {
             const item = needsEnrichment[i];
-            const lens = pickLens(item.category, item.title, item.description, item.tags);
-            byLens[lens].push({ item, originalIndex: i });
+            const owner = feedMap[item.feed_id]?.created_by || '';
+            if (!byOwner.has(owner)) byOwner.set(owner, []);
+            byOwner.get(owner).push({ item, originalIndex: i });
         }
 
-        console.log(`[enrichFeedItems] Lens distribution: TCU=${byLens.TCU.length} AI_TECH=${byLens.AI_TECH.length} MACRO=${byLens.MACRO.length}`);
+        // Load each owner's interest profile once for this run.
+        const ownerEmails = [...byOwner.keys()].filter(Boolean);
+        const profileByOwner = {};
+        if (ownerEmails.length) {
+            try {
+                const owners = extractItems(await base44.asServiceRole.entities.User.filter(
+                    { email: { $in: ownerEmails } }, '-created_date', 100
+                ));
+                for (const u of owners) if (u?.email) profileByOwner[u.email] = normalizeProfile(u);
+            } catch (e) {
+                console.warn(`[enrichFeedItems] Owner profile load failed, using general lens: ${e.message}`);
+            }
+        }
 
-        // Process each lens batch
+        const groups = [...byOwner.entries()].map(([owner, batch]) => {
+            const p = owner ? profileByOwner[owner] : null;
+            return {
+                owner,
+                batch,
+                lensKey: p ? 'PROFILE' : 'GENERAL',
+                prompt: p ? buildProfileLens(p.profile, p.field) : GENERAL_LENS,
+            };
+        });
+
+        console.log(`[enrichFeedItems] Owner groups: ${groups.map(g => `${g.owner || 'unknown'}=${g.batch.length}/${g.lensKey}`).join(', ')}`);
+
+        // Process each owner batch
         let enriched = 0, failed = 0;
+        // scoring_lens is written as PROFILE/GENERAL. If the FeedItem schema enum still
+        // only allows the legacy values, the first write fails; retry without the field
+        // and omit it for the rest of the run so enrichment never stalls on it.
+        let lensFieldAccepted = true;
 
-        for (const [lens, batch] of Object.entries(byLens)) {
+        for (const group of groups) {
+            const lens = group.lensKey;
+            const batch = group.batch;
             if (!batch.length) continue;
 
             const articlesPayload = batch.map((b, idx) => ({
@@ -176,7 +207,7 @@ Deno.serve(async (req) => {
             let enrichments = [];
             try {
                 const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
-                    prompt: `${LENS_PROMPTS[lens]}
+                    prompt: `${group.prompt}
 
 For each article below, return:
 1. ai_summary: 2-3 sentences answering "So what?" — end with a clause like "...relevant because [lens-specific implication]." Do NOT just describe what happened.
@@ -209,7 +240,7 @@ ${JSON.stringify(articlesPayload, null, 2)}`,
                 });
                 enrichments = (result?.results || []).map(e => ({ ...e, _isFallback: false }));
             } catch (llmErr) {
-                console.error(`[enrichFeedItems] LLM call failed for ${lens}:`, llmErr.message);
+                console.error(`[enrichFeedItems] LLM call failed for ${group.owner || 'unknown'} (${lens}):`, llmErr.message);
                 enrichments = batch.map((_, idx) => ({
                     index: idx, ai_summary: '', importance_score: 50,
                     intelligence_tag: 'Neutral', entities: [], _isFallback: true,
@@ -233,15 +264,26 @@ ${JSON.stringify(articlesPayload, null, 2)}`,
                 }
                 adjustedScore = Math.min(100, Math.max(0, adjustedScore));
 
+                const tag = ['Trending', 'Risk', 'Opportunity', 'Neutral'].includes(e.intelligence_tag) ? e.intelligence_tag : 'Neutral';
+                const patch = {
+                    ai_summary: e.ai_summary || '',
+                    importance_score: adjustedScore,
+                    intelligence_tag: tag,
+                    entities: (e.entities || []).slice(0, 8),
+                    enrichment_status: e._isFallback ? 'fallback' : 'done',
+                };
                 try {
-                    await base44.asServiceRole.entities.FeedItem.update(item.id, {
-                        ai_summary: e.ai_summary || '',
-                        importance_score: adjustedScore,
-                        intelligence_tag: e.intelligence_tag || 'Neutral',
-                        scoring_lens: lens,
-                        entities: (e.entities || []).slice(0, 8),
-                        enrichment_status: e._isFallback ? 'fallback' : 'done',
-                    });
+                    if (lensFieldAccepted) {
+                        try {
+                            await base44.asServiceRole.entities.FeedItem.update(item.id, { ...patch, scoring_lens: lens });
+                        } catch (lensErr) {
+                            lensFieldAccepted = false;
+                            console.warn(`[enrichFeedItems] scoring_lens=${lens} rejected (${lensErr.message}); writing without it`);
+                            await base44.asServiceRole.entities.FeedItem.update(item.id, patch);
+                        }
+                    } else {
+                        await base44.asServiceRole.entities.FeedItem.update(item.id, patch);
+                    }
                     enriched++;
                 } catch (updateErr) {
                     console.error(`[enrichFeedItems] Failed to update item ${item.id}:`, updateErr.message);
