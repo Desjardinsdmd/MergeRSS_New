@@ -24,6 +24,15 @@ function extractItems(raw) {
     return [];
 }
 
+// Newsletter feeds are filled by inbound email (mailgunWebhook); nothing to fetch.
+function isNewsletterFeed(f) {
+    if (!f) return false;
+    if (f.source_type === 'newsletter') return true;
+    if (typeof f.url === 'string' && f.url.startsWith('newsletter://')) return true;
+    try { if (f.metadata_json && JSON.parse(f.metadata_json)?.newsletter === true) return true; } catch { /* ignore */ }
+    return false;
+}
+
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
@@ -35,9 +44,10 @@ Deno.serve(async (req) => {
 
         const own = extractItems(await base44.asServiceRole.entities.Feed.filter(
             { created_by: user.email, status: { $in: ['active', 'error'] } }, 'last_fetched', 1000, 0,
-            ['id', 'name', 'status', 'source_type', 'last_fetched', 'created_by']))
+            ['id', 'name', 'url', 'status', 'source_type', 'metadata_json', 'last_fetched', 'created_by']))
             .filter(f => f.created_by === user.email)
             .filter(f => f.source_type !== 'generated')
+            .filter(f => !isNewsletterFeed(f))
             .filter(f => !requested || requested.has(f.id));
 
         own.sort((a, b) => new Date(a.last_fetched || 0).getTime() - new Date(b.last_fetched || 0).getTime());
