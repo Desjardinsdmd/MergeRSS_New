@@ -4,20 +4,24 @@
   "properties": {
     "user_email": {
       "type": "string",
-      "description": "User's account email"
+      "description": "Owner's account email (tenant key)"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Owner's user id"
     },
     "unique_email": {
       "type": "string",
-      "description": "Unique email address for this user to forward newsletters to"
+      "description": "Private inbound address (lowercase) that newsletters are sent or forwarded to"
     },
     "mailgun_route_id": {
       "type": "string",
-      "description": "Mailgun route ID for this email feed"
+      "description": "Legacy per-user Mailgun route id (current setup uses one catch-all route stored in SyncState key mailgun_inbound_route)"
     },
     "is_active": {
       "type": "boolean",
       "default": true,
-      "description": "Whether this email feed is accepting messages"
+      "description": "Whether this address is accepting messages"
     },
     "total_received": {
       "type": "number",
@@ -36,16 +40,9 @@
   ],
   "rls": {
     "create": {
-      "$or": [
-        {
-          "data.user_email": "{{user.email}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "user_condition": {
+        "role": "admin"
+      }
     },
     "read": {
       "$or": [
@@ -60,28 +57,14 @@
       ]
     },
     "update": {
-      "$or": [
-        {
-          "data.user_email": "{{user.email}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "user_condition": {
+        "role": "admin"
+      }
     },
     "delete": {
-      "$or": [
-        {
-          "data.user_email": "{{user.email}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "user_condition": {
+        "role": "admin"
+      }
     }
   }
 }
