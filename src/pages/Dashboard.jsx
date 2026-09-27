@@ -7,7 +7,6 @@ import { formatDistanceToNow } from 'date-fns';
 import {
   Rss, Clock, FileText, AlertCircle, ArrowRight, Sparkles, ExternalLink, Loader2, PauseCircle,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import StreakCounter from '@/components/dashboard/StreakCounter';
 import BookmarkButton from '@/components/dashboard/BookmarkButton';
 import { nextSend } from '@/components/dashboard/briefingSchedule';
@@ -248,11 +247,12 @@ export default function Dashboard() {
           <p className="text-stone-500 mb-6 max-w-sm mx-auto text-sm">
             Pick your field, keep the starter sources, and we'll email you a ranked briefing in about a minute.
           </p>
-          <Link to={createPageUrl('Welcome')} className={cn('inline-block rounded-md', FOCUS)} tabIndex={-1}>
-            <Button className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-bold">
-              <Sparkles className="w-4 h-4 mr-2" aria-hidden="true" />
-              Build my briefing
-            </Button>
+          <Link
+            to={createPageUrl('Welcome')}
+            className={cn('inline-flex items-center h-10 px-5 rounded-md bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 text-sm font-bold', FOCUS)}
+          >
+            <Sparkles className="w-4 h-4 mr-2" aria-hidden="true" />
+            Build my briefing
           </Link>
         </section>
       )}
