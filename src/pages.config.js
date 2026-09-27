@@ -61,6 +61,7 @@ import FeedCurator from './pages/FeedCurator';
 import Feeds from './pages/Feeds';
 import Inbox from './pages/Inbox';
 import Integrations from './pages/Integrations';
+import Newsletters from './pages/Newsletters';
 import Landing from './pages/Landing';
 import Pricing from './pages/Pricing';
 import Privacy from './pages/Privacy';
@@ -87,6 +88,7 @@ export const PAGES = {
     "Feeds": Feeds,
     "Inbox": Inbox,
     "Integrations": Integrations,
+    "Newsletters": Newsletters,
     "Landing": Landing,
     "Pricing": Pricing,
     "Privacy": Privacy,
