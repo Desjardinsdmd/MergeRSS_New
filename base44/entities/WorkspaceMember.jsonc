@@ -1,0 +1,67 @@
+{
+  "name": "WorkspaceMember",
+  "type": "object",
+  "description": "Membership of a user in a team Workspace. Written and read only through the backend function `workspace`.",
+  "properties": {
+    "workspace_id": {
+      "type": "string"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Lower-cased member email"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "owner",
+        "editor",
+        "viewer"
+      ],
+      "default": "viewer"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "invited",
+        "active",
+        "removed"
+      ],
+      "default": "invited"
+    },
+    "invited_by": {
+      "type": "string"
+    },
+    "joined_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "workspace_id",
+    "user_email",
+    "role",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

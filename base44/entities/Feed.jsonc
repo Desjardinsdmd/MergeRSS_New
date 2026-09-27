@@ -34,7 +34,8 @@
       "enum": [
         "rss_native",
         "rss_discovered",
-        "generated"
+        "generated",
+        "newsletter"
       ]
     },
     "original_submitted_url": {
@@ -156,6 +157,10 @@
       "type": "string",
       "format": "date-time",
       "description": "When the feed owner was last emailed that the system auto-paused this feed. Cleared when the feed recovers."
+    },
+    "workspace_id": {
+      "type": "string",
+      "description": "Team workspace this source is shared into. Set only by the backend function `workspace` (share_feed/unshare_feed)."
     }
   },
   "required": [
