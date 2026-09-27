@@ -1,0 +1,362 @@
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
+
+/**
+ * workspace — the ONLY path the frontend uses to read or change team workspaces.
+ *
+ * Workspace and WorkspaceMember are admin-only at the entity level. Every action here
+ * runs with the service role AFTER an explicit membership + role check on the caller.
+ * Client-sent workspace ids are never trusted: the caller's workspace is always resolved
+ * from their own active WorkspaceMember row (one workspace per user for now).
+ *
+ * Roles: owner (billing, members, webhooks), editor (share/unshare sources, create and
+ * edit shared briefings), viewer (read only).
+ *
+ * Plan rule (documented here, enforced here and in saveDigest / generateDigests):
+ *   - workspace.plan === 'team' (active Stripe subscription, set only by stripeWebhook):
+ *     up to workspace.seat_limit members (default 5, owner included); shared briefings
+ *     also post once to the team Slack / Discord / Teams webhooks.
+ *   - workspace.plan !== 'team' (trial): the owner can create the workspace and invite
+ *     exactly ONE other member (TRIAL_SEAT_LIMIT = 2 seats, owner included). Shared
+ *     sources and shared briefings work, but shared briefings deliver by web + email only.
+ *   Seats count members with status 'invited' or 'active'.
+ *
+ * Body: { action, ...params }
+ *   get_mine                                  -> { workspace, membership, members, invites }
+ *   create        { name }
+ *   invite        { email, role }             owner
+ *   accept        { workspace_id }            invited user (matched by caller email)
+ *   decline       { workspace_id }            invited user
+ *   remove_member { member_id }               owner (also cancels a pending invite)
+ *   set_role      { member_id, role }         owner
+ *   leave                                     any member; owner only when alone
+ *   list_shared_feeds                         member
+ *   share_feed    { feed_id }                 owner/editor who owns the feed
+ *   unshare_feed  { feed_id }                 feed owner, or workspace owner/editor
+ *   list_shared_digests                       member
+ *   set_webhooks  { slack_webhook_url?, discord_webhook_url?, teams_webhook_url? }  owner
+ *   test_webhook  { channel: 'slack'|'discord'|'teams' }                            owner
+ */
+
+const TRIAL_SEAT_LIMIT = 2; // owner + 1 invited member while the workspace has no active Team plan
+const DEFAULT_SEAT_LIMIT = 5;
+const APP_URL = 'https://mergerss.com';
+const TEAM_URL = `${APP_URL}/Team`;
+
+const WEBHOOK_HOSTS = {
+    slack: ['hooks.slack.com'],
+    discord: ['discord.com', 'discordapp.com'],
+    teams: ['outlook.office.com', 'outlook.office365.com', 'webhook.office.com'],
+};
+const FEED_FIELDS = ['id', 'name', 'url', 'category', 'tags', 'status', 'item_count', 'last_fetched',
+    'last_successful_fetch_at', 'source_type', 'created_by', 'workspace_id'];
+const DIGEST_FIELDS = ['id', 'name', 'description', 'categories', 'tags', 'feed_ids', 'frequency', 'schedule_time',
+    'schedule_day_of_week', 'schedule_day_of_month', 'timezone', 'output_length', 'status', 'last_sent',
+    'created_by', 'workspace_id', 'delivery_web', 'delivery_email'];
+
+function extractItems(raw) {
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw;
+    if (Array.isArray(raw?.items)) return raw.items;
+    if (Array.isArray(raw?.data)) return raw.data;
+    return [];
+}
+const norm = (e) => String(e || '').trim().toLowerCase();
+const isEmail = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) && e.length <= 254;
+const pick = (o, keys) => Object.fromEntries(keys.filter(k => o?.[k] !== undefined).map(k => [k, o[k]]));
+
+function webhookOk(channel, url) {
+    try {
+        const { hostname, protocol } = new URL(url);
+        if (protocol !== 'https:') return false;
+        return (WEBHOOK_HOSTS[channel] || []).some(h => hostname === h || hostname.endsWith('.' + h));
+    } catch { return false; }
+}
+function esc(s) {
+    return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function inviteEmailHtml({ inviter, workspaceName, role }) {
+    const f = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif";
+    return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#0d0a06;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0d0a06;"><tr><td align="center" style="padding:24px 12px 40px;">
+<table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="width:560px;max-width:100%;">
+<tr><td style="padding:0 0 16px;font:700 18px/1 ${f};color:#f5f5f4;">MergeRSS</td></tr>
+<tr><td style="background:#0c0a09;border:1px solid #292524;padding:24px;">
+<h1 style="margin:0 0 14px;font:700 19px/1.35 ${f};color:#f5f5f4;">You're invited to ${esc(workspaceName)}</h1>
+<p style="margin:0 0 12px;font:400 14px/1.7 ${f};color:#d6d3d1;">${esc(inviter)} invited you to join their MergeRSS team workspace as ${role === 'editor' ? 'an editor' : 'a viewer'}. Team members share sources and receive the team's briefings.</p>
+<p style="margin:0 0 12px;font:400 14px/1.7 ${f};color:#d6d3d1;">Sign in with this email address, then accept the invite on the Team page.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:8px;"><tr><td style="background:#9463e3;"><a href="${TEAM_URL}" style="display:inline-block;padding:11px 18px;font:600 14px/1 ${f};color:#1c1917;text-decoration:none;">Open the Team page</a></td></tr></table>
+</td></tr></table></td></tr></table></body></html>`;
+}
+
+class HttpError extends Error {
+    status: number;
+    constructor(status: number, message: string) { super(message); this.status = status; }
+}
+const fail = (status, message) => { throw new HttpError(status, message); };
+
+Deno.serve(async (req) => {
+    try {
+        const base44 = createClientFromRequest(req);
+        const user = await base44.auth.me().catch(() => null);
+        if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+        const me = norm(user.email);
+        const body = await req.json().catch(() => ({}));
+        const action = String(body.action || '');
+        const svc = base44.asServiceRole.entities;
+
+        // ── Membership helpers ─────────────────────────────────────────────────
+        const membersOf = async (wsId, statuses = ['active']) =>
+            extractItems(await svc.WorkspaceMember.filter({ workspace_id: wsId }, '-created_date', 200))
+                .filter(m => statuses.includes(m.status));
+
+        // The caller's one active workspace, resolved server-side.
+        async function myActive() {
+            const rows = extractItems(await svc.WorkspaceMember.filter({ user_email: me, status: 'active' }, '-created_date', 10));
+            for (const m of rows) {
+                const ws = await svc.Workspace.get(m.workspace_id).catch(() => null);
+                if (ws && ws.status !== 'deleted') return { ws, member: m };
+            }
+            return null;
+        }
+        async function requireMember(roles = ['owner', 'editor', 'viewer']) {
+            const ctx = await myActive();
+            if (!ctx) fail(404, 'You are not in a team workspace');
+            if (!roles.includes(ctx.member.role)) fail(403, 'Your team role does not allow this');
+            return ctx;
+        }
+        const seatLimit = (ws) => ws.plan === 'team' ? (Number(ws.seat_limit) || DEFAULT_SEAT_LIMIT) : TRIAL_SEAT_LIMIT;
+        async function setUserWorkspace(email, wsId) {
+            const users = extractItems(await svc.User.filter({ email }, '-created_date', 1).catch(() => []));
+            if (users[0]) await svc.User.update(users[0].id, { workspace_id: wsId || '' }).catch(e =>
+                console.warn(`[workspace] could not set User.workspace_id for ${email}: ${e.message}`));
+        }
+        // Detach everything a departing member put into the workspace.
+        async function detachMember(ws, email) {
+            const feeds = extractItems(await svc.Feed.filter({ workspace_id: ws.id, created_by: email }, '-created_date', 1000, 0, ['id']));
+            for (const f of feeds) await svc.Feed.update(f.id, { workspace_id: '' }).catch(() => {});
+            const digests = extractItems(await svc.Digest.filter({ workspace_id: ws.id, created_by: email }, '-created_date', 500, 0, ['id']));
+            for (const d of digests) await svc.Digest.update(d.id, { workspace_id: '' }).catch(() => {});
+            await setUserWorkspace(email, '');
+        }
+        // Shared items only count while their creator is an active member.
+        async function sharedFeeds(ws) {
+            const active = new Set((await membersOf(ws.id)).map(m => norm(m.user_email)));
+            return extractItems(await svc.Feed.filter({ workspace_id: ws.id }, '-created_date', 1000, 0, FEED_FIELDS))
+                .filter(f => active.has(norm(f.created_by)));
+        }
+        const wsView = (ws, role) => {
+            const out = pick(ws, ['id', 'name', 'owner_email', 'plan', 'status', 'seat_limit', 'subscription_status', 'current_period_end']);
+            out.effective_seat_limit = seatLimit(ws);
+            out.has_slack = !!ws.slack_webhook_url;
+            out.has_discord = !!ws.discord_webhook_url;
+            out.has_teams = !!ws.teams_webhook_url;
+            if (role === 'owner') Object.assign(out, pick(ws, ['slack_webhook_url', 'discord_webhook_url', 'teams_webhook_url']));
+            return out;
+        };
+        const memberView = (m) => pick(m, ['id', 'workspace_id', 'user_email', 'role', 'status', 'invited_by', 'joined_at', 'created_date']);
+
+        switch (action) {
+            case 'get_mine': {
+                const ctx = await myActive();
+                const invitesRaw = extractItems(await svc.WorkspaceMember.filter({ user_email: me, status: 'invited' }, '-created_date', 20));
+                const invites = [];
+                for (const inv of invitesRaw) {
+                    const ws = await svc.Workspace.get(inv.workspace_id).catch(() => null);
+                    if (ws && ws.status !== 'deleted') invites.push({ ...memberView(inv), workspace_name: ws.name, owner_email: ws.owner_email });
+                }
+                if (!ctx) return Response.json({ workspace: null, membership: null, members: [], invites });
+                const members = (await membersOf(ctx.ws.id, ['active', 'invited'])).map(memberView);
+                return Response.json({ workspace: wsView(ctx.ws, ctx.member.role), membership: memberView(ctx.member), members, invites });
+            }
+
+            case 'create': {
+                if (await myActive()) fail(409, 'You are already in a team workspace. Leave it first.');
+                const name = String(body.name || '').trim().slice(0, 80) || `${user.full_name || me.split('@')[0]}'s team`;
+                const ws = await svc.Workspace.create({
+                    name, owner_email: me, plan: 'none', status: 'active', seat_limit: DEFAULT_SEAT_LIMIT,
+                });
+                const member = await svc.WorkspaceMember.create({
+                    workspace_id: ws.id, user_email: me, role: 'owner', status: 'active',
+                    invited_by: me, joined_at: new Date().toISOString(),
+                });
+                await setUserWorkspace(user.email, ws.id);
+                return Response.json({ success: true, workspace: wsView(ws, 'owner'), membership: memberView(member) });
+            }
+
+            case 'invite': {
+                const { ws } = await requireMember(['owner']);
+                const email = norm(body.email);
+                const role = body.role === 'editor' ? 'editor' : 'viewer';
+                if (!isEmail(email)) fail(400, 'Enter a valid email address');
+                if (email === me) fail(400, 'You are already in this workspace');
+                const all = extractItems(await svc.WorkspaceMember.filter({ workspace_id: ws.id }, '-created_date', 200));
+                const existing = all.find(m => norm(m.user_email) === email);
+                if (existing && existing.status !== 'removed') fail(409, existing.status === 'active' ? 'Already a member' : 'Already invited');
+                const used = all.filter(m => m.status === 'active' || m.status === 'invited').length;
+                const limit = seatLimit(ws);
+                if (used >= limit) {
+                    fail(403, ws.plan === 'team'
+                        ? `Your Team plan includes ${limit} seats and all are in use.`
+                        : 'Without the Team plan you can invite one member. Upgrade to Team for up to 5 seats.');
+                }
+                const data = { workspace_id: ws.id, user_email: email, role, status: 'invited', invited_by: me, joined_at: '' };
+                const member = existing
+                    ? { ...existing, ...data, ...(await svc.WorkspaceMember.update(existing.id, data) || {}) }
+                    : await svc.WorkspaceMember.create(data);
+
+                // App access: invite as a regular platform user ONLY (never admin).
+                const known = extractItems(await svc.User.filter({ email }, '-created_date', 1).catch(() => []));
+                let appInvited = false;
+                if (!known.length) {
+                    try { await base44.users.inviteUser(email, 'user'); appInvited = true; } catch (e) {
+                        console.warn(`[workspace] inviteUser failed for ${email}: ${e.message}`);
+                    }
+                }
+                let emailed = false;
+                try {
+                    await base44.asServiceRole.integrations.Core.SendEmail({
+                        to: email, from_name: 'MergeRSS',
+                        subject: `${user.full_name || me} invited you to ${ws.name} on MergeRSS`.slice(0, 140),
+                        body: inviteEmailHtml({ inviter: user.full_name || me, workspaceName: ws.name, role }),
+                    });
+                    emailed = true;
+                } catch (e) {
+                    console.warn(`[workspace] invite email failed for ${email}: ${e.message}`);
+                }
+                return Response.json({ success: true, member: memberView(member), app_invited: appInvited, emailed });
+            }
+
+            case 'accept':
+            case 'decline': {
+                const wsId = String(body.workspace_id || '');
+                const inv = extractItems(await svc.WorkspaceMember.filter({ workspace_id: wsId, user_email: me, status: 'invited' }, '-created_date', 1))[0];
+                if (!inv) fail(404, 'Invite not found');
+                if (action === 'decline') {
+                    await svc.WorkspaceMember.update(inv.id, { status: 'removed' });
+                    return Response.json({ success: true });
+                }
+                const ws = await svc.Workspace.get(wsId).catch(() => null);
+                if (!ws || ws.status === 'deleted') fail(404, 'This workspace no longer exists');
+                if (await myActive()) fail(409, 'You are already in a team workspace. Leave it before joining another.');
+                const active = await membersOf(ws.id);
+                if (active.length >= seatLimit(ws)) fail(403, 'This workspace has no free seats. Ask the owner to upgrade to Team.');
+                const joined = new Date().toISOString();
+                await svc.WorkspaceMember.update(inv.id, { status: 'active', joined_at: joined });
+                await setUserWorkspace(user.email, ws.id);
+                return Response.json({ success: true, workspace: wsView(ws, inv.role), membership: memberView({ ...inv, status: 'active', joined_at: joined }) });
+            }
+
+            case 'remove_member': {
+                const { ws } = await requireMember(['owner']);
+                const m = await svc.WorkspaceMember.get(String(body.member_id || '')).catch(() => null);
+                if (!m || m.workspace_id !== ws.id || m.status === 'removed') fail(404, 'Member not found');
+                if (m.role === 'owner') fail(400, 'The owner cannot be removed');
+                await svc.WorkspaceMember.update(m.id, { status: 'removed' });
+                if (m.status === 'active') await detachMember(ws, norm(m.user_email));
+                return Response.json({ success: true });
+            }
+
+            case 'set_role': {
+                const { ws } = await requireMember(['owner']);
+                const role = body.role;
+                if (!['editor', 'viewer'].includes(role)) fail(400, 'Role must be editor or viewer');
+                const m = await svc.WorkspaceMember.get(String(body.member_id || '')).catch(() => null);
+                if (!m || m.workspace_id !== ws.id || m.status === 'removed') fail(404, 'Member not found');
+                if (m.role === 'owner') fail(400, "The owner's role cannot be changed");
+                await svc.WorkspaceMember.update(m.id, { role });
+                return Response.json({ success: true, member: memberView({ ...m, role }) });
+            }
+
+            case 'leave': {
+                const { ws, member } = await requireMember();
+                if (member.role !== 'owner') {
+                    await svc.WorkspaceMember.update(member.id, { status: 'removed' });
+                    await detachMember(ws, me);
+                    return Response.json({ success: true });
+                }
+                const others = (await membersOf(ws.id, ['active'])).filter(m => m.id !== member.id);
+                if (others.length) fail(409, 'Remove the other members before closing the workspace.');
+                if (ws.plan === 'team') fail(409, 'Cancel the Team subscription (Settings, Billing) before closing the workspace.');
+                for (const inv of await membersOf(ws.id, ['invited'])) await svc.WorkspaceMember.update(inv.id, { status: 'removed' }).catch(() => {});
+                await svc.WorkspaceMember.update(member.id, { status: 'removed' });
+                await detachMember(ws, me);
+                await svc.Workspace.update(ws.id, { status: 'deleted' });
+                return Response.json({ success: true, closed: true });
+            }
+
+            case 'list_shared_feeds': {
+                const { ws, member } = await requireMember();
+                const feeds = await sharedFeeds(ws);
+                const canManage = member.role === 'owner' || member.role === 'editor';
+                return Response.json({
+                    feeds: feeds.map(f => ({ ...f, is_mine: norm(f.created_by) === me, can_unshare: canManage || norm(f.created_by) === me })),
+                });
+            }
+
+            case 'share_feed': {
+                const { ws } = await requireMember(['owner', 'editor']);
+                const feed = await svc.Feed.get(String(body.feed_id || '')).catch(() => null);
+                if (!feed || norm(feed.created_by) !== me) fail(404, 'Source not found');
+                if (feed.workspace_id && feed.workspace_id !== ws.id) fail(409, 'This source is shared with another workspace');
+                await svc.Feed.update(feed.id, { workspace_id: ws.id });
+                return Response.json({ success: true, feed_id: feed.id, workspace_id: ws.id });
+            }
+
+            case 'unshare_feed': {
+                const feed = await svc.Feed.get(String(body.feed_id || '')).catch(() => null);
+                if (!feed || !feed.workspace_id) fail(404, 'Source not found');
+                const ctx = await myActive();
+                const isOwnerOfFeed = norm(feed.created_by) === me;
+                const isManager = ctx && ctx.ws.id === feed.workspace_id && ['owner', 'editor'].includes(ctx.member.role);
+                if (!isOwnerOfFeed && !isManager) fail(403, 'Only editors or the source owner can unshare it');
+                await svc.Feed.update(feed.id, { workspace_id: '' });
+                return Response.json({ success: true, feed_id: feed.id });
+            }
+
+            case 'list_shared_digests': {
+                const { ws, member } = await requireMember();
+                const active = new Set((await membersOf(ws.id)).map(m => norm(m.user_email)));
+                const digests = extractItems(await svc.Digest.filter({ workspace_id: ws.id }, '-created_date', 500, 0, DIGEST_FIELDS))
+                    .filter(d => active.has(norm(d.created_by)));
+                const canEdit = member.role === 'owner' || member.role === 'editor';
+                return Response.json({
+                    digests: digests.map(d => ({ ...d, is_mine: norm(d.created_by) === me, can_edit: canEdit })),
+                    team_channels_active: ws.plan === 'team',
+                });
+            }
+
+            case 'set_webhooks': {
+                const { ws } = await requireMember(['owner']);
+                const patch = {};
+                for (const [ch, key] of [['slack', 'slack_webhook_url'], ['discord', 'discord_webhook_url'], ['teams', 'teams_webhook_url']]) {
+                    if (body[key] === undefined) continue;
+                    const url = String(body[key] || '').trim();
+                    if (url && !webhookOk(ch, url)) fail(400, `That ${ch === 'teams' ? 'Microsoft Teams' : ch[0].toUpperCase() + ch.slice(1)} webhook URL is not valid`);
+                    patch[key] = url;
+                }
+                if (Object.keys(patch).length) await svc.Workspace.update(ws.id, patch);
+                return Response.json({ success: true, workspace: wsView({ ...ws, ...patch }, 'owner') });
+            }
+
+            case 'test_webhook': {
+                const { ws } = await requireMember(['owner']);
+                const ch = String(body.channel || '');
+                const url = ws[`${ch}_webhook_url`];
+                if (!url || !webhookOk(ch, url)) fail(400, 'No valid webhook saved for this channel');
+                const text = `MergeRSS test: shared briefings for ${ws.name} will post here.`;
+                const payload = ch === 'discord' ? { content: text } : { text };
+                const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                const ok = res.ok || res.status === 202 || res.status === 204;
+                return Response.json({ success: ok, status: res.status }, { status: ok ? 200 : 502 });
+            }
+
+            default:
+                return Response.json({ error: 'Unknown action' }, { status: 400 });
+        }
+    } catch (err) {
+        const status = err instanceof HttpError ? err.status : 500;
+        if (status === 500) console.error('[workspace]', err?.message);
+        return Response.json({ error: err?.message || 'Server error' }, { status });
+    }
+});
