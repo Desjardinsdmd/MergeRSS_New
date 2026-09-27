@@ -680,7 +680,229 @@ Deno.serve(async (req) => {
             digests = extractItems(await base44.asServiceRole.entities.Digest.filter({ status: 'active' }));
         }
 
-//@@MAINLOOP@@
+        // Owner lookup (2026-09-26): one query for every digest owner. Used for the
+        // owner's timezone default, plan enforcement and notification prefs.
+        const ownerEmails = [...new Set(digests.map(d => d.created_by).filter(Boolean))];
+        const ownerByEmail = {};
+        if (ownerEmails.length) {
+            const owners = extractItems(await base44.asServiceRole.entities.User.filter(
+                { email: { $in: ownerEmails } }, '-created_date', 1000
+            ).catch(() => []));
+            for (const u of owners) if (u?.email) ownerByEmail[u.email] = u;
+        }
+        const ownerTz = (d) => {
+            const tz = ownerByEmail[d.created_by]?.timezone;
+            if (!tz) return null;
+            try { new Intl.DateTimeFormat('en-US', { timeZone: tz }); return tz; } catch { return null; }
+        };
+        const slotOf = new Map();
+
+        // Due check: a digest is due once its most recent scheduled slot has passed
+        // and that slot has not been evaluated yet (sent OR skipped). Marking skipped
+        // slots in last_evaluated_slot (2026-09-26) stops a skipped digest from being
+        // re-processed every hour for the same slot and eating the per-run cap.
+        // Digests without a schedule_time keep the elapsed-time rule, using the later
+        // of last_sent and last_skip_at.
+        const dueDigests = force ? digests : digests.filter(digest => {
+            const slot = lastScheduledSlot(digest, now, ownerTz(digest));
+            if (slot) {
+                slotOf.set(digest.id, slot);
+                if (!digest_id && digest.last_evaluated_slot && new Date(digest.last_evaluated_slot) >= slot) return false;
+                if (!digest.last_sent) return true;
+                return new Date(digest.last_sent) < slot;
+            }
+            let minHours = 20;
+            if (digest.frequency === 'weekly') minHours = 168;
+            if (digest.frequency === 'monthly') minHours = 24 * 28;
+            // Legacy day checks for digests without schedule_time (moved out of the
+            // processing loop so off-days do not consume the cap).
+            const tz = digest.timezone || ownerTz(digest) || 'America/New_York';
+            let local = null;
+            try { local = tzParts(now, tz); } catch { local = null; }
+            if (local && digest.frequency === 'weekly' && digest.schedule_day_of_week != null && local.wd !== digest.schedule_day_of_week) return false;
+            if (local && digest.frequency === 'monthly' && digest.schedule_day_of_month != null && local.d !== digest.schedule_day_of_month) return false;
+            const marks = [digest.last_sent, digest_id ? null : digest.last_skip_at].filter(Boolean).map(x => new Date(x).getTime());
+            if (!marks.length) return true;
+            return (now.getTime() - Math.max(...marks)) / 3600000 >= minHours;
+        });
+
+        console.log(`[generateDigests] Total active digests=${digests.length} due=${dueDigests.length}`);
+
+        // Oldest last_sent first. The loop below runs until the wall budget is spent
+        // or MAX_DIGESTS_PER_RUN is reached; anything left is picked up next run.
+        const toProcess = dueDigests
+            .sort((a, b) => {
+                const aTime = a.last_sent ? new Date(a.last_sent).getTime() : 0;
+                const bTime = b.last_sent ? new Date(b.last_sent).getTime() : 0;
+                return aTime - bTime;
+            })
+            .slice(0, MAX_DIGESTS_PER_RUN);
+
+        const results = [];
+        let deferred = 0;
+        const isScheduledRun = !digest_id && !force;
+
+        for (const digest of toProcess) {
+            // Check wall-clock budget before each digest (LLM call is expensive)
+            if (Date.now() - startTime > WALL_BUDGET_MS) {
+                deferred++;
+                continue;
+            }
+
+            console.log(`[generateDigests] Processing digest="${digest.name}" id=${digest.id}`);
+            const ownerUser = ownerByEmail[digest.created_by] || null;
+            const slot = slotOf.get(digest.id) || null;
+            try {
+                const lookbackDays = force ? 30 : naturalWindowDays(digest);
+                const windowStart = new Date(now.getTime() - lookbackDays * 24 * 60 * 60 * 1000);
+                // Cap the look-back at the digest's natural window (2026-09-26). A digest
+                // that has not sent in months covers the last period only, not months.
+                const lastSent = digest.last_sent ? new Date(digest.last_sent) : null;
+                const since = (!force && lastSent && lastSent > windowStart) ? lastSent : windowStart;
+
+                // ── Feed scope ─────────────────────────────────────────────────────
+                // digest.feed_ids is user-editable, so it is intersected with feeds the
+                // owner actually has (tenant guard, 2026-09-25). Dangling ids are pruned
+                // from the digest (2026-09-26); if none are left the digest falls back to
+                // its categories, or all owner feeds, and the change is recorded.
+                const ownerFeeds = extractItems(await base44.asServiceRole.entities.Feed.filter(
+                    { created_by: digest.created_by }, '-created_date', 1000
+                ));
+                const ownerFeedById = Object.fromEntries(ownerFeeds.map(f => [f.id, f]));
+                const notes = [];
+                const digestPatch = {};
+                let scopedFeeds = ownerFeeds;
+                if (digest.feed_ids?.length > 0) {
+                    const valid = digest.feed_ids.filter(id => ownerFeedById[id]);
+                    const dangling = digest.feed_ids.length - valid.length;
+                    if (dangling > 0) {
+                        digestPatch.feed_ids = valid;
+                        if (valid.length === 0) {
+                            notes.push(`All ${dangling} selected feed(s) were removed from your account, so this digest now uses ${digest.categories?.length ? `your ${digest.categories.join(', ')} feeds` : 'all of your feeds'}.`);
+                        } else {
+                            notes.push(`${dangling} selected feed(s) no longer exist and were removed from this digest.`);
+                        }
+                    }
+                    if (valid.length > 0) scopedFeeds = valid.map(id => ownerFeedById[id]);
+                }
+                const scopedFeedIds = scopedFeeds.map(f => f.id);
+
+                // Tags: item tags are copied from feed tags at fetch time. A tag no current
+                // feed carries can never match, so it is ignored (not deleted) and noted.
+                let liveTags = [];
+                if (digest.tags?.length > 0) {
+                    const carried = new Set(scopedFeeds.flatMap(f => f.tags || []));
+                    liveTags = digest.tags.filter(t => carried.has(t));
+                    const dead = digest.tags.filter(t => !carried.has(t));
+                    if (dead.length) {
+                        notes.push(liveTags.length
+                            ? `Tag filter ${dead.map(t => `"${t}"`).join(', ')} ignored: none of your current feeds carry it.`
+                            : `Tag filter ${dead.map(t => `"${t}"`).join(', ')} ignored: none of your current feeds carry it, so the digest uses its categories instead.`);
+                    }
+                }
+
+                if (notes.length) {
+                    const note = notes.join(' ');
+                    if (note !== digest.auto_adjustment_note) digestPatch.auto_adjustment_note = note;
+                }
+                if (Object.keys(digestPatch).length) {
+                    await base44.asServiceRole.entities.Digest.update(digest.id, digestPatch).catch(e =>
+                        console.warn(`[generateDigests] Could not record adjustments for "${digest.name}": ${e.message}`));
+                    Object.assign(digest, digestPatch);
+                }
+
+                // ── Items: category and tag filters run in the DB query, before the
+                // limit, so busy off-topic feeds cannot crowd matching items out. ──
+                const baseQuery = { feed_id: { $in: scopedFeedIds } };
+                if (digest.categories?.length > 0) baseQuery.category = { $in: digest.categories };
+                if (liveTags.length > 0) baseQuery.tags = { $in: liveTags };
+                let allItems = [];
+                if (scopedFeedIds.length > 0) {
+                    allItems = extractItems(await base44.asServiceRole.entities.FeedItem.filter({
+                        ...baseQuery,
+                        published_date: { $gte: since.toISOString() },
+                    }, '-published_date', 300));
+                }
+
+                // Defensive in-memory pass (same filters)
+                let items = allItems.filter(i => new Date(i.published_date || i.created_date) > since);
+                if (digest.categories?.length > 0) {
+                    items = items.filter(i => digest.categories.includes(i.category));
+                }
+                if (liveTags.length > 0) {
+                    items = items.filter(i => i.tags?.some(t => liveTags.includes(t)));
+                }
+
+                console.log(`[generateDigests] digest="${digest.name}" since=${since.toISOString()} feeds=${scopedFeedIds.length} items=${items.length}`);
+
+                if (items.length === 0) {
+                    if (!force) {
+                        let reasonCode = 'no_items';
+                        if (scopedFeedIds.length === 0) reasonCode = 'no_feeds';
+                        else if (scopedFeeds.every(f => f.status === 'paused' || f.status === 'error')) reasonCode = 'feeds_paused';
+                        else if (liveTags.length > 0) reasonCode = 'no_items_for_tags';
+                        else if (digest.categories?.length > 0) reasonCode = 'no_items_in_categories';
+                        console.log(`[generateDigests] Skipping digest="${digest.name}" reason=${reasonCode}`);
+                        const result = { digest: digest.name, digest_id: digest.id, skipped: true, reason: reasonCode };
+
+                        if (isScheduledRun) {
+                            const skips = (digest.consecutive_skips || 0) + 1;
+                            const skipPatch = {
+                                consecutive_skips: skips,
+                                last_skip_reason: reasonCode,
+                                last_skip_at: now.toISOString(),
+                                last_evaluated_slot: (slot || now).toISOString(),
+                            };
+                            // After 2 skipped slots in a row, email the owner once per stall.
+                            if (skips >= 2 && !digest.last_notified_skip_at) {
+                                const lines = [
+                                    `Your ${digest.frequency || 'scheduled'} digest "${digest.name}" has not been sent for the last ${skips} scheduled deliveries, because ${SKIP_REASON_TEXT[reasonCode] || SKIP_REASON_TEXT.no_items}.`,
+                                ];
+                                if (digest.categories?.length) lines.push(`Categories: ${digest.categories.join(', ')}.`);
+                                if (digest.tags?.length) lines.push(`Tags: ${digest.tags.join(', ')}.`);
+                                if (digest.auto_adjustment_note) lines.push(digest.auto_adjustment_note);
+                                if (reasonCode === 'feeds_paused') lines.push('Check the feeds page for errors, or add feeds in these categories.');
+                                else if (reasonCode === 'no_feeds') lines.push('Pick new feeds for this digest, or let it use all feeds in its categories.');
+                                else lines.push('Broaden its categories or tags, or add feeds that cover them. We will keep trying at each scheduled time.');
+                                const n = await notifyOwner(base44, {
+                                    email: digest.created_by,
+                                    pref: 'digestReminders',
+                                    subject: `Your digest "${clip(digest.name, 60)}" is not sending`,
+                                    heading: `"${digest.name}" has been skipped ${skips} times`,
+                                    lines,
+                                    ctaUrl: 'https://mergerss.com/Digests',
+                                    ctaLabel: 'Fix this digest',
+                                }).catch(() => ({ sent: false }));
+                                if (n?.sent) skipPatch.last_notified_skip_at = now.toISOString();
+                                result.owner_notified = !!n?.sent;
+                                if (!n?.sent) result.notify_skipped = n?.reason || 'unknown';
+                            }
+                            await base44.asServiceRole.entities.Digest.update(digest.id, skipPatch).catch(e =>
+                                console.warn(`[generateDigests] Could not record skip for "${digest.name}": ${e.message}`));
+                            result.consecutive_skips = skips;
+                        }
+                        results.push(result);
+                        continue;
+                    }
+                    // Forced test: use most recent items regardless of date
+                    let fallbackItems = [];
+                    if (scopedFeedIds.length > 0) {
+                        fallbackItems = extractItems(await base44.asServiceRole.entities.FeedItem.filter(
+                            baseQuery, '-published_date', 50
+                        ));
+                    }
+                    if (fallbackItems.length > 0) {
+                        items = fallbackItems;
+                    } else {
+                        results.push({ digest: digest.name, skipped: true, reason: 'No items available for the configured feeds/categories' });
+                        continue;
+                    }
+                }
+
+                // Pick the 20 strongest candidates by enrichment importance (falls back to
+                // recency) and drop duplicate stories, keeping prompt size unchanged.
+                const topItems = selectCandidates(items, since, now, 20);
+
                 const storyTarget = Math.min(STORY_TARGET[digest.output_length] || STORY_TARGET.medium, topItems.length);
                 const prompt = buildBriefPrompt(digest, topItems, since, now, storyTarget);
 
