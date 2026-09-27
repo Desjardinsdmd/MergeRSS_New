@@ -61,7 +61,7 @@ function lastScheduledSlot(digest, now) {
 
 // ═══ Email + brief helpers (added 2026-09-26) ═══════════════════════════════
 // ── Email design system: MergeRSS brand (see BRAND.md at the app root) ──
-// Dark-first, square-cornered, amber reserved for priority and brand.
+// Dark-first, square-cornered, accent reserved for priority and brand.
 // Alpha tints from the app are pre-blended to solid hex so Outlook renders them.
 const BRAND = {
     field: '#0f0c0b',      // --background
@@ -74,14 +74,14 @@ const BRAND = {
     muted: '#938876',      // --muted-foreground
     meta: '#78716c',       // stone-500
     dim: '#57534e',        // stone-600
-    amber: '#fbbf24',      // brand amber (amber-400)
-    onAmber: '#0f0c0b',    // --primary-foreground
-    amber50: '#896a1b',    // primary / 50 on card
-    amber60: '#a07b1d',    // primary / 60 on card
-    amber25: '#503f16',    // primary / 25 on card
-    amber20: '#453616',    // primary / 20 on card
-    amber7: '#272013',     // primary / 7 on card
-    amber4: '#201b13',     // primary / 4 on card
+    accent: '#9463e3',     // brand violet (Violet Pulse, 263 70% 64%)
+    onAccent: '#0f0c0b',    // --primary-foreground
+    accent50: '#563c7a',    // accent / 50 on card
+    accent60: '#62438f',    // accent / 60 on card
+    accent25: '#362846',    // accent / 25 on card
+    accent20: '#30243c',    // accent / 20 on card
+    accent7: '#201a21',     // accent / 7 on card
+    accent4: '#1c171a',     // accent / 4 on card
 };
 const FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
 const TAG_STYLE = {
@@ -121,7 +121,7 @@ function tagChip(tag) {
 }
 
 function readFirstChip() {
-    return `<span style="display:inline-block;background:${BRAND.amber};color:${BRAND.onAmber};font:800 10px/1 ${FONT};letter-spacing:0.1em;text-transform:uppercase;padding:5px 7px;margin-right:6px;vertical-align:middle;">Read first</span>`;
+    return `<span style="display:inline-block;background:${BRAND.accent};color:${BRAND.onAccent};font:800 10px/1 ${FONT};letter-spacing:0.1em;text-transform:uppercase;padding:5px 7px;margin-right:6px;vertical-align:middle;">Read first</span>`;
 }
 
 // Source host plus the read link, one quiet line under each story.
@@ -129,7 +129,7 @@ function metaLine(story) {
     const url = safeUrl(story.url);
     const host = hostOf(url);
     const link = url
-        ? `<a href="${esc(url)}" style="color:${BRAND.amber};text-decoration:none;font-weight:700;">Read source</a>`
+        ? `<a href="${esc(url)}" style="color:${BRAND.accent};text-decoration:none;font-weight:700;">Read source</a>`
         : '';
     const sep = host && link ? `<span style="color:${BRAND.dim};">&nbsp;&nbsp;·&nbsp;&nbsp;</span>` : '';
     return `<p style="margin:12px 0 0;font:500 12px/1.4 ${FONT};color:${BRAND.meta};">${esc(host)}${sep}${link}</p>`;
@@ -139,8 +139,8 @@ function takeawayBlock(story) {
     if (!story.takeaway) return '';
     return `
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:12px 0 0;">
-  <tr><td style="border-left:2px solid ${BRAND.amber60};padding:1px 0 1px 12px;">
-    <p style="margin:0;font:400 14px/1.55 ${FONT};color:${BRAND.secondary};">${microLabel('Why this matters · ', BRAND.amber, '0.1em')}${esc(story.takeaway)}</p>
+  <tr><td style="border-left:2px solid ${BRAND.accent60};padding:1px 0 1px 12px;">
+    <p style="margin:0;font:400 14px/1.55 ${FONT};color:${BRAND.secondary};">${microLabel('Why this matters · ', BRAND.accent, '0.1em')}${esc(story.takeaway)}</p>
   </td></tr>
 </table>`;
 }
@@ -152,7 +152,7 @@ function renderLead(story) {
         : '';
     return `
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr><td class="lead" style="background:${BRAND.amber4};border-left:4px solid ${BRAND.amber};padding:22px 24px 22px 22px;">
+  <tr><td class="lead" style="background:${BRAND.accent4};border-left:4px solid ${BRAND.accent};padding:22px 24px 22px 22px;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
       ${hero}
       <tr><td style="padding:0 0 10px;">${readFirstChip()}${tagChip(story.tag)}</td></tr>
@@ -193,7 +193,7 @@ function renderSection(section, skipFirst) {
     return `
 <tr><td class="px" style="padding:34px 32px 0;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-    <tr><td style="padding:0 0 10px;border-bottom:1px solid ${BRAND.rule};">${microLabel(section.label, BRAND.amber)}</td></tr>
+    <tr><td style="padding:0 0 10px;border-bottom:1px solid ${BRAND.rule};">${microLabel(section.label, BRAND.accent)}</td></tr>
   </table>
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
     ${stories.map((s, i) => renderStory(s, i === stories.length - 1)).join('')}
@@ -219,11 +219,10 @@ function renderDigestEmail({ digestName, dateStr, scannedCount, brief, inboxUrl,
 <meta name="color-scheme" content="dark">
 <meta name="supported-color-schemes" content="dark">
 <title>${esc(digestName)}</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
   :root { color-scheme: dark; supported-color-schemes: dark; }
   body { margin:0; padding:0; background:${BRAND.field}; }
-  a { color:${BRAND.amber}; }
+  a { color:${BRAND.accent}; }
   @media only screen and (max-width: 620px) {
     .container { width:100% !important; }
     .px { padding-left:20px !important; padding-right:20px !important; }
@@ -242,25 +241,25 @@ function renderDigestEmail({ digestName, dateStr, scannedCount, brief, inboxUrl,
     <!-- Wordmark -->
     <tr><td style="padding:0 2px 16px;">
       <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-        <td width="24" height="24" style="width:24px;height:24px;background:${BRAND.amber};font-size:0;line-height:0;">&nbsp;</td>
+        <td width="24" height="24" style="width:24px;height:24px;background:${BRAND.accent};font-size:0;line-height:0;">&nbsp;</td>
         <td style="padding-left:10px;font:700 17px/1 ${FONT};letter-spacing:-0.02em;color:${BRAND.text};">MergeRSS</td>
       </tr></table>
     </td></tr>
 
     <!-- Briefing card -->
-    <tr><td style="background:${BRAND.card};border:2px solid ${BRAND.amber50};">
+    <tr><td style="background:${BRAND.card};border:2px solid ${BRAND.accent50};">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
         <!-- Header band -->
-        <tr><td class="px" style="background:${BRAND.amber7};border-bottom:1px solid ${BRAND.amber25};padding:13px 32px;">
+        <tr><td class="px" style="background:${BRAND.accent7};border-bottom:1px solid ${BRAND.accent25};padding:13px 32px;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-            <td valign="middle">${microLabel(digestName, BRAND.amber)}</td>
+            <td valign="middle">${microLabel(digestName, BRAND.accent)}</td>
             <td align="right" valign="middle" style="font:500 12px/1.3 ${FONT};color:${BRAND.meta};">${esc(dateStr)}</td>
           </tr></table>
         </td></tr>
 
         <!-- Key signal -->
-        <tr><td class="px" style="background:${BRAND.amber4};border-bottom:1px solid ${BRAND.amber20};padding:26px 32px 26px;">
-          <div style="margin:0 0 10px;">${microLabel("Today's key signal", BRAND.amber, '0.2em')}</div>
+        <tr><td class="px" style="background:${BRAND.accent4};border-bottom:1px solid ${BRAND.accent20};padding:26px 32px 26px;">
+          <div style="margin:0 0 10px;">${microLabel("Today's key signal", BRAND.accent, '0.2em')}</div>
           <h1 class="title" style="margin:0;font:800 26px/1.25 ${FONT};letter-spacing:-0.02em;color:${BRAND.text};">${esc(brief.title_line)}</h1>
           ${ledeHtml}
           <p style="margin:14px 0 0;font:500 12px/1.4 ${FONT};color:${BRAND.meta};">${esc(countLine)}</p>
@@ -274,8 +273,8 @@ function renderDigestEmail({ digestName, dateStr, scannedCount, brief, inboxUrl,
         <!-- CTA -->
         <tr><td class="px" align="left" style="padding:32px 32px 36px;">
           <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-            <td style="background:${BRAND.amber};">
-              <a href="${esc(safeUrl(inboxUrl))}" style="display:inline-block;padding:14px 24px;font:800 12px/1 ${FONT};letter-spacing:0.1em;text-transform:uppercase;color:${BRAND.onAmber};text-decoration:none;">Open in MergeRSS</a>
+            <td style="background:${BRAND.accent};">
+              <a href="${esc(safeUrl(inboxUrl))}" style="display:inline-block;padding:14px 24px;font:800 12px/1 ${FONT};letter-spacing:0.1em;text-transform:uppercase;color:${BRAND.onAccent};text-decoration:none;">Open in MergeRSS</a>
             </td>
           </tr></table>
         </td></tr>

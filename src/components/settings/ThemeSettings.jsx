@@ -45,7 +45,7 @@ function applyHCOverrides(isHC) {
     root.style.setProperty('--muted-foreground', '0 0% 85%');   /* Lighter text (8:1 on muted) */
     root.style.setProperty('--input', '0 0% 20%');              /* Lighter input for visibility */
     root.style.setProperty('--destructive', '0 100% 45%');      /* Brighter red for visibility */
-    root.style.setProperty('--ring', '43 96% 56%');             /* Maintain accent for focus */
+    root.style.setProperty('--ring', '263 70% 64%');             /* Maintain accent for focus */
   } else {
     // Remove inline overrides so CSS vars take back control
     root.style.removeProperty('--background');

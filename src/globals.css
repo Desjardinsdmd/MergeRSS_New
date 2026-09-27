@@ -14,7 +14,7 @@
     --popover-foreground: 36 30% 93%;
 
     /* Brand accent (dynamic, defaults to amber) */
-    --accent-primary: 43 96% 56%;     /* amber-400 #fbbf24 */
+    --accent-primary: 263 70% 64%;     /* brand violet #9463e3 */
     --accent-primary-foreground: 22 16% 5%;  /* near-black on accent */
     --primary: var(--accent-primary);
     --primary-foreground: var(--accent-primary-foreground);
@@ -36,7 +36,7 @@
     /* Chrome */
     --border: 22 12% 18%;
     --input: 22 12% 14%;
-    --ring: 43 96% 56%;
+    --ring: 263 70% 64%;
     --radius: 0.375rem;
   }
 
@@ -48,7 +48,7 @@
     --card-foreground: 36 30% 93%;
     --popover: 22 14% 9%;
     --popover-foreground: 36 30% 93%;
-    --primary: 43 96% 56%;
+    --primary: 263 70% 64%;
     --primary-foreground: 22 16% 5%;
     --secondary: 22 12% 13%;
     --secondary-foreground: 36 20% 80%;
@@ -60,7 +60,7 @@
     --destructive-foreground: 0 0% 98%;
     --border: 22 12% 18%;
     --input: 22 12% 14%;
-    --ring: 43 96% 56%;
+    --ring: 263 70% 64%;
   }
 
   /* High-contrast dark mode — WCAG AAA contrast (7:1+) */
@@ -71,7 +71,7 @@
     --card-foreground: 0 0% 100%;
     --popover: 0 0% 8%;
     --popover-foreground: 0 0% 100%;
-    --primary: 38 100% 50%;               /* Brighter accent for HC */
+    --primary: 263 80% 70%;               /* Brighter accent for HC */
     --primary-foreground: 0 0% 0%;
     --secondary: 0 0% 15%;                /* Darker grays for contrast */
     --secondary-foreground: 0 0% 100%;
@@ -83,7 +83,7 @@
     --destructive-foreground: 0 0% 0%;
     --border: 0 0% 100%;                  /* White borders */
     --input: 0 0% 20%;
-    --ring: 38 100% 50%;
+    --ring: 263 80% 70%;
   }
 
   /* Light mode — WCAG AAA contrast ratios (7:1+) */
@@ -94,7 +94,7 @@
     --card-foreground: 22 16% 5%;       /* 19:1 contrast (AAA) */
     --popover: 0 0% 100%;
     --popover-foreground: 22 16% 5%;
-    --primary: 38 92% 44%;              /* amber-500 – slightly adjusted for consistency */
+    --primary: 263 60% 52%;             /* brand violet, darkened for light mode */
     --primary-foreground: 0 0% 0%;      /* pure black on accent (21:1) */
     --secondary: 22 16% 18%;            /* darker stone for better contrast */
     --secondary-foreground: 0 0% 100%;
@@ -106,7 +106,7 @@
     --destructive-foreground: 0 0% 100%;
     --border: 36 15% 82%;               /* slightly darker border for visibility */
     --input: 36 15% 90%;                /* input background */
-    --ring: 38 92% 44%;                 /* focus ring */
+    --ring: 263 60% 52%;                 /* focus ring */
   }
 }
 
