@@ -82,12 +82,19 @@ export default function BulkImportDialog({ open, onOpenChange, onSuccess, curren
     }
 
     setLoading(true);
-    const response = await base44.functions.invoke('bulkImportSources', {
-      content,
-      format,
-      digest_name: mode === 'digest' ? digestName : null,
-      add_to_directory: mode === 'directory',
-    });
+    let response;
+    try {
+      response = await base44.functions.invoke('bulkImportSources', {
+        content,
+        format,
+        digest_name: mode === 'digest' ? digestName : null,
+        add_to_directory: mode === 'directory',
+      });
+    } catch (err) {
+      setLoading(false);
+      toast.error(err?.response?.data?.error || err?.message || 'Import failed');
+      return;
+    }
     setLoading(false);
 
     if (response.data?.error) {
@@ -95,6 +102,8 @@ export default function BulkImportDialog({ open, onOpenChange, onSuccess, curren
       return;
     }
 
+    if (response.data?.digest_error) toast.error(`Sources imported, but the digest was not created: ${response.data.digest_error}`);
+    (response.data?.digest_warnings || []).forEach(w => toast.warning(w));
     setResult(response.data);
     onSuccess?.();
   };
@@ -162,6 +171,12 @@ export default function BulkImportDialog({ open, onOpenChange, onSuccess, curren
                   ))}
                 </div>
               </div>
+            )}
+
+            {result.summary.duplicates > 0 && (
+              <p className="text-xs text-stone-400 text-center">
+                {result.summary.duplicates} source{result.summary.duplicates === 1 ? ' was' : 's were'} already in your library and skipped.
+              </p>
             )}
 
             {result.digest && (
