@@ -164,6 +164,15 @@ export default function DigestCard({ digest, onEdit, onDelete, onToggleStatus, o
               </div>
             </div>
 
+            {(digest.consecutive_skips > 0 || digest.auto_adjustment_note) && (
+              <div className="mt-2 rounded-md border border-amber-800/60 bg-amber-950/40 px-2 py-1.5 text-xs text-amber-300" role="status">
+                {digest.consecutive_skips > 0 && (
+                  <p>Not sent for the last {digest.consecutive_skips} scheduled {digest.consecutive_skips === 1 ? 'slot' : 'slots'}{digest.last_skip_reason ? `: ${digest.last_skip_reason}` : ''}.</p>
+                )}
+                {digest.auto_adjustment_note && <p className="text-amber-400/80">{digest.auto_adjustment_note}</p>}
+              </div>
+            )}
+
             {/* Last sent + Run Now */}
             <div className="flex items-center justify-between mt-2">
               {digest.last_sent ? (
