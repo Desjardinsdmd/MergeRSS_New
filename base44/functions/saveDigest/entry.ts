@@ -142,7 +142,11 @@ Deno.serve(async (req) => {
 
         // Plan limit on create.
         if (!existing && !isPremium && !teamPlan) {
-            const own = extractItems(await svc.Digest.filter({ created_by: user.email }, '-created_date', FREE_DIGEST_LIMIT + 1, 0, ['id']));
+            // Shared digests in the caller's live Team-plan workspace don't count (see header).
+            const ownTeam = team || await activeMembership(svc, user.email);
+            const exemptWs = ownTeam?.ws?.plan === 'team' ? ownTeam.ws.id : null;
+            const own = extractItems(await svc.Digest.filter({ created_by: user.email }, '-created_date', 200, 0, ['id', 'workspace_id']))
+                .filter(d => !(exemptWs && d.workspace_id === exemptWs));
             if (own.length >= FREE_DIGEST_LIMIT) {
                 return Response.json({
                     error: `Free plan limit reached: you can have up to ${FREE_DIGEST_LIMIT} digests. Upgrade to Premium for unlimited digests.`,
