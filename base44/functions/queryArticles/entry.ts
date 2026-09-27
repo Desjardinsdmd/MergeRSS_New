@@ -16,7 +16,9 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
  *   since?, until?   ISO dates on published_date
  *   min_score?       number    importance_score >= n
  *   category?        string
- *   author?, q?      string    case-insensitive match on author / title
+ *   author?          string    case-insensitive match on author
+ *   q?               string    case-insensitive keyword match on title / description / ai_summary / content,
+ *                              across the caller's full history (not just the latest page)
  *   enrichment_status? string
  *   sort?            '-published_date' (default) | '-importance_score'
  *   limit?           number    max 500 (default 100)
@@ -38,6 +40,38 @@ function extractItems(raw) {
     return [];
 }
 const escapeRegex = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const SEARCH_FIELDS = ['title', 'description', 'ai_summary', 'content'];
+const SCAN_CAP = 5000;
+const SCAN_PAGE = 500;
+
+/**
+ * Keyword search over the (already tenant-scoped) base query. Tries a server-side $or/$regex
+ * filter first; if the store rejects it, falls back to scanning up to SCAN_CAP items in pages
+ * (newest first) and filtering here. Either way the result is sorted and capped to `limit`.
+ */
+async function keywordSearch(svc, baseQuery, q, sort, limit) {
+    const rx = escapeRegex(q);
+    try {
+        const query = { ...baseQuery, $or: SEARCH_FIELDS.map(f => ({ [f]: { $regex: rx, $options: 'i' } })) };
+        return extractItems(await svc.FeedItem.filter(query, sort, limit));
+    } catch (err) {
+        console.warn('[queryArticles] $or/$regex search failed, scanning instead:', err?.message);
+    }
+    const needle = q.toLowerCase();
+    const matches = [];
+    for (let skip = 0; skip < SCAN_CAP; skip += SCAN_PAGE) {
+        const page = extractItems(await svc.FeedItem.filter(baseQuery, sort, SCAN_PAGE, skip));
+        for (const it of page) {
+            if (SEARCH_FIELDS.some(f => typeof it[f] === 'string' && it[f].toLowerCase().includes(needle))) {
+                matches.push(it);
+                if (matches.length >= limit) return matches;
+            }
+        }
+        if (page.length < SCAN_PAGE) break;
+    }
+    return matches;
+}
 
 Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
@@ -71,11 +105,16 @@ Deno.serve(async (req) => {
         if (body.category) query.category = String(body.category);
         if (body.enrichment_status) query.enrichment_status = String(body.enrichment_status);
         if (body.author) query.author = { $regex: escapeRegex(String(body.author).trim()), $options: 'i' };
-        if (body.q) query.title = { $regex: escapeRegex(String(body.q).trim()), $options: 'i' };
+        const q = typeof body.q === 'string' ? body.q.trim().slice(0, 200) : '';
 
         const sort = SORTS.has(body.sort) ? body.sort : '-published_date';
         const limit = Math.min(Math.max(Number(body.limit) || 100, 1), MAX_LIMIT);
-        const items = extractItems(await svc.FeedItem.filter(query, sort, limit));
+        let items;
+        if (q) {
+            items = await keywordSearch(svc, query, q, sort, limit);
+        } else {
+            items = extractItems(await svc.FeedItem.filter(query, sort, limit));
+        }
 
         let clusters = [];
         if (body.include_clusters) {
