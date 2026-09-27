@@ -80,26 +80,16 @@ export default function BulkFeedActions({ selectedIds, feeds, action: externalAc
   const handleCopyToDirectory = async () => {
     setLoading(true);
     try {
-      const dirFeeds = await base44.entities.DirectoryFeed.list();
-      const dirUrls = new Set(dirFeeds.map(f => f.url));
-      
+      // Sharing marks the user's own feeds public; publicDirectory lists them.
+      // (DirectoryFeed is the admin-curated list and is admin-write only.)
       let copied = 0;
       for (const feed of selectedFeeds) {
-        if (!dirUrls.has(feed.url)) {
-          await base44.entities.DirectoryFeed.create({
-            name: feed.name,
-            url: feed.url,
-            category: feed.category,
-            tags: feed.tags || [],
-            description: '',
-            added_count: 0,
-            upvotes: 0,
-            downvotes: 0,
-          });
+        if (!feed.is_public) {
+          await base44.entities.Feed.update(feed.id, { is_public: true });
           copied++;
         }
       }
-      toast.success(`${copied} feed(s) copied to directory${copied < selectedIds.length ? ` (${selectedIds.length - copied} already existed)` : ''}`);
+      toast.success(`${copied} feed(s) shared to the directory${copied < selectedIds.length ? ` (${selectedIds.length - copied} already shared)` : ''}`);
       onSuccess();
       setAction(null);
     } catch (err) {
