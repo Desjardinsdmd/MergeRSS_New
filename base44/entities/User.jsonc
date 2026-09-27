@@ -24,7 +24,14 @@
         "free",
         "premium"
       ],
-      "default": "free"
+      "default": "free",
+      "rls": {
+        "write": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "login_streak": {
       "type": "number",
@@ -51,6 +58,14 @@
     "interest_field": {
       "type": "string",
       "description": "Short label for the user's field (e.g. Multifamily development)"
+    },
+    "workspace_id": {
+      "type": "string",
+      "description": "Active team workspace id, if the user belongs to one"
+    },
+    "newsletter_address": {
+      "type": "string",
+      "description": "Per-user inbound newsletter address"
     }
   },
   "required": [
