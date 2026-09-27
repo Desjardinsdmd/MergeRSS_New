@@ -26,6 +26,7 @@ import InboxToolbar from '@/components/inbox/InboxToolbar';
 import { jsPDF } from 'jspdf';
 import { generatePremiumPdf } from '@/lib/generatePremiumPdf';
 import ReactMarkdown from 'react-markdown';
+import SavedArticles from '@/components/dashboard/SavedArticles';
 
 // Dark-theme markdown renderer for digest bodies. Raw HTML is not rendered (react-markdown
 // default), and every link goes through safeUrl and opens in a new tab.
@@ -71,6 +72,19 @@ export default function Inbox() {
 
   const [showItems, setShowItems] = useState(false);
   const [sortBy, setSortBy] = useState('newest');
+  const [tab, setTab] = useState(() => {
+    try { return new URLSearchParams(window.location.search).get('tab') === 'saved' ? 'saved' : 'briefings'; } catch { return 'briefings'; }
+  });
+
+  const switchTab = (next) => {
+    setTab(next);
+    try {
+      const url = new URL(window.location.href);
+      if (next === 'saved') url.searchParams.set('tab', 'saved'); else url.searchParams.delete('tab');
+      url.searchParams.delete('delivery_id');
+      window.history.replaceState(null, '', url.pathname + url.search);
+    } catch { /* ignore */ }
+  };
 
   React.useEffect(() => {
     base44.auth.me().then(setUser);
@@ -251,11 +265,37 @@ export default function Inbox() {
 
   return (
     <div className="p-6 lg:p-8 max-w-6xl mx-auto">
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="text-3xl font-bold text-stone-100 mb-1">Inbox</h1>
-        <p className="text-stone-500 text-sm">Your delivered digests and reading history</p>
+        <p className="text-stone-500 text-sm">Your delivered briefings and the stories you saved</p>
       </div>
 
+      <div role="tablist" aria-label="Inbox sections" className="flex gap-1 border-b border-stone-800 mb-6">
+        {[['briefings', 'Briefings'], ['saved', 'Saved']].map(([val, label]) => (
+          <button
+            key={val}
+            type="button"
+            role="tab"
+            id={`inbox-tab-${val}`}
+            aria-selected={tab === val}
+            aria-controls={`inbox-panel-${val}`}
+            onClick={() => switchTab(val)}
+            className={cn(
+              '-mb-px px-4 py-2 text-sm font-medium border-b-2 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] rounded-t',
+              tab === val ? 'border-[hsl(var(--primary))] text-stone-100' : 'border-transparent text-stone-500 hover:text-stone-300'
+            )}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'saved' ? (
+        <div role="tabpanel" id="inbox-panel-saved" aria-labelledby="inbox-tab-saved">
+          <SavedArticles user={user} />
+        </div>
+      ) : (
+      <div role="tabpanel" id="inbox-panel-briefings" aria-labelledby="inbox-tab-briefings">
       <div className="flex items-center justify-between gap-4 mb-6">
         <Select value={sortBy} onValueChange={setSortBy}>
           <SelectTrigger className="w-44 text-sm" aria-label="Sort digests">
@@ -433,6 +473,8 @@ export default function Inbox() {
           </div>
         </div>
       </div>
+      </div>
+      )}
 
       {/* Delivery Detail Dialog */}
       <Dialog open={!!selectedDelivery} onOpenChange={() => setSelectedDelivery(null)}>
