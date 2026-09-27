@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Rss, ArrowRight, ArrowLeft, Check, Loader2, Plus, Upload, Mail, Clock, Globe2,
   Sparkles, AlertCircle, CheckCircle2, Circle,
@@ -41,6 +41,16 @@ function withTimeout(promise, ms) {
 
 function errMessage(err, fallback) {
   return err?.response?.data?.error || err?.data?.error || err?.message || fallback;
+}
+
+const DIRECTORY_QUERY_KEY = ['welcome-directory'];
+async function fetchDirectory() {
+  try {
+    const res = await withTimeout(base44.functions.invoke('publicDirectory', { action: 'list' }), 12000);
+    return res?.data?.feeds || [];
+  } catch {
+    return [];
+  }
 }
 
 function hostOf(url) {
@@ -85,6 +95,7 @@ function ProgressRow({ state, label, detail }) {
 }
 
 export default function Welcome() {
+  const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
   const [step, setStep] = useState('field');
   const headingRef = useRef(null);
@@ -124,16 +135,9 @@ export default function Welcome() {
   useEffect(() => { headingRef.current?.focus(); }, [step]);
 
   // Prefetch the public directory while the user picks a field.
-  const { data: directory, isFetched: directoryFetched } = useQuery({
-    queryKey: ['welcome-directory'],
-    queryFn: async () => {
-      try {
-        const res = await withTimeout(base44.functions.invoke('publicDirectory', { action: 'list' }), 12000);
-        return res?.data?.feeds || [];
-      } catch {
-        return [];
-      }
-    },
+  useQuery({
+    queryKey: DIRECTORY_QUERY_KEY,
+    queryFn: fetchDirectory,
     staleTime: 10 * 60 * 1000,
     retry: false,
   });
@@ -171,10 +175,14 @@ export default function Welcome() {
     if (builtFor.current === signature && suggestions.length) return;
     builtFor.current = signature;
     setSuggestNote('');
-    let list = buildSuggestions(packIds, directory || [], { max: 12 });
+    setSuggestLoading(true);
+    let dir = [];
+    try {
+      dir = await queryClient.fetchQuery({ queryKey: DIRECTORY_QUERY_KEY, queryFn: fetchDirectory, staleTime: 10 * 60 * 1000 });
+    } catch { dir = []; }
+    let list = buildSuggestions(packIds, dir || [], { max: 12 });
 
     if (isCustom && customText.trim()) {
-      setSuggestLoading(true);
       try {
         const res = await withTimeout(base44.functions.invoke('suggestFeeds', {
           query: [customText.trim(), interestProfile.trim()].filter(Boolean).join('. ').slice(0, 400),
@@ -187,21 +195,14 @@ export default function Welcome() {
         if (!extra.length) setSuggestNote('We could not find verified feeds for that topic yet. Add your own URLs below, or pick a starter pack.');
       } catch {
         setSuggestNote('Finding sources for your topic took too long. Add your own URLs below, or go back and pick a starter pack.');
-      } finally {
-        setSuggestLoading(false);
       }
     }
+    setSuggestLoading(false);
 
-    setSuggestions(prev => {
-      const own = prev.filter(f => f.origin === 'own');
-      const keys = new Set(list.map(f => f.key));
-      return [...list, ...own.filter(f => !keys.has(f.key))];
-    });
-    setChecked(prev => {
-      const next = new Set([...prev].filter(k => list.some(f => f.key === k) || suggestions.some(f => f.origin === 'own' && f.key === k)));
-      list.forEach(f => next.add(f.key));
-      return next;
-    });
+    const keys = new Set(list.map(f => f.key));
+    const own = suggestions.filter(f => f.origin === 'own' && !keys.has(f.key));
+    setSuggestions([...list, ...own]);
+    setChecked(prev => new Set([...list.map(f => f.key), ...own.filter(f => prev.has(f.key)).map(f => f.key)]));
   };
 
   const goToSources = () => {
@@ -382,7 +383,7 @@ export default function Welcome() {
       <main className="max-w-2xl mx-auto px-4 py-8 sm:py-12">
         {/* ── Step 1: field ─────────────────────────────── */}
         {step === 'field' && (
-          <section aria-labelledby="welcome-step">
+          <section>
             <Heading sub="Pick up to three. We use this to choose starter sources and to rank stories by what matters to you.">
               What do you follow?
             </Heading>
@@ -477,11 +478,11 @@ export default function Welcome() {
               Your starter sources
             </Heading>
 
-            {(suggestLoading || (!directoryFetched && !suggestions.length)) && (
+            {suggestLoading && (
               <div className="flex items-center gap-3 p-4 mb-4 border border-stone-800 bg-stone-900/60 rounded-md" role="status">
                 <Loader2 className="w-4 h-4 animate-spin text-[hsl(var(--primary))]" aria-hidden="true" />
                 <span className="text-sm text-stone-400">
-                  {suggestLoading ? `Finding sources for "${customText.trim()}"…` : 'Loading sources…'}
+                  {isCustom && customText.trim() ? `Finding sources for "${customText.trim()}"…` : 'Loading sources…'}
                 </span>
               </div>
             )}
