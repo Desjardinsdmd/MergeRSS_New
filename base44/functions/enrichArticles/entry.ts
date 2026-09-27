@@ -41,84 +41,29 @@ const chunks = (arr, n) => Array.from({ length: Math.ceil(arr.length / n) }, (_,
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 const hostOf = (u) => { try { return new URL(u).hostname.toLowerCase().replace(/^www\./, ''); } catch { return ''; } };
 
-// Copied verbatim from enrichFeedItems (keep in sync until cutover). Determine which scoring lens to use based on category + content signals
-function pickLens(category, title, description, tags) {
-    const cat = (category || '').toLowerCase();
-    const text = ((title || '') + ' ' + (description || '') + ' ' + (tags || []).join(' ')).toLowerCase();
+// Base scoring lens. Articles are shared across users (one Article, many subscribers via
+// SourceItem -> Subscription), so there is no single owner whose User.interest_profile could
+// drive a per-owner lens the way enrichFeedItems does. The old hard-coded TCU / AI_TECH / MACRO
+// routing is gone; the shared base score uses the same general-importance lens enrichFeedItems
+// falls back to (keep in sync). Per-user relevance comes from CustomLens -> LensScore (step 3).
+const GENERAL_LENS = `LENS: General importance
+No reader profile is available. Score each article on general newsworthiness for an informed professional reader.
 
-    // CRE lens — direct CRE category OR cross-domain items touching Canadian RE
-    const creSignals = /\b(cmhc|mli select|purpose.built|multifamily|cap rate|construction cost|rent|zoning|housing policy|ottawa|gta|toronto condo|canadian real estate|commercial property|reit|industrial.*lease|office.*vacancy)\b/;
-    if (cat === 'cre' || creSignals.test(text)) return 'TCU';
+Score against: "How new, consequential and broadly relevant is this?"
+- 90-100: Major development with wide consequences (policy decision, market-moving event, landmark deal, systemic risk)
+- 70-89: Significant and novel for its field; many readers in that field would want to know
+- 50-69: Competent routine coverage, incremental updates
+- Below 50: Marketing, listicles, tutorials, reaction pieces, minor local items
 
-    // AI/Tech lens
-    if (cat === 'ai' || cat === 'tech') return 'AI_TECH';
-
-    // Macro lens — markets, finance, news, geopolitics
-    if (['markets', 'finance', 'news', 'geopolitics'].includes(cat)) return 'MACRO';
-
-    // Cross-domain detection for items without clean category
-    const macroSignals = /\b(interest rate|inflation|central bank|fed |tariff|trade war|gdp|recession|bond yield|monetary policy|fiscal|sanctions|geopolit)\b/;
-    if (macroSignals.test(text)) return 'MACRO';
-
-    const aiSignals = /\b(artificial intelligence|llm|gpt|transformer|neural|machine learning|deep learning|ai model|foundation model|openai|anthropic|google ai)\b/;
-    if (aiSignals.test(text)) return 'AI_TECH';
-
-    // Default to MACRO for uncategorized
-    return 'MACRO';
-}
-
-const LENS_PROMPTS = {
-    TCU: `LENS: TCU (Canadian Multifamily Developer)
-You are scoring for a Canadian GP/developer building purpose-built rental apartments (PBRA) in Ottawa and the GTA, financed through CMHC MLI Select.
-
-Score against: "Does this materially affect cap rates, construction costs, rent trajectories, debt availability, policy/zoning, or competitor behavior for this exact profile?"
-- 90-100: Reader would change a decision (start/stop a project, restructure financing, change market) because of this
-- 70-89: Material context — reader adjusts mental model but doesn't change a decision today
-- 50-69: General CRE interest but not specific to Canadian PBRA/CMHC financing
-- Below 50: Tangentially related or irrelevant noise
+Weigh three things: newsworthiness (is it actually news), novelty (is it new information, not a rehash), impact (how many people or how much money it affects).
 
 intelligence_tag rules:
-- "Opportunity" ONLY when article identifies a specific actionable opportunity for a Canadian PBRA developer (new program, market dislocation, policy opening) — NOT just "a company did a good deal"
-- "Risk" when it identifies a threat: rate hike impact, construction cost surge, policy tightening, vacancy spike, CMHC rule change
-- "Trending" when a topic is receiving unusual attention volume in CRE circles
-- "Neutral" for background context with no clear signal`,
+- "Opportunity" ONLY for a specific, broadly actionable opening (new program, market dislocation, regulatory clarity)
+- "Risk" for a concrete threat (tightening policy, credit stress, cost shock, demand drop)
+- "Trending" for an unusual surge of attention on a topic
+- "Neutral" for everything else. Default to Neutral when in doubt.`;
 
-    AI_TECH: `LENS: AI/Tech Investor
-You are scoring for a technology-aware investor tracking AI capability shifts, funding, M&A, enterprise adoption, and regulatory moves.
-
-Score against: "Does this move the AI frontier in capability, cost, or regulation — OR is it a meaningful business/investor signal?"
-- 90-100: Benchmark movement, major funding round with named institutional investors, regulatory action, paradigm shift
-- 70-89: Significant enterprise adoption signal, notable M&A, analyst piece with novel thesis
-- 50-69: Incremental product updates, competent but routine coverage
-- Below 50: Vendor product announcements, tutorials, demo videos, listicles
-
-DOWNRANK: vendor marketing, product launch press releases, "how to use X" tutorials, demo videos
-UPRANK: benchmark data, funding rounds with named lead investors, regulatory actions, analyst deep-dives
-
-intelligence_tag rules:
-- "Opportunity" ONLY for specific investable signals: new market opening, cost structure break, regulatory clarity
-- "Risk" for regulatory threat, competitive moat erosion, bubble indicators
-- "Trending" for unusual attention surge on a capability or company
-- "Neutral" for routine coverage`,
-
-    MACRO: `LENS: Institutional Macro
-You are scoring for an institutional investor who deploys capital across asset classes and needs to track durable macro signals.
-
-Score against: "Is this a durable macro signal that would change portfolio positioning or risk assessment?"
-- 90-100: Central bank decision, major policy shift, systemic risk event, trade regime change
-- 70-89: Leading indicator movement, significant regulatory proposal, major geopolitical escalation with economic consequence
-- 50-69: Single-stock earnings, daily market commentary, consumer news
-- Below 50: Routine market recap, opinion without data, social media reaction stories
-
-DOWNRANK: single-stock earnings transcripts, daily market color, consumer product news, celebrity/entertainment
-UPRANK: central bank decisions, inflation data releases, trade/tariff shifts, systemic risk signals, sovereign debt moves
-
-intelligence_tag rules:
-- "Opportunity" ONLY for specific capital deployment windows: rate pivot signal, distressed asset wave, regulatory arbitrage
-- "Risk" for systemic threats: credit tightening, contagion risk, policy uncertainty freezing capital
-- "Trending" for rapid attention shift on a macro theme
-- "Neutral" for background context`
-};
+const LENS_PROMPTS = { GENERAL: GENERAL_LENS };
 
 const RESULT_SCHEMA = (withEntities) => ({
     type: 'object',
@@ -293,8 +238,7 @@ Deno.serve(async (req) => {
         }
 
         // 2. Base scoring by lens
-        const byLens = { TCU: [], AI_TECH: [], MACRO: [] };
-        for (const a of toScore) byLens[pickLens(a.category, a.title, a.description, [])].push(a);
+        const byLens = { GENERAL: toScore };
         for (const [lensKey, arts] of Object.entries(byLens)) {
             if (!arts.length) continue;
             const payload = arts.map((a, i) => ({ index: i, title: (a.title || '').slice(0, 200), description: (a.description || '').slice(0, 400), category: a.category || '', source: hostOf(a.url) }));
