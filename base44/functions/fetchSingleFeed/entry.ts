@@ -146,7 +146,19 @@ Deno.serve(async (req) => {
         // Only allow the owner to trigger an immediate fetch
         if (feed.created_by !== user.email) return Response.json({ error: 'Forbidden' }, { status: 403 });
 
-        const items = await parseFeed(feed.url);
+        let items;
+        try {
+            items = await parseFeed(feed.url);
+        } catch (fetchErr) {
+            // Record the failure so the UI can show it; status transitions stay with the scheduled pipeline.
+            const msg = String(fetchErr?.message || 'Fetch failed').slice(0, 500);
+            await base44.asServiceRole.entities.Feed.update(feed_id, {
+                fetch_error: msg,
+                last_failure_at: new Date().toISOString(),
+                last_failure_reason: msg,
+            }).catch(() => {});
+            return Response.json({ success: false, error: msg, new_items: 0 });
+        }
 
         // Get existing items to avoid duplicates
         const existing = await base44.asServiceRole.entities.FeedItem.filter({ feed_id }, '-created_date', 300);
@@ -178,6 +190,7 @@ Deno.serve(async (req) => {
 
         await base44.asServiceRole.entities.Feed.update(feed_id, {
             last_fetched: new Date().toISOString(),
+            last_successful_fetch_at: new Date().toISOString(),
             item_count: (feed.item_count || 0) + itemsToCreate.length,
             status: 'active',
             fetch_error: '',
