@@ -4,19 +4,30 @@
   "properties": {
     "email_feed_id": {
       "type": "string",
-      "description": "Reference to the EmailFeed"
+      "description": "Reference to the EmailFeed (inbound address) this sender mails"
+    },
+    "owner_email": {
+      "type": "string",
+      "description": "Email of the user who owns this sender (tenant key)"
+    },
+    "feed_id": {
+      "type": "string",
+      "description": "Per-sender Feed that holds this sender's FeedItems (empty until the sender is within the plan limit)"
     },
     "from_email": {
       "type": "string",
-      "description": "Sender email address"
+      "description": "Sender email address (lowercase)"
     },
     "from_name": {
       "type": "string",
-      "description": "Sender name"
+      "description": "Sender display name"
     },
     "newsletter_name": {
       "type": "string",
       "description": "User-friendly name for the newsletter"
+    },
+    "sender_domain": {
+      "type": "string"
     },
     "subscribed_date": {
       "type": "string",
@@ -34,7 +45,25 @@
     "is_active": {
       "type": "boolean",
       "default": true,
-      "description": "Whether user is actively subscribed"
+      "description": "False when paused, over the plan limit or removed"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "paused",
+        "over_limit",
+        "removed"
+      ],
+      "default": "active",
+      "description": "active: emails become FeedItems. paused: user paused, emails stored only. over_limit: free plan source limit reached, emails stored only. removed: future emails ignored."
+    },
+    "paused_reason": {
+      "type": "string"
+    },
+    "list_unsubscribe": {
+      "type": "string",
+      "description": "Most recent List-Unsubscribe header value"
     }
   },
   "required": [
@@ -43,9 +72,16 @@
   ],
   "rls": {
     "read": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "$or": [
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     },
     "create": {
       "user_condition": {
