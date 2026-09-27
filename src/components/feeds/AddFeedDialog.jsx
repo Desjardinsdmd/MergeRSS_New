@@ -194,18 +194,12 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
           } catch {}
         }
 
-        await base44.entities.DirectoryFeed.create({
-          name: dirName,
-          url: formData.url,
-          category: formData.category,
-          tags: formData.tags || [],
-          description: dirDescription,
-          added_count: 0,
-          upvotes: 0,
-          downvotes: 0,
-        });
+        // User-shared feeds appear in the Directory through publicDirectory (Feed.is_public);
+        // DirectoryFeed is the admin-curated list and is admin-write only.
+        formData.public_description = dirDescription;
+        if (dirName && dirName !== formData.name && formData.name.includes('://')) formData.name = dirName;
       }
-      await base44.entities.Feed.update(editFeed.id, { name: formData.name, url: formData.url, category: formData.category, tags: formData.tags });
+      await base44.entities.Feed.update(editFeed.id, { name: formData.name, url: formData.url, category: formData.category, tags: formData.tags, is_public: !!formData.is_public, public_description: formData.public_description || '' });
       base44.analytics.track({ eventName: 'feed_edited', properties: { category: formData.category } });
     } else {
       const newFeed = await base44.entities.Feed.create({
