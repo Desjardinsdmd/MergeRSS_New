@@ -7,10 +7,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreVertical, Edit, Trash2, Pause, Play } from 'lucide-react';
+import { MoreVertical, Edit, Trash2, Pause, Play, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-export default function FeedCompactView({ feeds, selectedIds, onSelectionChange, onEdit, onDelete, onToggleStatus }) {
+export default function FeedCompactView({ feeds, selectedIds, onSelectionChange, onEdit, onDelete, onToggleStatus, onToggleShare }) {
   const handleSelectAll = (checked) => {
     if (checked) {
       onSelectionChange(feeds.map(f => f.id));
@@ -78,6 +78,12 @@ export default function FeedCompactView({ feeds, selectedIds, onSelectionChange,
                   </>
                 )}
               </DropdownMenuItem>
+              {onToggleShare && (
+                <DropdownMenuItem onClick={() => onToggleShare(feed)}>
+                  <Users className="w-4 h-4 mr-2" />
+                  {feed.workspace_id ? 'Stop sharing with team' : 'Share with team'}
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem
                 onClick={() => onDelete(feed)}
                 className="text-red-600 focus:bg-red-50 focus:text-red-600"
