@@ -4,29 +4,80 @@
   "properties": {
     "item_id": {
       "type": "string",
-      "description": "ID of the feed or digest being voted on"
+      "description": "Legacy: ID of the feed or digest being voted on (use target_id)"
     },
     "item_type": {
       "type": "string",
       "enum": [
         "feed",
         "digest"
-      ]
+      ],
+      "description": "Legacy: use target_type"
     },
     "vote": {
       "type": "string",
       "enum": [
         "up",
         "down"
-      ]
+      ],
+      "description": "Legacy: use value"
+    },
+    "target_type": {
+      "type": "string",
+      "enum": [
+        "feed",
+        "digest",
+        "directory_feed"
+      ],
+      "description": "What is being voted on"
+    },
+    "target_id": {
+      "type": "string",
+      "description": "ID of the item being voted on"
+    },
+    "value": {
+      "type": "number",
+      "enum": [
+        1,
+        -1
+      ],
+      "description": "1 = upvote, -1 = downvote"
     },
     "voter_email": {
-      "type": "string"
+      "type": "string",
+      "description": "Email of the voter; must equal the caller's email"
     }
   },
   "required": [
-    "item_id",
-    "item_type",
-    "vote"
-  ]
+    "voter_email"
+  ],
+  "rls": {
+    "create": {
+      "data.voter_email": "{{user.email}}"
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
 }
