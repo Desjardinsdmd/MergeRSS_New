@@ -7,7 +7,7 @@ import { CheckCircle2, AlertTriangle, AlertCircle, TrendingUp } from 'lucide-rea
 export default function SourceHealthDashboard() {
   const { data: healthData = [] } = useQuery({
     queryKey: ['admin-source-health'],
-    queryFn: () => base44.asServiceRole.entities.SourceHealth.list('-evaluated_at', 1000),
+    queryFn: () => base44.entities.SourceHealth.list('-evaluated_at', 1000),
     staleTime: 5 * 60 * 1000,
   });
 
