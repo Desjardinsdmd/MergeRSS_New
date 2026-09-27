@@ -45,6 +45,21 @@ function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 // ─────────────────────────────────────────────────────────────────────────────
 
+function isNewsletterFeed(feed) {
+    if (!feed) return false;
+    if (feed.source_type === 'newsletter') return true;
+    if (typeof feed.url === 'string' && feed.url.startsWith('newsletter://')) return true;
+    const meta = feed.metadata_json;
+    if (meta) {
+        if (typeof meta === 'object') return meta.newsletter === true;
+        if (typeof meta === 'string') {
+            try { if (JSON.parse(meta)?.newsletter === true) return true; } catch {}
+            if (/"newsletter"\s*:\s*true/.test(meta)) return true;
+        }
+    }
+    return false;
+}
+
 function makeRunId() { return `health_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`; }
 
 Deno.serve(async (req) => {
@@ -69,8 +84,10 @@ Deno.serve(async (req) => {
         } catch {}
 
         // ── Load all feeds ────────────────────────────────────────────────────
-        const feeds = await safeList(base44.asServiceRole.entities.Feed, undefined, 1000);
-        console.log(`[SourceHealth] Evaluating ${feeds.length} feeds`);
+        const allFeeds = await safeList(base44.asServiceRole.entities.Feed, undefined, 1000);
+        // Newsletter feeds are push-based (inbound email); quiet senders are not stale.
+        const feeds = allFeeds.filter(f => !isNewsletterFeed(f));
+        console.log(`[SourceHealth] Evaluating ${feeds.length} feeds (${allFeeds.length - feeds.length} newsletter feeds skipped)`);
 
         if (feeds.length === 0) {
             if (lockRecord?.id) {
