@@ -151,8 +151,10 @@ Deno.serve(async (req) => {
         }
 
         // ── list ──────────────────────────────────────────────────────────────
+        const ownerOf = {};
         const userFeeds = extractItems(await svc.Feed.filter({ is_public: true }, '-created_date', 500))
             .filter(f => !looksPrivate(f.url))
+            .map(f => { ownerOf[f.id] = f.created_by; return f; })
             .map(f => ({ ...pick(f, FEED_FIELDS), source: 'user' }));
         const curated = extractItems(await svc.DirectoryFeed.list('-created_date', 500))
             .filter(f => !looksPrivate(f.url))
@@ -167,6 +169,7 @@ Deno.serve(async (req) => {
         });
 
         const digestRecords = extractItems(await svc.Digest.filter({ is_public: true }, '-created_date', 500));
+        for (const d of digestRecords) ownerOf[d.id] = d.created_by;
         const digests = digestRecords.map(d => ({ ...pick(d, DIGEST_FIELDS), stored_added_count: d.added_count || 0 }));
 
         // Vote tallies.
@@ -201,9 +204,6 @@ Deno.serve(async (req) => {
             const ownDigests = await listAll(svc.Digest, { created_by: user.email }, '-created_date', 1000, ['id', 'name']);
             myDigestNames = new Set(ownDigests.map(d => (d.name || '').trim().toLowerCase()));
         }
-        const ownIds = new Set(user ? [
-            ...userFeeds.filter(f => extractOwner(f, user)).map(f => f.id),
-        ] : []);
 
         const decorate = (item, kind) => {
             const t = tallies[item.id] || { upvotes: 0, downvotes: 0 };
@@ -214,9 +214,10 @@ Deno.serve(async (req) => {
             delete out.stored_added_count;
             if (user) {
                 out.my_vote = myVotes[item.id] || null;
-                out.added_by_me = kind === 'digest'
+                out.is_mine = !!ownerOf[item.id] && ownerOf[item.id] === user.email;
+                out.added_by_me = out.is_mine || (kind === 'digest'
                     ? myDigestNames.has((item.name || '').trim().toLowerCase())
-                    : (myFeedDirIds.has(item.id) || myFeedKeys.has(urlKey(item.url)) || ownIds.has(item.id));
+                    : (myFeedDirIds.has(item.id) || myFeedKeys.has(urlKey(item.url))));
             }
             return out;
         };
@@ -232,7 +233,3 @@ Deno.serve(async (req) => {
     }
 });
 
-// Picked feed rows carry no owner field, so ownership is detected via added_by_me URL match instead.
-function extractOwner(_f, _user) {
-    return false;
-}
