@@ -679,11 +679,20 @@ Deno.serve(async (req) => {
     }
 
     // ── Load feeds ─────────────────────────────────────────────────────────────
+    // Newsletter feeds (inbound email, see mailgunWebhook) have nothing to fetch: skip them so
+    // they are never marked errored or auto-paused.
+    function isNewsletterFeed(f) {
+        if (!f) return false;
+        if (f.source_type === 'newsletter') return true;
+        if (typeof f.url === 'string' && f.url.startsWith('newsletter://')) return true;
+        try { if (f.metadata_json && JSON.parse(f.metadata_json)?.newsletter === true) return true; } catch { /* ignore */ }
+        return false;
+    }
     let allFeeds = [];
     try {
         allFeeds = extractItems(await base44.asServiceRole.entities.Feed.filter(
             { status: { $in: ['active', 'error'] } }, 'last_fetched', 2000
-        ));
+        )).filter(f => !isNewsletterFeed(f));
     } catch (feedErr) {
         clearInterval(heartbeatTimer);
         console.error(`[fetchFeeds][${instanceId}] Failed to load feeds:`, feedErr.message);
