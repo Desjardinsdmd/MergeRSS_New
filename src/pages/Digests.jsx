@@ -155,7 +155,9 @@ export default function Digests() {
 
   const isPremium = user?.plan === 'premium';
   const maxDigests = getLimit(isPremium, 'digests');
-  const canAddMore = allDigests.length < maxDigests;
+  // Personal digests count toward the plan limit; shared team briefings are checked server-side.
+  const personalDigestCount = allDigests.filter(d => !d.workspace_id).length;
+  const canAddMore = personalDigestCount < maxDigests;
 
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto">
@@ -167,7 +169,7 @@ export default function Digests() {
             Create and manage your curated content digests
             {!isPremium && (
               <span className="text-stone-600 ml-2">
-                ({allDigests.length}/{maxDigests} used)
+                ({personalDigestCount}/{maxDigests} used)
               </span>
             )}
             <Link to={createPageUrl('DigestReports')} className="ml-3 text-xs text-[hsl(var(--primary))] hover:underline">
@@ -199,7 +201,7 @@ export default function Digests() {
       )}
 
       {/* Free plan limit banner */}
-      {!isPremium && allDigests.length >= maxDigests && (
+      {!isPremium && personalDigestCount >= maxDigests && (
         <div className="mb-6 flex items-center justify-between gap-4 bg-stone-900 border border-stone-800 rounded-xl px-4 py-3">
           <p className="text-sm text-stone-400 font-medium">
             You've reached the {maxDigests}-digest limit on the Free plan. Upgrade to Premium for unlimited digests.
