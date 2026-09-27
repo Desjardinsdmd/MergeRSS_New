@@ -61,11 +61,25 @@
     },
     "workspace_id": {
       "type": "string",
-      "description": "Active team workspace id, if the user belongs to one"
+      "description": "Active team workspace id, set only by the server",
+      "rls": {
+        "write": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "newsletter_address": {
       "type": "string",
-      "description": "Per-user inbound newsletter address"
+      "description": "Per-user inbound newsletter address, set only by the server",
+      "rls": {
+        "write": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     }
   },
   "required": [
