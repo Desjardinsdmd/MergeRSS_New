@@ -129,6 +129,38 @@
     "downvotes": {
       "type": "number",
       "default": 0
+    },
+    "metadata_json": {
+      "type": "string",
+      "description": "Internal run metadata (last delivery nonce etc.)"
+    },
+    "consecutive_skips": {
+      "type": "number",
+      "default": 0,
+      "description": "Scheduled slots in a row that were skipped without sending. Reset on a successful send."
+    },
+    "last_skip_reason": {
+      "type": "string",
+      "description": "Why the most recent scheduled slot was skipped"
+    },
+    "last_skip_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the most recent skip was recorded"
+    },
+    "last_notified_skip_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the owner was last emailed about this digest being skipped"
+    },
+    "last_evaluated_slot": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Scheduled slot most recently evaluated (sent or skipped), so a skipped slot is not re-evaluated every hour"
+    },
+    "auto_adjustment_note": {
+      "type": "string",
+      "description": "What the system changed or ignored to keep this digest sending (pruned feeds, ignored tags)"
     }
   },
   "required": [
