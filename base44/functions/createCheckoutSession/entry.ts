@@ -48,6 +48,39 @@ Deno.serve(async (req) => {
             console.log(`[Checkout] BillingSubscription lookup failed: ${e.message}`);
         }
 
+        // Team plan: { plan: 'team', workspace_id }. Only the workspace's active owner can buy it;
+        // the workspace id from the client is checked against the caller's own membership.
+        // stripeWebhook routes subscriptions with metadata.plan === 'team' to Workspace.plan and
+        // never touches the owner's personal User.plan / BillingSubscription.
+        if (body.plan === 'team') {
+            const svc = base44.asServiceRole.entities;
+            const wsId = String(body.workspace_id || '');
+            const ws = wsId ? await svc.Workspace.get(wsId).catch(() => null) : null;
+            const me = (user.email || '').trim().toLowerCase();
+            const own = ws ? (await svc.WorkspaceMember.filter({ workspace_id: ws.id, user_email: me, status: 'active' }))
+                .find(m => m.role === 'owner') : null;
+            if (!ws || ws.status === 'deleted' || !own) {
+                return Response.json({ error: 'Only the workspace owner can upgrade it to Team' }, { status: 403 });
+            }
+            if (ws.plan === 'team') {
+                return Response.json({ error: 'This workspace is already on the Team plan' }, { status: 409 });
+            }
+            const teamPrice = Deno.env.get('STRIPE_TEAM_PRICE_ID');
+            if (!teamPrice) return Response.json({ error: 'Team plan is not configured yet' }, { status: 503 });
+            const meta = { plan: 'team', workspace_id: ws.id, user_id: user.id, user_email: user.email };
+            const teamSession = await stripe.checkout.sessions.create({
+                payment_method_types: ['card'],
+                line_items: [{ price: teamPrice, quantity: 1 }],
+                mode: 'subscription',
+                success_url: success_url || `${APP_ORIGIN}${createPageUrl('Team')}?payment=success`,
+                cancel_url: cancel_url || `${APP_ORIGIN}${createPageUrl('Team')}`,
+                ...(existingCustomerId ? { customer: existingCustomerId } : { customer_email: user.email }),
+                metadata: meta,
+                subscription_data: { metadata: meta },
+            });
+            return Response.json({ url: teamSession.url });
+        }
+
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             line_items: [{
