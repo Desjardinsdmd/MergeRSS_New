@@ -29,20 +29,23 @@ export default function BookmarkButton({ item, className = '' }) {
 
   return (
     <button
+      type="button"
       onClick={handleBookmark}
       title={saved ? 'Saved' : 'Save for later'}
-      className={`p-1.5 rounded-lg transition-colors ${
+      aria-label={saved ? 'Saved to Inbox' : 'Save for later'}
+      aria-pressed={saved}
+      className={`p-1.5 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] ${
         saved
           ? 'text-amber-400 bg-amber-950'
           : 'text-stone-600 hover:text-stone-400 hover:bg-stone-800'
       } ${className}`}
     >
       {loading ? (
-        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+        <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
       ) : saved ? (
-        <BookmarkCheck className="w-3.5 h-3.5" />
+        <BookmarkCheck className="w-3.5 h-3.5" aria-hidden="true" />
       ) : (
-        <Bookmark className="w-3.5 h-3.5" />
+        <Bookmark className="w-3.5 h-3.5" aria-hidden="true" />
       )}
     </button>
   );
