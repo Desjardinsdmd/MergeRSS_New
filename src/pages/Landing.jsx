@@ -354,35 +354,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── TESTIMONIALS ──────────────────────────────────────── */}
-      <section className="py-24 bg-[#0d0a06] border-t border-stone-800">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <FadeIn className="mb-12">
-            <h2 className="text-4xl md:text-5xl font-black tracking-tight text-stone-100">What they say</h2>
-          </FadeIn>
-          <div className="grid md:grid-cols-3 gap-px bg-stone-800/40">
-            {[
-              { quote: 'The ranked briefing format is exactly what I needed — I know what matters before my first meeting.', author: 'Early Beta User', role: 'Investment Professional' },
-              { quote: 'Replaced my morning tab-switching habit. One page, everything relevant.', author: 'Early Beta User', role: 'Founder' },
-              { quote: 'The signal-to-noise improvement over raw RSS is immediately obvious.', author: 'Early Beta User', role: 'Analyst' },
-            ].map((t, i) => (
-              <FadeIn key={i} delay={i * 70}>
-                <div className="bg-[#0d0a06] hover:bg-stone-900/40 transition-colors p-8 h-full flex flex-col">
-                  <div className="flex mb-4">
-                    {[...Array(5)].map((_, s) => <Star key={s} className="w-3.5 h-3.5 fill-[hsl(var(--primary))] text-[hsl(var(--primary))]" />)}
-                  </div>
-                  <p className="text-stone-200 text-sm font-medium leading-relaxed flex-1 mb-5">"{t.quote}"</p>
-                  <div>
-                    <p className="text-sm font-semibold text-stone-300">{t.author}</p>
-                    <p className="text-xs text-stone-600">{t.role}</p>
-                  </div>
-                </div>
-              </FadeIn>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ── FINAL CTA ─────────────────────────────────────────── */}
       <section className="py-28 border-t border-stone-800 bg-[#0a0805] relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_50%_100%,hsl(var(--primary))/0.08,transparent)]" />
