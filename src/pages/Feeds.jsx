@@ -33,6 +33,8 @@ import FeedListView from '@/components/feeds/FeedListView';
 import FeedCompactView from '@/components/feeds/FeedCompactView';
 import BulkImportDialog from '@/components/feeds/BulkImportDialog';
 import BulkFeedActions from '@/components/feeds/BulkFeedActions';
+import SharedSourcesSection from '@/components/feeds/SharedSourcesSection';
+import { useWorkspace, workspaceCall } from '@/components/feeds/workspaceApi';
 
 const DEFAULT_CATEGORIES = ['CRE', 'Markets', 'Tech', 'News', 'Finance', 'Crypto', 'AI', 'Other'];
 
@@ -58,6 +60,7 @@ export default function Feeds() {
   const [bulkDeleteMode, setBulkDeleteMode] = useState(false);
   const [bulkActionOpen, setBulkActionOpen] = useState(null); // 'tag', 'category', 'directory'
   const queryClient = useQueryClient();
+  const { workspace, canManage: canShareToTeam } = useWorkspace();
 
   useEffect(() => {
     const loadUser = async () => {
@@ -190,6 +193,25 @@ export default function Feeds() {
     queryClient.invalidateQueries({ queryKey: ['feeds'] });
     toast.success(`Feed ${newStatus === 'active' ? 'activated' : 'paused'}`);
   };
+
+  // Team sharing: only owners/editors can share their own sources (server re-checks).
+  const handleToggleShare = async (feed) => {
+    try {
+      if (feed.workspace_id) {
+        await workspaceCall('unshare_feed', { feed_id: feed.id });
+        toast.success(`"${feed.name}" is no longer shared`);
+      } else {
+        await workspaceCall('share_feed', { feed_id: feed.id });
+        toast.success(`"${feed.name}" is now shared with ${workspace?.name || 'your team'}`);
+      }
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      queryClient.invalidateQueries({ queryKey: ['feeds'] });
+      queryClient.invalidateQueries({ queryKey: ['shared-feeds'] });
+    }
+  };
+  const shareHandler = workspace && canShareToTeam ? handleToggleShare : undefined;
 
   const handleFetchFeeds = async () => {
     if (fetching) return;
@@ -374,6 +396,9 @@ export default function Feeds() {
         </div>
       </div>
 
+      {/* Team: shared sources */}
+      {workspace && <SharedSourcesSection workspace={workspace} canManage={canShareToTeam} />}
+
       {/* Feed List */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
@@ -448,6 +473,7 @@ export default function Feeds() {
                   onDelete={(f) => setDeleteConfirm(f)}
                   onToggleStatus={handleToggleStatus}
                   onRefresh={refetch}
+                  onToggleShare={shareHandler}
                 />
               ))}
             </div>
@@ -460,6 +486,7 @@ export default function Feeds() {
               onEdit={(f) => { setEditFeed(f); setShowAddDialog(true); }}
               onDelete={(f) => setDeleteConfirm(f)}
               onToggleStatus={handleToggleStatus}
+              onToggleShare={shareHandler}
             />
           )}
           {viewMode === 'compact' && (
@@ -470,6 +497,7 @@ export default function Feeds() {
               onEdit={(f) => { setEditFeed(f); setShowAddDialog(true); }}
               onDelete={(f) => setDeleteConfirm(f)}
               onToggleStatus={handleToggleStatus}
+              onToggleShare={shareHandler}
             />
           )}
         </>
