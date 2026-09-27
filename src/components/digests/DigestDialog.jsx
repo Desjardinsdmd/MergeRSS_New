@@ -24,6 +24,8 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2, X, Crown, Globe } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+import { saveDigestViaApi } from '@/components/feeds/sourceApi';
 
 const CATEGORIES = ['CRE', 'Markets', 'Tech', 'News', 'Finance', 'Crypto', 'AI', 'Other'];
 const TIMEZONES = [
@@ -57,12 +59,22 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
     delivery_email: false,
     delivery_slack: false,
     delivery_discord: false,
+    delivery_teams: false,
     slack_channel_id: '',
     discord_webhook_url: '',
     status: 'active',
     is_public: false,
     public_description: '',
   });
+
+  const defaultTimezone = () => {
+    if (user?.timezone) return user.timezone;
+    try {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/New_York';
+    } catch {
+      return 'America/New_York';
+    }
+  };
 
   useEffect(() => {
     const loadUser = async () => {
@@ -90,6 +102,7 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
         delivery_email: editDigest.delivery_email ?? false,
         delivery_slack: editDigest.delivery_slack ?? false,
         delivery_discord: editDigest.delivery_discord ?? false,
+        delivery_teams: editDigest.delivery_teams ?? false,
         status: editDigest.status || 'active',
         slack_channel_id: editDigest.slack_channel_id || '',
         discord_webhook_url: editDigest.discord_webhook_url || '',
@@ -107,12 +120,13 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
         schedule_time: '09:00',
         schedule_day_of_week: 1,
         schedule_day_of_month: 1,
-        timezone: 'America/New_York',
+        timezone: defaultTimezone(),
         output_length: 'medium',
         delivery_web: true,
         delivery_email: false,
         delivery_slack: false,
         delivery_discord: false,
+        delivery_teams: false,
         slack_channel_id: '',
         discord_webhook_url: '',
         status: 'active',
@@ -120,11 +134,13 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
         public_description: '',
       });
     }
-  }, [editDigest, open]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editDigest, open, user?.timezone]);
 
   const { data: feeds = [] } = useQuery({
     queryKey: ['feeds'],
-    queryFn: () => base44.entities.Feed.list(),
+    queryFn: () => base44.entities.Feed.filter({ created_by: user?.email }, '-created_date', 1000),
+    enabled: !!user?.email,
   });
 
   const { data: integrations = [] } = useQuery({
@@ -172,13 +188,18 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
       }
     }
 
-    if (editDigest) {
-      await base44.entities.Digest.update(editDigest.id, data);
-      base44.analytics.track({ eventName: 'digest_edited', properties: { frequency: data.frequency, delivery_slack: data.delivery_slack, delivery_discord: data.delivery_discord, delivery_email: data.delivery_email } });
-    } else {
-      await base44.entities.Digest.create(data);
-      base44.analytics.track({ eventName: 'digest_created', properties: { frequency: data.frequency, delivery_slack: data.delivery_slack, delivery_discord: data.delivery_discord, delivery_email: data.delivery_email } });
+    const result = await saveDigestViaApi(editDigest ? { id: editDigest.id, ...data } : data);
+    if (!result.ok) {
+      toast.error(result.error);
+      setLoading(false);
+      return;
     }
+    result.warnings.forEach(w => toast.warning(w));
+    base44.analytics.track({
+      eventName: editDigest ? 'digest_edited' : 'digest_created',
+      properties: { frequency: data.frequency, delivery_slack: data.delivery_slack, delivery_discord: data.delivery_discord, delivery_email: data.delivery_email },
+    });
+    toast.success(editDigest ? 'Digest updated' : 'Digest created');
 
     setLoading(false);
     onSuccess();
