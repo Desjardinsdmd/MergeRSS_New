@@ -193,10 +193,12 @@ export default function Directory() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    base44.auth.isAuthenticated().then(async (auth) => {
-      if (auth) setUser(await base44.auth.me());
-      setAuthLoading(false);
-    });
+    base44.auth.isAuthenticated()
+      .then(async (auth) => {
+        if (auth) setUser(await base44.auth.me());
+      })
+      .catch(() => {})
+      .finally(() => setAuthLoading(false));
   }, []);
 
   // One call returns public feeds (user-shared + curated), digests, vote tallies, add counts,
