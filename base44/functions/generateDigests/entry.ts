@@ -678,7 +678,7 @@ Deno.serve(async (req) => {
             }
             digests = d ? [d] : [];
         } else {
-            digests = extractItems(await base44.asServiceRole.entities.Digest.filter({ status: 'active' }));
+            digests = extractItems(await base44.asServiceRole.entities.Digest.filter({ status: 'active' }, '-created_date', 2000));
         }
 
         // Owner lookup (2026-09-26): one query for every digest owner. Used for the
