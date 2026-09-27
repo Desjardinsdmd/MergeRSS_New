@@ -6,6 +6,10 @@
       "type": "string",
       "description": "Reference to the Feed being evaluated"
     },
+    "feed_owner_email": {
+      "type": "string",
+      "description": "Email of the owner of the evaluated Feed (Feed.created_by). Set by computeSourceHealth so the owner can read their own feed health."
+    },
     "health_score": {
       "type": "number",
       "description": "Overall health score (0-100)"
@@ -121,5 +125,37 @@
     "feed_id",
     "health_score",
     "health_state"
-  ]
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.feed_owner_email": "{{user.email}}"
+        },
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }
