@@ -25,6 +25,38 @@ import { decodeHtml, safeUrl } from '@/components/utils/htmlUtils';
 import InboxToolbar from '@/components/inbox/InboxToolbar';
 import { jsPDF } from 'jspdf';
 import { generatePremiumPdf } from '@/lib/generatePremiumPdf';
+import ReactMarkdown from 'react-markdown';
+
+// Dark-theme markdown renderer for digest bodies. Raw HTML is not rendered (react-markdown
+// default), and every link goes through safeUrl and opens in a new tab.
+const DIGEST_MD_COMPONENTS = {
+  h1: ({ node, ...p }) => <h2 className="text-lg font-bold text-stone-100 mt-5 mb-2" {...p} />,
+  h2: ({ node, ...p }) => <h3 className="text-base font-bold text-stone-100 mt-5 mb-2" {...p} />,
+  h3: ({ node, ...p }) => <h4 className="text-sm font-semibold text-stone-200 mt-4 mb-1.5" {...p} />,
+  h4: ({ node, ...p }) => <h5 className="text-sm font-semibold text-stone-300 mt-3 mb-1" {...p} />,
+  p: ({ node, ...p }) => <p className="text-sm text-stone-400 leading-relaxed my-2" {...p} />,
+  ul: ({ node, ...p }) => <ul className="list-disc pl-5 my-2 space-y-1 text-sm text-stone-400" {...p} />,
+  ol: ({ node, ...p }) => <ol className="list-decimal pl-5 my-2 space-y-1 text-sm text-stone-400" {...p} />,
+  li: ({ node, ...p }) => <li className="leading-relaxed" {...p} />,
+  strong: ({ node, ...p }) => <strong className="font-semibold text-stone-200" {...p} />,
+  em: ({ node, ...p }) => <em className="italic" {...p} />,
+  blockquote: ({ node, ...p }) => <blockquote className="border-l-2 border-amber-400/60 pl-3 my-3 text-stone-500 italic" {...p} />,
+  hr: () => <hr className="my-4 border-stone-800" />,
+  code: ({ node, inline, ...p }) => <code className="bg-stone-800 text-amber-300 rounded px-1 py-0.5 text-xs" {...p} />,
+  pre: ({ node, ...p }) => <pre className="bg-stone-900 border border-stone-800 rounded p-3 overflow-x-auto text-xs my-3" {...p} />,
+  a: ({ node, href, children, ...p }) => (
+    <a
+      {...p}
+      href={safeUrl(href)}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-amber-400 underline underline-offset-2 hover:text-amber-300 break-words"
+    >
+      {children}
+    </a>
+  ),
+  img: () => null,
+};
 
 const SYSTEM_FOLDERS = ['Inbox', 'Starred'];
 
@@ -226,7 +258,7 @@ export default function Inbox() {
 
       <div className="flex items-center justify-between gap-4 mb-6">
         <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="w-44 text-sm">
+          <SelectTrigger className="w-44 text-sm" aria-label="Sort digests">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -333,8 +365,11 @@ export default function Inbox() {
                        )}
                      >
                       <button
+                         type="button"
                          className="mt-0.5 flex-shrink-0 text-stone-600 hover:text-amber-400 transition"
                          onClick={e => { e.stopPropagation(); toggleSelect(delivery.id); }}
+                         aria-label={isSelected ? 'Deselect digest' : 'Select digest'}
+                         aria-pressed={isSelected}
                        >
                          {isSelected
                            ? <div className="w-4 h-4 bg-amber-400 rounded flex items-center justify-center"><svg className="w-2.5 h-2.5 text-stone-900" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg></div>
@@ -347,7 +382,10 @@ export default function Inbox() {
                        </div>
 
                       <button
+                        type="button"
                         className="mt-0.5 flex-shrink-0"
+                        aria-label={delivery.is_favorited ? 'Remove from starred' : 'Star this digest'}
+                        aria-pressed={!!delivery.is_favorited}
                         onClick={async e => {
                           e.stopPropagation();
                           await base44.entities.DigestDelivery.update(delivery.id, { is_favorited: !delivery.is_favorited });
@@ -379,9 +417,11 @@ export default function Inbox() {
 
                       {/* Download PDF button (visible on hover) */}
                       <button
+                        type="button"
                         onClick={e => { e.stopPropagation(); handleDownloadPdf(delivery); }}
-                        className="opacity-0 group-hover:opacity-100 mt-0.5 flex-shrink-0 p-1 text-stone-600 hover:text-amber-400 transition"
+                        className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 mt-0.5 flex-shrink-0 p-1 text-stone-600 hover:text-amber-400 transition"
                         title="Download as PDF"
+                        aria-label={`Download ${getDigestName(delivery.digest_id) || 'digest'} as PDF`}
                       >
                         <Download className="w-4 h-4" />
                       </button>
@@ -416,6 +456,9 @@ export default function Inbox() {
                   <CheckCircle className="w-3 h-3 mr-1" />Delivered
                 </Badge>
                 <button
+                  type="button"
+                  aria-label={selectedDelivery.is_favorited ? 'Remove from starred' : 'Star this digest'}
+                  aria-pressed={!!selectedDelivery.is_favorited}
                   onClick={async () => {
                     await base44.entities.DigestDelivery.update(selectedDelivery.id, { is_favorited: !selectedDelivery.is_favorited });
                     setSelectedDelivery(prev => ({ ...prev, is_favorited: !prev.is_favorited }));
@@ -438,10 +481,14 @@ export default function Inbox() {
                 </div>
               )}
 
-              <div className="prose prose-sm max-w-none">
-                <div className="whitespace-pre-wrap text-stone-400">
-                  {selectedDelivery.content || 'No content available for this digest.'}
-                </div>
+              <div className="prose prose-sm prose-invert max-w-none text-stone-400">
+                {selectedDelivery.content ? (
+                  <ReactMarkdown components={DIGEST_MD_COMPONENTS}>
+                    {String(selectedDelivery.content)}
+                  </ReactMarkdown>
+                ) : (
+                  <p className="text-sm text-stone-500">No content available for this digest.</p>
+                )}
               </div>
 
               {selectedDelivery.items?.length > 0 && (
