@@ -58,6 +58,10 @@ Deno.serve(async (req) => {
     const {
       url,
       name,
+      feed_id = null,          // edit mode: re-resolve URL and update this (owned) feed in place
+      sourced_from_directory = false,
+      directory_feed_id = null,
+      skip_fetch = false,
       category = 'Other',
       tags = [],
       refresh_frequency = '1hour',
@@ -80,11 +84,32 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Invalid URL' }, { status: 400 });
     }
 
+    // Caller's existing feeds: used for dedupe, plan limit and edit-mode ownership.
+    const ownFeeds = await listOwnFeeds(base44, user.email);
+    let editTarget = null;
+    if (feed_id) {
+      editTarget = ownFeeds.find(f => f.id === feed_id) || null;
+      if (!editTarget) return Response.json({ error: 'Feed not found' }, { status: 404 });
+    } else {
+      const dup = findDuplicate(ownFeeds, [normalizedUrl, url.trim()]);
+      if (dup) return duplicateResponse(dup);
+      const isPremium = user.plan === 'premium' || user.role === 'admin';
+      if (!isPremium && ownFeeds.length >= FREE_FEED_LIMIT) {
+        return Response.json({
+          error: `Free plan limit reached: you can have up to ${FREE_FEED_LIMIT} sources. Upgrade to Premium for unlimited sources.`,
+          limit_reached: true,
+          limit: FREE_FEED_LIMIT,
+        }, { status: 403 });
+      }
+    }
+    const extra = { editTarget, ownFeeds, skipFetch: !!skip_fetch, sourcedFromDirectory: !!sourced_from_directory, directoryFeedId: directory_feed_id };
+
     // Step 1: Try native RSS detection
     // This reuses the existing RSS detection logic from generateRssFeed
     const rssResult = await tryNativeRss(normalizedUrl);
     if (rssResult.success) {
       return createSource({
+        ...extra,
         base44,
         user,
         originalUrl: normalizedUrl,
@@ -105,6 +130,7 @@ Deno.serve(async (req) => {
     const discoveryResult = await discoverRssFeeds(normalizedUrl);
     if (discoveryResult.success) {
       return createSource({
+        ...extra,
         base44,
         user,
         originalUrl: normalizedUrl,
@@ -139,6 +165,7 @@ Deno.serve(async (req) => {
     }
 
     return createSource({
+      ...extra,
       base44,
       user,
       originalUrl: normalizedUrl,
@@ -161,30 +188,130 @@ Deno.serve(async (req) => {
   }
 });
 
-// Helper: Create source in database
-async function createSource({ base44, user, originalUrl, sourceType, feedName, feedUrl, category, tags, metadata }) {
+const FREE_FEED_LIMIT = 50;
+
+function extractItems(raw) {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw;
+  if (Array.isArray(raw?.items)) return raw.items;
+  if (Array.isArray(raw?.data)) return raw.data;
+  return [];
+}
+
+async function listOwnFeeds(base44, email) {
+  const out = [];
+  for (let skip = 0; skip < 5000; skip += 500) {
+    const page = extractItems(await base44.asServiceRole.entities.Feed.filter(
+      { created_by: email }, '-created_date', 500, skip, ['id', 'name', 'url', 'resolved_url', 'original_submitted_url', 'status']));
+    out.push(...page);
+    if (page.length < 500) break;
+  }
+  return out;
+}
+
+// Loose URL key: scheme, leading www., trailing slash and case are ignored.
+function urlKey(u) {
+  if (!u) return '';
   try {
-    const newFeed = await base44.entities.Feed.create({
-      name: feedName || new URL(originalUrl).hostname,
+    const p = new URL(String(u).trim().startsWith('http') ? String(u).trim() : `https://${String(u).trim()}`);
+    return (p.hostname.replace(/^www\./, '') + p.pathname.replace(/\/+$/, '') + p.search).toLowerCase();
+  } catch {
+    return String(u).trim().toLowerCase();
+  }
+}
+
+function findDuplicate(feeds, urls, excludeId = null) {
+  const keys = new Set(urls.map(urlKey).filter(Boolean));
+  if (!keys.size) return null;
+  return feeds.find(f => f.id !== excludeId &&
+    [f.url, f.resolved_url, f.original_submitted_url].some(u => u && keys.has(urlKey(u)))) || null;
+}
+
+function duplicateResponse(feed) {
+  return Response.json({
+    success: true,
+    duplicate: true,
+    source_id: feed.id,
+    feed,
+    name: feed.name,
+    url: feed.url,
+    status: feed.status,
+    message: 'You already follow this source.',
+  });
+}
+
+// Kick off the first fetch so a new source shows articles right away. Scraped (generated)
+// sources have no parseable feed URL, so they are left to the scheduled pipeline.
+async function firstFetch(base44, feedId, sourceType) {
+  if (sourceType === 'generated') return { skipped: true };
+  try {
+    const res = await Promise.race([
+      base44.functions.invoke('fetchSingleFeed', { feed_id: feedId }),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('first fetch timed out')), 25000)),
+    ]);
+    return res?.data || { success: true };
+  } catch (e) {
+    console.warn('[addSource] first fetch failed:', e?.message);
+    return { success: false, error: e?.message || 'first fetch failed' };
+  }
+}
+
+// Helper: Create (or, in edit mode, update) source in database
+async function createSource({ base44, user, originalUrl, sourceType, feedName, feedUrl, category, tags, metadata,
+  editTarget = null, ownFeeds = [], skipFetch = false, sourcedFromDirectory = false, directoryFeedId = null }) {
+  try {
+    const resolvedFields = {
       url: feedUrl,
-      category,
-      tags: tags || [],
-      status: 'active',
-      item_count: 0,
       source_type: sourceType,
       original_submitted_url: originalUrl,
       resolved_url: feedUrl,
       validation_confidence: sourceType === 'rss_native' ? 100 : (sourceType === 'rss_discovered' ? 95 : 70),
       metadata_json: JSON.stringify(metadata || {}),
+    };
+
+    if (editTarget) {
+      const dup = findDuplicate(ownFeeds, [feedUrl], editTarget.id);
+      if (dup) {
+        return Response.json({ error: `You already follow this feed as "${dup.name}".`, duplicate: true, source_id: dup.id }, { status: 409 });
+      }
+      await base44.asServiceRole.entities.Feed.update(editTarget.id, {
+        ...resolvedFields,
+        status: 'active',
+        fetch_error: '',
+        consecutive_errors: 0,
+      });
+      const fetchResult = skipFetch ? null : await firstFetch(base44, editTarget.id, sourceType);
+      return Response.json({ success: true, updated: true, source_id: editTarget.id, url: feedUrl, sourceType, first_fetch: fetchResult });
+    }
+
+    // Discovery may have resolved to a feed URL the caller already has.
+    const dup = findDuplicate(ownFeeds, [feedUrl]);
+    if (dup) return duplicateResponse(dup);
+
+    const cleanTitle = (feedName || '').replace(/<!\[CDATA\[|\]\]>/g, '').trim();
+    const finalName = cleanTitle || new URL(originalUrl).hostname.replace(/^www\./, '');
+    const newFeed = await base44.entities.Feed.create({
+      name: finalName,
+      category,
+      tags: tags || [],
+      status: 'active',
+      item_count: 0,
+      ...resolvedFields,
+      ...(sourcedFromDirectory ? { sourced_from_directory: true } : {}),
+      ...(directoryFeedId ? { directory_feed_id: String(directoryFeedId) } : {}),
     });
+
+    const fetchResult = skipFetch ? null : await firstFetch(base44, newFeed.id, sourceType);
 
     return Response.json({
       success: true,
       source_id: newFeed.id,
-      name: feedName,
+      feed: newFeed,
+      name: finalName,
       url: feedUrl,
       sourceType,
       status: 'active',
+      first_fetch: fetchResult,
     });
   } catch (error) {
     console.error('[createSource] Error:', error);

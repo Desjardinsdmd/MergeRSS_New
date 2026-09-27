@@ -1,0 +1,67 @@
+{
+  "name": "BillingSubscription",
+  "type": "object",
+  "description": "Stripe billing subscription for a user. Written only by backend functions (service role).",
+  "properties": {
+    "user_email": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "stripe_customer_id": {
+      "type": "string"
+    },
+    "stripe_subscription_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "description": "Stripe subscription status (active, trialing, past_due, canceled, unpaid, incomplete, incomplete_expired)"
+    },
+    "plan": {
+      "type": "string",
+      "description": "premium or free"
+    },
+    "current_period_end": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "cancel_at_period_end": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "user_email"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
