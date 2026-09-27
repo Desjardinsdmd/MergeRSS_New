@@ -11,15 +11,22 @@ Deno.serve(async (req) => {
         const body = await req.json().catch(() => ({}));
         const { return_url } = body;
 
-        const subs = await base44.asServiceRole.entities.Subscription.filter({
-            $or: [
-                { created_by: user.email },
-                { user_id: user.id }
-            ]
-        });
+        // Billing records live in BillingSubscription (never the Source `Subscription` entity).
+        const email = (user.email || '').trim().toLowerCase();
+        let customerId = null;
+        const BS = base44.asServiceRole.entities.BillingSubscription;
+        let rows = await BS.filter({ user_email: email });
+        if (!rows.length && user.id) rows = await BS.filter({ user_id: user.id });
+        customerId = rows.find(r => r.stripe_customer_id)?.stripe_customer_id || null;
 
-        if (!subs.length || !subs[0].stripe_customer_id) {
-            return Response.json({ error: 'No active subscription found' }, { status: 404 });
+        // Fallback: look the customer up in Stripe by email.
+        if (!customerId && email) {
+            const customers = await stripe.customers.list({ email, limit: 1 });
+            customerId = customers.data[0]?.id || null;
+        }
+
+        if (!customerId) {
+            return Response.json({ error: 'No billing account found' }, { status: 404 });
         }
 
         // Use env-configured canonical origin; never trust caller-supplied origin header
@@ -35,7 +42,7 @@ Deno.serve(async (req) => {
         }
 
         const session = await stripe.billingPortal.sessions.create({
-            customer: subs[0].stripe_customer_id,
+            customer: customerId,
             return_url: return_url || `${APP_ORIGIN}/Settings`,
         });
 
