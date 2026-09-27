@@ -42,7 +42,8 @@ const TIMEZONES = [
 ];
 
 // `team`: the caller's workspace when they are its owner/editor (enables "Share with team").
-export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest = null, team = null }) {
+// `defaultShared`: start a NEW digest with sharing switched on.
+export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest = null, team = null, defaultShared = false }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [shareWithTeam, setShareWithTeam] = useState(false);
@@ -88,7 +89,7 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
   }, []);
 
   useEffect(() => {
-    setShareWithTeam(!!(team && editDigest?.workspace_id && editDigest.workspace_id === team.id));
+    setShareWithTeam(!!team && (editDigest ? editDigest.workspace_id === team.id : defaultShared));
     if (editDigest) {
       setFormData({
         name: editDigest.name || '',
@@ -255,7 +256,7 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{editDigest ? 'Edit Digest' : 'Create Digest'}</DialogTitle>
+          <DialogTitle>{editDigest ? (shareWithTeam ? 'Edit Shared Briefing' : 'Edit Digest') : (shareWithTeam ? 'Create Shared Briefing' : 'Create Digest')}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
