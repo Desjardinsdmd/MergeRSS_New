@@ -426,9 +426,29 @@ Deno.serve(async (req) => {
 
     // Plan limit check
     const FREE_FEED_LIMIT = 50;
-    const isPremium = user.plan === 'premium';
+    const isPremium = user.plan === 'premium' || user.role === 'admin';
+    const existingOwnFeeds = add_to_directory ? [] : ((await base44.asServiceRole.entities.Feed.filter(
+      { created_by: user.email }, '-created_date', 5000, 0, ['id', 'url', 'resolved_url', 'original_submitted_url'])) || []);
+    const urlKey = (u) => {
+      if (!u) return '';
+      try {
+        const p = new URL(String(u).trim().startsWith('http') ? String(u).trim() : `https://${String(u).trim()}`);
+        return (p.hostname.replace(/^www\./, '') + p.pathname.replace(/\/+$/, '') + p.search).toLowerCase();
+      } catch { return String(u).trim().toLowerCase(); }
+    };
+    const ownUrlKeys = new Set(existingOwnFeeds.flatMap(f => [f.url, f.resolved_url, f.original_submitted_url]).filter(Boolean).map(urlKey));
+    const skippedDuplicates = [];
+    if (!add_to_directory) {
+      // Dedupe against the caller's existing sources and within the import itself.
+      parsedSources = parsedSources.filter(s => {
+        const k = urlKey(s.url);
+        if (ownUrlKeys.has(k)) { skippedDuplicates.push(s.url); return false; }
+        ownUrlKeys.add(k);
+        return true;
+      });
+    }
     if (!isPremium && !add_to_directory) {
-      const existingFeeds = await base44.entities.Feed.filter({ created_by: user.email });
+      const existingFeeds = existingOwnFeeds;
       const remaining = FREE_FEED_LIMIT - existingFeeds.length;
       if (remaining <= 0) {
         return Response.json({ error: `Feed limit reached. Free plan allows ${FREE_FEED_LIMIT} feeds. Upgrade to Premium for unlimited feeds.` }, { status: 403 });
@@ -456,6 +476,10 @@ Deno.serve(async (req) => {
       try {
         // Step 1: Try native RSS
         const nativeRss = await tryNativeRss(normalizedUrl);
+        if (nativeRss.success && !add_to_directory && ownUrlKeys.has(urlKey(nativeRss.feedUrl)) && urlKey(nativeRss.feedUrl) !== urlKey(normalizedUrl)) {
+          results.push({ url: source.url, status: 'duplicate', sourceType: null, reason: 'Already in your sources' });
+          continue;
+        }
         if (nativeRss.success) {
           const feed = await createSourceRecord(base44, user, {
             originalUrl: normalizedUrl,
@@ -477,7 +501,12 @@ Deno.serve(async (req) => {
 
         // Step 2: Try RSS discovery
         const discovered = await discoverRssFeeds(normalizedUrl);
+        if (discovered.success && !add_to_directory && ownUrlKeys.has(urlKey(discovered.feedUrl))) {
+          results.push({ url: source.url, status: 'duplicate', sourceType: null, reason: 'Already in your sources' });
+          continue;
+        }
         if (discovered.success) {
+          ownUrlKeys.add(urlKey(discovered.feedUrl));
           const feed = await createSourceRecord(base44, user, {
             originalUrl: normalizedUrl,
             sourceType: 'rss_discovered',
@@ -546,20 +575,34 @@ Deno.serve(async (req) => {
       rss_discovered: results.filter(r => r.sourceType === 'rss_discovered').length,
       generated: results.filter(r => r.sourceType === 'generated').length,
       failed: results.filter(r => r.status === 'failed').length,
+      duplicates: skippedDuplicates.length + results.filter(r => r.status === 'duplicate').length,
     };
 
-    // If digest mode, create digest from created sources
+    // If digest mode, create digest from created sources — through saveDigest so the plan
+    // limit, feed ownership and timezone defaults apply exactly as in the UI.
     let digest = null;
+    let digestError = null;
+    const digestWarnings = [];
     if (digest_name && !add_to_directory) {
       const feedIds = results.filter(r => r.status === 'created').map(r => r.feedId);
       if (feedIds.length > 0) {
-        digest = await base44.entities.Digest.create({
-          name: digest_name,
-          frequency: 'daily',
-          feed_ids: feedIds,
-          delivery_web: true,
-          status: 'active',
-        });
+        try {
+          const res = await base44.functions.invoke('saveDigest', {
+            name: digest_name,
+            frequency: 'daily',
+            feed_ids: feedIds,
+            delivery_web: true,
+            status: 'active',
+          });
+          if (res?.data?.success) {
+            digest = res.data.digest;
+            digestWarnings.push(...(res.data.warnings || []));
+          } else {
+            digestError = res?.data?.error || 'Could not create digest';
+          }
+        } catch (e) {
+          digestError = e?.response?.data?.error || e?.message || 'Could not create digest';
+        }
       }
     }
 
@@ -567,6 +610,9 @@ Deno.serve(async (req) => {
       success: true,
       summary,
       digest: digest ? { id: digest.id, name: digest.name } : null,
+      digest_error: digestError,
+      digest_warnings: digestWarnings,
+      skipped_duplicates: skippedDuplicates,
       results,
     });
 
