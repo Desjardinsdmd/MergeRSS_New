@@ -455,6 +455,7 @@ export default function Directory() {
              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-600" />
              <Input
                placeholder="Search feeds and digests..."
+               aria-label="Search feeds and digests"
                value={search}
                onChange={(e) => setSearch(e.target.value)}
                className="pl-10 h-11 rounded-xl border-stone-800 bg-stone-900 text-stone-100 placeholder-stone-600 shadow-sm"
@@ -514,7 +515,7 @@ export default function Directory() {
             </Button>
           )}
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="h-8 text-xs w-32 rounded-lg">
+            <SelectTrigger className="h-8 text-xs w-32 rounded-lg" aria-label="Sort directory">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -609,7 +610,7 @@ export default function Directory() {
                       item={item}
                       itemType={item._type}
                       user={user}
-                      votes={votes}
+                      votingKey={votingKey}
                       onVote={handleVote}
                       onAdd={handleAdd}
                       addedItems={addedItems}
@@ -625,7 +626,7 @@ export default function Directory() {
                   {filteredFeeds.length === 0 ? <EmptyState search={search} /> : (
                   <div className="space-y-3">
                   {filteredFeeds.map(item => (
-                  <DirectoryCard key={item.id} item={item} itemType="feed" user={user} votes={votes} onVote={handleVote} onAdd={handleAdd} addedItems={addedItems} isSelected={selectedItems[`feed-${item.id}`]} onToggleSelect={toggleSelectItem} />
+                  <DirectoryCard key={item.id} item={item} itemType="feed" user={user} votingKey={votingKey} onVote={handleVote} onAdd={handleAdd} addedItems={addedItems} isSelected={selectedItems[`feed-${item.id}`]} onToggleSelect={toggleSelectItem} />
                   ))}
                   </div>
                   )}
@@ -635,7 +636,7 @@ export default function Directory() {
                   {filteredDigests.length === 0 ? <EmptyState search={search} /> : (
                   <div className="space-y-3">
                   {filteredDigests.map(item => (
-                  <DirectoryCard key={item.id} item={item} itemType="digest" user={user} votes={votes} onVote={handleVote} onAdd={handleAdd} addedItems={addedItems} isSelected={selectedItems[`digest-${item.id}`]} onToggleSelect={toggleSelectItem} />
+                  <DirectoryCard key={item.id} item={item} itemType="digest" user={user} votingKey={votingKey} onVote={handleVote} onAdd={handleAdd} addedItems={addedItems} isSelected={selectedItems[`digest-${item.id}`]} onToggleSelect={toggleSelectItem} />
                   ))}
                   </div>
                   )}
