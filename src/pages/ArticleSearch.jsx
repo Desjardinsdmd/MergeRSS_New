@@ -41,22 +41,24 @@ export default function ArticleSearch() {
     base44.auth.me().then(setUser);
   }, []);
 
-  // Debounce keyword into searchQuery to avoid re-fetching on every keystroke
+  // Debounce keyword into searchQuery (300ms) so the server is queried once typing pauses.
+  const [searchQuery, setSearchQuery] = useState('');
   const debounceRef = useRef(null);
   useEffect(() => {
     clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => setSearchQuery(keyword), 400);
+    debounceRef.current = setTimeout(() => setSearchQuery(keyword.trim()), 300);
     return () => clearTimeout(debounceRef.current);
   }, [keyword]);
-
-  const [searchQuery, setSearchQuery] = useState('');
 
   const { data: allItems = [], isLoading, isFetching } = useQuery({
     queryKey: ['allFeedItems', searchQuery, author, selectedCategory, dateFrom, dateTo],
     queryFn: async () => {
       // Server-side scoped to the user's own feeds. (The old filter on created_by matched
       // nothing for regular users, because articles are written by the fetch job.)
+      // The keyword is matched server-side (title / description / summary / content) across
+      // the user's full history, not just the newest 500 items.
       const params = { sort: '-published_date', limit: 500 };
+      if (searchQuery) params.q = searchQuery;
       if (selectedCategory) params.category = selectedCategory;
       if (author.trim()) params.author = author.trim();
       if (dateFrom) params.since = new Date(dateFrom).toISOString();
@@ -81,13 +83,10 @@ export default function ArticleSearch() {
     if (selectedArticle?.id === updated.id) setSelectedArticle(updated);
   };
 
-  // Client-side keyword filter + sort on already-fetched items
+  // Keyword filtering happens on the server; here we only sort the returned matches.
   const filtered = useMemo(() => {
-    const kw = keyword.trim().toLowerCase();
-    let list = !kw ? allItems : allItems.filter((item) => {
-      const haystack = `${item.title} ${item.description || ''} ${item.content || ''}`.toLowerCase();
-      return haystack.includes(kw);
-    });
+    const kw = searchQuery.toLowerCase();
+    const list = allItems;
     return [...list].sort((a, b) => {
       if (sortBy === 'newest') return new Date(b.published_date || 0) - new Date(a.published_date || 0);
       if (sortBy === 'oldest') return new Date(a.published_date || 0) - new Date(b.published_date || 0);
@@ -103,7 +102,7 @@ export default function ArticleSearch() {
       }
       return 0;
     });
-  }, [allItems, keyword, sortBy]);
+  }, [allItems, searchQuery, sortBy]);
 
   const hasFilters = keyword || author || selectedCategory || dateFrom || dateTo;
 
