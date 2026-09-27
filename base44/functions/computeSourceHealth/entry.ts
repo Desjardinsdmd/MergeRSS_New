@@ -120,6 +120,8 @@ Deno.serve(async (req) => {
             const feed = feeds[i];
             const feedItems = itemsByFeed[feed.id] || [];
             const health = evaluateFeedHealth(feed, feedItems);
+            // Owner stamp so users can read health for their own feeds (RLS on SourceHealth).
+            health.feed_owner_email = feed.created_by || null;
 
             try {
                 const existing = healthByFeedId[feed.id];
