@@ -7,14 +7,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreVertical, Edit, Trash2, Pause, Play, ExternalLink, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { MoreVertical, Edit, Trash2, Pause, Play, ExternalLink, ChevronDown, ChevronUp, Loader2, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { safeUrl, decodeHtml } from '@/components/utils/htmlUtils';
 import { base44 } from '@/api/base44Client';
 import SourceHealthIndicator from './SourceHealthIndicator';
 import { queryArticles, queryArticlesWithClusters, summarizeArticle } from '@/api/articles';
 
-export default function FeedListView({ feeds, selectedIds, onSelectionChange, onEdit, onDelete, onToggleStatus }) {
+export default function FeedListView({ feeds, selectedIds, onSelectionChange, onEdit, onDelete, onToggleStatus, onToggleShare }) {
   const [expandedFeedId, setExpandedFeedId] = useState(null);
   const [articlesByFeed, setArticlesByFeed] = useState({});
   const [loadingFeedId, setLoadingFeedId] = useState(null);
@@ -150,6 +150,12 @@ export default function FeedListView({ feeds, selectedIds, onSelectionChange, on
                         Open Feed
                       </a>
                     </DropdownMenuItem>
+                    {onToggleShare && (
+                      <DropdownMenuItem onClick={() => onToggleShare(feed)}>
+                        <Users className="w-4 h-4 mr-2" />
+                        {feed.workspace_id ? 'Stop sharing with team' : 'Share with team'}
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem
                       onClick={() => onDelete(feed)}
                       className="text-red-600 focus:bg-red-50 focus:text-red-600"
