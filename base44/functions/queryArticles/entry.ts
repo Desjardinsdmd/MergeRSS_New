@@ -3,8 +3,10 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 /**
  * queryArticles — the ONLY path the frontend uses to read articles and story clusters.
  *
- * Tenant rule: a user only ever sees articles from feeds they own. Requested feed_ids
- * are intersected with the caller's own feeds server-side; anything else is ignored.
+ * Tenant rule: a user only ever sees articles from feeds they own, plus feeds shared into
+ * their ACTIVE team workspace (Feed.workspace_id, resolved server-side from the caller's own
+ * active WorkspaceMember row, and only while the sharing member is still active). Requested
+ * feed_ids are intersected with that set server-side; anything else is ignored.
  * Admins can pass scope: 'all' for system-wide admin tooling.
  *
  * Storage is an implementation detail behind this function. Today it reads the legacy
@@ -24,6 +26,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
  *   limit?           number    max 500 (default 100)
  *   include_clusters? boolean  also return trimmed StoryCluster data for the items
  *   scope?           'mine' (default) | 'all' (admin only)
+ *   include_shared?  boolean   default true; false limits results to the caller's own feeds
  */
 
 const MAX_LIMIT = 500;
@@ -39,6 +42,22 @@ function extractItems(raw) {
     if (Array.isArray(raw?.data)) return raw.data;
     return [];
 }
+// Feeds shared into the caller's active team workspace. Never trusts client input.
+async function sharedFeedIds(svc, email) {
+    const me = String(email || '').trim().toLowerCase();
+    const rows = extractItems(await svc.WorkspaceMember.filter({ user_email: me, status: 'active' }, '-created_date', 5).catch(() => []));
+    for (const m of rows) {
+        const ws = await svc.Workspace.get(m.workspace_id).catch(() => null);
+        if (!ws || ws.status === 'deleted') continue;
+        const active = new Set(extractItems(await svc.WorkspaceMember.filter({ workspace_id: ws.id, status: 'active' }, '-created_date', 200))
+            .map(x => String(x.user_email || '').toLowerCase()));
+        return extractItems(await svc.Feed.filter({ workspace_id: ws.id }, '-created_date', 1000, 0, ['id', 'created_by']))
+            .filter(f => active.has(String(f.created_by || '').toLowerCase()))
+            .map(f => f.id);
+    }
+    return [];
+}
+
 const escapeRegex = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const SEARCH_FIELDS = ['title', 'description', 'ai_summary', 'content'];
@@ -87,6 +106,13 @@ Deno.serve(async (req) => {
         let ownFeedIds = null;
         if (!allScope) {
             ownFeedIds = new Set(extractItems(await svc.Feed.filter({ created_by: user.email }, '-created_date', 1000, 0, ['id'])).map(f => f.id));
+            if (body.include_shared !== false) {
+                const shared = await sharedFeedIds(svc, user.email).catch((e) => {
+                    console.warn('[queryArticles] shared feed lookup failed:', e?.message);
+                    return [];
+                });
+                for (const id of shared) ownFeedIds.add(id);
+            }
             const requested = Array.isArray(body.feed_ids) && body.feed_ids.length ? body.feed_ids : [...ownFeedIds];
             feedIds = requested.filter(id => ownFeedIds.has(id));
             if (!feedIds.length) return Response.json({ items: [], clusters: [] });
