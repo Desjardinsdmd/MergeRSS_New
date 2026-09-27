@@ -76,13 +76,24 @@ export default function Feeds() {
 
   const { data: feeds = [], isLoading } = useQuery({
     queryKey: ['feeds'],
-    queryFn: () => base44.entities.Feed.filter({ created_by: user?.email }, '-created_date'),
+    queryFn: () => base44.entities.Feed.filter({ created_by: user?.email }, '-created_date', 1000),
     enabled: !!user,
   });
 
+  // Health rows for the caller's own feeds only.
+  const feedIdKey = React.useMemo(() => feeds.map(f => f.id).sort().join(','), [feeds]);
   const { data: healthData = [], refetch } = useQuery({
-    queryKey: ['source-health'],
-    queryFn: () => base44.entities.SourceHealth.list('-evaluated_at', 1000),
+    queryKey: ['source-health', feedIdKey],
+    queryFn: async () => {
+      const ids = feeds.map(f => f.id);
+      const out = [];
+      for (let i = 0; i < ids.length; i += 200) {
+        const rows = await base44.entities.SourceHealth.filter({ feed_id: { $in: ids.slice(i, i + 200) } }, '-evaluated_at', 1000);
+        out.push(...(rows || []));
+      }
+      return out;
+    },
+    enabled: feeds.length > 0,
     staleTime: 5 * 60 * 1000,
   });
 
@@ -181,14 +192,28 @@ export default function Feeds() {
   };
 
   const handleFetchFeeds = async () => {
+    if (fetching) return;
     setFetching(true);
-    const response = await base44.functions.invoke('fetchFeeds');
-    queryClient.invalidateQueries({ queryKey: ['feeds'] });
-    queryClient.invalidateQueries({ queryKey: ['feedItems'] });
-    setFetching(false);
-    const results = response.data?.results || [];
-    const newItems = results.reduce((sum, r) => sum + (r.new_items || 0), 0);
-    toast.success(`Feeds refreshed — ${newItems} new items found`);
+    try {
+      // User-scoped refresh (fetchFeeds is admin/scheduler-only).
+      const response = await base44.functions.invoke('refreshMyFeeds', {});
+      const d = response?.data || {};
+      if (d.error) throw new Error(d.error);
+      const newItems = d.new_items || 0;
+      const parts = [`${d.refreshed || 0} source${d.refreshed === 1 ? '' : 's'} refreshed`, `${newItems} new item${newItems === 1 ? '' : 's'}`];
+      if (d.failed) parts.push(`${d.failed} failed`);
+      if (d.remaining) parts.push(`${d.remaining} more will refresh on schedule`);
+      if (d.failed && !d.refreshed) toast.error(`Refresh failed for ${d.failed} source${d.failed === 1 ? '' : 's'}`);
+      else if (!d.refreshed && !d.failed) toast.info('No active sources to refresh');
+      else toast.success(parts.join(' · '));
+    } catch (err) {
+      toast.error(`Refresh failed: ${err?.response?.data?.error || err?.message || 'unknown error'}`);
+    } finally {
+      queryClient.invalidateQueries({ queryKey: ['feeds'] });
+      queryClient.invalidateQueries({ queryKey: ['feedItems'] });
+      queryClient.invalidateQueries({ queryKey: ['source-health'] });
+      setFetching(false);
+    }
   };
 
   const isPremium = user?.plan === 'premium';
@@ -321,6 +346,8 @@ export default function Feeds() {
             size="sm"
             onClick={() => setViewMode('grid')}
             className="rounded"
+            aria-label="Grid view"
+            aria-pressed={viewMode === 'grid'}
           >
             <Grid3x3 className="w-4 h-4" />
           </Button>
@@ -329,6 +356,8 @@ export default function Feeds() {
             size="sm"
             onClick={() => setViewMode('list')}
             className="rounded"
+            aria-label="List view"
+            aria-pressed={viewMode === 'list'}
           >
             <List className="w-4 h-4" />
           </Button>
@@ -337,6 +366,8 @@ export default function Feeds() {
             size="sm"
             onClick={() => setViewMode('compact')}
             className="rounded"
+            aria-label="Compact view"
+            aria-pressed={viewMode === 'compact'}
           >
             <span className="text-xs font-semibold">≡</span>
           </Button>
