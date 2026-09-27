@@ -39,7 +39,132 @@ function zonedToUtc(y, m, d, h, mi, timeZone) {
     }
     return new Date(guess);
 }
-//@@HELPERS@@
+// Most recent scheduled slot <= now, or null if the digest has no schedule_time.
+// fallbackTz: the owner's User.timezone, used when the digest has none.
+function lastScheduledSlot(digest, now, fallbackTz) {
+    const t = digest.schedule_time;
+    if (!t || !/^\d{1,2}:\d{2}$/.test(t)) return null;
+    const [hh, mm] = t.split(':').map(Number);
+    const tz = digest.timezone || fallbackTz || 'America/New_York';
+    let local;
+    try { local = tzParts(now, tz); } catch { return null; }
+    for (let back = 0; back <= 31; back++) {
+        const probe = new Date(Date.UTC(local.y, local.m - 1, local.d) - back * 86400000);
+        const y = probe.getUTCFullYear(), m = probe.getUTCMonth() + 1, d = probe.getUTCDate();
+        const wd = probe.getUTCDay();
+        if (digest.frequency === 'weekly' && digest.schedule_day_of_week != null && wd !== digest.schedule_day_of_week) continue;
+        if (digest.frequency === 'monthly' && digest.schedule_day_of_month != null && d !== digest.schedule_day_of_month) continue;
+        const slot = zonedToUtc(y, m, d, hh, mm, tz);
+        if (slot <= now) return slot;
+    }
+    return null;
+}
+
+// Natural coverage window of a digest, in days.
+function naturalWindowDays(digest) {
+    if (digest.frequency === 'weekly') return 7;
+    if (digest.frequency === 'monthly') return 31;
+    return 1;
+}
+
+// ── Candidate selection (2026-09-26) ─────────────────────────────────────────
+// Rank by enrichment importance (falls back to recency), then drop near-duplicates:
+// same canonical URL, same normalized title, or same story cluster.
+function normUrl(u) {
+    try {
+        const x = new URL(String(u));
+        return (x.hostname.replace(/^www\./, '') + x.pathname.replace(/\/+$/, '')).toLowerCase();
+    } catch { return String(u || '').toLowerCase().trim(); }
+}
+function normTitle(t) {
+    return stripTags(t).toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, ' ').replace(/\s+/g, ' ').trim();
+}
+function selectCandidates(items, since, now, max) {
+    const span = Math.max(1, now.getTime() - since.getTime());
+    const ranked = items.map(i => {
+        const ts = new Date(i.published_date || i.created_date).getTime() || since.getTime();
+        const recency = Math.min(1, Math.max(0, (ts - since.getTime()) / span)); // 0 oldest .. 1 newest
+        const score = typeof i.importance_score === 'number' ? i.importance_score : null;
+        // Unscored items sit mid-pack; recency only breaks ties and nudges (max +5).
+        const rank = (score ?? 45) + recency * 5;
+        return { i, rank, ts };
+    }).sort((a, b) => (b.rank - a.rank) || (b.ts - a.ts));
+
+    const seenUrl = new Set(), seenTitle = new Set(), seenCluster = new Set();
+    const out = [];
+    for (const { i } of ranked) {
+        const u = normUrl(i.canonical_url || i.url);
+        const t = normTitle(i.title);
+        if ((u && seenUrl.has(u)) || (t && seenTitle.has(t)) || (i.cluster_id && seenCluster.has(i.cluster_id))) continue;
+        if (u) seenUrl.add(u);
+        if (t) seenTitle.add(t);
+        if (i.cluster_id) seenCluster.add(i.cluster_id);
+        out.push(i);
+        if (out.length >= max) break;
+    }
+    return out;
+}
+
+// ── Skip notices (2026-09-26) ──────────────────────────────────────────────
+const SKIP_REASON_TEXT = {
+    no_feeds: 'none of the feeds this digest used still exist in your account',
+    feeds_paused: 'all of the feeds it draws from are paused or failing',
+    no_items_in_categories: 'none of your feeds published anything in its categories during the period',
+    no_items_for_tags: 'none of your feeds published anything with its tags during the period',
+    no_items: 'none of its feeds published anything new during the period',
+};
+
+// ─── CANONICAL COPY: notifyOwner (source of truth: functions/notifyUser/entry.ts) ──
+const NOTIFY_PRIMARY = '#9463e3';
+const NOTIFY_FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif";
+function notifyEsc(s) {
+    return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function renderNotifyEmail({ heading, lines, ctaUrl, ctaLabel }) {
+    const paras = (lines || []).filter(Boolean).map(l =>
+        `<p style="margin:0 0 12px;font:400 14px/1.7 ${NOTIFY_FONT};color:#d6d3d1;">${notifyEsc(l)}</p>`).join('');
+    const cta = ctaUrl
+        ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:8px;"><tr><td style="background:${NOTIFY_PRIMARY};"><a href="${notifyEsc(ctaUrl)}" style="display:inline-block;padding:11px 18px;font:600 14px/1 ${NOTIFY_FONT};color:#1c1917;text-decoration:none;">${notifyEsc(ctaLabel || 'Open MergeRSS')}</a></td></tr></table>`
+        : '';
+    return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#0d0a06;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0d0a06;"><tr><td align="center" style="padding:24px 12px 40px;">
+<table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="width:560px;max-width:100%;">
+<tr><td style="padding:0 0 16px;font:700 18px/1 ${NOTIFY_FONT};color:#f5f5f4;">MergeRSS</td></tr>
+<tr><td style="background:#0c0a09;border:1px solid #292524;padding:24px;">
+<h1 style="margin:0 0 14px;font:700 19px/1.35 ${NOTIFY_FONT};color:#f5f5f4;">${notifyEsc(heading)}</h1>
+${paras}${cta}
+</td></tr>
+<tr><td style="padding:16px 0 0;font:400 12px/1.6 ${NOTIFY_FONT};color:#78716c;">You can turn these emails off in MergeRSS under Settings, Notification Preferences.</td></tr>
+</table></td></tr></table></body></html>`;
+}
+async function notifyOwner(base44, { email, pref, subject, heading, lines, ctaUrl, ctaLabel }) {
+    if (!email) return { sent: false, reason: 'no_email' };
+    let user = null;
+    try {
+        const raw = await base44.asServiceRole.entities.User.filter({ email }, '-created_date', 1);
+        const list = Array.isArray(raw) ? raw : (raw?.items || raw?.data || []);
+        user = list[0] || null;
+    } catch { user = null; }
+    if (!user) return { sent: false, reason: 'user_not_found' };
+    const prefs = (user.notification_prefs && typeof user.notification_prefs === 'object') ? user.notification_prefs : {};
+    if (prefs.emailNotifications === false) return { sent: false, reason: 'email_off' };
+    if (pref && prefs[pref] === false) return { sent: false, reason: `${pref}_off` };
+    try {
+        await base44.asServiceRole.integrations.Core.SendEmail({
+            to: email,
+            from_name: 'MergeRSS',
+            subject: String(subject || heading || 'MergeRSS').slice(0, 140),
+            body: renderNotifyEmail({ heading, lines, ctaUrl, ctaLabel }),
+        });
+        return { sent: true };
+    } catch (e) {
+        console.warn(`[notifyOwner] SendEmail failed for ${email}: ${e?.message}`);
+        return { sent: false, reason: 'send_failed' };
+    }
+}
+// ─── end CANONICAL COPY ─────────────────────────────────────────────────────
+
 
 // ═══ Email + brief helpers (added 2026-09-26) ═══════════════════════════════
 // ── Email design system: MergeRSS brand (see BRAND.md at the app root) ──
