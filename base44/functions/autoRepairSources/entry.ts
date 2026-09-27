@@ -74,27 +74,43 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get all feeds with degrading or failing health
-    const healthData = await base44.entities.SourceHealth.list('-evaluated_at', 1000);
-    const problematicFeeds = healthData.filter(h =>
-      h.health_state === 'failing' || h.health_state === 'degrading'
-    );
+    // Scope (2026-09-26): the scheduler runs as the app admin. An admin call with no
+    // explicit owner_email repairs degrading feeds for ALL users via the service role.
+    // An admin call with owner_email repairs only that user's feeds. A normal user
+    // only ever repairs their own feeds, through their own RLS-scoped client.
+    const body = await req.json().catch(() => ({}));
+    const isAdmin = user.role === 'admin';
+    const scopeEmail = isAdmin ? (body?.owner_email || null) : user.email;
+    const allUsers = isAdmin && !scopeEmail;
+    const db = isAdmin ? base44.asServiceRole.entities : base44.entities;
+
+    // Get all feeds with degrading or failing health (latest evaluation per feed)
+    const healthRaw = await db.SourceHealth.list('-evaluated_at', 1000);
+    const healthData = Array.isArray(healthRaw) ? healthRaw : (healthRaw?.items || healthRaw?.data || []);
+    const seenHealth = new Set();
+    const problematicFeeds = [];
+    for (const h of healthData) {
+      if (!h?.feed_id || seenHealth.has(h.feed_id)) continue;
+      seenHealth.add(h.feed_id);
+      if (h.health_state === 'failing' || h.health_state === 'degrading') problematicFeeds.push(h);
+    }
 
     if (problematicFeeds.length === 0) {
-      return Response.json({ repaired: 0, escalated: 0, results: [] });
+      return Response.json({ repaired: 0, escalated: 0, results: [], scope: allUsers ? 'all_users' : scopeEmail });
     }
 
     // Fetch corresponding Feed records
     const feedIds = problematicFeeds.map(h => h.feed_id);
-    const feeds = await base44.entities.Feed.filter(
-      { id: { $in: feedIds }, created_by: user.email }
-    );
+    const feedQuery = allUsers ? { id: { $in: feedIds } } : { id: { $in: feedIds }, created_by: scopeEmail };
+    const feedsRaw = await db.Feed.filter(feedQuery, '-created_date', 1000);
+    const feeds = Array.isArray(feedsRaw) ? feedsRaw : (feedsRaw?.items || feedsRaw?.data || []);
 
     const feedMap = Object.fromEntries(feeds.map(f => [f.id, f]));
     const results = [];
 
-    // Cap per run to avoid timeouts — scheduled every 6h so all feeds get coverage over time
-    const MAX_PER_RUN = 10;
+    // Cap per run to avoid timeouts — scheduled every 6h so all feeds get coverage over time.
+    // All-user runs get a larger cap; the 90s budget below still bounds wall time.
+    const MAX_PER_RUN = allUsers ? 20 : 10;
     const RUN_BUDGET_MS = 90_000; // 90 second hard budget
     const runStart = Date.now();
 
@@ -123,7 +139,7 @@ Deno.serve(async (req) => {
       }
 
       // Attempt repairs
-      const repairResult = await attemptRepairs(base44, feed, health);
+      const repairResult = await attemptRepairs({ entities: db }, feed, health);
       results.push(repairResult);
 
       // Update feed with repair tracking
@@ -145,7 +161,7 @@ Deno.serve(async (req) => {
         updateData.escalation_reason = repairResult.escalation_reason;
       }
 
-      await safeUpdate(base44.entities.Feed, feed.id, updateData);
+      await safeUpdate(db.Feed, feed.id, updateData);
       // Throttle between feeds to avoid 429 storms
       await sleep(300);
       processed++;
@@ -154,7 +170,7 @@ Deno.serve(async (req) => {
     const repaired = results.filter(r => r.status === 'resolved').length;
     const escalated = results.filter(r => r.status === 'failed').length;
 
-    return Response.json({ repaired, escalated, results });
+    return Response.json({ repaired, escalated, results, scope: allUsers ? 'all_users' : scopeEmail });
 
   } catch (error) {
     console.error('[autoRepairSources] Error:', error);
