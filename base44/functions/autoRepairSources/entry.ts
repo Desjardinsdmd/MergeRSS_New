@@ -125,6 +125,23 @@ Deno.serve(async (req) => {
       const feed = feedMap[health.feed_id];
       if (!feed) continue;
 
+      // Never touch manually paused feeds. A successful repair would set status back to
+      // 'active' and silently undo the pause. Only system pauses are eligible for repair.
+      if (feed.status === 'paused' && !feed.paused_by_system) {
+        continue;
+      }
+
+      // Skip feeds that are fetching fine right now. SourceHealth is evaluated daily, so a
+      // stale 'degrading' row otherwise burns a repair slot every 6h on a healthy feed.
+      const HEALTHY_WINDOW_MS = 24 * 3600000;
+      if (
+        (feed.consecutive_errors || 0) === 0 &&
+        feed.last_successful_fetch_at &&
+        Date.now() - new Date(feed.last_successful_fetch_at).getTime() < HEALTHY_WINDOW_MS
+      ) {
+        continue;
+      }
+
       // Skip if already actively repairing
       if (feed.repair_status === 'retrying' || feed.repair_status === 'repairing') {
         continue;
@@ -150,8 +167,11 @@ Deno.serve(async (req) => {
       };
 
       if (repairResult.actions.length > 0) {
+        // Keep only the most recent actions; this array previously grew without bound
+        // (thousands of entries on long-lived feeds).
+        const MAX_ACTION_HISTORY = 25;
         const existing = feed.repair_actions_taken || [];
-        updateData.repair_actions_taken = [...existing, ...repairResult.actions];
+        updateData.repair_actions_taken = [...existing, ...repairResult.actions].slice(-MAX_ACTION_HISTORY);
       }
 
       if (repairResult.status === 'resolved') {
