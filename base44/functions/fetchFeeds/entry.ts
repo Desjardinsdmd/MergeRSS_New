@@ -717,7 +717,11 @@ Deno.serve(async (req) => {
     const p95lag = finiteAges.length ? Math.round(finiteAges[Math.floor(0.95 * finiteAges.length)] / 60000) : 0;
     const maxLagMin = finiteAges.length ? Math.round(finiteAges[finiteAges.length - 1] / 60000) : 0;
     const overdueThreshMs = RUN_INTERVAL_MINUTES * 60 * 1000;
-    const overdueFeeds = allFeeds.filter(f => !f.last_fetched || (Date.now() - new Date(f.last_fetched).getTime()) > overdueThreshMs);
+    const overdueFeeds = allFeeds.filter(f =>
+        (!f.last_fetched || (Date.now() - new Date(f.last_fetched).getTime()) > overdueThreshMs) &&
+        // Honour rate-limit backoff on active feeds
+        (!f.retry_after_at || new Date(f.retry_after_at).getTime() <= Date.now())
+    );
     const feeds = overdueFeeds.slice(0, 120);
 
     console.log(`[fetchFeeds][${instanceId}] total=${allFeeds.length} overdue=${overdueFeeds.length} processing=${feeds.length} p50=${p50lag}min p95=${p95lag}min max=${maxLagMin}min`);
