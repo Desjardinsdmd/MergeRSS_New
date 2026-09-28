@@ -387,10 +387,12 @@ async function notifyFeedPaused(feed, fetchError, newConsecutive, base44) {
 
 async function handleFeedError(feed, fetchError, summary, base44) {
     const now = new Date().toISOString();
-    const newConsecutive = (feed.consecutive_errors || 0) + 1;
     const isRateLimit = fetchError.includes('429') || fetchError.toLowerCase().includes('rate limit');
+    // A 429 means the source is alive and throttling us. It must not count toward the
+    // dead-feed pause threshold; we back off instead.
+    const newConsecutive = isRateLimit ? (feed.consecutive_errors || 0) : (feed.consecutive_errors || 0) + 1;
     const isRecoverable = fetchError.startsWith('FEED_HTML') || fetchError.includes('404') || fetchError.startsWith('FEED_UNKNOWN');
-    const shouldPause = newConsecutive >= MAX_CONSECUTIVE_ERRORS;
+    const shouldPause = !isRateLimit && newConsecutive >= MAX_CONSECUTIVE_ERRORS;
 
     if (isRecoverable && newConsecutive >= 2 && !shouldPause) {
         recoverFeedUrl(feed.url).then(async newUrl => {
@@ -420,7 +422,13 @@ async function handleFeedError(feed, fetchError, summary, base44) {
         summary.auto_paused++;
     } else {
         feedUpdate.status = isRateLimit ? feed.status : 'error';
-        if (isRateLimit) summary.rate_limited++; else summary.error++;
+        if (isRateLimit) {
+            // Back off one hour so the next scheduled fetch skips this source.
+            feedUpdate.retry_after_at = new Date(Date.now() + 3600 * 1000).toISOString();
+            summary.rate_limited++;
+        } else {
+            summary.error++;
+        }
     }
 
     await base44.asServiceRole.entities.Feed.update(feed.id, feedUpdate).catch(dbErr => {
