@@ -54,6 +54,9 @@ Deno.serve(async (req) => {
       limit: 20,
     });
 
+    // Team subscriptions belong to a workspace (handled by stripeWebhook), never the personal plan.
+    subscriptions.data = subscriptions.data.filter((s) => s.metadata?.plan !== 'team');
+
     if (!subscriptions.data.length) {
       return Response.json({
         message: 'No subscriptions found for this customer',
