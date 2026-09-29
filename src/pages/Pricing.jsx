@@ -64,17 +64,31 @@ export default function Pricing() {
   const [user, setUser] = useState(null);
   const [loadingPlan, setLoadingPlan] = useState(null);
   const [error, setError] = useState('');
+  const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
     const loadUser = async () => {
       try {
         const isAuth = await base44.auth.isAuthenticated();
         if (!isAuth) return;
-        const userData = await base44.auth.me();
+        let userData = await base44.auth.me();
         setUser(userData);
         const params = new URLSearchParams(window.location.search);
-        if (params.get('payment') === 'success' && userData?.plan && userData.plan !== 'free') {
-          setTimeout(() => { window.location.href = createPageUrl('Dashboard'); }, 1500);
+        if (params.get('payment') === 'success') {
+          // Back from Stripe Checkout. Pull the subscription straight from Stripe so the upgrade
+          // doesn't depend on the webhook having landed yet.
+          setSyncing(true);
+          for (let attempt = 0; attempt < 4 && userData?.plan !== 'premium'; attempt += 1) {
+            try { await base44.functions.invoke('syncUserSubscription', {}); } catch { /* retry */ }
+            try { userData = await base44.auth.me(); setUser(userData); } catch { /* keep last */ }
+            if (userData?.plan !== 'premium') await new Promise((r) => setTimeout(r, 2500));
+          }
+          setSyncing(false);
+          if (userData?.plan === 'premium') {
+            setTimeout(() => { window.location.href = createPageUrl('Dashboard'); }, 1200);
+          } else {
+            setError('Payment received. Your upgrade is still being confirmed by Stripe; refresh this page in a minute.');
+          }
         }
       } catch {
         /* public page: signed-out is fine */
@@ -96,9 +110,15 @@ export default function Pricing() {
       window.location.href = createPageUrl('Dashboard');
       return;
     }
+    // Team is bought per workspace, and only the workspace owner can buy it. The Team page
+    // creates the workspace first and passes its id to checkout.
+    if (plan.id === 'team') {
+      window.location.href = createPageUrl('Team');
+      return;
+    }
     setLoadingPlan(plan.id);
     try {
-      const response = await base44.functions.invoke('createCheckoutSession', plan.id === 'team' ? { plan: 'team' } : {});
+      const response = await base44.functions.invoke('createCheckoutSession', {});
       const url = response?.data?.url;
       if (!url) throw new Error(response?.data?.error || 'Checkout is not available right now.');
       try { base44.analytics.track({ eventName: 'upgrade_checkout_opened', properties: { plan: plan.id } }); } catch { /* optional */ }
@@ -124,6 +144,13 @@ export default function Pricing() {
             Your briefing is free. Pay when you want more sources, more channels or a team.
           </p>
         </div>
+
+        {syncing && (
+          <p role="status" className="max-w-xl mx-auto mb-6 text-center text-sm text-stone-300 border border-stone-800 bg-stone-900 px-4 py-3 rounded-md flex items-center justify-center gap-2">
+            <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+            Confirming your payment with Stripe...
+          </p>
+        )}
 
         {error && (
           <p role="alert" className="max-w-xl mx-auto mb-6 text-center text-sm text-red-300 border border-red-900/50 bg-red-950/20 px-4 py-3 rounded-md">
