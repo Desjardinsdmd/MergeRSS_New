@@ -341,8 +341,17 @@ export default function Settings() {
                 <Button 
                   variant="outline"
                   onClick={async () => {
-                    const { data } = await base44.functions.invoke('createPortalSession', { return_url: window.location.href });
-                    if (data?.url) window.open(data.url, '_blank');
+                    try {
+                      const { data } = await base44.functions.invoke('createPortalSession', { return_url: window.location.href });
+                      if (data?.url) {
+                        // Same-tab redirect: a window.open after an await gets popup-blocked.
+                        window.location.href = data.url;
+                      } else {
+                        toast.error(data?.error || 'Could not open billing');
+                      }
+                    } catch (err) {
+                      toast.error(err?.response?.data?.error || err?.message || 'Could not open billing');
+                    }
                   }}
                   className="border-stone-700 text-stone-300 hover:bg-stone-800 w-full sm:w-auto"
                 >
