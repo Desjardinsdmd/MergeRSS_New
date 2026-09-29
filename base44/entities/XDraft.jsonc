@@ -1,0 +1,60 @@
+{
+  "name": "XDraft",
+  "type": "object",
+  "properties": {
+    "post_text": {
+      "type": "string"
+    },
+    "article_url": {
+      "type": "string",
+      "description": "Publisher's original URL, never a MergeRSS redirect"
+    },
+    "article_title": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Posted",
+        "Skipped"
+      ],
+      "default": "Draft"
+    },
+    "posted_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "publication_post_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "post_text"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

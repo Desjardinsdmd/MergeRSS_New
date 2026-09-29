@@ -31,7 +31,8 @@ import {
   Newspaper,
   SlidersHorizontal,
   Sun,
-  MailPlus
+  MailPlus,
+  Send
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeProvider } from '@/components/ThemeProvider';
@@ -71,6 +72,7 @@ const adminNav = [
   // Email Feeds (Gmail connector path) retired Sept 2026: superseded by the per-user
   // Mailgun newsletter inbox. Page + processGmailNewsletters kept for restore.
   { name: 'Publications', href: 'Publications', icon: Newspaper },
+  { name: 'X Drafts', href: 'Drafts', icon: Send },
   { name: 'Lenses', href: 'SettingsLenses', icon: SlidersHorizontal },
   { name: 'System Health', href: 'AdminHealth', icon: Activity },
   { name: 'Problem Reports', href: 'AdminReports', icon: AlertCircle },

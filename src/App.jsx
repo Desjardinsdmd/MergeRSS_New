@@ -11,6 +11,7 @@ import SettingsLenses from './pages/SettingsLenses';
 import Publications from './pages/Publications';
 import PublicationInbox from './pages/PublicationInbox';
 import PublicationVoice from './pages/PublicationVoice';
+import Drafts from './pages/Drafts';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 
@@ -71,6 +72,7 @@ const AuthenticatedApp = () => {
       <Route path="/Publications" element={<LayoutWrapper currentPageName="Publications"><Publications /></LayoutWrapper>} />
       <Route path="/PublicationInbox" element={<LayoutWrapper currentPageName="Publications"><PublicationInbox /></LayoutWrapper>} />
       <Route path="/PublicationVoice" element={<LayoutWrapper currentPageName="Publications"><PublicationVoice /></LayoutWrapper>} />
+      <Route path="/Drafts" element={<LayoutWrapper currentPageName="Drafts"><Drafts /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

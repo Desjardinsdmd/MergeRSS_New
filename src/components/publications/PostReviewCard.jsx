@@ -123,9 +123,9 @@ export default function PostReviewCard({ post, onUpdate }) {
     setActing(true);
     const res = await base44.functions.invoke('postToX', { post_id: post.id });
     if (res.data?.success) {
-      toast.success('Posted to X!');
+      toast.success('Saved to X Drafts');
     } else {
-      toast.error(res.data?.error || 'Post failed');
+      toast.error(res.data?.error || 'Could not save draft');
     }
     setActing(false);
     onUpdate();
@@ -315,7 +315,7 @@ export default function PostReviewCard({ post, onUpdate }) {
               <Button size="sm" onClick={handlePost} disabled={acting}
                 className="bg-[hsl(var(--primary))] text-stone-900 font-semibold">
                 {acting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Send className="w-4 h-4 mr-1" />}
-                Post Now
+                Send to Drafts
               </Button>
               <Button size="sm" variant="outline" onClick={handleMarkPosted} disabled={acting}
                 className="text-green-400 border-green-800 hover:bg-green-900/20">
@@ -332,9 +332,9 @@ export default function PostReviewCard({ post, onUpdate }) {
                 await base44.entities.PublicationPost.update(post.id, { status: 'approved', error_message: '' });
                 const res = await base44.functions.invoke('postToX', { post_id: post.id });
                 if (res.data?.success) {
-                  toast.success('Posted to X!');
+                  toast.success('Saved to X Drafts');
                 } else {
-                  toast.error(res.data?.error || 'Post failed again');
+                  toast.error(res.data?.error || 'Could not save draft');
                 }
                 setActing(false);
                 onUpdate();

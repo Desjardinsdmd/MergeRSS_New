@@ -95,9 +95,6 @@ export default function PublicationForm({ publication, onSave, onCancel }) {
         preferred_variant: publication.preferred_variant || 'wire',
         credentials_ref: publication.credentials_ref || '',
       });
-      if (publication.credentials_ref) {
-        try { setCreds(JSON.parse(publication.credentials_ref)); } catch {}
-      }
     }
   }, [publication]);
 
@@ -111,9 +108,8 @@ export default function PublicationForm({ publication, onSave, onCancel }) {
       return;
     }
     setSaving(true);
-    const credStr = creds.api_key ? JSON.stringify(creds) : '';
     const { schedule_crons, ...rest } = form;
-    const data = { ...rest, schedule_cron: schedule_crons.join(','), credentials_ref: credStr };
+    const data = { ...rest, schedule_cron: schedule_crons.join(','), credentials_ref: '' };
     // Compute next_run_at from earliest upcoming slot
     data.next_run_at = computeNextRun(schedule_crons);
     if (publication?.id) {
@@ -239,45 +235,6 @@ export default function PublicationForm({ publication, onSave, onCancel }) {
           <p className="text-xs text-stone-600 mt-1">Default variant for auto-post and manual review.</p>
         </div>
       </div>
-
-      {/* X Credentials */}
-      {form.channel_type === 'x' && (
-        <div className="border border-stone-800 rounded-lg p-4 space-y-4">
-          <div className="flex items-center justify-between">
-            <h4 className="text-sm font-medium text-stone-300">X API Credentials</h4>
-            <Button variant="ghost" size="sm" onClick={() => setShowSecrets(!showSecrets)}>
-              {showSecrets ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </Button>
-          </div>
-          <p className="text-xs text-stone-600">Your credentials are stored with the publication record. Get them from developer.x.com.</p>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div>
-              <Label className="text-stone-500 text-xs">API Key</Label>
-              <Input type={showSecrets ? 'text' : 'password'} value={creds.api_key}
-                onChange={e => setCreds({ ...creds, api_key: e.target.value })}
-                className="bg-stone-800 border-stone-700 text-stone-100 text-sm" />
-            </div>
-            <div>
-              <Label className="text-stone-500 text-xs">API Secret</Label>
-              <Input type={showSecrets ? 'text' : 'password'} value={creds.api_secret}
-                onChange={e => setCreds({ ...creds, api_secret: e.target.value })}
-                className="bg-stone-800 border-stone-700 text-stone-100 text-sm" />
-            </div>
-            <div>
-              <Label className="text-stone-500 text-xs">Access Token</Label>
-              <Input type={showSecrets ? 'text' : 'password'} value={creds.access_token}
-                onChange={e => setCreds({ ...creds, access_token: e.target.value })}
-                className="bg-stone-800 border-stone-700 text-stone-100 text-sm" />
-            </div>
-            <div>
-              <Label className="text-stone-500 text-xs">Access Token Secret</Label>
-              <Input type={showSecrets ? 'text' : 'password'} value={creds.access_token_secret}
-                onChange={e => setCreds({ ...creds, access_token_secret: e.target.value })}
-                className="bg-stone-800 border-stone-700 text-stone-100 text-sm" />
-            </div>
-          </div>
-        </div>
-      )}
 
       <div className="flex items-center gap-3">
         <Switch checked={form.auto_post} onCheckedChange={v => setForm({ ...form, auto_post: v })} />

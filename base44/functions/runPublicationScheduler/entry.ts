@@ -75,8 +75,8 @@ Deno.serve(async (req) => {
         // Post it
         try {
             await base44.asServiceRole.functions.invoke('postToX', { post_id: post.id });
-            console.log(`[runPublicationScheduler] Posted ${post.id} for ${pub.name}`);
-            results.push({ post_id: post.id, publication: pub.name, status: 'posted' });
+            console.log(`[runPublicationScheduler] Queued ${post.id} to X Drafts for ${pub.name}`);
+            results.push({ post_id: post.id, publication: pub.name, status: 'queued_draft' });
         } catch (postErr) {
             console.error(`[runPublicationScheduler] Post failed for ${post.id}: ${postErr.message}`);
             results.push({ post_id: post.id, publication: pub.name, error: postErr.message });
