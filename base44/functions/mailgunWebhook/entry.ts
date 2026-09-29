@@ -224,7 +224,7 @@ function guessCategory(text) {
 }
 
 function appUrl() {
-  return (Deno.env.get('BASE44_APP_URL') || 'https://mergerss.app').replace(/\/+$/, '');
+  return (Deno.env.get('BASE44_APP_URL') || 'https://mergerss.com').replace(/\/+$/, '');
 }
 
 function feedItemFromEmail(email, feed) {
