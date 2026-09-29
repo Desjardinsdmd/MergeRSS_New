@@ -20,6 +20,40 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 const FREE_FEED_LIMIT = 50; // sync with lib/planLimits.js PLAN_LIMITS.free.feeds
 const MAX_HTML = 150000;
+
+// Admin role addresses on MAILGUN_DOMAIN. The Mailgun plan allows one route (the catch-all), so
+// these are relayed from here instead of by separate routes. Destination: ADMIN_FORWARD_TO secret,
+// else the default below. User inbox addresses are <slug>.<6 chars>, so they can never collide.
+const ADMIN_LOCAL_PARTS = new Set(['support', 'postmaster', 'abuse']);
+const ADMIN_FORWARD_DEFAULT = 'desjardinsdmd@gmail.com';
+
+async function relayAdminMail(formData, headers, adminAddress, domain) {
+  const apiKey = Deno.env.get('MAILGUN_API_KEY') || '';
+  const region = (Deno.env.get('MAILGUN_REGION') || '').trim().toLowerCase();
+  const apiBase = (Deno.env.get('MAILGUN_API_BASE') || (region === 'eu' ? 'https://api.eu.mailgun.net' : 'https://api.mailgun.net')).replace(/\/+$/, '');
+  const to = Deno.env.get('ADMIN_FORWARD_TO') || ADMIN_FORWARD_DEFAULT;
+  const fromRaw = field(formData, 'from', 'From') || headers['from'] || field(formData, 'sender') || '';
+  const subject = (field(formData, 'subject', 'Subject') || headers['subject'] || '(no subject)').slice(0, 500);
+  const html = field(formData, 'body-html', 'stripped-html');
+  const text = field(formData, 'body-plain', 'stripped-text') || '';
+  const attachments = parseInt(field(formData, 'attachment-count') || '0', 10) || 0;
+  const note = `Forwarded from ${adminAddress}. Original sender: ${fromRaw}${attachments ? ` (${attachments} attachment(s) not forwarded)` : ''}`;
+
+  const form = new FormData();
+  form.append('from', `MergeRSS Relay <relay@${domain}>`);
+  form.append('to', to);
+  form.append('subject', `[${adminAddress.split('@')[0]}@] ${subject}`);
+  if (fromRaw) form.append('h:Reply-To', fromRaw);
+  form.append('text', `${note}\n\n${text}`);
+  if (html) form.append('html', `<p style="font-family:sans-serif;font-size:12px;color:#666">${note.replace(/</g, '&lt;')}</p><hr>${html}`);
+
+  const res = await fetch(`${apiBase}/v3/${domain}/messages`, {
+    method: 'POST',
+    headers: { Authorization: 'Basic ' + btoa('api:' + apiKey) },
+    body: form,
+  });
+  if (!res.ok) throw new Error(`Mailgun relay ${res.status}: ${(await res.text()).slice(0, 200)}`);
+}
 const MAX_TEXT = 20000;
 
 function extractItems(raw) {
@@ -290,6 +324,20 @@ Deno.serve(async (req) => {
     const recipientCandidates = [field(formData, 'recipient'), field(formData, 'To', 'to'), headers['to'] || '', headers['delivered-to'] || '', headers['x-forwarded-to'] || '']
       .join(',').split(/[,;]/).map(s => parseAddress(s).email).filter(Boolean)
       .filter(e => !domain || e.endsWith('@' + domain));
+    // ── Admin role addresses (support@, postmaster@, abuse@) -> relay to the admin inbox ──
+    const adminAddress = [...new Set(recipientCandidates)].find(e => ADMIN_LOCAL_PARTS.has(e.split('@')[0]));
+    if (adminAddress) {
+      try {
+        await relayAdminMail(formData, headers, adminAddress, domain);
+        return Response.json({ success: true, relayed: adminAddress });
+      } catch (e) {
+        // Non-2xx makes Mailgun retry the forward for several hours, so nothing is lost while
+        // the domain is still verifying.
+        console.error('[mailgunWebhook] admin relay failed:', e?.message);
+        return Response.json({ error: 'relay failed' }, { status: 502 });
+      }
+    }
+
     let emailFeed = null;
     let recipient = '';
     for (const r of [...new Set(recipientCandidates)]) {
