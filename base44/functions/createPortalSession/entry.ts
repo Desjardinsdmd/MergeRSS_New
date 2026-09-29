@@ -29,24 +29,34 @@ Deno.serve(async (req) => {
         }
 
         if (!customerId) {
-            return Response.json({ error: 'No billing account found' }, { status: 404 });
+            return Response.json({
+                error: 'No Stripe billing account is linked to this login. If your plan was granted manually there is nothing to manage.',
+                code: 'no_billing_account',
+            }, { status: 404 });
         }
 
         // Use env-configured canonical origin; never trust caller-supplied origin header
-        const APP_ORIGIN = Deno.env.get('BASE44_APP_URL') || 'https://mergerss.app';
+        const APP_ORIGIN = (() => {
+            try { return new URL(Deno.env.get('BASE44_APP_URL') || 'https://mergerss.com').origin; }
+            catch { return 'https://mergerss.com'; }
+        })();
+        const ALLOWED_ORIGINS = new Set([
+            APP_ORIGIN,
+            APP_ORIGIN.replace('://www.', '://'),
+            APP_ORIGIN.includes('://www.') ? APP_ORIGIN : APP_ORIGIN.replace('://', '://www.'),
+        ]);
 
         function isSafeAppUrl(url) {
             if (!url) return false;
-            try { return new URL(url).origin === APP_ORIGIN; } catch { return false; }
+            try { return ALLOWED_ORIGINS.has(new URL(url).origin); } catch { return false; }
         }
 
-        if (return_url && !isSafeAppUrl(return_url)) {
-            return Response.json({ error: 'Invalid return_url' }, { status: 400 });
-        }
+        // An off-domain return_url (e.g. the builder preview) falls back to Settings instead of failing.
+        const safeReturn = return_url && isSafeAppUrl(return_url) ? return_url : `${APP_ORIGIN}/Settings`;
 
         const session = await stripe.billingPortal.sessions.create({
             customer: customerId,
-            return_url: return_url || `${APP_ORIGIN}/Settings`,
+            return_url: safeReturn,
         });
 
         return Response.json({ url: session.url });
