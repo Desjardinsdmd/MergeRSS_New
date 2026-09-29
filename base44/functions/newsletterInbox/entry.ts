@@ -26,6 +26,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 const FREE_FEED_LIMIT = 50; // sync with lib/planLimits.js PLAN_LIMITS.free.feeds
 const ROUTE_STATE_KEY = 'mailgun_inbound_route';
 const ROUTE_DESCRIPTION = 'MergeRSS newsletter inbox (catch-all)';
+const ROUTE_PRIORITY = 10;
 const APP_ID_FALLBACK = '69a09b2e568729a30e5400b4';
 const NOT_CONFIGURED = 'newsletter inbox not configured';
 
@@ -104,7 +105,8 @@ async function ensureRoute(svc, cfg, force = false) {
 
   let routeId;
   const form = new FormData();
-  form.append('priority', '0');
+  // Catch-all sits at priority 10 so admin forwards (support@, postmaster@, abuse@) at priority 0 win.
+  form.append('priority', String(ROUTE_PRIORITY));
   form.append('description', ROUTE_DESCRIPTION);
   form.append('expression', expression);
   for (const a of actions) form.append('action', a);
@@ -112,7 +114,7 @@ async function ensureRoute(svc, cfg, force = false) {
   if (existing) {
     routeId = existing.id;
     const sameActions = JSON.stringify(existing.actions || []) === JSON.stringify(actions);
-    if (!sameActions || existing.expression !== expression) {
+    if (!sameActions || existing.expression !== expression || Number(existing.priority) !== ROUTE_PRIORITY) {
       await mailgunFetch(cfg, `/v3/routes/${routeId}`, { method: 'PUT', body: form });
     }
   } else {
