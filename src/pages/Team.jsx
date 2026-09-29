@@ -80,10 +80,21 @@ export default function Team() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get('payment') === 'success') {
-      toast.success('Thanks! Your Team plan will activate as soon as Stripe confirms the payment.');
+    if (params.get('payment') !== 'success') return undefined;
+    toast.success('Thanks! Your Team plan will activate as soon as Stripe confirms the payment.');
+    // Drop the flag so a refresh doesn't repeat the toast.
+    params.delete('payment');
+    const qs = params.toString();
+    window.history.replaceState({}, '', window.location.pathname + (qs ? `?${qs}` : ''));
+    // The Stripe webhook usually lands within seconds; re-read the workspace a few times.
+    queryClient.invalidateQueries({ queryKey: WORKSPACE_KEY });
+    let tries = 0;
+    const timer = setInterval(() => {
+      tries += 1;
       queryClient.invalidateQueries({ queryKey: WORKSPACE_KEY });
-    }
+      if (tries >= 6) clearInterval(timer);
+    }, 3000);
+    return () => clearInterval(timer);
   }, [queryClient]);
 
   const activeMembers = useMemo(() => members.filter(m => m.status === 'active'), [members]);
