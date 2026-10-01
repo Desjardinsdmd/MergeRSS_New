@@ -174,7 +174,7 @@ export default function Dashboard() {
       {!noFeeds && (
         <section aria-label="Briefing status" className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="panel-accent p-5">
-            <MicroLabel className="mb-2 text-[#C4A5FD]">Next briefing</MicroLabel>
+            <MicroLabel className="mb-2 text-brand-light">Next briefing</MicroLabel>
             {next ? (
               <>
                 <p className="font-display text-xl font-semibold text-stone-100">{next.n.label}</p>
@@ -185,7 +185,7 @@ export default function Dashboard() {
             ) : (
               <p className="text-sm text-stone-400">
                 Nothing scheduled.{' '}
-                <Link to={createPageUrl('Digests')} className={cn('text-[#C4A5FD] hover:text-stone-100 rounded-sm', FOCUS)}>Schedule one</Link>
+                <Link to={createPageUrl('Digests')} className={cn('text-brand-light hover:text-stone-100 rounded-sm', FOCUS)}>Schedule one</Link>
               </p>
             )}
           </div>
@@ -196,7 +196,7 @@ export default function Dashboard() {
                 to={`${createPageUrl('Inbox')}?delivery_id=${lastDelivery.id}`}
                 className={cn('group block rounded-sm', FOCUS)}
               >
-                <span className="block truncate font-display text-xl font-semibold text-stone-100 group-hover:text-[#C4A5FD]">
+                <span className="block truncate font-display text-xl font-semibold text-stone-100 group-hover:text-brand-light">
                   {lastDigestName || 'Your briefing'}
                 </span>
                 <span className="mt-1 block text-sm text-stone-400">
@@ -239,7 +239,7 @@ export default function Dashboard() {
                 to={p.href}
                 className={cn(
                   'inline-flex items-center gap-1 whitespace-nowrap rounded-sm font-medium',
-                  p.tone === 'error' ? 'text-red-300 hover:text-red-200' : 'text-[#C4A5FD] hover:text-stone-100',
+                  p.tone === 'error' ? 'text-red-300 hover:text-red-200' : 'text-brand-light hover:text-stone-100',
                   FOCUS
                 )}
               >
@@ -254,7 +254,7 @@ export default function Dashboard() {
       {noFeeds && (
         <section className="panel p-6 text-center sm:p-10">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-[hsl(var(--brand)/0.3)] bg-[hsl(var(--brand)/0.14)]" aria-hidden="true">
-            <Rss className="h-6 w-6 text-[#C4A5FD]" />
+            <Rss className="h-6 w-6 text-brand-light" />
           </div>
           <h2 className="mb-2 font-display text-lg font-semibold text-stone-100">Get your first briefing</h2>
           <p className="mx-auto mb-6 max-w-sm text-sm text-stone-400">
@@ -282,7 +282,7 @@ export default function Dashboard() {
             <p className="mb-4 text-sm text-stone-400">
               Ranked for {user?.interest_field || 'you'}{user?.interest_profile ? '' : '. '}
               {!user?.interest_profile && (
-                <Link to={createPageUrl('Settings')} className={cn('rounded-sm text-[#C4A5FD] hover:text-stone-100', FOCUS)}>
+                <Link to={createPageUrl('Settings')} className={cn('rounded-sm text-brand-light hover:text-stone-100', FOCUS)}>
                   Tell us what matters to sharpen this
                 </Link>
               )}
@@ -322,7 +322,7 @@ export default function Dashboard() {
                         href={safeUrl(item.url)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={cn('rounded-sm text-[15px] font-semibold leading-snug text-stone-100 hover:text-[#C4A5FD]', FOCUS)}
+                        className={cn('rounded-sm text-[15px] font-semibold leading-snug text-stone-100 hover:text-brand-light', FOCUS)}
                       >
                         {decodeHtml(item.title)}
                         <ExternalLink className="ml-1 inline h-3 w-3 align-baseline text-stone-600" aria-hidden="true" />

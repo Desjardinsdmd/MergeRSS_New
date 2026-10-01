@@ -36,14 +36,15 @@ export default function StreakCounter({ user }) {
   if (displayStreak < 1) return null;
 
   return (
-    <div className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold transition-all flex-shrink-0 ${
-      isNew
-        ? 'bg-[hsl(var(--primary))] text-stone-900 animate-pulse'
-        : 'bg-stone-800 text-[hsl(var(--primary))]'
-    }`}>
-      <Flame className="w-4 h-4" />
+    <div
+      className={`inline-flex flex-shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors ${
+        isNew
+          ? 'border-[hsl(var(--brand)/0.35)] bg-[hsl(var(--brand)/0.14)] text-stone-100'
+          : 'border-white/10 bg-white/[0.03] text-stone-300'
+      }`}
+    >
+      <Flame className="h-3.5 w-3.5 text-[hsl(var(--primary))]" aria-hidden="true" />
       <span>{displayStreak}-day streak</span>
-      {isNew && <span className="text-xs font-normal opacity-70">🎉</span>}
     </div>
   );
 }

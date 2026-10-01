@@ -34,18 +34,18 @@ export default function BookmarkButton({ item, className = '' }) {
       title={saved ? 'Saved' : 'Save for later'}
       aria-label={saved ? 'Saved to Inbox' : 'Save for later'}
       aria-pressed={saved}
-      className={`p-1.5 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] ${
+      className={`rounded-lg p-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] ${
         saved
-          ? 'text-amber-400 bg-amber-950'
-          : 'text-stone-600 hover:text-stone-400 hover:bg-stone-800'
+          ? 'bg-[hsl(var(--brand)/0.16)] text-brand-light'
+          : 'text-stone-500 hover:bg-white/[0.05] hover:text-stone-200'
       } ${className}`}
     >
       {loading ? (
-        <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
+        <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
       ) : saved ? (
-        <BookmarkCheck className="w-3.5 h-3.5" aria-hidden="true" />
+        <BookmarkCheck className="w-4 h-4" aria-hidden="true" />
       ) : (
-        <Bookmark className="w-3.5 h-3.5" aria-hidden="true" />
+        <Bookmark className="w-4 h-4" aria-hidden="true" />
       )}
     </button>
   );
