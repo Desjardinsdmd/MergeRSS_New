@@ -490,16 +490,17 @@ async function notifyFeedPaused(feed, fetchError, newConsecutive, base44) {
     const res = await notifyOwner(base44, {
         email: feed.created_by,
         pref: 'feedErrors',
-        subject: `Feed paused: ${String(feed.name || 'one of your feeds').slice(0, 80)}`,
-        heading: `We paused "${feed.name || 'a feed'}"`,
+        subject: `Source paused: ${String(feed.name || 'one of your sources').slice(0, 80)}`,
+        heading: `We paused "${feed.name || 'a source'}"`,
         lines: [
-            `This feed failed ${newConsecutive} times in a row, so MergeRSS stopped fetching it for now. It will retry automatically in a few hours.`,
+            `This source failed ${newConsecutive} times in a row, so MergeRSS stopped fetching it for now. It will retry automatically in a few hours.`,
             `Last error: ${reason}`,
-            `Feed address: ${feed.url || 'unknown'}`,
-            'If the site moved its feed, update the address or remove the feed. Digests that rely on it may send fewer stories until it is fixed.',
+            `RSS feed address: ${feed.url || 'unknown'}`,
+            'If the site moved its RSS feed, update the address or remove the source. Briefings that rely on it may include fewer stories until it is fixed.',
         ],
         ctaUrl: 'https://mergerss.com/Feeds',
-        ctaLabel: 'Review your feeds',
+        ctaLabel: 'Review your sources',
+        tone: 'warning',
     }).catch(() => ({ sent: false }));
     if (res?.sent) {
         await base44.asServiceRole.entities.Feed.update(feed.id, { owner_notified_pause_at: new Date().toISOString() }).catch(() => {});
@@ -643,19 +644,34 @@ async function dispatchAlerts(created, feedAlerts, feed, base44) {
     return Promise.allSettled(
         alertItems.flatMap(newItem =>
             feedAlerts.map(async alert => {
-                const title = newItem.title || 'New article';
-                const url = newItem.url || '';
-                const description = (newItem.description || '').slice(0, 200);
+                const title = String(newItem.title || 'New story').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 250);
+                const url = brandUrl(newItem.url || '');
+                const description = String(newItem.description || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 200);
                 const category = newItem.category || '';
+                const attribution = `MergeRSS source alert · ${String(feed.name || 'Source').slice(0, 80)}`;
                 try {
                     let delivered = false;
                     if (alert.channel_type === 'slack') {
-                        const text = `*${title}*${category ? ` [${category}]` : ''}\n${description ? description + '\n' : ''}<${url}|Read more>`;
-                        const res = await fetch(alert.webhook_url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, mrkdwn: true }), signal: AbortSignal.timeout(8000) });
+                        // Brand v3: violet accent bar, same vocabulary as briefings.
+                        const lines = [`*${url ? `<${url}|${title.replace(/[<>|]/g, '')}>` : title}*`];
+                        if (description) lines.push(description);
+                        const blocks = [
+                            { type: 'context', elements: [{ type: 'mrkdwn', text: `*${attribution}*${category ? `  ·  ${category}` : ''}` }] },
+                            { type: 'section', text: { type: 'mrkdwn', text: lines.join('\n') } },
+                        ];
+                        const payload = { text: `${title}${url ? ` ${url}` : ''}`, attachments: [{ color: BRAND.violet, blocks }] };
+                        const res = await fetch(alert.webhook_url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), signal: AbortSignal.timeout(8000) });
                         delivered = res.ok;
                     } else if (alert.channel_type === 'discord') {
-                        const content = `**${title}**${category ? ` \`${category}\`` : ''}\n${description ? description + '\n' : ''}${url}`;
-                        const res = await fetch(alert.webhook_url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: content.slice(0, 2000) }), signal: AbortSignal.timeout(8000) });
+                        const embed = {
+                            color: BRAND.violetInt,
+                            author: { name: attribution, url: BRAND.site },
+                            title,
+                            ...(url ? { url } : {}),
+                            ...(description ? { description } : {}),
+                            ...(category ? { footer: { text: category } } : {}),
+                        };
+                        const res = await fetch(alert.webhook_url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: 'MergeRSS', embeds: [embed] }), signal: AbortSignal.timeout(8000) });
                         delivered = res.ok || res.status === 204;
                     }
                     if (delivered) await base44.asServiceRole.entities.FeedAlert.update(alert.id, { last_sent: new Date().toISOString() }).catch(() => {});
