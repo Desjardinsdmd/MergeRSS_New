@@ -361,7 +361,7 @@ export default function Welcome() {
       type="button"
       onClick={() => handleSkip('/Feeds')}
       disabled={busy && step === 'build'}
-      className={cn('text-sm text-stone-500 hover:text-stone-300 underline-offset-4 hover:underline disabled:opacity-40 rounded', FOCUS)}
+      className={cn('text-sm text-stone-500 hover:text-stone-300 underline-offset-4 hover:underline disabled:opacity-40 rounded-md', FOCUS)}
     >
       Skip setup
     </button>
@@ -450,7 +450,7 @@ export default function Welcome() {
                 maxLength={2000}
                 placeholder="e.g. I run acquisitions for a rental developer in Ottawa. Rate moves, zoning changes and big land deals matter most."
                 aria-describedby="interest-profile-help"
-                className={cn('w-full px-3 py-2.5 bg-white/[0.03] border border-white/10 rounded-xl text-sm text-stone-100 placeholder:text-stone-600 resize-y', FOCUS)}
+                className={cn('w-full px-3 py-2.5 bg-white/[0.03] border border-white/10 rounded-xl text-sm text-stone-100 placeholder:text-stone-500 resize-y', FOCUS)}
               />
               <p id="interest-profile-help" className="text-xs text-stone-500 mt-1.5">The AI ranks every story against this. You can edit it later in Settings.</p>
             </div>
@@ -559,7 +559,7 @@ export default function Welcome() {
                     placeholder="example.com or example.com/feed"
                     aria-invalid={!!ownUrlError}
                     aria-describedby={ownUrlError ? 'own-url-error' : undefined}
-                    className={cn('flex-1 min-w-0 h-11 px-3 bg-stone-900 border border-stone-700 rounded-md text-sm text-stone-100 placeholder:text-stone-600', FOCUS)}
+                    className={cn('flex-1 min-w-0 h-11 px-3 bg-white/[0.03] border border-white/10 rounded-xl text-sm text-stone-100 placeholder:text-stone-500', FOCUS)}
                   />
                   <button type="submit" className={cn('btn-ghost h-11 px-4', FOCUS)}>Add</button>
                 </div>
@@ -608,7 +608,7 @@ export default function Welcome() {
                   onClick={() => setDelivery(d => ({ ...d, email: !d.email }))}
                   className={cn('relative w-11 h-6 rounded-full flex-shrink-0 transition-colors', delivery.email ? 'bg-[hsl(var(--primary))]' : 'bg-white/[0.12]', FOCUS)}
                 >
-                  <span className={cn('absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-stone-100 transition-transform', delivery.email && 'translate-x-5')} aria-hidden="true" />
+                  <span className={cn('absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform', delivery.email && 'translate-x-5')} aria-hidden="true" />
                 </button>
               </div>
               {!delivery.email && <p className="text-xs text-stone-500 -mt-3">Briefings will still appear in your web Inbox.</p>}
@@ -642,7 +642,7 @@ export default function Welcome() {
                     type="time"
                     value={delivery.time}
                     onChange={e => setDelivery(d => ({ ...d, time: e.target.value || '07:00' }))}
-                    className={cn('w-full h-11 px-3 bg-stone-900 border border-stone-700 rounded-md text-sm text-stone-100 [color-scheme:dark]', FOCUS)}
+                    className={cn('w-full h-11 px-3 bg-white/[0.03] border border-white/10 rounded-xl text-sm text-stone-100 [color-scheme:dark]', FOCUS)}
                   />
                 </div>
                 <div className="min-w-0">
@@ -653,7 +653,7 @@ export default function Welcome() {
                     id="delivery-tz"
                     value={delivery.timezone}
                     onChange={e => setDelivery(d => ({ ...d, timezone: e.target.value }))}
-                    className={cn('w-full h-11 px-3 bg-stone-900 border border-stone-700 rounded-md text-sm text-stone-100', FOCUS)}
+                    className={cn('w-full h-11 px-3 bg-white/[0.03] border border-white/10 rounded-xl text-sm text-stone-100', FOCUS)}
                   >
                     {tzList.map(tz => <option key={tz} value={tz}>{tz.replace(/_/g, ' ')}</option>)}
                   </select>
@@ -664,7 +664,7 @@ export default function Welcome() {
             </div>
 
             <div className="flex items-center justify-between gap-3 mt-8">
-              <button type="button" onClick={() => setStep('sources')} className={cn('inline-flex items-center gap-1.5 h-11 px-3 text-sm text-stone-400 hover:text-stone-200 rounded-md', FOCUS)}>
+              <button type="button" onClick={() => setStep('sources')} className={cn('inline-flex items-center gap-1.5 h-11 px-3 text-sm text-stone-400 hover:text-stone-200 rounded-xl', FOCUS)}>
                 <ArrowLeft className="w-4 h-4" aria-hidden="true" /> Back
               </button>
               <button
@@ -742,7 +742,7 @@ export default function Welcome() {
               <button
                 type="button"
                 onClick={() => window.location.assign('/Dashboard')}
-                className={cn('inline-flex items-center justify-center gap-2 h-11 px-6 bg-[hsl(var(--primary))] text-stone-900 font-bold text-sm rounded-md hover:opacity-90', FOCUS)}
+                className={cn('btn-brand h-11 px-6', FOCUS)}
               >
                 Open MergeRSS <ArrowRight className="w-4 h-4" aria-hidden="true" />
               </button>

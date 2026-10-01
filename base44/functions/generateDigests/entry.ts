@@ -1232,10 +1232,13 @@ Deno.serve(async (req) => {
                                     body: renderDigestEmail({
                                         digestName: digest.name,
                                         dateStr,
+                                        shortDate,
                                         scannedCount: items.length,
                                         brief,
                                         inboxUrl: memberInbox[m.email] || teamInbox,
                                         manageUrl: `${origin}/Digests`,
+                                        unsubscribeUrl: `${origin}/Settings`,
+                                        now,
                                     }),
                                 });
                                 sent++;
@@ -1247,38 +1250,16 @@ Deno.serve(async (req) => {
                     })(),
                     // Team channels: once per briefing, only on an active Team plan.
                     (async () => {
-                        const slackContent = content.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<$2|$1>');
-                        await postTeam('slack', shared.ws.slack_webhook_url, {
-                            text: `*📰 ${digest.name}*\n_${teamDateStr} • ${items.length} articles_\n\n${slackContent.slice(0, 2600)}${slackContent.length > 2600 ? '...' : ''}\n\n<${teamInbox}|📥 View in MergeRSS>`,
-                            mrkdwn: true,
-                        });
+                        await postTeam('slack', shared.ws.slack_webhook_url,
+                            briefToSlack(brief, { name: digest.name, dateStr: teamDateStr, count: items.length, url: teamInbox }));
                     })(),
                     (async () => {
-                        const header = `**📰 ${digest.name}**\n*${teamDateStr} • ${items.length} articles*\n\n`;
-                        const footer = `\n\n[📥 View in MergeRSS](${teamInbox})`;
-                        const max = 1990 - header.length - footer.length - 3;
-                        await postTeam('discord', shared.ws.discord_webhook_url, {
-                            content: header + (content.length > max ? content.slice(0, max) + '...' : content) + footer,
-                        });
+                        await postTeam('discord', shared.ws.discord_webhook_url,
+                            briefToDiscord(brief, { name: digest.name, dateStr: teamDateStr, count: items.length, url: teamInbox }));
                     })(),
                     (async () => {
-                        await postTeam('teams', shared.ws.teams_webhook_url, {
-                            type: 'message',
-                            attachments: [{
-                                contentType: 'application/vnd.microsoft.card.adaptive',
-                                content: {
-                                    type: 'AdaptiveCard',
-                                    $schema: 'http://adaptivecards.io/schemas/adaptive-card.json',
-                                    version: '1.4',
-                                    body: [
-                                        { type: 'TextBlock', text: `📰 ${digest.name}`, weight: 'Bolder', size: 'Large' },
-                                        { type: 'TextBlock', text: `${teamDateStr} • ${items.length} articles`, isSubtle: true, spacing: 'None' },
-                                        { type: 'TextBlock', text: content.slice(0, 2000) + (content.length > 2000 ? '…' : ''), wrap: true },
-                                        { type: 'ActionSet', actions: [{ type: 'Action.OpenUrl', title: '📥 View in MergeRSS', url: teamInbox }] },
-                                    ],
-                                },
-                            }],
-                        });
+                        await postTeam('teams', shared.ws.teams_webhook_url,
+                            briefToTeams(brief, { name: digest.name, dateStr: teamDateStr, count: items.length, url: teamInbox }));
                     })(),
                 ] : [
                     // Email
@@ -1292,10 +1273,13 @@ Deno.serve(async (req) => {
                         const emailBody = renderDigestEmail({
                             digestName: digest.name,
                             dateStr,
+                            shortDate,
                             scannedCount: items.length,
                             brief,
                             inboxUrl,
                             manageUrl: `${origin}/Digests`,
+                            unsubscribeUrl: `${origin}/Settings`,
+                            now,
                         });
                         await base44.asServiceRole.integrations.Core.SendEmail({
                             to: digest.created_by,
@@ -1318,12 +1302,10 @@ Deno.serve(async (req) => {
                             return;
                         }
                         const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                        const slackContent = content.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<$2|$1>');
-                        const slackMsg = `*📰 ${digest.name}*\n_${dateStr} • ${items.length} articles_\n\n${slackContent.slice(0, 2600)}${slackContent.length > 2600 ? '...' : ''}\n\n<${inboxUrl}|📥 View full digest & article list in MergeRSS>`;
                         const slackRes = await fetch(slackInt.webhook_url, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ text: slackMsg, mrkdwn: true }),
+                            body: JSON.stringify(briefToSlack(brief, { name: digest.name, dateStr, count: items.length, url: inboxUrl })),
                         });
                         await base44.asServiceRole.entities.DigestDelivery.create({
                     owner_email: digest.created_by,
@@ -1354,23 +1336,7 @@ Deno.serve(async (req) => {
                             return;
                         }
                         const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                        const teamsBody = {
-                            type: 'message',
-                            attachments: [{
-                                contentType: 'application/vnd.microsoft.card.adaptive',
-                                content: {
-                                    type: 'AdaptiveCard',
-                                    $schema: 'http://adaptivecards.io/schemas/adaptive-card.json',
-                                    version: '1.4',
-                                    body: [
-                                        { type: 'TextBlock', text: `📰 ${digest.name}`, weight: 'Bolder', size: 'Large' },
-                                        { type: 'TextBlock', text: `${dateStr} • ${items.length} articles`, isSubtle: true, spacing: 'None' },
-                                        { type: 'TextBlock', text: content.slice(0, 2000) + (content.length > 2000 ? '…' : ''), wrap: true },
-                                        { type: 'ActionSet', actions: [{ type: 'Action.OpenUrl', title: '📥 View in MergeRSS', url: inboxUrl }] }
-                                    ]
-                                }
-                            }]
-                        };
+                        const teamsBody = briefToTeams(brief, { name: digest.name, dateStr, count: items.length, url: inboxUrl });
                         const teamsRes = await fetch(teamsInt.webhook_url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(teamsBody) });
                         if (teamsRes.ok || teamsRes.status === 202) deliveryTypes.push('teams');
                     })(),
@@ -1384,22 +1350,12 @@ Deno.serve(async (req) => {
                             return;
                         }
                         const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                        const footerLink = `\n\n[📥 View full digest in MergeRSS](${inboxUrl})`;
-                        const header = `**📰 ${digest.name}**\n*${dateStr} • ${items.length} articles*\n\n`;
-                        // Enforce Discord's hard 2000 char limit on the fully assembled message
-                        const DISCORD_LIMIT = 1990; // leave 10 char buffer
-                        const overhead = header.length + footerLink.length + 3; // +3 for "..."
-                        const maxContent = DISCORD_LIMIT - overhead;
-                        const truncatedContent = content.length > maxContent ? content.slice(0, maxContent) + '...' : content;
-                        const discordMsg = header + truncatedContent + footerLink;
-                        // Safety assertion — should never exceed limit after fix
-                        if (discordMsg.length > 2000) {
-                            console.error(`[generateDigests] Discord message still too long: ${discordMsg.length} chars — clamping hard`);
-                        }
+                        // Violet embed; briefToDiscord keeps all embed text under Discord's 6000-char cap.
+                        const discordPayload = briefToDiscord(brief, { name: digest.name, dateStr, count: items.length, url: inboxUrl });
                         const discordRes = await fetch(digest.discord_webhook_url, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ content: discordMsg }),
+                            body: JSON.stringify(discordPayload),
                         });
                         const ok = discordRes.ok || discordRes.status === 204;
                         await base44.asServiceRole.entities.DigestDelivery.create({
