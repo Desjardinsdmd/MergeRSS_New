@@ -5,11 +5,12 @@ import {
   BarChart2, Play, Loader2,
   ChevronDown, ChevronUp, FileText, Check, X, Download, Inbox, Eye, ClipboardList, Trash2
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { format, subDays } from 'date-fns';
 import { jsPDF } from 'jspdf';
 import { generatePremiumPdf } from '@/lib/generatePremiumPdf';
 import ReportViewer from '@/components/reports/ReportViewer';
+import Markdown, { stripMarkdown } from '@/components/reports/Markdown';
+import { PageHeader, MicroLabel } from '@/components/brand/Brand';
 
 
 function downloadDeliveryAsPdf(delivery, digestName) {
@@ -18,23 +19,30 @@ function downloadDeliveryAsPdf(delivery, digestName) {
   const col = 174;
   let y = 22;
 
+  // v3 palette: ink pages, violet accent, light text (see BRAND.md)
+  const paintPage = () => {
+    doc.setFillColor(10, 9, 16);
+    doc.rect(0, 0, 210, 297, 'F');
+  };
+  paintPage();
+
   // Cover bar
-  doc.setFillColor(10, 8, 5);
+  doc.setFillColor(23, 21, 31);
   doc.rect(0, 0, 210, 40, 'F');
-  doc.setFillColor(214, 158, 20);
-  doc.rect(0, 40, 210, 2, 'F');
+  doc.setFillColor(155, 92, 246);
+  doc.rect(0, 40, 210, 1.2, 'F');
 
   // Brand
-  doc.setFillColor(214, 158, 20);
-  doc.rect(margin, y - 6, 12, 12, 'F');
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(10, 8, 5);
+  doc.setFillColor(155, 92, 246);
+  doc.roundedRect(margin, y - 6, 12, 12, 3, 3, 'F');
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(255, 255, 255);
   doc.text('M', margin + 3.5, y + 2);
   doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(255, 255, 255);
   doc.text('MergeRSS', margin + 16, y + 2);
 
   // Title
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.setTextColor(255, 255, 255);
-  const titleLines = doc.splitTextToSize((digestName || 'Digest').toUpperCase(), col);
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.setTextColor(243, 241, 247);
+  const titleLines = doc.splitTextToSize((digestName || 'Briefing').toUpperCase(), col);
   titleLines.slice(0, 2).forEach((l, i) => doc.text(l, margin, 30 + i * 8));
 
   y = 52;
@@ -42,32 +50,33 @@ function downloadDeliveryAsPdf(delivery, digestName) {
   const drStr = delivery.date_range_start
     ? `${format(new Date(delivery.date_range_start), 'MMMM d, yyyy')} – ${format(new Date(delivery.date_range_end), 'MMMM d, yyyy')}`
     : format(new Date(delivery.created_date || Date.now()), 'MMMM d, yyyy');
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(110, 104, 96);
-  doc.text(drStr, margin, y);
+  doc.setFont('courier', 'normal'); doc.setFontSize(8); doc.setTextColor(124, 119, 139);
+  doc.text(drStr.toUpperCase(), margin, y);
   y += 8;
 
-  // Content
-  const plain = (delivery.content || '')
-    .replace(/#{1,6}\s/g, '')
-    .replace(/\*\*/g, '')
-    .replace(/\*/g, '')
-    .replace(/^\s*[-•]\s/gm, '• ');
+  // Content: markdown is rendered to plain text, never shown raw
+  const plain = stripMarkdown(
+    (delivery.content || '').replace(/^\s*[-*+•]\s+/gm, '\u2022 ')
+  );
 
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(34, 28, 20);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(201, 197, 212);
   const lines = doc.splitTextToSize(plain, col);
   lines.forEach(line => {
-    if (y > 280) { doc.addPage(); y = 22; }
+    if (y > 280) {
+      doc.addPage(); paintPage(); y = 22;
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(201, 197, 212);
+    }
     doc.text(line, margin, y);
     y += 4.5;
   });
 
   // Footer
-  doc.setFillColor(245, 243, 240);
+  doc.setFillColor(23, 21, 31);
   doc.rect(0, 287, 210, 10, 'F');
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(180, 175, 168);
-  doc.text('MergeRSS Intelligence  ·  mergerss.com', margin, 293);
+  doc.setFont('courier', 'normal'); doc.setFontSize(7); doc.setTextColor(124, 119, 139);
+  doc.text('MERGERSS BRIEFING  ·  MERGERSS.COM', margin, 293);
 
-  doc.save(`${(digestName || 'digest').replace(/[^a-z0-9]/gi, '-').toLowerCase()}-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+  doc.save(`${(digestName || 'briefing').replace(/[^a-z0-9]/gi, '-').toLowerCase()}-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
 }
 
 function DigestDeliveryList({ digests }) {
@@ -95,15 +104,15 @@ function DigestDeliveryList({ digests }) {
   if (isLoading) {
     return (
       <div className="flex items-center gap-2 text-stone-500 text-sm py-4">
-        <Loader2 className="w-4 h-4 animate-spin" /> Loading digest history...
+        <Loader2 className="w-4 h-4 animate-spin" /> Loading briefing history...
       </div>
     );
   }
 
   if (!allDeliveries.length) {
     return (
-      <div className="text-stone-600 text-sm py-4 flex items-center gap-2">
-        <Inbox className="w-4 h-4" /> No sent digest deliveries found yet.
+      <div className="text-stone-500 text-sm py-4 flex items-center gap-2">
+        <Inbox className="w-4 h-4" aria-hidden="true" /> No sent briefings found yet.
       </div>
     );
   }
@@ -111,15 +120,17 @@ function DigestDeliveryList({ digests }) {
   return (
     <div className="space-y-2">
       {grouped.filter(g => g.deliveries.length > 0).map(({ digest, deliveries }) => (
-        <div key={digest.id} className="border border-stone-800">
+        <div key={digest.id} className="panel-raised overflow-hidden">
           <button
+            type="button"
             onClick={() => setOpenDigestId(p => p === digest.id ? null : digest.id)}
-            className="w-full flex items-center justify-between px-4 py-3 bg-stone-900 hover:bg-stone-800 transition-colors text-left"
+            aria-expanded={openDigestId === digest.id}
+            className="w-full flex items-center justify-between px-4 py-3 hover:bg-white/[0.03] transition-colors text-left"
           >
             <div className="flex items-center gap-3">
-              <FileText className="w-4 h-4 text-[hsl(var(--primary))] flex-shrink-0" />
-              <span className="text-sm font-medium text-stone-200">{digest.name}</span>
-              <span className="text-xs text-stone-500 bg-stone-800 px-2 py-0.5">{deliveries.length} issue{deliveries.length !== 1 ? 's' : ''}</span>
+              <FileText className="w-4 h-4 text-[hsl(var(--primary))] flex-shrink-0" aria-hidden="true" />
+              <span className="text-sm font-semibold text-stone-100">{digest.name}</span>
+              <span className="chip-neutral">{deliveries.length} sent</span>
             </div>
             {openDigestId === digest.id
               ? <ChevronUp className="w-4 h-4 text-stone-500" />
@@ -127,48 +138,49 @@ function DigestDeliveryList({ digests }) {
           </button>
 
           {openDigestId === digest.id && (
-            <div className="divide-y divide-stone-800">
+            <div className="divide-y divide-white/[0.06] border-t border-white/[0.06]">
               {deliveries.map(delivery => (
-                <div key={delivery.id} className="bg-stone-950">
+                <div key={delivery.id}>
                   <button
                     onClick={() => setExpandedId(p => p === delivery.id ? null : delivery.id)}
-                    className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-stone-900 transition-colors text-left"
+                    aria-expanded={expandedId === delivery.id}
+                    className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-white/[0.03] transition-colors text-left"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <Eye className="w-3.5 h-3.5 text-stone-600 flex-shrink-0" />
-                      <span className="text-xs text-stone-400 truncate">
+                      <Eye className="w-3.5 h-3.5 text-stone-500 flex-shrink-0" aria-hidden="true" />
+                      <span className="font-mono text-xs text-stone-300 truncate">
                         {delivery.date_range_start
                           ? format(new Date(delivery.date_range_start), 'MMM d') + ' – ' + format(new Date(delivery.date_range_end), 'MMM d, yyyy')
                           : format(new Date(delivery.created_date), 'MMM d, yyyy')}
                       </span>
                       {delivery.item_count > 0 && (
-                        <span className="text-xs text-stone-600">{delivery.item_count} articles</span>
+                        <span className="font-mono text-xs text-stone-500">{delivery.item_count} stories</span>
                       )}
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <button
                         onClick={e => { e.stopPropagation(); downloadDeliveryAsPdf(delivery, digest.name); }}
                         title="Download as PDF"
-                        className="p-1 text-stone-600 hover:text-[hsl(var(--primary))] transition"
+                        aria-label="Download as PDF"
+                        className="p-1 rounded-md text-stone-500 hover:text-[hsl(var(--primary))] transition"
                       >
-                        <Download className="w-3.5 h-3.5" />
+                        <Download className="w-3.5 h-3.5" aria-hidden="true" />
                       </button>
                       {expandedId === delivery.id
-                        ? <ChevronUp className="w-3.5 h-3.5 text-stone-600" />
-                        : <ChevronDown className="w-3.5 h-3.5 text-stone-600" />}
+                        ? <ChevronUp className="w-3.5 h-3.5 text-stone-500" />
+                        : <ChevronDown className="w-3.5 h-3.5 text-stone-500" />}
                     </div>
                   </button>
 
                   {expandedId === delivery.id && delivery.content && (
-                    <div className="px-6 pb-4 pt-2 bg-stone-950">
-                      <div className="prose prose-invert prose-sm max-w-none text-stone-300 text-xs leading-relaxed whitespace-pre-wrap">
-                        {delivery.content}
-                      </div>
+                    <div className="px-6 pb-5 pt-2">
+                      <Markdown text={delivery.content} />
                       <button
+                        type="button"
                         onClick={() => downloadDeliveryAsPdf(delivery, digest.name)}
-                        className="mt-4 flex items-center gap-1.5 text-xs text-[hsl(var(--primary))] hover:opacity-80 transition"
+                        className="btn-soft mt-4 text-xs"
                       >
-                        <Download className="w-3.5 h-3.5" /> Download as PDF
+                        <Download className="w-3.5 h-3.5" aria-hidden="true" /> Download as PDF
                       </button>
                     </div>
                   )}
@@ -208,50 +220,54 @@ function SavedReportsList({ userEmail }) {
   };
 
   return (
-    <div className="mb-4 border border-stone-800">
+    <div className="panel overflow-hidden">
       <button
+        type="button"
         onClick={() => setOpen(p => !p)}
-        className="w-full flex items-center justify-between px-4 py-3 bg-stone-900 hover:bg-stone-800 transition-colors text-left"
+        aria-expanded={open}
+        className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/[0.03] transition-colors text-left"
       >
         <div className="flex items-center gap-2">
-          <ClipboardList className="w-4 h-4 text-[hsl(var(--primary))]" />
-          <span className="text-sm font-semibold text-stone-200">All Digest Reports Issued</span>
+          <ClipboardList className="w-4 h-4 text-[hsl(var(--primary))]" aria-hidden="true" />
+          <span className="font-display text-base font-semibold text-stone-100">Saved reports</span>
           {savedReports.length > 0 && (
-            <span className="text-xs text-stone-500 bg-stone-800 px-2 py-0.5">{savedReports.length}</span>
+            <span className="chip-neutral">{savedReports.length}</span>
           )}
         </div>
         {open ? <ChevronUp className="w-4 h-4 text-stone-500" /> : <ChevronDown className="w-4 h-4 text-stone-500" />}
       </button>
 
       {open && (
-        <div className="bg-stone-950">
+        <div className="border-t border-white/[0.06]">
           {isLoading && (
             <div className="flex items-center gap-2 text-stone-500 text-sm px-4 py-3">
               <Loader2 className="w-4 h-4 animate-spin" /> Loading reports...
             </div>
           )}
           {!isLoading && savedReports.length === 0 && (
-            <div className="px-4 py-3 text-xs text-stone-600">No reports generated yet. Run a report above to save it here.</div>
+            <div className="px-5 py-4 text-sm text-stone-500">No reports generated yet. Run a report above to save it here.</div>
           )}
           {savedReports.map(sr => (
-            <div key={sr.id} className="border-t border-stone-800 first:border-t-0">
+            <div key={sr.id} className="border-t border-white/[0.06] first:border-t-0">
               <button
                 onClick={() => setExpandedId(p => p === sr.id ? null : sr.id)}
-                className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-stone-900 transition-colors text-left"
+                aria-expanded={expandedId === sr.id}
+                className="w-full flex items-center justify-between px-5 py-3 hover:bg-white/[0.03] transition-colors text-left"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <FileText className="w-3.5 h-3.5 text-stone-600 flex-shrink-0" />
-                  <span className="text-xs text-stone-300 font-medium truncate">{sr.digest_name}</span>
-                  <span className="text-xs text-stone-600 flex-shrink-0">{sr.start_date} – {sr.end_date}</span>
-                  {sr.delivery_count > 0 && <span className="text-xs text-stone-600">{sr.delivery_count} issues</span>}
+                  <FileText className="w-3.5 h-3.5 text-stone-500 flex-shrink-0" aria-hidden="true" />
+                  <span className="text-sm text-stone-200 font-medium truncate">{sr.digest_name}</span>
+                  <span className="font-mono text-xs text-stone-500 flex-shrink-0">{sr.start_date} – {sr.end_date}</span>
+                  {sr.delivery_count > 0 && <span className="font-mono text-xs text-stone-500">{sr.delivery_count} briefings</span>}
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <button
                     onClick={e => { e.stopPropagation(); downloadReportAsPdf(sr); }}
                     title="Download as PDF"
-                    className="p-1 text-stone-600 hover:text-[hsl(var(--primary))] transition"
+                    aria-label="Download as PDF"
+                    className="p-1 rounded-md text-stone-500 hover:text-[hsl(var(--primary))] transition"
                   >
-                    <Download className="w-3.5 h-3.5" />
+                    <Download className="w-3.5 h-3.5" aria-hidden="true" />
                   </button>
                   {confirmId === sr.id ? (
                     <>
@@ -274,17 +290,18 @@ function SavedReportsList({ userEmail }) {
                     <button
                       onClick={e => { e.stopPropagation(); setConfirmId(sr.id); }}
                       title="Delete report"
-                      className="p-1 text-stone-600 hover:text-red-400 transition"
+                      aria-label="Delete report"
+                      className="p-1 rounded-md text-stone-500 hover:text-red-400 transition"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
                     </button>
                   )}
-                  {expandedId === sr.id ? <ChevronUp className="w-3.5 h-3.5 text-stone-600" /> : <ChevronDown className="w-3.5 h-3.5 text-stone-600" />}
+                  {expandedId === sr.id ? <ChevronUp className="w-3.5 h-3.5 text-stone-500" /> : <ChevronDown className="w-3.5 h-3.5 text-stone-500" />}
                 </div>
               </button>
 
               {expandedId === sr.id && sr.report && (
-                <div className="border-t border-stone-800">
+                <div className="border-t border-white/[0.06] p-4">
                   <ReportViewer
                     report={sr.report}
                     digestName={sr.digest_name}
@@ -359,52 +376,53 @@ export default function DigestReports() {
 
   return (
     <div className="p-6 lg:p-8 max-w-5xl mx-auto">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-1">
-          <BarChart2 className="w-6 h-6 text-[hsl(var(--primary))]" />
-          <h1 className="text-3xl font-bold text-stone-100">Digest Reports</h1>
-        </div>
-        <p className="text-stone-500 text-sm">
-          Analyze how topics and trends in your digests evolve over time — monthly, quarterly, or any custom range.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Briefings"
+        title="Reports"
+        subtitle="Analyze how topics and trends in your briefings evolve over time: monthly, quarterly or any custom range."
+      />
 
       {/* Config panel */}
-      <div className="bg-stone-900 border border-stone-800 p-5 mb-6 relative z-10">
-        <h2 className="text-sm font-semibold text-stone-300 mb-4">Configure Report</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          {/* Digest multi-select dropdown */}
+      <div className="panel p-5 mb-6 relative z-10">
+        <h2 className="font-display text-base font-semibold text-stone-100 mb-4">Configure report</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+          {/* Briefing multi-select dropdown */}
           <div className="md:col-span-1 relative" ref={dropdownRef}>
-            <label className="text-xs text-stone-500 mb-1.5 block">Select Digest(s)</label>
+            <MicroLabel as="span" className="mb-1.5 block">Briefings</MicroLabel>
             <button
+              type="button"
               onClick={() => setDropdownOpen(p => !p)}
-              className="w-full flex items-center justify-between bg-stone-800 border border-stone-700 text-sm px-3 py-2 text-left hover:border-stone-500 transition-colors focus:outline-none focus:border-[hsl(var(--primary))]"
+              aria-haspopup="listbox"
+              aria-expanded={dropdownOpen}
+              className="w-full flex items-center justify-between rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm px-3 py-2 text-left hover:border-white/[0.16] transition-colors focus:outline-none focus:border-[hsl(var(--primary))]"
             >
               <span className={selectedDigestIds.length ? 'text-stone-200' : 'text-stone-500'}>
                 {selectedDigestIds.length === 0
-                  ? 'Choose digests...'
+                  ? 'Choose briefings...'
                   : selectedDigestIds.length === 1
                     ? digests.find(d => d.id === selectedDigestIds[0])?.name
-                    : `${selectedDigestIds.length} digests selected`}
+                    : `${selectedDigestIds.length} briefings selected`}
               </span>
-              <ChevronDown className="w-4 h-4 text-stone-500 flex-shrink-0" />
+              <ChevronDown className="w-4 h-4 text-stone-500 flex-shrink-0" aria-hidden="true" />
             </button>
             {dropdownOpen && (
-              <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-stone-800 border border-stone-700 shadow-xl max-h-60 overflow-y-auto">
+              <div className="absolute z-50 top-full left-0 right-0 mt-1 overflow-hidden rounded-xl bg-stone-900 border border-white/[0.08] shadow-panel max-h-60 overflow-y-auto" role="listbox" aria-multiselectable="true">
                 {digests.length === 0 && (
-                  <div className="px-3 py-2 text-xs text-stone-500">No digests found</div>
+                  <div className="px-3 py-2 text-xs text-stone-500">No briefings found</div>
                 )}
                 {digests.map(d => {
                   const selected = selectedDigestIds.includes(d.id);
                   return (
                     <button
+                      type="button"
                       key={d.id}
+                      role="option"
+                      aria-selected={selected}
                       onClick={() => toggleDigest(d.id)}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-stone-700 transition-colors"
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-white/[0.05] transition-colors"
                     >
-                      <div className={`w-4 h-4 border flex items-center justify-center flex-shrink-0 ${selected ? 'bg-[hsl(var(--primary))] border-[hsl(var(--primary))]' : 'border-stone-600'}`}>
-                        {selected && <Check className="w-2.5 h-2.5 text-stone-900" />}
+                      <div className={`w-4 h-4 rounded-[5px] border flex items-center justify-center flex-shrink-0 ${selected ? 'bg-[hsl(var(--primary))] border-[hsl(var(--primary))]' : 'border-stone-600'}`}>
+                        {selected && <Check className="w-2.5 h-2.5 text-white" />}
                       </div>
                       <span className={selected ? 'text-stone-100' : 'text-stone-400'}>{d.name}</span>
                     </button>
@@ -412,49 +430,53 @@ export default function DigestReports() {
                 })}
                 {selectedDigestIds.length > 0 && (
                   <button
+                    type="button"
                     onClick={() => setSelectedDigestIds([])}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-xs text-red-400 hover:bg-stone-700 border-t border-stone-700 transition-colors"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-xs text-red-400 hover:bg-white/[0.05] border-t border-white/[0.06] transition-colors"
                   >
-                    <X className="w-3 h-3" /> Clear selection
+                    <X className="w-3 h-3" aria-hidden="true" /> Clear selection
                   </button>
                 )}
               </div>
             )}
           </div>
 
-          {/* Start Date */}
+          {/* Start date */}
           <div>
-            <label className="text-xs text-stone-500 mb-1.5 block">Start Date</label>
+            <MicroLabel as="label" className="mb-1.5 block" htmlFor="report-start">Start date</MicroLabel>
             <input
+              id="report-start"
               type="date"
               value={startDate}
               onChange={e => setStartDate(e.target.value)}
-              className="w-full bg-stone-800 border border-stone-700 text-stone-200 text-sm px-3 py-2 focus:outline-none focus:border-[hsl(var(--primary))]"
+              className="w-full rounded-xl bg-white/[0.04] border border-white/[0.08] text-stone-200 font-mono text-sm px-3 py-2 focus:outline-none focus:border-[hsl(var(--primary))] [color-scheme:dark]"
             />
           </div>
 
-          {/* End Date */}
+          {/* End date */}
           <div>
-            <label className="text-xs text-stone-500 mb-1.5 block">End Date</label>
+            <MicroLabel as="label" className="mb-1.5 block" htmlFor="report-end">End date</MicroLabel>
             <input
+              id="report-end"
               type="date"
               value={endDate}
               onChange={e => setEndDate(e.target.value)}
-              className="w-full bg-stone-800 border border-stone-700 text-stone-200 text-sm px-3 py-2 focus:outline-none focus:border-[hsl(var(--primary))]"
+              className="w-full rounded-xl bg-white/[0.04] border border-white/[0.08] text-stone-200 font-mono text-sm px-3 py-2 focus:outline-none focus:border-[hsl(var(--primary))] [color-scheme:dark]"
             />
           </div>
         </div>
 
-        <Button
+        <button
+          type="button"
           onClick={runReport}
           disabled={!selectedDigestIds.length || loading}
-          className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-bold gap-2"
+          className="btn-brand disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
-          {loading ? 'Generating Report...' : 'Run Report'}
-        </Button>
+          {loading ? 'Generating report...' : 'Run report'}
+        </button>
         {loading && (
-          <p className="text-xs text-stone-500 mt-2">This uses AI analysis and may take 20–40 seconds...</p>
+          <p className="meta mt-3 normal-case tracking-normal">This uses AI analysis and may take 20 to 40 seconds.</p>
         )}
       </div>
 
@@ -465,21 +487,23 @@ export default function DigestReports() {
         </div>
       )}
 
-      {/* Digest Delivery History — collapsible */}
+      {/* Briefing delivery history (collapsible) */}
       {digests.length > 0 && (
-        <div className="mb-8 border border-stone-800">
+        <div className="panel mb-8 overflow-hidden">
           <button
+            type="button"
             onClick={() => setIssuesOpen(p => !p)}
-            className="w-full flex items-center justify-between px-4 py-3 bg-stone-900 hover:bg-stone-800 transition-colors text-left"
+            aria-expanded={issuesOpen}
+            className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/[0.03] transition-colors text-left"
           >
             <div className="flex items-center gap-2">
-              <Inbox className="w-4 h-4 text-stone-500" />
-              <span className="text-sm font-semibold text-stone-200">All Digest Issues</span>
+              <Inbox className="w-4 h-4 text-stone-500" aria-hidden="true" />
+              <span className="font-display text-base font-semibold text-stone-100">Delivery history</span>
             </div>
             {issuesOpen ? <ChevronUp className="w-4 h-4 text-stone-500" /> : <ChevronDown className="w-4 h-4 text-stone-500" />}
           </button>
           {issuesOpen && (
-            <div className="p-4 bg-stone-950">
+            <div className="p-4 border-t border-white/[0.06]">
               <DigestDeliveryList digests={digests} />
             </div>
           )}
@@ -488,9 +512,9 @@ export default function DigestReports() {
 
       {/* Error */}
       {error && (
-        <div className="bg-red-950/30 border border-red-900/50 text-red-400 p-4 mb-6 text-sm">
+        <div className="rounded-xl bg-red-400/10 border border-red-400/25 text-red-300 p-4 mb-6 text-sm" role="alert">
           {error === 'No deliveries found in this date range'
-            ? 'No digest deliveries found in this date range. Try a wider range or a different digest.'
+            ? 'No sent briefings found in this date range. Try a wider range or a different briefing.'
             : `Error: ${error}`}
         </div>
       )}
@@ -514,9 +538,9 @@ export default function DigestReports() {
 
       {/* Empty state */}
       {!report && !loading && !error && digests.length === 0 && (
-        <div className="text-center py-16 text-stone-600">
-          <BarChart2 className="w-10 h-10 mx-auto mb-3 opacity-30" />
-          <p className="text-sm">No digests found. Create a digest first to see reports here.</p>
+        <div className="panel text-center py-16 px-6 text-stone-500">
+          <BarChart2 className="w-10 h-10 mx-auto mb-3 opacity-40" aria-hidden="true" />
+          <p className="text-sm">No briefings found. Create a briefing first to see reports here.</p>
         </div>
       )}
     </div>

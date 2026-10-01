@@ -178,7 +178,11 @@ export default function ReportViewer({
               <p className="text-[15px] font-medium leading-relaxed text-stone-100">{takeaway}</p>
             </div>
           )}
-          <Markdown text={report.executive_summary || ''} />
+          <Markdown
+            text={hasBlockMarkdown(report.executive_summary)
+              ? report.executive_summary
+              : String(report.executive_summary || '').replace(/\n+/g, '\n\n')}
+          />
         </div>
       </Section>
 
