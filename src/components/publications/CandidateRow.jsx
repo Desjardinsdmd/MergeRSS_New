@@ -6,10 +6,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 
 const TAG_COLORS = {
-  Trending: 'bg-blue-900/30 text-blue-400',
-  Risk: 'bg-red-900/30 text-red-400',
-  Opportunity: 'bg-green-900/30 text-green-400',
-  Neutral: 'bg-stone-700 text-stone-400',
+  Trending: 'border-sky-400/25 bg-sky-400/10 text-sky-300',
+  Risk: 'border-red-400/25 bg-red-400/10 text-red-300',
+  Opportunity: 'border-emerald-400/25 bg-emerald-400/10 text-emerald-300',
+  Neutral: 'border-white/10 bg-white/[0.03] text-stone-400',
 };
 
 const TAG_ICONS = {
@@ -34,14 +34,14 @@ export default function CandidateRow({ candidate, onSelect, onSkip, selecting, s
 
   return (
     <div className={cn(
-      "grid grid-cols-[32px_1fr_100px_80px_80px_140px] gap-3 items-center px-4 py-3 border-b border-stone-800 hover:bg-stone-800/50 transition",
-      selected && "bg-amber-950/20"
+      "grid grid-cols-[32px_1fr_100px_80px_80px_140px] gap-3 items-center px-4 py-3 border-b border-white/[0.06] last:border-b-0 hover:bg-white/[0.03] transition",
+      selected && "bg-[hsl(var(--brand)/0.08)]"
     )}>
       {/* Checkbox */}
       <Checkbox
         checked={!!selected}
         onCheckedChange={onToggleSelect}
-        className="border-stone-600 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+        className="border-stone-600 data-[state=checked]:bg-[hsl(var(--brand))] data-[state=checked]:border-[hsl(var(--brand))] data-[state=checked]:text-white"
       />
       {/* Title + meta */}
       <div className="min-w-0">
@@ -50,7 +50,7 @@ export default function CandidateRow({ candidate, onSelect, onSkip, selecting, s
             href={candidate.article_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm font-medium text-stone-200 hover:text-amber-400 truncate flex items-center gap-1.5 group"
+            className="text-sm font-medium text-stone-200 hover:text-[#C4A5FD] truncate flex items-center gap-1.5 group"
             title={candidate.article_url}
           >
             <span className="truncate">{candidate.title}</span>
@@ -60,12 +60,12 @@ export default function CandidateRow({ candidate, onSelect, onSkip, selecting, s
           <p className="text-sm font-medium text-stone-200 truncate">{candidate.title}</p>
         )}
         <div className="flex items-center gap-2 mt-0.5">
-          <Badge className={TAG_COLORS[candidate.intelligence_tag]} variant="secondary">
+          <Badge className={cn('rounded-md border px-1.5 py-0 font-mono text-[10px] font-medium shadow-none hover:bg-inherit', TAG_COLORS[candidate.intelligence_tag] || TAG_COLORS.Neutral)} variant="secondary">
             <TagIcon className="w-3 h-3 mr-1" />
             {candidate.intelligence_tag}
           </Badge>
           {candidate.source_domains?.length > 0 && (
-            <span className="text-xs text-stone-600 truncate max-w-[200px]">
+            <span className="font-mono text-[11px] text-stone-500 truncate max-w-[200px]">
               {candidate.source_domains.slice(0, 3).join(', ')}
             </span>
           )}
@@ -74,7 +74,7 @@ export default function CandidateRow({ candidate, onSelect, onSkip, selecting, s
 
       {/* Recency */}
       <div className="text-center">
-        <span className="text-xs text-stone-400 flex items-center justify-center gap-1">
+        <span className="font-mono text-[11px] text-stone-400 flex items-center justify-center gap-1">
           <Clock className="w-3 h-3" />
           {timeAgo(candidate.last_updated_at || candidate.first_seen_at)}
         </span>
@@ -82,14 +82,14 @@ export default function CandidateRow({ candidate, onSelect, onSkip, selecting, s
 
       {/* Sources */}
       <div className="text-center">
-        <span className="text-sm font-medium text-stone-300">{candidate.source_count}</span>
-        <span className="text-xs text-stone-600 ml-1">src</span>
+        <span className="font-mono text-sm font-medium text-stone-300">{candidate.source_count}</span>
+        <span className="font-mono text-[10px] text-stone-500 ml-1">src</span>
       </div>
 
       {/* Articles */}
       <div className="text-center">
-        <span className="text-sm text-stone-400">{candidate.article_count}</span>
-        <span className="text-xs text-stone-600 ml-1">art</span>
+        <span className="font-mono text-sm text-stone-400">{candidate.article_count}</span>
+        <span className="font-mono text-[10px] text-stone-500 ml-1">stories</span>
       </div>
 
       {/* Actions */}
@@ -99,7 +99,7 @@ export default function CandidateRow({ candidate, onSelect, onSkip, selecting, s
           variant="ghost"
           disabled={selecting}
           onClick={() => onSkip?.(candidate)}
-          className="text-xs text-stone-500 hover:text-red-400 hover:bg-red-950/30 px-2"
+          className="rounded-xl text-xs text-stone-500 hover:text-red-300 hover:bg-red-400/10 px-2"
           title="Discard — not interested"
         >
           <X className="w-3.5 h-3.5 mr-0.5" /> Discard
@@ -109,7 +109,7 @@ export default function CandidateRow({ candidate, onSelect, onSkip, selecting, s
           variant="outline"
           disabled={selecting}
           onClick={() => onSelect(candidate)}
-          className="text-xs border-amber-800/50 text-amber-400 hover:bg-amber-950/30"
+          className="rounded-xl text-xs border-[hsl(var(--brand)/0.3)] bg-[hsl(var(--brand)/0.14)] text-[#D9C7FE] hover:bg-[hsl(var(--brand)/0.22)] hover:text-[#D9C7FE]"
         >
           <Send className="w-3 h-3 mr-1" /> Draft
         </Button>

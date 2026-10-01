@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -9,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+
+const LABEL = 'mb-1.5 block font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-stone-500';
 
 const SCHEDULE_SLOTS = [
   { label: '6:00 AM ET', cron: '0 10 * * *' },
@@ -121,17 +122,17 @@ export default function PublicationForm({ publication, onSave, onCancel }) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="panel space-y-6 p-5 sm:p-6">
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <Label className="text-stone-400">Publication Name *</Label>
+          <Label className={LABEL}>Publication Name *</Label>
           <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
-            placeholder="e.g. CRE Daily Signal" className="bg-stone-800 border-stone-700 text-stone-100" />
+            placeholder="e.g. CRE Daily Signal" className="rounded-xl border-white/10 bg-stone-800 text-stone-100" />
         </div>
         <div>
-          <Label className="text-stone-400">Channel</Label>
+          <Label className={LABEL}>Channel</Label>
           <Select value={form.channel_type} onValueChange={v => setForm({ ...form, channel_type: v })}>
-            <SelectTrigger className="bg-stone-800 border-stone-700 text-stone-100">
+            <SelectTrigger className="rounded-xl border-white/10 bg-stone-800 text-stone-100">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -145,9 +146,9 @@ export default function PublicationForm({ publication, onSave, onCancel }) {
       </div>
 
       <div>
-        <Label className="text-stone-400">Scoring Lens *</Label>
+        <Label className={LABEL}>Scoring Lens *</Label>
         <Select value={form.lens_id} onValueChange={v => setForm({ ...form, lens_id: v })}>
-          <SelectTrigger className="bg-stone-800 border-stone-700 text-stone-100">
+          <SelectTrigger className="rounded-xl border-white/10 bg-stone-800 text-stone-100">
             <SelectValue placeholder="Select a lens..." />
           </SelectTrigger>
           <SelectContent>
@@ -156,24 +157,24 @@ export default function PublicationForm({ publication, onSave, onCancel }) {
             ))}
           </SelectContent>
         </Select>
-        {!lensList.length && <p className="text-xs text-stone-600 mt-1">Create a lens first in Settings → Lenses</p>}
+        {!lensList.length && <p className="text-xs text-stone-500 mt-1">Create a lens first in Settings → Lenses</p>}
       </div>
 
       <div>
-        <Label className="text-stone-400">Voice Prompt</Label>
+        <Label className={LABEL}>Voice Prompt</Label>
         <Textarea value={form.voice_prompt} onChange={e => setForm({ ...form, voice_prompt: e.target.value })}
-          rows={6} className="bg-stone-800 border-stone-700 text-stone-100 font-mono text-sm" />
-        <p className="text-xs text-stone-600 mt-1">Defines the writing style for generated drafts.</p>
+          rows={6} className="rounded-xl border-white/10 bg-stone-800 text-stone-100 font-mono text-[13px]" />
+        <p className="text-xs text-stone-500 mt-1">Defines the writing style for generated drafts.</p>
       </div>
 
       <div>
-        <Label className="text-stone-400">Schedule Times (select multiple)</Label>
-        <p className="text-xs text-stone-600 mb-2">At each selected time, suggested posts are drafted into the inbox for review. Approved posts go to X Drafts, where you post them to X manually.</p>
+        <Label className={LABEL}>Schedule Times (select multiple)</Label>
+        <p className="text-xs text-stone-500 mb-2">At each selected time, suggested posts are drafted into the inbox for review. Approved posts go to X Drafts, where you post them to X manually.</p>
         <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
           {SCHEDULE_SLOTS.map(slot => {
             const isChecked = form.schedule_crons.includes(slot.cron);
             return (
-              <label key={slot.cron} className={`flex items-center gap-2 px-3 py-2 rounded-md border cursor-pointer transition-colors text-sm ${isChecked ? 'bg-amber-900/30 border-amber-700 text-amber-300' : 'bg-stone-800 border-stone-700 text-stone-400 hover:border-stone-600'}`}>
+              <label key={slot.cron} className={`flex items-center gap-2 px-3 py-2 rounded-xl border cursor-pointer transition-colors font-mono text-xs ${isChecked ? 'bg-[hsl(var(--brand)/0.14)] border-[hsl(var(--brand)/0.35)] text-[#D9C7FE]' : 'bg-white/[0.03] border-white/10 text-stone-400 hover:border-white/20'}`}>
                 <Checkbox
                   checked={isChecked}
                   onCheckedChange={(checked) => {
@@ -182,25 +183,25 @@ export default function PublicationForm({ publication, onSave, onCancel }) {
                       : form.schedule_crons.filter(c => c !== slot.cron);
                     setForm({ ...form, schedule_crons: next });
                   }}
-                  className="border-stone-600"
+                  className="border-stone-600 data-[state=checked]:border-[hsl(var(--brand))] data-[state=checked]:bg-[hsl(var(--brand))] data-[state=checked]:text-white"
                 />
-                <span>{slot.label}</span>
+                <span className="mb-0">{slot.label}</span>
               </label>
             );
           })}
         </div>
         {form.schedule_crons.length > 0 && (
           <p className="text-xs text-stone-500 mt-2">
-            {form.schedule_crons.length} run{form.schedule_crons.length > 1 ? 's' : ''} per day selected
+            <span className="font-mono">{form.schedule_crons.length}</span> run{form.schedule_crons.length > 1 ? 's' : ''} per day selected
           </p>
         )}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <Label className="text-stone-400">Status</Label>
+          <Label className={LABEL}>Status</Label>
           <Select value={form.status} onValueChange={v => setForm({ ...form, status: v })}>
-            <SelectTrigger className="bg-stone-800 border-stone-700 text-stone-100">
+            <SelectTrigger className="rounded-xl border-white/10 bg-stone-800 text-stone-100">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -214,15 +215,15 @@ export default function PublicationForm({ publication, onSave, onCancel }) {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <Label className="text-stone-400">Candidates Per Run</Label>
+          <Label className={LABEL}>Candidates Per Run</Label>
           <Input type="number" min={1} max={10} value={form.candidates_per_run}
             onChange={e => setForm({ ...form, candidates_per_run: parseInt(e.target.value) || 3 })}
-            className="bg-stone-800 border-stone-700 text-stone-100 w-24" />
+            className="rounded-xl border-white/10 bg-stone-800 text-stone-100 w-24" />
         </div>
         <div>
-          <Label className="text-stone-400">Preferred Variant</Label>
+          <Label className={LABEL}>Preferred Variant</Label>
           <Select value={form.preferred_variant} onValueChange={v => setForm({ ...form, preferred_variant: v })}>
-            <SelectTrigger className="bg-stone-800 border-stone-700 text-stone-100">
+            <SelectTrigger className="rounded-xl border-white/10 bg-stone-800 text-stone-100">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -231,16 +232,16 @@ export default function PublicationForm({ publication, onSave, onCancel }) {
               <SelectItem value="take">Take (single post, opinionated)</SelectItem>
             </SelectContent>
           </Select>
-          <p className="text-xs text-stone-600 mt-1">Preferred draft style for this publication.</p>
+          <p className="text-xs text-stone-500 mt-1">Preferred draft style for this publication.</p>
         </div>
       </div>
 
       <div className="flex justify-end gap-3 pt-2">
-        <Button variant="outline" onClick={onCancel}>Cancel</Button>
-        <Button onClick={handleSave} disabled={saving} className="bg-[hsl(var(--primary))] text-stone-900 font-semibold">
-          {saving && <Loader2 className="w-4 h-4 animate-spin mr-1" />}
-          {publication?.id ? 'Update Publication' : 'Create Publication'}
-        </Button>
+        <button type="button" className="btn-ghost py-2" onClick={onCancel}>Cancel</button>
+        <button type="button" onClick={handleSave} disabled={saving} className="btn-brand disabled:opacity-50">
+          {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+          {publication?.id ? 'Update publication' : 'Create publication'}
+        </button>
       </div>
     </div>
   );
