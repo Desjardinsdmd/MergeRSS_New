@@ -44,10 +44,10 @@ export function PageHeader({ title, subtitle, actions, eyebrow, className }) {
     <div className={cn('mb-6 flex flex-wrap items-start justify-between gap-4', className)}>
       <div className="min-w-0">
         {eyebrow && <p className="eyebrow mb-2">{eyebrow}</p>}
-        <h1 className="font-display text-[28px] font-semibold leading-tight tracking-tight text-stone-100">{title}</h1>
+        <h1 className="font-display text-[26px] font-semibold leading-tight tracking-tight text-stone-100 sm:text-[28px]">{title}</h1>
         {subtitle && <div className="mt-1 text-[15px] text-stone-400">{subtitle}</div>}
       </div>
-      {actions && <div className="flex flex-shrink-0 items-center gap-2">{actions}</div>}
+      {actions && <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2 sm:flex-shrink-0">{actions}</div>}
     </div>
   );
 }

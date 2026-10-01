@@ -267,7 +267,7 @@ export default function AdminHealth() {
       {/* Live Alerts Panel */}
       <Card className="mb-6">
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <CardTitle className="flex items-center gap-2 font-display text-lg font-semibold text-stone-100">
               <Bell className="w-4 h-4 text-[#C4A5FD]" />
               Live alert check
@@ -438,7 +438,7 @@ export default function AdminHealth() {
       {/* Generated Feeds Admin */}
       <Card className="mb-6 overflow-hidden">
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <CardTitle className="flex items-center gap-2 font-display text-lg font-semibold text-stone-100">
               <Wand2 className="w-4 h-4 text-[#C4A5FD]" />
               Generated RSS feeds
