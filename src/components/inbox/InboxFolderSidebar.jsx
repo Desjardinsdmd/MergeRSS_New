@@ -91,26 +91,27 @@ export default function InboxFolderSidebar({ folders, tags, selectedFolder, sele
 
         <div className="space-y-0.5">
           {folders.map(folder => (
-            <button
-              key={folder}
-              onClick={() => { onSelectFolder(folder); onSelectTag(null); }}
-              className={itemClass(selectedFolder === folder && !selectedTag)}
-            >
-              <span className="flex items-center gap-2.5 min-w-0">
-                <Folder className="w-4 h-4 flex-shrink-0" />
-                <span className="truncate">{folder}</span>
-              </span>
-              <span className="flex items-center gap-1.5">
+            <div key={folder} className="group relative">
+              <button
+                type="button"
+                onClick={() => { onSelectFolder(folder); onSelectTag(null); }}
+                className={`${itemClass(selectedFolder === folder && !selectedTag)} pr-9`}
+              >
+                <span className="flex items-center gap-2.5 min-w-0">
+                  <Folder className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate">{folder}</span>
+                </span>
                 <Count n={unreadCounts?.[folder] || 0} />
-                <button
-                  onClick={e => { e.stopPropagation(); onDeleteFolder(folder); }}
-                  aria-label={`Delete folder ${folder}`}
-                  className="opacity-0 group-hover:opacity-100 text-stone-500 hover:text-red-400 transition"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </button>
-              </span>
-            </button>
+              </button>
+              <button
+                type="button"
+                onClick={() => onDeleteFolder(folder)}
+                aria-label={`Delete folder ${folder}`}
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-stone-500 transition hover:text-red-400 focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+              >
+                <Trash2 className="w-3 h-3" />
+              </button>
+            </div>
           ))}
         </div>
       </div>
@@ -145,23 +146,26 @@ export default function InboxFolderSidebar({ folders, tags, selectedFolder, sele
 
         <div className="space-y-0.5">
           {tags.map(tag => (
-            <button
-              key={tag}
-              onClick={() => { onSelectTag(tag); onSelectFolder(null); }}
-              className={itemClass(selectedTag === tag)}
-            >
-              <span className="flex items-center gap-2.5 min-w-0">
-                <Tag className="w-4 h-4 flex-shrink-0" />
-                <span className="truncate">{tag}</span>
-              </span>
+            <div key={tag} className="group relative">
               <button
-                onClick={e => { e.stopPropagation(); onDeleteTag(tag); }}
+                type="button"
+                onClick={() => { onSelectTag(tag); onSelectFolder(null); }}
+                className={`${itemClass(selectedTag === tag)} pr-9`}
+              >
+                <span className="flex items-center gap-2.5 min-w-0">
+                  <Tag className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate">{tag}</span>
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => onDeleteTag(tag)}
                 aria-label={`Delete tag ${tag}`}
-                className="opacity-0 group-hover:opacity-100 text-stone-500 hover:text-red-400 transition"
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-stone-500 transition hover:text-red-400 focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
               >
                 <Trash2 className="w-3 h-3" />
               </button>
-            </button>
+            </div>
           ))}
         </div>
       </div>

@@ -105,8 +105,8 @@ function PublicationVoicePage() {
   return (
     <div className="px-4 py-5 sm:p-6 lg:p-8 max-w-3xl mx-auto">
       <div className="mb-6 flex items-start gap-3">
-        <Link to="/Publications" className="mt-1">
-          <Button variant="ghost" size="icon" className="rounded-xl text-stone-400 hover:bg-white/[0.05] hover:text-stone-100" aria-label="Back to publications"><ArrowLeft className="w-4 h-4" /></Button>
+        <Link to="/Publications" aria-label="Back to publications" className="mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-stone-400 transition-colors hover:bg-white/[0.05] hover:text-stone-100">
+          <ArrowLeft className="w-4 h-4" />
         </Link>
         <PageHeader
           className="mb-0 flex-1"
