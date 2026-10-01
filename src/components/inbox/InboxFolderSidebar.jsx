@@ -5,8 +5,8 @@ import { Input } from '@/components/ui/input';
 import { MicroLabel } from '@/components/brand/Brand';
 
 const itemClass = (active) => cn(
-  'nav-item w-full justify-between gap-2 border border-transparent text-sm font-medium group',
-  active && 'nav-item-active'
+  'nav-item w-full justify-between gap-2 text-sm font-medium group',
+  active ? 'nav-item-active' : 'border border-transparent'
 );
 
 function Count({ n }) {
