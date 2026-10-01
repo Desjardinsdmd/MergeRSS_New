@@ -260,17 +260,12 @@ export default function Feeds() {
         }}
       />
 
-      {/* Summary Control Panel */}
-      <div className="mb-8 order-last">
-        <SourcesControl feeds={feeds} />
-      </div>
-
       {/* Header */}
       <PageHeader
         title="Sources"
         subtitle={
           <>
-            Websites and RSS feeds that feed your briefings
+            Websites and RSS feeds behind your briefings
             {!isPremium && (
               <span className="ml-2 font-mono text-xs text-stone-500">
                 {feeds.length}/{maxFeeds} used
@@ -317,6 +312,11 @@ export default function Feeds() {
           </Link>
         </div>
       )}
+
+      {/* Summary Control Panel */}
+      <div className="mb-6">
+        <SourcesControl feeds={feeds} />
+      </div>
 
       {/* Filters and View Options */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
@@ -462,7 +462,7 @@ export default function Feeds() {
                   className="rounded-xl border border-red-400/30 bg-red-400/10 text-red-300 hover:bg-red-400/20"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
-                  Delete Selected
+                  Delete selected
                 </Button>
               </div>
             </div>
