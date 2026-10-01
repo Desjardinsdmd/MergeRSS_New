@@ -125,20 +125,21 @@ export default function IntelligenceDashboard({ user, feeds = [], digests = [], 
                 <div>
                     <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
-                            <LayoutGrid className="w-4 h-4 text-stone-500" />
-                            <h2 className="text-sm font-semibold text-stone-300 uppercase tracking-wider">Intelligence Feed</h2>
-                            <span className="text-xs text-stone-600">ranked by importance</span>
+                            <LayoutGrid className="w-4 h-4 text-stone-500" aria-hidden="true" />
+                            <h2 className="font-display text-lg font-semibold text-stone-100">All stories</h2>
+                            <span className="meta">ranked by importance</span>
                         </div>
                         <button
                             onClick={() => queryClient.invalidateQueries({ queryKey: ['ranked-feed'] })}
-                            className="p-1 text-stone-600 hover:text-stone-300 transition"
+                            className="rounded-lg p-1.5 text-stone-500 transition hover:bg-white/[0.05] hover:text-stone-300"
                             title="Refresh"
+                            aria-label="Refresh stories"
                         >
                             <RefreshCw className="w-3.5 h-3.5" />
                         </button>
                     </div>
                     {loadingRanked ? (
-                        <div className="bg-stone-900 border border-stone-800 p-6 text-center text-stone-600 text-sm">Loading ranked feed...</div>
+                        <div className="panel p-6 text-center text-sm text-stone-500">Loading ranked stories...</div>
                     ) : (
                         <RankedFeed
                             items={rankedItems}
