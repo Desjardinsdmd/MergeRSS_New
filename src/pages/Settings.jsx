@@ -13,6 +13,7 @@ import {
   Target,
   Plug,
   ChevronRight,
+  Users,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -31,6 +32,7 @@ import { toast } from 'sonner';
 import DashboardLayoutSettings from '@/components/settings/DashboardLayoutSettings';
 import NotificationPreferences from '@/components/settings/NotificationPreferences';
 import ThemeSettings from '@/components/settings/ThemeSettings';
+import { useWorkspace } from '@/components/feeds/workspaceApi';
 
 // IANA zone names only: digests default to User.timezone and the backend passes it
 // straight to Intl.DateTimeFormat.
@@ -140,6 +142,27 @@ export default function Settings() {
   };
 
   const isPremium = user?.plan === 'premium';
+  const { workspace, isOwner: isWorkspaceOwner } = useWorkspace();
+  const isTeamOwner = !!workspace && isWorkspaceOwner && workspace.plan === 'team';
+  const [portalBusy, setPortalBusy] = useState(null);
+
+  // Opens the Stripe billing portal. Pass { workspace_id } for the Team plan (owner only, checked server-side).
+  const openPortal = async (key, params = {}) => {
+    setPortalBusy(key);
+    try {
+      const { data } = await base44.functions.invoke('createPortalSession', { ...params, return_url: window.location.href });
+      if (data?.url) {
+        // Same-tab redirect: a window.open after an await gets popup-blocked.
+        window.location.href = data.url;
+      } else {
+        toast.error(data?.error || 'Could not open billing');
+      }
+    } catch (err) {
+      toast.error(err?.response?.data?.error || err?.message || 'Could not open billing');
+    } finally {
+      setPortalBusy(null);
+    }
+  };
 
   return (
     <div className="p-6 lg:p-8 max-w-3xl mx-auto">
@@ -340,23 +363,12 @@ export default function Settings() {
               {isPremium ? (
                 <Button 
                   variant="outline"
-                  onClick={async () => {
-                    try {
-                      const { data } = await base44.functions.invoke('createPortalSession', { return_url: window.location.href });
-                      if (data?.url) {
-                        // Same-tab redirect: a window.open after an await gets popup-blocked.
-                        window.location.href = data.url;
-                      } else {
-                        toast.error(data?.error || 'Could not open billing');
-                      }
-                    } catch (err) {
-                      toast.error(err?.response?.data?.error || err?.message || 'Could not open billing');
-                    }
-                  }}
+                  onClick={() => openPortal('personal')}
+                  disabled={portalBusy === 'personal'}
                   className="border-stone-700 text-stone-300 hover:bg-stone-800 w-full sm:w-auto"
                 >
                   Manage Billing
-                  <ExternalLink className="w-4 h-4 ml-2" />
+                  {portalBusy === 'personal' ? <Loader2 className="w-4 h-4 ml-2 animate-spin" /> : <ExternalLink className="w-4 h-4 ml-2" />}
                 </Button>
               ) : (
                 <Link to={createPageUrl('Pricing')} className="w-full sm:w-auto">
@@ -366,6 +378,36 @@ export default function Settings() {
                 </Link>
               )}
             </div>
+
+            {isTeamOwner && (
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4 mt-4 pt-4 border-t border-stone-800">
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-amber-400">
+                    <Users className="w-5 h-5 text-stone-900" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-stone-100">Team Plan</p>
+                      <Badge className="bg-[hsl(var(--primary))] text-stone-900 font-semibold">
+                        {workspace.subscription_status === 'past_due' ? 'Past due' : 'Active'}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-stone-500 truncate">
+                      {workspace.name} · you are the owner
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => openPortal('team', { workspace_id: workspace.id })}
+                  disabled={portalBusy === 'team'}
+                  className="border-stone-700 text-stone-300 hover:bg-stone-800 w-full sm:w-auto"
+                >
+                  Manage Team billing
+                  {portalBusy === 'team' ? <Loader2 className="w-4 h-4 ml-2 animate-spin" /> : <ExternalLink className="w-4 h-4 ml-2" />}
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
 
