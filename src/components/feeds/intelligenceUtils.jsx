@@ -93,7 +93,7 @@ export function decisionState(item, clusterSize = 1) {
     if (score >= 72) {
         if (clusterSize >= 3) return { label: 'Important',      style: `${base} text-[#C4A5FD] bg-[hsl(var(--primary)/0.16)] border-[hsl(var(--primary)/0.4)]`, priority: 4 };
         if (clusterSize === 2) return { label: 'Important',      style: `${base} text-[#C4A5FD] bg-[hsl(var(--primary)/0.10)] border-[hsl(var(--primary)/0.3)]`, priority: 3 };
-        return                        { label: 'Early signal',   style: `${base} text-[#C4A5FD] bg-[hsl(var(--primary)/0.08)] border-[hsl(var(--primary)/0.25)]`, priority: 2 };
+        return                        { label: 'Early Signal',   style: `${base} text-[#C4A5FD] bg-[hsl(var(--primary)/0.08)] border-[hsl(var(--primary)/0.25)]`, priority: 2 };
     }
 
     // MED signal
@@ -103,7 +103,7 @@ export function decisionState(item, clusterSize = 1) {
     }
 
     // LOW signal
-    return                             { label: 'Low priority',  style: `${base} text-stone-500 border-white/10`,                                                  priority: 0 };
+    return                             { label: 'Low Priority',  style: `${base} text-stone-500 border-white/10`,                                                  priority: 0 };
 }
 
 // ─── Clustering ───────────────────────────────────────────────────────────────
