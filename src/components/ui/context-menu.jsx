@@ -20,7 +20,7 @@ const ContextMenuSubTrigger = React.forwardRef(({ className, inset, children, ..
   <ContextMenuPrimitive.SubTrigger
     ref={ref}
     className={cn(
-      "flex cursor-default select-none items-center rounded-lg px-2 py-1.5 text-sm outline-none focus:bg-white/[0.06] focus:text-stone-100 data-[state=open]:bg-accent data-[state=open]:text-accent-foreground",
+      "flex cursor-default select-none items-center rounded-lg px-2 py-1.5 text-sm outline-none focus:bg-white/[0.06] focus:text-stone-100 data-[state=open]:bg-white/[0.06] data-[state=open]:text-stone-100",
       inset && "pl-8",
       className
     )}
