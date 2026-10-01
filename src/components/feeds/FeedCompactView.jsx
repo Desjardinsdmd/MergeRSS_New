@@ -1,6 +1,5 @@
 import React from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,29 +33,31 @@ export default function FeedCompactView({ feeds, selectedIds, onSelectionChange,
           checked={selectedIds.length === feeds.length && feeds.length > 0}
           onCheckedChange={handleSelectAll}
         />
-        <span className="text-sm text-stone-500">{selectedIds.length} selected</span>
+        <span className="font-mono text-xs uppercase tracking-[0.08em] text-stone-500">{selectedIds.length} selected</span>
       </div>
       {feeds.map((feed) => (
         <div
            key={feed.id}
-           className="flex items-center gap-3 p-3 border border-stone-800 rounded-lg hover:bg-stone-800 transition bg-stone-900"
+           className="panel panel-hover flex items-center gap-3 rounded-xl p-3"
          >
           <Checkbox
             checked={selectedIds.includes(feed.id)}
             onCheckedChange={(checked) => handleSelectOne(feed.id, checked)}
           />
           <div className="flex-1 min-w-0">
-            <p className="font-medium text-stone-200 truncate">{feed.name}</p>
-             <div className="flex items-center gap-2 mt-1">
-               <Badge variant={feed.status === 'active' ? 'default' : 'secondary'} className="text-xs">
-                 {feed.status === 'active' ? 'Active' : 'Paused'}
-               </Badge>
-               <span className="text-xs text-stone-500">{feed.item_count || 0} items</span>
+            <p className="truncate font-semibold text-stone-100">{feed.name}</p>
+             <div className="mt-1 flex items-center gap-2">
+               {feed.status === 'active' ? (
+                 <span className="chip border border-emerald-400/25 bg-emerald-400/10 text-emerald-300">Active</span>
+               ) : (
+                 <span className="chip border border-amber-400/25 bg-amber-400/10 text-amber-300">Paused</span>
+               )}
+               <span className="font-mono text-[11px] text-stone-500">{feed.item_count || 0} stories</span>
              </div>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+              <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 rounded-lg" aria-label="Source actions">
                 <MoreVertical className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -86,7 +87,7 @@ export default function FeedCompactView({ feeds, selectedIds, onSelectionChange,
               )}
               <DropdownMenuItem
                 onClick={() => onDelete(feed)}
-                className="text-red-600 focus:bg-red-50 focus:text-red-600"
+                className="text-red-400 focus:text-red-300"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Delete

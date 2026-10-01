@@ -443,7 +443,7 @@ export default function DigestReports() {
 
           {/* Start date */}
           <div>
-            <MicroLabel as="label" className="mb-1.5 block" htmlFor="report-start">Start date</MicroLabel>
+            <label className="micro-label mb-1.5 block" htmlFor="report-start">Start date</label>
             <input
               id="report-start"
               type="date"
@@ -455,7 +455,7 @@ export default function DigestReports() {
 
           {/* End date */}
           <div>
-            <MicroLabel as="label" className="mb-1.5 block" htmlFor="report-end">End date</MicroLabel>
+            <label className="micro-label mb-1.5 block" htmlFor="report-end">End date</label>
             <input
               id="report-end"
               type="date"
