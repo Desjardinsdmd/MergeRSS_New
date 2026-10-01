@@ -50,7 +50,7 @@ export default function FeedAlertsDialog({ feed, open, onOpenChange }) {
     setWebhookUrl('');
     setLabel('');
     setAdding(false);
-    toast.success('Alert added — new articles will be posted automatically');
+    toast.success('Alert added. New stories will be posted automatically');
   };
 
   const handleDelete = async (alertId) => {
@@ -66,48 +66,48 @@ export default function FeedAlertsDialog({ feed, open, onOpenChange }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md bg-[#0d0a06] border-stone-800">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-stone-100">Feed Alerts — {feed?.name}</DialogTitle>
-          <DialogDescription className="text-stone-500">
-            Post new articles from this feed directly to Slack or Discord.
+          <DialogTitle className="font-display text-lg font-semibold text-stone-100">Source alerts <span className="text-stone-500">·</span> {feed?.name}</DialogTitle>
+          <DialogDescription className="text-stone-400">
+            Post new stories from this source directly to Slack or Discord.
           </DialogDescription>
         </DialogHeader>
 
         {/* Existing alerts */}
         {isLoading ? (
-          <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-amber-400" /></div>
+          <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-[hsl(var(--primary))]" /></div>
         ) : alerts.length > 0 ? (
           <div className="space-y-2 mb-2">
             {alerts.map(alert => (
-              <div key={alert.id} className="flex items-center gap-3 p-3 border border-stone-800 rounded-lg bg-stone-900">
+              <div key={alert.id} className="panel-raised flex items-center gap-3 p-3">
                 {alert.channel_type === 'slack'
-                  ? <Slack className="w-4 h-4 text-[#E01E5A] flex-shrink-0" />
-                  : <MessageCircle className="w-4 h-4 text-[#5865F2] flex-shrink-0" />
+                  ? <Slack className="w-4 h-4 text-stone-300 flex-shrink-0" aria-label="Slack" />
+                  : <MessageCircle className="w-4 h-4 text-stone-300 flex-shrink-0" aria-label="Discord" />
                 }
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-stone-300 truncate">
+                  <p className="truncate text-sm font-medium text-stone-100">
                     {alert.label || alert.channel_type.charAt(0).toUpperCase() + alert.channel_type.slice(1)}
                   </p>
-                  <p className="text-xs text-stone-600 truncate">{alert.webhook_url}</p>
+                  <p className="truncate font-mono text-[11px] text-stone-500">{alert.webhook_url}</p>
                 </div>
                 <Switch checked={alert.is_active !== false} onCheckedChange={() => handleToggle(alert)} />
-                <Button variant="ghost" size="icon" onClick={() => handleDelete(alert.id)} className="text-red-500 hover:text-red-400 h-7 w-7 flex-shrink-0">
+                <Button variant="ghost" size="icon" onClick={() => handleDelete(alert.id)} className="h-7 w-7 flex-shrink-0 rounded-lg text-red-400 hover:text-red-300" aria-label="Remove alert">
                   <Trash2 className="w-3.5 h-3.5" />
                 </Button>
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-sm text-stone-600 text-center py-2">No alerts configured yet.</p>
+          <p className="py-2 text-center text-sm text-stone-500">No alerts configured yet.</p>
         )}
 
         {/* Add new */}
-        <div className="border border-stone-800 rounded-lg p-4 space-y-3 bg-stone-900/50">
-          <p className="text-sm font-semibold text-stone-300">Add new alert</p>
+        <div className="panel space-y-3 p-4">
+          <p className="micro-label">Add new alert</p>
           <div className="flex gap-2">
             <Select value={channelType} onValueChange={setChannelType}>
-              <SelectTrigger className="w-32">
+              <SelectTrigger className="w-32 rounded-xl">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -131,7 +131,7 @@ export default function FeedAlertsDialog({ feed, open, onOpenChange }) {
               value={webhookUrl}
               onChange={(e) => { setWebhookUrl(e.target.value); setUrlError(''); }}
               placeholder={channelType === 'slack' ? 'https://hooks.slack.com/services/…' : 'https://discord.com/api/webhooks/…'}
-              className={cn(urlError && 'border-red-500')}
+              className={cn('font-mono text-[13px]', urlError && 'border-red-500')}
             />
             {urlError && (
               <p className="mt-1 text-xs text-red-400 flex items-center gap-1">
@@ -142,10 +142,10 @@ export default function FeedAlertsDialog({ feed, open, onOpenChange }) {
           <Button
             onClick={handleAdd}
             disabled={!webhookUrl || adding}
-            className="w-full bg-amber-400 hover:bg-amber-300 text-stone-900 font-bold"
+            className="btn-brand w-full"
           >
-            {adding ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
-            Add Alert
+            {adding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+            Add alert
           </Button>
         </div>
       </DialogContent>
