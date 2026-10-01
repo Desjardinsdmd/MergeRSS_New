@@ -31,7 +31,7 @@ export default function SuccessBanner({ message, show, onHide, duration = 3500 }
       role="status"
       aria-live="polite"
       className={cn(
-        "flex items-center gap-3 px-4 py-3 mb-4 bg-emerald-900/40 border border-emerald-700 text-emerald-300 text-sm font-medium animate-in rounded-none"
+        "flex items-center gap-3 px-4 py-3 mb-4 bg-emerald-400/10 border border-emerald-400/25 text-emerald-300 text-sm font-medium animate-in rounded-xl"
       )}
     >
       <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-emerald-400" aria-hidden="true" />
