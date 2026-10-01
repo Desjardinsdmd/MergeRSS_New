@@ -639,7 +639,7 @@ Deno.serve(async (req) => {
                 suggestions.push('Try appending /feed, /rss, or /atom to the domain root');
                 suggestions.push('JavaScript-heavy SPAs require a headless browser — not yet supported');
             }
-            suggestions.push('You can add this URL directly as a "My Feed" and MergeRSS will poll it for changes');
+            suggestions.push('You can add this URL directly as a source and MergeRSS will check it for changes');
 
             // Only update if it's an existing feed — don't create a new record for a failed generation (don't count against quota)
             if (existingForUrl) {
