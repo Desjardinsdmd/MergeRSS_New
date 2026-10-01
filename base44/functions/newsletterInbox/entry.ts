@@ -387,6 +387,19 @@ Deno.serve(async (req) => {
         }));
       } catch (e) { out.events_error = e?.message; }
 
+      // Optional end-to-end test: send a message from the domain to an inbox address.
+      if (body.send_test_to) {
+        try {
+          const form = new FormData();
+          form.append('from', `Inbox Test Weekly <inbox-test@${cfg.domain}>`);
+          form.append('to', String(body.send_test_to));
+          form.append('subject', `Inbox test ${new Date().toISOString()}`);
+          form.append('text', 'Inbox test\nIf this shows up as a feed item, inbound newsletters work end to end.');
+          form.append('html', '<h1>Inbox test</h1><p>If this shows up as a feed item, inbound newsletters work end to end.</p>');
+          out.send_test = await mailgunFetch(cfg, `/v3/${cfg.domain}/messages`, { method: 'POST', body: form });
+        } catch (e) { out.send_test_error = e?.message; }
+      }
+
       // Optional replay: re-post a stored inbound message to the webhook with a fresh signature.
       if (body.replay_recipient) {
         try {
