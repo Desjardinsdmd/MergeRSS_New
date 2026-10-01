@@ -43,21 +43,21 @@ export default function ArticleDetailVisual({ articleId }) {
   return (
     <div className="mb-5">
       {/* 16:9 container */}
-      <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+      <div className="relative w-full overflow-hidden rounded-2xl border border-white/[0.07]" style={{ paddingBottom: '56.25%' }}>
         <img
           src={visual.image_url}
-          alt={caption || 'Article visual'}
+          alt={caption || 'Story visual'}
           loading="lazy"
           onLoad={() => setLoaded(true)}
           onError={() => setVisual(null)}
           className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`}
         />
         {!loaded && (
-          <div className="absolute inset-0 bg-stone-800 animate-pulse" />
+          <div className="absolute inset-0 animate-pulse bg-white/[0.04]" />
         )}
       </div>
       {caption && (
-        <p className="mt-2 text-xs text-stone-500 italic leading-relaxed px-0.5">
+        <p className="mt-2 px-0.5 font-mono text-[11px] leading-relaxed text-stone-500">
           {caption}
         </p>
       )}
