@@ -142,17 +142,17 @@ export default function CandidatePipeline({ publicationId }) {
         <div className="flex items-center gap-2">
           <BarChart3 className="w-4 h-4 text-stone-500" />
           <span className="text-sm text-stone-400">
-            {data?.total_clusters || 0} stories in the last 24h
+            <span className="font-mono text-stone-200">{data?.total_clusters || 0}</span> stories in the last 24h
           </span>
         </div>
         {fbStats.manual_selects > 0 && (
-          <Badge variant="outline" className="text-xs text-amber-400 border-amber-800">
+          <Badge variant="outline" className="rounded-md border-[hsl(var(--brand)/0.3)] bg-[hsl(var(--brand)/0.14)] font-mono text-[10px] font-medium text-[#C4A5FD]">
             <TrendingUp className="w-3 h-3 mr-1" />
             {fbStats.manual_selects} picks · {fbStats.skips || 0} skips (learning)
           </Badge>
         )}
         <div className="flex-1" />
-        <Button variant="ghost" size="sm" onClick={() => refetch()} disabled={isRefetching}>
+        <Button variant="ghost" size="sm" className="rounded-xl text-stone-400 hover:bg-white/[0.05] hover:text-stone-100" onClick={() => refetch()} disabled={isRefetching}>
           <RefreshCw className={`w-4 h-4 mr-1 ${isRefetching ? 'animate-spin' : ''}`} />
           Refresh
         </Button>
@@ -166,11 +166,11 @@ export default function CandidatePipeline({ publicationId }) {
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder="Search stories..."
-            className="pl-9 bg-stone-800 border-stone-700 text-stone-100 text-sm"
+            className="pl-9 rounded-xl border-white/10 bg-stone-800 text-stone-100 text-sm"
           />
         </div>
         <Select value={tagFilter} onValueChange={setTagFilter}>
-          <SelectTrigger className="w-36 bg-stone-800 border-stone-700 text-stone-100 text-sm">
+          <SelectTrigger className="w-36 rounded-xl border-white/10 bg-stone-800 text-stone-100 text-sm">
             <Filter className="w-3 h-3 mr-1 text-stone-500" />
             <SelectValue />
           </SelectTrigger>
@@ -183,7 +183,7 @@ export default function CandidatePipeline({ publicationId }) {
           </SelectContent>
         </Select>
         <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="w-36 bg-stone-800 border-stone-700 text-stone-100 text-sm">
+          <SelectTrigger className="w-36 rounded-xl border-white/10 bg-stone-800 text-stone-100 text-sm">
             <ArrowUpDown className="w-3 h-3 mr-1 text-stone-500" />
             <SelectValue />
           </SelectTrigger>
@@ -196,43 +196,43 @@ export default function CandidatePipeline({ publicationId }) {
 
       {/* Bulk action bar */}
       {selectedIds.size > 0 && (
-        <div className="flex items-center gap-3 px-4 py-2 bg-stone-800 border border-stone-700 rounded-lg">
-          <span className="text-sm text-stone-300 font-medium">{selectedIds.size} selected</span>
+        <div className="panel-raised flex items-center gap-3 px-4 py-2">
+          <span className="text-sm text-stone-300 font-medium"><span className="font-mono">{selectedIds.size}</span> selected</span>
           <div className="flex-1" />
           <Button size="sm" variant="ghost" disabled={bulkActing}
             onClick={() => setSelectedIds(new Set())}
-            className="text-xs text-stone-500 hover:text-stone-200">
+            className="rounded-xl text-xs text-stone-500 hover:bg-white/[0.05] hover:text-stone-200">
             Clear
           </Button>
           <Button size="sm" variant="ghost" disabled={bulkActing}
             onClick={handleBulkDiscard}
-            className="text-xs text-red-400 hover:text-red-300 hover:bg-red-950/30">
+            className="rounded-xl text-xs text-red-400 hover:text-red-300 hover:bg-red-400/10">
             {bulkActing ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <X className="w-3.5 h-3.5 mr-1" />}
-            Discard All
+            Discard all
           </Button>
           <Button size="sm" variant="outline" disabled={bulkActing}
             onClick={handleBulkDraft}
-            className="text-xs border-amber-800/50 text-amber-400 hover:bg-amber-950/30">
+            className="rounded-xl text-xs border-[hsl(var(--brand)/0.3)] bg-[hsl(var(--brand)/0.14)] text-[#D9C7FE] hover:bg-[hsl(var(--brand)/0.22)] hover:text-[#D9C7FE]">
             {bulkActing ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <Send className="w-3.5 h-3.5 mr-1" />}
-            Draft All
+            Draft all
           </Button>
         </div>
       )}
 
       {/* Table */}
-      <Card className="border-stone-800 bg-stone-900 overflow-hidden">
+      <Card className="overflow-hidden">
         {/* Header */}
-        <div className="grid grid-cols-[32px_1fr_100px_80px_80px_140px] gap-3 items-center px-4 py-2 border-b border-stone-700 bg-stone-800/50">
+        <div className="grid grid-cols-[32px_1fr_100px_80px_80px_140px] gap-3 items-center px-4 py-2.5 border-b border-white/[0.07] bg-white/[0.02]">
           <Checkbox
             checked={filtered.length > 0 && selectedIds.size === filtered.length}
             onCheckedChange={toggleAll}
-            className="border-stone-600 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+            className="border-stone-600 data-[state=checked]:bg-[hsl(var(--brand))] data-[state=checked]:border-[hsl(var(--brand))] data-[state=checked]:text-white"
           />
-          <span className="text-xs font-medium text-stone-500 uppercase tracking-wider">Story</span>
-          <span className="text-xs font-medium text-stone-500 uppercase tracking-wider text-center">When</span>
-          <span className="text-xs font-medium text-stone-500 uppercase tracking-wider text-center">Sources</span>
-          <span className="text-xs font-medium text-stone-500 uppercase tracking-wider text-center">Articles</span>
-          <span className="text-xs font-medium text-stone-500 uppercase tracking-wider text-right">Action</span>
+          <span className="micro-label">Story</span>
+          <span className="micro-label text-center">When</span>
+          <span className="micro-label text-center">Sources</span>
+          <span className="micro-label text-center">Stories</span>
+          <span className="micro-label text-right">Action</span>
         </div>
 
         <CardContent className="p-0">
@@ -242,7 +242,7 @@ export default function CandidatePipeline({ publicationId }) {
             </div>
           ) : filtered.length === 0 ? (
             <div className="py-12 text-center text-stone-500 text-sm">
-              No new stories in the last 24 hours. Check back after your next feed fetch.
+              No new stories in the last 24 hours. Check back after the next source fetch.
             </div>
           ) : (
             filtered.map(c => (
@@ -264,11 +264,11 @@ export default function CandidatePipeline({ publicationId }) {
       <AlertDialog open={!!confirmCandidate} onOpenChange={() => { setConfirmCandidate(null); setUserNotes(''); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Generate draft from this cluster?</AlertDialogTitle>
+            <AlertDialogTitle className="font-display">Generate a draft from this story?</AlertDialogTitle>
             <AlertDialogDescription className="space-y-3">
               <p className="font-medium text-stone-300">"{confirmCandidate?.title}"</p>
-              <p className="text-stone-500 text-sm">
-                {confirmCandidate?.source_count} sources · {confirmCandidate?.article_count} articles · {confirmCandidate?.intelligence_tag}
+              <p className="meta">
+                {confirmCandidate?.source_count} sources · {confirmCandidate?.article_count} stories · {confirmCandidate?.intelligence_tag}
               </p>
               <p className="text-stone-500 text-sm">
                 This will create a draft post. Your pick helps the system learn your preferences over time.
@@ -277,16 +277,16 @@ export default function CandidatePipeline({ publicationId }) {
                 value={userNotes}
                 onChange={e => setUserNotes(e.target.value)}
                 placeholder="Why are you selecting this? (optional — helps the system learn)"
-                className="bg-stone-800 border-stone-700 text-stone-100 text-sm"
+                className="rounded-xl border-white/10 bg-stone-800 text-stone-100 text-sm"
               />
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleSelect} disabled={selecting}
-              className="bg-[hsl(var(--primary))] text-stone-900 font-semibold">
+              className="btn-brand">
               {selecting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
-              Generate Draft
+              Generate draft
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
