@@ -83,7 +83,7 @@ export function monoWidth(doc, text, size, charSpace = 0, style = 'normal') {
  * Mono label. align: 'left' | 'right' | 'center'. Draws uppercase by default.
  * Returns drawn width.
  */
-export function mono(doc, text, x, y, { size = 6.8, rgb = C.meta, charSpace = 0.28, style = 'normal', align = 'left', upper = true } = {}) {
+export function mono(doc, text, x, y, { size = 6.8, rgb = C.meta, charSpace = 0.28, style = 'bold', align = 'left', upper = true } = {}) {
   const s = upper ? String(text).toUpperCase() : String(text);
   const w = monoWidth(doc, s, size, charSpace, style);
   let tx = x;

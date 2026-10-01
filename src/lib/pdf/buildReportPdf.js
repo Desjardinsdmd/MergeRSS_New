@@ -571,7 +571,7 @@ function timeline(flow, points) {
         dot(doc, spineX, cy, 2.5, C.ink);
         dot(doc, spineX, cy, 2.1, mix(C.violet, C.ink, 0.28));
         dot(doc, spineX, cy, 1.25, C.violet);
-        if (dateText) mono(doc, fitMono(doc, dateText.toUpperCase(), tw, 6.8, 0.7, 'bold'), tx, cy + 6.8 * PT * 0.36, { size: 6.8, rgb: C.violetLight, charSpace: 0.35, style: 'bold' });
+        if (dateText) mono(doc, fitMono(doc, dateText.toUpperCase(), tw, 6.8, 0.35, 'bold'), tx, cy + 6.8 * PT * 0.36, { size: 6.8, rgb: C.violetLight, charSpace: 0.35, style: 'bold' });
       },
     });
     const withSpine = (list) => list.map(it => {
