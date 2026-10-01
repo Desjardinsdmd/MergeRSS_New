@@ -3,7 +3,6 @@ import { TrendingUp, ExternalLink, Clock, Zap } from 'lucide-react';
 import { decodeHtml, safeUrl } from '@/components/utils/htmlUtils';
 import { getArticleImage, normalizeImageUrl } from '@/components/utils/imageUtils';
 import { calculateReadTime, getFaviconUrl } from '@/components/utils/articleUtils';
-import { Badge } from '@/components/ui/badge';
 
 /**
  * Trending = articles with the most keyword overlap with other articles
@@ -46,17 +45,17 @@ export default function TrendingArticles({ articles }) {
   if (trending.length === 0) return null;
 
   return (
-    <div className="bg-stone-900 border border-stone-800 flex flex-col h-full">
+    <div className="panel flex h-full flex-col overflow-hidden">
       <div className="flex flex-row items-center justify-between p-4 pb-2">
         <div className="flex items-center gap-2">
-          <span className="text-base font-semibold text-stone-100 flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-amber-400" />
-            Trending Now
+          <span className="flex items-center gap-2 font-display text-lg font-semibold text-stone-100">
+            <TrendingUp className="w-4 h-4 text-sky-400" aria-hidden="true" />
+            Trending now
           </span>
         </div>
       </div>
       <div className="p-0 flex-1">
-        <div className="divide-y divide-stone-800">
+        <div className="divide-y divide-white/[0.05]">
           {trending.map((item) => {
             const imageUrl = normalizeImageUrl(getArticleImage(item));
             const readTime = calculateReadTime(item.content || item.description);
@@ -67,10 +66,10 @@ export default function TrendingArticles({ articles }) {
                 href={safeUrl(item.url)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-start gap-3 p-4 hover:bg-stone-800/80 hover:shadow-md transition-all duration-200 group border-b border-stone-800/30 last:border-0"
+                className="group flex items-start gap-3 p-4 transition-all duration-200 hover:bg-white/[0.03]"
               >
                 {imageUrl && (
-                  <div className="flex-shrink-0 w-12 h-12 bg-stone-800 rounded overflow-hidden border border-stone-700/50">
+                  <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg border border-white/[0.07] bg-white/[0.04]">
                     <img
                       src={imageUrl}
                       alt={item.title}
@@ -80,8 +79,8 @@ export default function TrendingArticles({ articles }) {
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-stone-200 mb-1 line-clamp-1 group-hover:text-[hsl(var(--primary))] transition-colors">{decodeHtml(item.title)}</p>
-                  <div className="flex items-center gap-2 text-xs text-stone-500 flex-wrap">
+                  <p className="mb-1 line-clamp-1 text-sm font-semibold text-stone-100 transition-colors group-hover:text-[#C4A5FD]">{decodeHtml(item.title)}</p>
+                  <div className="meta flex flex-wrap items-center gap-2">
                     {faviconUrl && (
                       <img src={faviconUrl} alt="publication" className="w-3 h-3 rounded" onError={(e) => (e.target.style.display = 'none')} />
                     )}
@@ -94,12 +93,12 @@ export default function TrendingArticles({ articles }) {
                       </>
                     )}
                     {item.category && (
-                      <Badge className="bg-stone-800 text-stone-400 px-1.5 py-0.5 text-xs">{item.category}</Badge>
+                      <span className="chip-brand normal-case tracking-normal">{item.category}</span>
                     )}
                   </div>
                 </div>
                 <div className="flex items-center gap-1 flex-shrink-0">
-                  <ExternalLink className="w-3.5 h-3.5 text-stone-600 group-hover:text-[hsl(var(--primary))] transition-colors" />
+                  <ExternalLink className="w-3.5 h-3.5 text-stone-500 transition-colors group-hover:text-[#C4A5FD]" />
                 </div>
               </a>
             );

@@ -4,11 +4,12 @@ import { AlertTriangle, ChevronDown, ChevronUp,
   Shield, BarChart3, Clock, AlertCircle, Info
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { PageHeader } from '@/components/brand/Brand';
 
 const AUDIT_DATA = {
   verdict: 'READY WITH CAVEATS',
   verdictColor: 'text-amber-400',
-  verdictBg: 'border-amber-800 bg-amber-950/30',
+  verdictBg: 'border-amber-400/25 bg-amber-400/10',
   summary: 'Core product loop (add feeds → AI enrichment → daily briefing → inbox) is fully wired and operational. Scheduled jobs are running. However, several ancillary features have partial implementations, one critical email infrastructure gap, and one active job failure that must be addressed before broad marketing.',
 
   automations: [
@@ -290,19 +291,19 @@ const statusColors = {
 };
 
 const statusBg = {
-  PASS: 'bg-emerald-900/20 border-emerald-800',
-  FAIL: 'bg-red-900/20 border-red-800',
-  PARTIAL: 'bg-amber-900/20 border-amber-800',
-  HEALTHY: 'bg-emerald-900/20 border-emerald-800',
-  DEGRADED: 'bg-amber-900/20 border-amber-800',
-  FAILING: 'bg-red-900/20 border-red-800',
+  PASS: 'bg-emerald-400/[0.06] border-emerald-400/20',
+  FAIL: 'bg-red-400/10 border-red-400/25',
+  PARTIAL: 'bg-amber-400/10 border-amber-400/25',
+  HEALTHY: 'bg-emerald-400/[0.06] border-emerald-400/20',
+  DEGRADED: 'bg-amber-400/10 border-amber-400/25',
+  FAILING: 'bg-red-400/10 border-red-400/25',
 };
 
 const severityColors = {
-  BLOCKER: 'bg-red-600 text-white',
-  HIGH: 'bg-orange-600 text-white',
-  MEDIUM: 'bg-amber-600 text-stone-900',
-  LOW: 'bg-stone-700 text-stone-300',
+  BLOCKER: 'border-red-400/40 bg-red-400/20 text-red-200',
+  HIGH: 'border-red-400/25 bg-red-400/10 text-red-300',
+  MEDIUM: 'border-amber-400/25 bg-amber-400/10 text-amber-300',
+  LOW: 'border-white/10 bg-white/[0.03] text-stone-400',
 };
 
 function CategorySection({ cat }) {
@@ -312,30 +313,30 @@ function CategorySection({ cat }) {
   const partials = cat.features.filter(f => f.status === 'PARTIAL').length;
 
   return (
-    <div className="border border-stone-800 bg-stone-900">
+    <div className="panel overflow-hidden">
       <button
-        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-stone-800/40 transition"
+        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-white/[0.03] transition"
         onClick={() => setOpen(!open)}
       >
         <div className="flex items-center gap-3">
-          <h3 className="font-semibold text-stone-100">{cat.name}</h3>
-          <span className="text-xs text-emerald-400">{passes} pass</span>
-          {failures > 0 && <span className="text-xs text-red-400">{failures} fail</span>}
-          {partials > 0 && <span className="text-xs text-amber-400">{partials} partial</span>}
+          <h3 className="font-display text-base font-semibold text-stone-100">{cat.name}</h3>
+          <span className="font-mono text-[11px] text-emerald-400">{passes} pass</span>
+          {failures > 0 && <span className="font-mono text-[11px] text-red-400">{failures} fail</span>}
+          {partials > 0 && <span className="font-mono text-[11px] text-amber-400">{partials} partial</span>}
         </div>
         {open ? <ChevronUp className="w-4 h-4 text-stone-500" /> : <ChevronDown className="w-4 h-4 text-stone-500" />}
       </button>
       {open && (
-        <div className="border-t border-stone-800 divide-y divide-stone-800/60">
+        <div className="border-t border-white/[0.06] divide-y divide-white/[0.05]">
           {cat.features.map((f, i) => (
             <div key={i} className="px-5 py-3 grid grid-cols-[auto_1fr] gap-3 items-start">
-              <span className={cn('text-xs font-bold mt-0.5 w-16 flex-shrink-0', statusColors[f.status])}>
+              <span className={cn('font-mono text-[11px] font-semibold mt-0.5 w-16 flex-shrink-0', statusColors[f.status])}>
                 {f.status}
               </span>
               <div>
                 <p className="text-sm font-medium text-stone-200">{f.feature}</p>
                 {f.severity && (
-                  <span className={cn('inline-block text-[10px] font-bold px-1.5 py-0.5 rounded mr-2 mt-1', severityColors[f.severity])}>
+                  <span className={cn('inline-block rounded-md border px-1.5 py-0.5 font-mono text-[10px] font-medium mr-2 mt-1', severityColors[f.severity])}>
                     {f.severity}
                   </span>
                 )}
@@ -358,16 +359,18 @@ function ReleaseAuditPage() {
 
   return (
     <div className="p-6 lg:p-8 max-w-5xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-stone-100 mb-1">Release Readiness Audit</h1>
-        <p className="text-stone-500 text-sm">MergeRSS — Full end-to-end QA. Generated {new Date().toLocaleDateString()}.</p>
-      </div>
+      <PageHeader
+        eyebrow="Internal"
+        title="Release readiness audit"
+        subtitle={<>MergeRSS full end-to-end QA. Generated <span className="font-mono text-sm">{new Date().toLocaleDateString()}</span>.</>}
+        className="mb-8"
+      />
 
       {/* Verdict */}
-      <div className={cn('border rounded-xl p-6 mb-8', AUDIT_DATA.verdictBg)}>
+      <div className={cn('border rounded-2xl p-6 mb-8', AUDIT_DATA.verdictBg)}>
         <div className="flex items-center gap-3 mb-3">
           <Shield className="w-6 h-6 text-amber-400" />
-          <span className={cn('text-2xl font-black', AUDIT_DATA.verdictColor)}>VERDICT: {AUDIT_DATA.verdict}</span>
+          <span className={cn('font-display text-2xl font-semibold', AUDIT_DATA.verdictColor)}>VERDICT: {AUDIT_DATA.verdict}</span>
         </div>
         <p className="text-stone-300 text-sm leading-relaxed">{AUDIT_DATA.summary}</p>
       </div>
@@ -375,33 +378,33 @@ function ReleaseAuditPage() {
       {/* Feature score */}
       <div className="grid grid-cols-4 gap-3 mb-8">
         {[
-          { label: 'Total Features', value: total, color: 'text-stone-100' },
+          { label: 'Total features', value: total, color: 'text-stone-100' },
           { label: 'Passed', value: passes, color: 'text-emerald-400' },
           { label: 'Partial', value: partials, color: 'text-amber-400' },
           { label: 'Failed', value: failures, color: 'text-red-400' },
         ].map(s => (
-          <div key={s.label} className="border border-stone-800 bg-stone-900 p-4 text-center">
-            <p className={cn('text-3xl font-black', s.color)}>{s.value}</p>
-            <p className="text-xs text-stone-500 mt-1">{s.label}</p>
+          <div key={s.label} className="panel p-4 text-center">
+            <p className={cn('font-display text-3xl font-semibold tabular-nums', s.color)}>{s.value}</p>
+            <p className="micro-label mt-1">{s.label}</p>
           </div>
         ))}
       </div>
 
       {/* Scheduled Jobs */}
       <div className="mb-8">
-        <h2 className="text-lg font-bold text-stone-100 mb-3 flex items-center gap-2">
-          <Clock className="w-5 h-5 text-amber-400" />
-          Scheduled Jobs
+        <h2 className="font-display text-lg font-semibold text-stone-100 mb-3 flex items-center gap-2">
+          <Clock className="w-5 h-5 text-[#C4A5FD]" />
+          Scheduled jobs
         </h2>
         <div className="space-y-2">
           {AUDIT_DATA.automations.map((a, i) => (
-            <div key={i} className={cn('border rounded-lg px-4 py-3', statusBg[a.status])}>
+            <div key={i} className={cn('border rounded-xl px-4 py-3', statusBg[a.status])}>
               <div className="flex items-start justify-between gap-3 flex-wrap">
                 <div>
                   <p className="font-semibold text-stone-100 text-sm">{a.name}</p>
-                  <p className="text-xs text-stone-500">{a.schedule} · {a.runs} runs · {a.failures} failures ({a.failurePct})</p>
+                  <p className="font-mono text-[11px] text-stone-500">{a.schedule} · {a.runs} runs · {a.failures} failures ({a.failurePct})</p>
                 </div>
-                <span className={cn('text-xs font-black', statusColors[a.status])}>{a.status}</span>
+                <span className={cn('font-mono text-[11px] font-semibold', statusColors[a.status])}>{a.status}</span>
               </div>
               <p className="text-xs text-stone-400 mt-1">{a.note}</p>
             </div>
@@ -411,21 +414,21 @@ function ReleaseAuditPage() {
 
       {/* Blockers */}
       <div className="mb-8">
-        <h2 className="text-lg font-bold text-stone-100 mb-3 flex items-center gap-2">
+        <h2 className="font-display text-lg font-semibold text-stone-100 mb-3 flex items-center gap-2">
           <AlertCircle className="w-5 h-5 text-red-400" />
-          Blockers & High-Severity Issues
+          Blockers and high-severity issues
         </h2>
         <div className="space-y-3">
           {AUDIT_DATA.blockers.map(b => (
-            <div key={b.id} className={cn('border rounded-xl p-4', b.severity === 'BLOCKER' ? 'border-red-700 bg-red-950/30' : 'border-orange-800 bg-orange-950/20')}>
+            <div key={b.id} className={cn('border rounded-xl p-4', b.severity === 'BLOCKER' ? 'border-red-400/30 bg-red-400/10' : 'border-red-400/20 bg-red-400/[0.06]')}>
               <div className="flex items-center gap-2 mb-2">
-                <span className={cn('text-[10px] font-black px-2 py-0.5 rounded', severityColors[b.severity])}>{b.severity}</span>
-                <span className="text-xs text-stone-500">{b.id}</span>
+                <span className={cn('rounded-md border px-1.5 py-0.5 font-mono text-[10px] font-medium', severityColors[b.severity])}>{b.severity}</span>
+                <span className="font-mono text-[11px] text-stone-500">{b.id}</span>
                 <h3 className="font-semibold text-stone-100 text-sm">{b.title}</h3>
               </div>
               <p className="text-xs text-stone-400 mb-2">{b.detail}</p>
               <p className="text-xs text-stone-300 flex items-start gap-1.5">
-                <Info className="w-3 h-3 mt-0.5 flex-shrink-0 text-amber-400" />
+                <Info className="w-3 h-3 mt-0.5 flex-shrink-0 text-sky-400" />
                 <span><strong>Action:</strong> {b.action}</span>
               </p>
             </div>
@@ -434,10 +437,10 @@ function ReleaseAuditPage() {
       </div>
 
       {/* Landing page claims */}
-      <div className="mb-8 border border-amber-800 bg-amber-950/20 rounded-xl p-4">
-        <h2 className="text-sm font-bold text-amber-400 mb-2 flex items-center gap-2">
+      <div className="mb-8 border border-amber-400/25 bg-amber-400/10 rounded-xl p-4">
+        <h2 className="font-display text-sm font-semibold text-amber-300 mb-2 flex items-center gap-2">
           <AlertTriangle className="w-4 h-4" />
-          Remove From Landing Page Before Launch
+          Remove from landing page before launch
         </h2>
         {AUDIT_DATA.removeLandingClaims.map((c, i) => (
           <p key={i} className="text-xs text-stone-400">→ {c}</p>
@@ -445,9 +448,9 @@ function ReleaseAuditPage() {
       </div>
 
       {/* Feature categories */}
-      <h2 className="text-lg font-bold text-stone-100 mb-3 flex items-center gap-2">
-        <BarChart3 className="w-5 h-5 text-amber-400" />
-        Full Feature Inventory
+      <h2 className="font-display text-lg font-semibold text-stone-100 mb-3 flex items-center gap-2">
+        <BarChart3 className="w-5 h-5 text-[#C4A5FD]" />
+        Full feature inventory
       </h2>
       <div className="space-y-2">
         {AUDIT_DATA.categories.map((cat, i) => (
@@ -456,7 +459,7 @@ function ReleaseAuditPage() {
       </div>
 
       {/* Footer */}
-      <div className="mt-8 pt-6 border-t border-stone-800 text-xs text-stone-600">
+      <div className="mt-8 pt-6 border-t border-white/[0.07] text-xs text-stone-500">
         <p>This audit was generated by code inspection of all pages, functions, automations, and entities. It does not replace manual QA testing of actual user flows.</p>
         <p className="mt-1">Automation data is live from the Base44 scheduler as of audit date.</p>
       </div>
