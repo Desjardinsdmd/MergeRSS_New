@@ -484,14 +484,20 @@ function briefToDiscord(brief, { name, dateStr, count, url }) {
     const link = (u, t) => `[${String(t).replace(/[[\]]/g, '')}](${u})`;
     const md = (s) => storyLines(s, link).replace(/^\*(.+)\*$/m, '**$1**');
     let budget = 5600; // Discord: 6000 chars per message across all embed text
-    const take = (s, max) => { const v = clip(s, Math.max(0, Math.min(max, budget))); budget -= v.length; return v; };
+    const take = (s, max) => {
+        const n = Math.min(max, budget);
+        if (n < 2) return '';
+        const v = clip(s, n);
+        budget -= v.length;
+        return v;
+    };
     const title = take(name, 250);
     const description = take(`**01 · Key signal**\n**${brief.title_line}**${brief.lede ? `\n${brief.lede}` : ''}`, 1500);
     const fields = [];
-    if (lead) fields.push({ name: take('02 · Read first', 256), value: take(md(lead), 1024) || '—' });
+    if (lead) fields.push({ name: take('02 · Read first', 256) || 'Read first', value: take(md(lead), 1024) || '—' });
     for (const t of topics) {
         if (budget < 200 || fields.length >= 24) break;
-        fields.push({ name: take(`${pad2(t.num)} · ${t.label}`, 256), value: take(t.stories.map(md).join('\n\n'), 1024) || '—' });
+        fields.push({ name: take(`${pad2(t.num)} · ${t.label}`, 256) || pad2(t.num), value: take(t.stories.map(md).join('\n\n'), 1024) || '—' });
     }
     return {
         username: 'MergeRSS',
@@ -1237,6 +1243,7 @@ Deno.serve(async (req) => {
                                         brief,
                                         inboxUrl: memberInbox[m.email] || teamInbox,
                                         manageUrl: `${origin}/Digests`,
+                                        // Team members opt out with their email master switch.
                                         unsubscribeUrl: `${origin}/Settings`,
                                         now,
                                     }),
@@ -1278,7 +1285,8 @@ Deno.serve(async (req) => {
                             brief,
                             inboxUrl,
                             manageUrl: `${origin}/Digests`,
-                            unsubscribeUrl: `${origin}/Settings`,
+                            // Personal briefing email is switched off per briefing (delivery_email).
+                            unsubscribeUrl: `${origin}/Digests`,
                             now,
                         });
                         await base44.asServiceRole.integrations.Core.SendEmail({
