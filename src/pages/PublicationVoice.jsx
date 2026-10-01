@@ -18,6 +18,10 @@ import {
 } from '@/components/ui/alert-dialog';
 import { ArrowLeft, Plus, Trash2, Loader2, BookOpen, Star } from 'lucide-react';
 import { toast } from 'sonner';
+import { PageHeader } from '@/components/brand/Brand';
+
+const FIELD = 'rounded-xl border-white/10 bg-stone-800 text-stone-100';
+const CHIP = 'rounded-md px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wider shadow-none';
 
 function PublicationVoicePage() {
   const params = new URLSearchParams(window.location.search);
@@ -100,43 +104,45 @@ function PublicationVoicePage() {
 
   return (
     <div className="p-6 lg:p-8 max-w-3xl mx-auto">
-      <div className="flex items-center gap-3 mb-6">
-        <Link to="/Publications">
-          <Button variant="ghost" size="icon"><ArrowLeft className="w-4 h-4" /></Button>
+      <div className="mb-6 flex items-start gap-3">
+        <Link to="/Publications" className="mt-1">
+          <Button variant="ghost" size="icon" className="rounded-xl text-stone-400 hover:bg-white/[0.05] hover:text-stone-100" aria-label="Back to publications"><ArrowLeft className="w-4 h-4" /></Button>
         </Link>
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold text-stone-100">{pub?.name || 'Publication'} — Voice Library</h1>
-          <p className="text-stone-500 text-sm">Manage few-shot examples that shape the AI writing voice</p>
-        </div>
+        <PageHeader
+          className="mb-0 flex-1"
+          eyebrow="Voice library"
+          title={pub?.name || 'Publication'}
+          subtitle="Few-shot examples that shape the AI writing voice."
+        />
       </div>
 
       <div className="flex items-center gap-3 mb-4">
-        <Button onClick={() => setShowAdd(true)} className="bg-[hsl(var(--primary))] text-stone-900 font-semibold">
-          <Plus className="w-4 h-4 mr-2" /> Add Example
-        </Button>
-        <Button variant="outline" onClick={() => setShowPromote(true)}>
-          <Star className="w-4 h-4 mr-2" /> Promote from Posted
-        </Button>
+        <button type="button" onClick={() => setShowAdd(true)} className="btn-brand">
+          <Plus className="w-4 h-4" /> Add example
+        </button>
+        <button type="button" className="btn-ghost py-2" onClick={() => setShowPromote(true)}>
+          <Star className="w-4 h-4" /> Promote from posted
+        </button>
       </div>
 
       {isLoading ? (
         <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-stone-500" /></div>
       ) : examples.length === 0 ? (
-        <div className="flex flex-col items-center py-16 text-center">
+        <div className="panel flex flex-col items-center py-16 text-center">
           <BookOpen className="w-10 h-10 text-stone-600 mb-3" />
-          <p className="text-stone-400 mb-1">No voice examples yet</p>
-          <p className="text-stone-600 text-sm">Add examples to teach the AI your preferred writing style.</p>
+          <p className="font-display text-stone-200 mb-1">No voice examples yet</p>
+          <p className="text-stone-500 text-sm">Add examples to teach the AI your preferred writing style.</p>
         </div>
       ) : (
         <div className="space-y-3">
           {examples.map(ex => (
-            <Card key={ex.id} className="border-stone-800 bg-stone-900">
-              <CardContent className="p-4">
+            <Card key={ex.id}>
+              <CardContent className="p-5">
                 <div className="flex items-start gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
-                      <Badge variant="outline" className="text-xs">{ex.example_label || 'post'}</Badge>
-                      <Badge variant={ex.use_in_prompts ? 'default' : 'outline'} className="text-xs">
+                      <Badge variant="outline" className={`${CHIP} border-white/10 text-stone-300`}>{ex.example_label || 'post'}</Badge>
+                      <Badge variant="outline" className={`${CHIP} ${ex.use_in_prompts ? 'border-emerald-400/25 bg-emerald-400/10 text-emerald-300' : 'border-white/10 text-stone-500'}`}>
                         {ex.use_in_prompts ? 'Active' : 'Disabled'}
                       </Badge>
                     </div>
@@ -144,12 +150,12 @@ function PublicationVoicePage() {
                       <p key={i} className="text-sm text-stone-300 mb-1">{line}</p>
                     ))}
                     {ex.performance_note && (
-                      <p className="text-xs text-stone-600 mt-2 italic">{ex.performance_note}</p>
+                      <p className="text-xs text-stone-500 mt-2 italic">{ex.performance_note}</p>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
                     <Switch checked={ex.use_in_prompts} onCheckedChange={v => handleToggle(ex, v)} />
-                    <Button variant="ghost" size="icon" onClick={() => setDeleteTarget(ex)}>
+                    <Button variant="ghost" size="icon" className="rounded-xl hover:bg-white/[0.05]" aria-label="Remove example" onClick={() => setDeleteTarget(ex)}>
                       <Trash2 className="w-4 h-4 text-red-400" />
                     </Button>
                   </div>
@@ -163,32 +169,32 @@ function PublicationVoicePage() {
       {/* Add Dialog */}
       <Dialog open={showAdd} onOpenChange={setShowAdd}>
         <DialogContent className="sm:max-w-lg">
-          <DialogHeader><DialogTitle>Add Voice Example</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle className="font-display">Add voice example</DialogTitle></DialogHeader>
           <div className="space-y-4 py-2">
             <div>
-              <Label className="text-stone-400">Content *</Label>
+              <Label className="micro-label">Content *</Label>
               <Textarea value={form.content} onChange={e => setForm({ ...form, content: e.target.value })}
                 rows={6} placeholder="Paste example post content. For threads, separate posts with ---"
-                className="bg-stone-800 border-stone-700 text-stone-100 text-sm" />
+                className={`${FIELD} text-sm`} />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <Label className="text-stone-400">Label</Label>
+                <Label className="micro-label">Label</Label>
                 <Input value={form.label} onChange={e => setForm({ ...form, label: e.target.value })}
-                  placeholder="e.g. wire, thread, take" className="bg-stone-800 border-stone-700 text-stone-100" />
+                  placeholder="e.g. wire, thread, take" className={FIELD} />
               </div>
               <div>
-                <Label className="text-stone-400">Why it's good</Label>
+                <Label className="micro-label">Why it's good</Label>
                 <Input value={form.note} onChange={e => setForm({ ...form, note: e.target.value })}
-                  placeholder="Performance note" className="bg-stone-800 border-stone-700 text-stone-100" />
+                  placeholder="Performance note" className={FIELD} />
               </div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAdd(false)}>Cancel</Button>
-            <Button onClick={handleAdd} disabled={saving} className="bg-[hsl(var(--primary))] text-stone-900 font-semibold">
-              {saving && <Loader2 className="w-4 h-4 animate-spin mr-1" />} Add Example
-            </Button>
+            <button type="button" className="btn-ghost py-2" onClick={() => setShowAdd(false)}>Cancel</button>
+            <button type="button" onClick={handleAdd} disabled={saving} className="btn-brand disabled:opacity-50">
+              {saving && <Loader2 className="w-4 h-4 animate-spin" />} Add example
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -196,22 +202,22 @@ function PublicationVoicePage() {
       {/* Promote Dialog */}
       <Dialog open={showPromote} onOpenChange={setShowPromote}>
         <DialogContent className="sm:max-w-lg max-h-[70vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>Promote from Posted</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle className="font-display">Promote from posted</DialogTitle></DialogHeader>
           {postedPosts.length === 0 ? (
-            <p className="text-stone-500 text-sm py-4">No posted items found for this publication.</p>
+            <p className="text-stone-500 text-sm py-4">No posted posts found for this publication.</p>
           ) : (
             <div className="space-y-3 py-2">
               {postedPosts.map(post => {
                 const content = post.final_content || post.draft_variants?.[post.chosen_variant_index ?? 0]?.content || [];
                 return (
-                  <div key={post.id} className="border border-stone-700 rounded-lg p-3">
+                  <div key={post.id} className="panel-raised p-3">
                     {content.map((line, i) => (
                       <p key={i} className="text-sm text-stone-300 mb-1">{line}</p>
                     ))}
                     <div className="flex justify-end mt-2">
-                      <Button size="sm" variant="outline" onClick={() => { handlePromote(post); setShowPromote(false); }}>
-                        <Star className="w-3 h-3 mr-1" /> Add to Library
-                      </Button>
+                      <button type="button" className="btn-soft text-xs" onClick={() => { handlePromote(post); setShowPromote(false); }}>
+                        <Star className="w-3 h-3" /> Add to library
+                      </button>
                     </div>
                   </div>
                 );
@@ -225,12 +231,12 @@ function PublicationVoicePage() {
       <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove Voice Example</AlertDialogTitle>
+            <AlertDialogTitle className="font-display">Remove voice example</AlertDialogTitle>
             <AlertDialogDescription>This example will be permanently removed from the voice library.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">Remove</AlertDialogAction>
+            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="rounded-xl bg-red-600 text-white hover:bg-red-700">Remove</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
