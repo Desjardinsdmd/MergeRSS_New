@@ -3,7 +3,6 @@ import { ExternalLink, Clock, Zap } from 'lucide-react';
 import { decodeHtml, safeUrl } from '@/components/utils/htmlUtils';
 import { getArticleImage, normalizeImageUrl } from '@/components/utils/imageUtils';
 import { calculateReadTime, getFaviconUrl } from '@/components/utils/articleUtils';
-import { Badge } from '@/components/ui/badge';
 
 function extractKeywords(text = '') {
   const stopWords = new Set([
@@ -43,8 +42,8 @@ export default function RelatedArticles({ currentItem, allItems }) {
   if (related.length === 0) return null;
 
   return (
-    <div className="mt-5 pt-4 border-t border-stone-800">
-      <h4 className="text-sm font-semibold text-stone-200 mb-3">Related Articles</h4>
+    <div className="mt-5 border-t border-white/[0.07] pt-4">
+      <h4 className="micro-label mb-3">Related stories</h4>
       <div className="space-y-2.5">
         {related.map(item => {
            const imageUrl = normalizeImageUrl(getArticleImage(item));
@@ -56,10 +55,10 @@ export default function RelatedArticles({ currentItem, allItems }) {
                href={safeUrl(item.url)}
                target="_blank"
                rel="noopener noreferrer"
-               className="flex items-start gap-2.5 group hover:bg-stone-800/60 hover:shadow-sm rounded-lg p-2 -mx-2 transition-all duration-200"
+               className="group -mx-2 flex items-start gap-2.5 rounded-xl p-2 transition-all duration-200 hover:bg-white/[0.04]"
              >
                {imageUrl && (
-                 <div className="flex-shrink-0 w-10 h-10 bg-stone-800 rounded overflow-hidden border border-stone-700/50">
+                 <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-lg border border-white/[0.07] bg-white/[0.04]">
                    <img
                      src={imageUrl}
                      alt={item.title}
@@ -69,10 +68,10 @@ export default function RelatedArticles({ currentItem, allItems }) {
                  </div>
                )}
                <div className="flex-1 min-w-0">
-                 <p className="text-sm font-medium text-stone-200 line-clamp-2 group-hover:text-[hsl(var(--primary))] transition-colors">
+                 <p className="line-clamp-2 text-sm font-semibold text-stone-100 transition-colors group-hover:text-[#C4A5FD]">
                    {decodeHtml(item.title)}
                  </p>
-                 <div className="flex items-center gap-2 mt-0.5 text-xs text-stone-500 flex-wrap">
+                 <div className="meta mt-0.5 flex flex-wrap items-center gap-2">
                    {faviconUrl && (
                      <img src={faviconUrl} alt="publication" className="w-3 h-3 rounded" onError={(e) => (e.target.style.display = 'none')} />
                    )}
@@ -87,11 +86,11 @@ export default function RelatedArticles({ currentItem, allItems }) {
                      </>
                    )}
                    {item.category && (
-                     <Badge variant="secondary" className="text-xs py-0 bg-stone-800 text-stone-300">{item.category}</Badge>
+                     <span className="chip-brand normal-case tracking-normal">{item.category}</span>
                    )}
                  </div>
                </div>
-               <ExternalLink className="w-3.5 h-3.5 text-stone-600 group-hover:text-[hsl(var(--primary))] flex-shrink-0 mt-0.5 transition-colors" />
+               <ExternalLink className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-stone-500 transition-colors group-hover:text-[#C4A5FD]" />
              </a>
            );
          })}
