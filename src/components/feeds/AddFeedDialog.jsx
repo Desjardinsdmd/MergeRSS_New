@@ -21,6 +21,7 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2, X, Plus, Globe, AlertCircle, CheckCircle2, ShieldAlert, WifiOff, Lock, FileX } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
+import { addSourceViaApi } from '@/components/feeds/sourceApi';
 
 const DEFAULT_CATEGORIES = ['CRE', 'Markets', 'Tech', 'News', 'Finance', 'Crypto', 'AI', 'Other'];
 
@@ -202,24 +203,21 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
       await base44.entities.Feed.update(editFeed.id, { name: formData.name, url: formData.url, category: formData.category, tags: formData.tags, is_public: !!formData.is_public, public_description: formData.public_description || '' });
       base44.analytics.track({ eventName: 'feed_edited', properties: { category: formData.category } });
     } else {
-      const newFeed = await base44.entities.Feed.create({
-        name: formData.name,
+      // Create through addSource so the plan limit, dedupe, SSRF guard and first fetch apply.
+      setFetchingItems(existingFeedCount === 0);
+      const result = await addSourceViaApi({
         url: formData.url,
+        name: formData.name,
         category: formData.category,
         tags: formData.tags || [],
-        status: 'active',
-        item_count: 0
       });
-      base44.analytics.track({ eventName: 'feed_added', properties: { category: formData.category } });
-
-      // If this is the user's first feed, immediately fetch items so they see content right away
-      if (existingFeedCount === 0 && newFeed?.id) {
+      setFetchingItems(false);
+      if (!result.ok) {
         setLoading(false);
-        setFetchingItems(true);
-        base44.functions.invoke('fetchSingleFeed', { feed_id: newFeed.id }).catch(() => {});
-        await new Promise(resolve => setTimeout(resolve, 3000)); // give it 3s head start
-        setFetchingItems(false);
+        setErrors({ url: result.error || 'Failed to add source' });
+        return;
       }
+      base44.analytics.track({ eventName: 'feed_added', properties: { category: formData.category, duplicate: !!result.duplicate } });
     }
 
     setLoading(false);
