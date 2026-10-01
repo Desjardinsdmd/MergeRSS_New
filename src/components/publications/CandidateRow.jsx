@@ -117,8 +117,9 @@ export default function CandidateRow({ candidate, onSelect, onSkip, selecting, s
               <span className="meta inline-flex items-center gap-1 normal-case">
                 <Clock className="h-3 w-3" /> {when}
               </span>
-              <span className="meta normal-case">· {plural(candidate.source_count || 0, 'source')}</span>
-              <span className="meta normal-case">· {plural(candidate.article_count || 0, 'story', 'stories')}</span>
+              <span className="meta whitespace-nowrap normal-case">
+                {plural(candidate.source_count || 0, 'source')} · {plural(candidate.article_count || 0, 'story', 'stories')}
+              </span>
             </div>
             {domains && <p className="mt-1 truncate font-mono text-[11px] text-stone-500">{domains}</p>}
           </div>

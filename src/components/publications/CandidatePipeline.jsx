@@ -168,10 +168,8 @@ export default function CandidatePipeline({ publicationId }) {
         </div>
         <Select value={tagFilter} onValueChange={setTagFilter}>
           <SelectTrigger className="h-10 w-full sm:w-40 rounded-xl border-white/10 bg-stone-800 text-stone-100 text-sm">
-            <span className="flex min-w-0 items-center gap-1.5">
-              <Filter className="w-3.5 h-3.5 shrink-0 text-stone-500" />
-              <SelectValue />
-            </span>
+            <Filter className="mr-1.5 w-3.5 h-3.5 shrink-0 text-stone-500" />
+            <div className="min-w-0 flex-1 truncate text-left"><SelectValue /></div>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All tags</SelectItem>
@@ -183,10 +181,8 @@ export default function CandidatePipeline({ publicationId }) {
         </Select>
         <Select value={sortBy} onValueChange={setSortBy}>
           <SelectTrigger className="h-10 w-full sm:w-40 rounded-xl border-white/10 bg-stone-800 text-stone-100 text-sm">
-            <span className="flex min-w-0 items-center gap-1.5">
-              <ArrowUpDown className="w-3.5 h-3.5 shrink-0 text-stone-500" />
-              <SelectValue />
-            </span>
+            <ArrowUpDown className="mr-1.5 w-3.5 h-3.5 shrink-0 text-stone-500" />
+            <div className="min-w-0 flex-1 truncate text-left"><SelectValue /></div>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="newest">Newest first</SelectItem>

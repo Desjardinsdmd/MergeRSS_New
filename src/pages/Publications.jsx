@@ -186,14 +186,14 @@ function PublicationsPage() {
                       onClick={() => setExpandedPipeline(open ? null : pub.id)}
                       aria-expanded={open}
                       className={`${TAB_BTN} ${open ? 'border-[hsl(var(--brand)/0.35)] bg-[hsl(var(--brand)/0.14)] text-[#D9C7FE]' : ''}`}>
-                      <BarChart3 className="w-4 h-4" /> Pipeline
-                      {open ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                      <BarChart3 className="hidden w-4 h-4 shrink-0 sm:block" /> Pipeline
+                      {open ? <ChevronUp className="w-3.5 h-3.5 shrink-0" /> : <ChevronDown className="w-3.5 h-3.5 shrink-0" />}
                     </button>
                     <Link to={`/PublicationInbox?id=${pub.id}`} className={TAB_BTN}>
-                      <Inbox className="w-4 h-4" /> Inbox
+                      <Inbox className="w-4 h-4 shrink-0" /> Inbox
                     </Link>
                     <Link to={`/PublicationVoice?id=${pub.id}`} className={TAB_BTN}>
-                      <BookOpen className="w-4 h-4" /> Voice
+                      <BookOpen className="w-4 h-4 shrink-0" /> Voice
                     </Link>
                   </div>
                 </div>
