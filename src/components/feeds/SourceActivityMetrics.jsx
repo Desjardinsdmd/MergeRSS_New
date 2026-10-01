@@ -12,7 +12,7 @@ export default function SourceActivityMetrics({ health, feed }) {
   if (inactivity_duration_days > 14) {
     activityMessage = `No updates in ${inactivity_duration_days} days`;
   } else if (articles_last_24h > 0) {
-    activityMessage = `+${articles_last_24h} article${articles_last_24h !== 1 ? 's' : ''} today`;
+    activityMessage = `+${articles_last_24h} stor${articles_last_24h !== 1 ? 'ies' : 'y'} today`;
   } else if (articles_last_7d > 0) {
     activityMessage = `+${articles_last_7d} this week`;
   } else {
@@ -20,14 +20,14 @@ export default function SourceActivityMetrics({ health, feed }) {
   }
 
   return (
-    <div className="flex items-center gap-2 text-xs text-stone-400">
+    <div className="flex items-center gap-2 font-mono text-[11px] text-stone-400">
       {inactivity_duration_days > 7 && (
-        <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
+        <AlertCircle className="h-3.5 w-3.5 text-amber-400" aria-hidden="true" />
       )}
       <span>{activityMessage}</span>
       {last_article_timestamp && (
-        <span className="text-stone-600">
-          • {formatDistanceToNow(new Date(last_article_timestamp), { addSuffix: true })}
+        <span className="text-stone-500">
+          · {formatDistanceToNow(new Date(last_article_timestamp), { addSuffix: true })}
         </span>
       )}
     </div>
