@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -9,7 +7,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { 
-  Rss, 
   MoreVertical, 
   Pencil, 
   Trash2, 
@@ -36,15 +33,14 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { queryArticles } from '@/api/articles';
 
-const categoryColors = {
-  CRE: 'bg-blue-950 text-blue-400',
-  Markets: 'bg-green-950 text-green-400',
-  Tech: 'bg-purple-950 text-purple-400',
-  News: 'bg-orange-950 text-orange-400',
-  Finance: 'bg-emerald-950 text-emerald-400',
-  Crypto: 'bg-yellow-950 text-yellow-400',
-  AI: 'bg-pink-950 text-pink-400',
-  Other: 'bg-stone-800 text-stone-300',
+function getDomain(url) {
+  try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return url; }
+}
+
+const HEALTH_DOT = {
+  healthy: 'bg-emerald-400',
+  degrading: 'bg-amber-400',
+  failing: 'bg-red-400',
 };
 
 export default function FeedCard({ feed, onEdit, onDelete, onToggleStatus, onRefresh, onToggleShare }) {
@@ -74,184 +70,185 @@ export default function FeedCard({ feed, onEdit, onDelete, onToggleStatus, onRef
     setLoadingArticles(false);
   };
 
+  const isError = feed.status === 'error';
+  const healthState = isError ? 'failing' : currentHealth?.health_state;
+  const dotClass = HEALTH_DOT[healthState] || (feed.status === 'paused' ? 'bg-stone-500' : 'bg-emerald-400');
+  const initial = (feed.name || '?').trim().charAt(0).toUpperCase();
+
   return (
     <>
     <RepairEscalationPanel feed={feed} />
-    <Card className={cn(
-      "border-stone-800 bg-stone-900 transition-all hover:shadow-md",
-      feed.status === 'error' && "border-red-900 bg-red-950/30"
+    <div className={cn(
+      'panel panel-hover p-4',
+      isError && 'border-red-400/25 bg-red-400/[0.04]'
     )}>
-      <CardContent className="p-4">
-        <div className="flex items-start gap-3">
-          <div className={cn(
-            "w-10 h-10 flex items-center justify-center flex-shrink-0",
-            feed.status === 'error' ? "bg-red-950" : "bg-stone-800"
-          )}>
-            <Rss className={cn(
-              "w-5 h-5",
-              feed.status === 'error' ? "text-red-400" : "text-[hsl(var(--primary))]"
-            )} />
-          </div>
-          
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className="font-semibold text-stone-200 truncate">
-                    {feed.name}
-                  </h3>
-                  {(currentHealth || feed.paused_by_system) && <SourceHealthBadge health={currentHealth} feed={feed} compact />}
-                  {feed.workspace_id && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-[hsl(var(--primary))]/15 text-[hsl(var(--primary))] flex-shrink-0" title="Shared with your team">
-                      <Users className="w-3 h-3" aria-hidden="true" />
-                      Shared
-                    </span>
-                  )}
-                </div>
-                <a 
-                  href={safeUrl(feed.url)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-stone-500 hover:text-[hsl(var(--primary))] truncate block mb-2"
-                >
-                  {feed.url}
-                </a>
-                {currentHealth && <SourceActivityMetrics health={currentHealth} feed={feed} />}
-              </div>
-              
-              <div className="flex items-center gap-1">
-                {currentHealth && <SourceIssueIndicator issues={currentHealth.issues} />}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <MoreVertical className="w-4 h-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => onEdit(feed)}>
-                      <Pencil className="w-4 h-4 mr-2" />
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setShowAlerts(true)}>
-                      <Bell className="w-4 h-4 mr-2" />
-                      Alerts
-                    </DropdownMenuItem>
-                    {currentHealth && (
-                      <DropdownMenuItem onClick={() => setCleanupOpen(true)}>
-                        <AlertCircle className="w-4 h-4 mr-2" />
-                        Health
-                      </DropdownMenuItem>
-                    )}
-                  <DropdownMenuItem onClick={() => window.open(safeUrl(feed.url), '_blank')}>
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    Open Feed
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onToggleStatus(feed)}>
-                    {feed.status === 'active' ? (
-                      <>
-                        <Pause className="w-4 h-4 mr-2" />
-                        Pause
-                      </>
-                    ) : (
-                      <>
-                        <Play className="w-4 h-4 mr-2" />
-                        Activate
-                      </>
-                    )}
-                  </DropdownMenuItem>
-                  {onToggleShare && (
-                    <DropdownMenuItem onClick={() => onToggleShare(feed)}>
-                      <Users className="w-4 h-4 mr-2" />
-                      {feed.workspace_id ? 'Stop sharing with team' : 'Share with team'}
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem 
-                    onClick={() => onDelete(feed)}
-                    className="text-red-600"
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Delete
-                  </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 mt-3">
-              <Badge className={categoryColors[feed.category] || categoryColors.Other}>
-                {feed.category}
-              </Badge>
-              
-              {feed.tags?.map((tag) => (
-                <Badge key={tag} variant="outline" className="text-xs">
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-
-            <div className="flex items-center gap-4 mt-3 text-xs text-stone-500">
-              {feed.status === 'error' ? (
-                <span className="flex items-center gap-1 text-red-400">
-                  <AlertCircle className="w-3 h-3" />
-                  Error fetching
-                </span>
-              ) : (
-                <>
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    {feed.last_fetched 
-                      ? `Last: ${new Date(feed.last_fetched).toLocaleString()}`
-                      : 'Never fetched'
-                    }
+      <div className="flex items-start gap-3">
+        <div className={cn(
+          'relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg font-display text-base font-semibold',
+          isError ? 'bg-red-400/10 text-red-300' : 'bg-[hsl(var(--primary)/0.14)] text-[#C4A5FD]'
+        )}>
+          {initial}
+          <span
+            className={cn('absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full ring-2 ring-stone-950', dotClass)}
+            aria-label={healthState ? `Health: ${healthState}` : undefined}
+          />
+        </div>
+        
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <div className="mb-0.5 flex items-center gap-2">
+                <h3 className="truncate text-[15px] font-semibold text-stone-100">
+                  {feed.name}
+                </h3>
+                {(currentHealth || feed.paused_by_system) && <SourceHealthBadge health={currentHealth} feed={feed} compact />}
+                {feed.workspace_id && (
+                  <span className="chip-brand flex-shrink-0 gap-1" title="Shared with your team">
+                    <Users className="h-3 w-3" aria-hidden="true" />
+                    Shared
                   </span>
-                  <button
-                    onClick={toggleArticles}
-                    className="flex items-center gap-1 hover:text-[hsl(var(--primary))] transition-colors"
-                  >
-                    {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                    {feed.item_count || 0} items
-                  </button>
-                </>
-              )}
-            </div>
-
-            {expanded && (
-              <div className="mt-3 border-t border-stone-800 pt-3">
-                {loadingArticles ? (
-                  <div className="flex items-center gap-2 text-xs text-stone-500 py-2">
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                    Loading articles…
-                  </div>
-                ) : articles.length === 0 ? (
-                  <p className="text-xs text-stone-600 py-1">No articles found.</p>
-                ) : (
-                  <ul className="space-y-2 max-h-60 overflow-y-auto pr-1">
-                    {articles.map((article) => (
-                      <li key={article.id} className="flex items-start gap-2">
-                        <a
-                          href={safeUrl(article.url)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          className="text-xs text-stone-300 hover:text-[hsl(var(--primary))] line-clamp-2 flex-1 leading-snug"
-                        >
-                          {decodeHtml(article.title)}
-                        </a>
-                        {article.published_date && (
-                          <span className="text-[10px] text-stone-600 flex-shrink-0 mt-0.5">
-                            {new Date(article.published_date).toLocaleDateString()}
-                          </span>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
                 )}
               </div>
+              <a 
+                href={safeUrl(feed.url)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mb-2 block truncate font-mono text-[11px] text-stone-500 hover:text-[#C4A5FD]"
+                title={feed.url}
+              >
+                {getDomain(feed.url)}
+              </a>
+              {currentHealth && <SourceActivityMetrics health={currentHealth} feed={feed} />}
+            </div>
+            
+            <div className="flex items-center gap-1">
+              {currentHealth && <SourceIssueIndicator issues={currentHealth.issues} />}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-stone-500 hover:text-stone-100" aria-label="Source actions">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => onEdit(feed)}>
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setShowAlerts(true)}>
+                    <Bell className="mr-2 h-4 w-4" />
+                    Alerts
+                  </DropdownMenuItem>
+                  {currentHealth && (
+                    <DropdownMenuItem onClick={() => setCleanupOpen(true)}>
+                      <AlertCircle className="mr-2 h-4 w-4" />
+                      Health
+                    </DropdownMenuItem>
+                  )}
+                <DropdownMenuItem onClick={() => window.open(safeUrl(feed.url), '_blank')}>
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  Open source
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onToggleStatus(feed)}>
+                  {feed.status === 'active' ? (
+                    <>
+                      <Pause className="mr-2 h-4 w-4" />
+                      Pause
+                    </>
+                  ) : (
+                    <>
+                      <Play className="mr-2 h-4 w-4" />
+                      Activate
+                    </>
+                  )}
+                </DropdownMenuItem>
+                {onToggleShare && (
+                  <DropdownMenuItem onClick={() => onToggleShare(feed)}>
+                    <Users className="mr-2 h-4 w-4" />
+                    {feed.workspace_id ? 'Stop sharing with team' : 'Share with team'}
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem 
+                  onClick={() => onDelete(feed)}
+                  className="text-red-400 focus:text-red-300"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete
+                </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-center gap-1.5">
+            {feed.category && <span className="chip-brand">{feed.category}</span>}
+            {feed.tags?.map((tag) => (
+              <span key={tag} className="chip-neutral">{tag}</span>
+            ))}
+          </div>
+
+          <div className="meta mt-3 flex flex-wrap items-center gap-x-3 gap-y-1">
+            {isError ? (
+              <span className="flex items-center gap-1 text-red-400">
+                <AlertCircle className="h-3 w-3" aria-hidden="true" />
+                Error fetching
+              </span>
+            ) : (
+              <>
+                <span className="flex items-center gap-1">
+                  <Clock className="h-3 w-3" aria-hidden="true" />
+                  {feed.last_fetched 
+                    ? `Last ${new Date(feed.last_fetched).toLocaleString()}`
+                    : 'Never fetched'
+                  }
+                </span>
+                <button
+                  onClick={toggleArticles}
+                  aria-expanded={expanded}
+                  className="flex items-center gap-1 uppercase transition-colors hover:text-[#C4A5FD]"
+                >
+                  {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                  {feed.item_count || 0} stories
+                </button>
+              </>
             )}
           </div>
+
+          {expanded && (
+            <div className="mt-3 border-t border-white/[0.07] pt-3">
+              {loadingArticles ? (
+                <div className="flex items-center gap-2 py-2 text-xs text-stone-500">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Loading stories…
+                </div>
+              ) : articles.length === 0 ? (
+                <p className="py-1 text-xs text-stone-500">No stories found.</p>
+              ) : (
+                <ul className="max-h-60 space-y-2 overflow-y-auto pr-1">
+                  {articles.map((article) => (
+                    <li key={article.id} className="flex items-start gap-2">
+                      <a
+                        href={safeUrl(article.url)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="line-clamp-2 flex-1 text-xs leading-snug text-stone-300 hover:text-[#C4A5FD]"
+                      >
+                        {decodeHtml(article.title)}
+                      </a>
+                      {article.published_date && (
+                        <span className="mt-0.5 flex-shrink-0 font-mono text-[10px] text-stone-500">
+                          {new Date(article.published_date).toLocaleDateString()}
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
 
     <FeedAlertsDialog feed={feed} open={showAlerts} onOpenChange={setShowAlerts} />
     <SourceCleanupDialog
