@@ -1,15 +1,12 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Copy, Check, ExternalLink, Download, ChevronDown, ChevronUp, Plus } from 'lucide-react';
+import { Copy, Check, ExternalLink, Download, ChevronDown, ChevronUp, Plus, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 
 const METHOD_LABELS = {
-    direct_rss: { label: 'Direct RSS/Atom', cls: 'bg-green-100 text-green-700' },
-    discovered_rss: { label: 'Auto-detected RSS', cls: 'bg-emerald-100 text-emerald-700' },
-    scraped: { label: 'Scraped (static snapshot)', cls: 'bg-amber-100 text-amber-700' },
-    social_native: { label: 'Native social RSS', cls: 'bg-blue-100 text-blue-700' },
+    direct_rss: { label: 'Direct RSS/Atom', cls: 'border border-emerald-400/25 bg-emerald-400/10 text-emerald-300' },
+    discovered_rss: { label: 'Auto-detected RSS', cls: 'border border-emerald-400/25 bg-emerald-400/10 text-emerald-300' },
+    scraped: { label: 'Scraped (static snapshot)', cls: 'border border-amber-400/25 bg-amber-400/10 text-amber-300' },
+    social_native: { label: 'Native social RSS', cls: 'border border-sky-400/25 bg-sky-400/10 text-sky-300' },
 };
 
 export default function GenerateResultCard({ result, onAddToFeeds }) {
@@ -37,81 +34,85 @@ export default function GenerateResultCard({ result, onAddToFeeds }) {
     };
 
     return (
-        <Card className="border-slate-100">
-            <CardHeader className="pb-3 border-b border-slate-100">
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+        <div className="panel overflow-hidden">
+            <div className="border-b border-white/[0.07] p-5 pb-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0">
-                        <CardTitle className="text-base leading-snug truncate">{result.title}</CardTitle>
+                        <h3 className="truncate font-display text-lg font-semibold leading-snug text-stone-100">{result.title}</h3>
                         {result.description && (
-                            <p className="text-sm text-slate-500 mt-1 line-clamp-2">{result.description}</p>
+                            <p className="mt-1 line-clamp-2 text-sm text-stone-400">{result.description}</p>
                         )}
                     </div>
-                    <div className="flex flex-wrap items-center gap-2 flex-shrink-0">
-                        <Badge className={`${methodMeta.cls} border-0 text-xs`}>{methodMeta.label}</Badge>
+                    <div className="flex flex-shrink-0 flex-wrap items-center gap-2">
+                        <span className={`chip ${methodMeta.cls}`}>{methodMeta.label}</span>
                         {result.item_count > 0 && (
-                            <Badge variant="secondary" className="text-xs">{result.item_count} items</Badge>
+                            <span className="chip-neutral">{result.item_count} stories</span>
                         )}
                     </div>
                 </div>
-            </CardHeader>
+            </div>
 
-            <CardContent className="pt-4 space-y-3">
+            <div className="space-y-3 p-5">
                 {/* Feed URL display */}
                 {result.feed_url && (
-                    <div className="flex items-center gap-2 p-2.5 bg-slate-50 rounded-lg border border-slate-100">
-                        <code className="text-xs text-slate-600 flex-1 min-w-0 truncate">{result.feed_url}</code>
+                    <div className="panel-raised flex items-center gap-2 p-2.5">
+                        <code className="min-w-0 flex-1 truncate font-mono text-xs text-stone-300">{result.feed_url}</code>
                         <a href={result.feed_url} target="_blank" rel="noopener noreferrer"
-                            className="text-slate-400 hover:text-indigo-600 transition-colors flex-shrink-0">
-                            <ExternalLink className="w-3.5 h-3.5" />
+                            className="flex-shrink-0 text-stone-500 transition-colors hover:text-[#C4A5FD]"
+                            aria-label="Open RSS feed in a new tab">
+                            <ExternalLink className="h-3.5 w-3.5" />
                         </a>
                     </div>
                 )}
 
                 {/* Action buttons */}
-                <div className="flex flex-col sm:flex-row flex-wrap gap-2">
-                    <Button variant="outline" size="sm" onClick={copyUrl} className="gap-1.5 w-full sm:w-auto">
-                        {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-                        {copied ? 'Copied!' : 'Copy Feed URL'}
-                    </Button>
+                <div className="flex flex-col flex-wrap gap-2 sm:flex-row">
+                    <button type="button" onClick={copyUrl} className="btn-ghost w-full sm:w-auto">
+                        {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+                        {copied ? 'Copied' : 'Copy RSS feed URL'}
+                    </button>
                     {result.rss_xml && (
-                        <Button variant="outline" size="sm" onClick={downloadXml} className="gap-1.5 w-full sm:w-auto">
-                            <Download className="w-3.5 h-3.5" />
+                        <button type="button" onClick={downloadXml} className="btn-ghost w-full sm:w-auto">
+                            <Download className="h-3.5 w-3.5" />
                             Download XML
-                        </Button>
+                        </button>
                     )}
-                    <Button size="sm" onClick={onAddToFeeds}
-                        className="bg-indigo-600 hover:bg-indigo-700 gap-1.5 w-full sm:w-auto sm:ml-auto">
-                        <Plus className="w-3.5 h-3.5" />
-                        Add to My Feeds
-                    </Button>
+                    <button type="button" onClick={onAddToFeeds} className="btn-brand w-full sm:ml-auto sm:w-auto">
+                        <Plus className="h-3.5 w-3.5" />
+                        Add to my sources
+                    </button>
                 </div>
 
                 {/* Scraped note */}
                 {result.method === 'scraped' && (
-                    <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
-                        This is a static snapshot — links are extracted from the page at generation time. To keep it fresh, add it to My Feeds and MergeRSS will re-check periodically.
-                    </p>
+                    <div className="flex items-start gap-2 rounded-xl border border-amber-400/25 bg-amber-400/10 px-3 py-2 text-xs text-amber-300">
+                        <AlertTriangle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
+                        <p>
+                            This is a static snapshot. Links are extracted from the page at generation time. To keep it fresh, add it to your sources and MergeRSS will re-check periodically.
+                        </p>
+                    </div>
                 )}
 
                 {/* Raw XML toggle */}
                 {result.rss_xml && (
-                    <div className="border border-slate-100 rounded-lg overflow-hidden">
+                    <div className="overflow-hidden rounded-xl border border-white/[0.07]">
                         <button
                             type="button"
                             onClick={() => setXmlOpen(v => !v)}
-                            className="w-full flex items-center justify-between px-4 py-2.5 text-xs text-slate-500 hover:bg-slate-50 transition-colors"
+                            aria-expanded={xmlOpen}
+                            className="flex w-full items-center justify-between px-4 py-2.5 font-mono text-[11px] uppercase tracking-wider text-stone-500 transition-colors hover:bg-white/[0.03] hover:text-stone-300"
                         >
                             <span>View raw RSS/XML</span>
-                            {xmlOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                            {xmlOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                         </button>
                         {xmlOpen && (
-                            <pre className="bg-slate-900 text-slate-100 text-xs p-4 overflow-x-auto max-h-72 whitespace-pre-wrap border-t border-slate-700">
+                            <pre className="max-h-72 overflow-x-auto whitespace-pre-wrap border-t border-white/[0.07] bg-stone-950 p-4 font-mono text-xs text-stone-300">
                                 {result.rss_xml.slice(0, 6000)}{result.rss_xml.length > 6000 ? '\n\n... (truncated for display)' : ''}
                             </pre>
                         )}
                     </div>
                 )}
-            </CardContent>
-        </Card>
+            </div>
+        </div>
     );
 }
