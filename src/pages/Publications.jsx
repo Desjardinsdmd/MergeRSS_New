@@ -3,7 +3,6 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
   Plus, Pencil, Trash2, Loader2, Newspaper, Play, Inbox, BookOpen, ChevronDown, ChevronUp, BarChart3,
@@ -17,14 +16,17 @@ import PublicationForm from '@/components/publications/PublicationForm';
 import CandidatePipeline from '@/components/publications/CandidatePipeline';
 import { PageHeader } from '@/components/brand/Brand';
 
+// Cron hours are stored in UTC. Show them in Eastern time, DST-aware.
 function cronToET(cron) {
-  const parts = cron.trim().split(' ');
-  const utcHour = parseInt(parts[1]);
-  let etHour = utcHour - 4; // ET = UTC-4 (EDT)
-  if (etHour < 0) etHour += 24;
-  const period = etHour >= 12 ? 'PM' : 'AM';
-  const display = etHour === 0 ? 12 : etHour > 12 ? etHour - 12 : etHour;
-  return `${display}${period}`;
+  const parts = cron.trim().split(/\s+/);
+  const minute = parseInt(parts[0], 10) || 0;
+  const utcHour = parseInt(parts[1], 10);
+  if (Number.isNaN(utcHour)) return cron;
+  const d = new Date();
+  d.setUTCHours(utcHour, minute, 0, 0);
+  return d.toLocaleTimeString('en-US', {
+    timeZone: 'America/Toronto', hour: 'numeric', minute: minute ? '2-digit' : undefined,
+  }).replace(':00', '').replace(' ', '');
 }
 
 function formatSchedule(cronStr) {
