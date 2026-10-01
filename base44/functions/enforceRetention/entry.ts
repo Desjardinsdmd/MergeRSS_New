@@ -57,10 +57,13 @@ Deno.serve(async (req) => {
         }
 
         if (typeof ent.deleteMany === 'function' && Date.now() < deadline) {
-            try {
-                const d = await ent.deleteMany(t.filter);
-                r.deleted += Number(d?.deleted ?? d?.count ?? 0);
-            } catch (e) { r.bulk_error = String(e?.message || e).slice(0, 200); }
+            // A large bulk delete keeps running server-side after the proxy times out, so cap the
+            // wait and move on; the next daily run picks up anything left.
+            const bulk = ent.deleteMany(t.filter).then(d => ({ d })).catch(e => ({ e }));
+            const res = await Promise.race([bulk, sleep(20_000).then(() => ({ pending: true }))]);
+            if (res.pending) { r.bulk = 'running in background'; continue; }
+            if (res.e) r.bulk_error = String(res.e?.message || res.e).slice(0, 200);
+            else r.deleted += Number(res.d?.deleted ?? res.d?.count ?? 0);
         }
         // Fallback / remainder: page and delete individually inside the time budget.
         while (Date.now() < deadline) {
