@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
                     // Candidates exclude clusters already drafted, posted or skipped.
                     const all = cand.data?.candidates || [];
                     const top = all.filter(c => c.article_url).slice(0, want);
-                    console.log(`[runPublicationScheduler] ${pub.name}: ${all.length} candidate(s), ${all.filter(c => c.article_url).length} with links, window ${cand.data?.window_hours}h`);
+                    console.log(`[runPublicationScheduler] ${pub.name}: ${all.length} candidate(s), ${all.filter(c => c.article_url).length} with links, window ${cand.data?.window_hours}h ${JSON.stringify(cand.data?.debug || {})}`);
                     for (const c of top) {
                         const sel = await invokeJson(base44, 'manualSelectCluster', {
                             publication_id: pub.id, cluster_id: c.id, auto: true,
