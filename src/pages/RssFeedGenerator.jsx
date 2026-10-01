@@ -160,7 +160,7 @@ export default function RssFeedGenerator() {
                                 <SelectContent>
                                     <SelectItem value="auto">🔍 Auto-detect (recommended)</SelectItem>
                                     <SelectItem value="page">📄 Website page → RSS</SelectItem>
-                                        <SelectItem value="domain">🌐 Website domain → find existing RSS feed</SelectItem>
+                                    <SelectItem value="domain">🌐 Website domain → find existing RSS feed</SelectItem>
                                     <SelectItem value="social_profile">👤 Social profile</SelectItem>
                                     <SelectItem value="social_page">📣 Social page / group</SelectItem>
                                     <SelectItem value="social_post">🧵 Social post / thread</SelectItem>
