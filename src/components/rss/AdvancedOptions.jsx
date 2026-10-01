@@ -30,7 +30,7 @@ export default function AdvancedOptions({ options, onChange }) {
             {open && (
                 <div className="space-y-5 border-t border-white/[0.07] bg-white/[0.015] px-4 py-4">
                     {/* Frequency & Item Limit */}
-                    <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <Label htmlFor="frequency" className="text-xs text-stone-400 mb-1 block font-medium">How often to check for new content</Label>
                             <Select value={options.refresh_frequency} onValueChange={v => update('refresh_frequency', v)}>

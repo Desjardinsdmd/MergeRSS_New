@@ -179,7 +179,7 @@ export default function Settings() {
           )}
         >
           {editingProfile ? (
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label htmlFor="settings-name" className="micro-label">Name</label>
                 <Input
@@ -200,7 +200,7 @@ export default function Settings() {
               </div>
             </div>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label htmlFor="settings-name-ro" className="micro-label">Name</label>
                 <Input id="settings-name-ro" value={user?.full_name || ''} disabled className="text-stone-400" />

@@ -148,7 +148,7 @@ export default function ArticleSearch() {
 
         {/* Expanded filters */}
         {showFilters &&
-          <div className="panel mb-6 p-4 grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="panel mb-6 p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Author */}
             <div>
               <label className="micro-label flex items-center gap-1 mb-1.5">

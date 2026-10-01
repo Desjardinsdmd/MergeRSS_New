@@ -177,7 +177,7 @@ function PublicationVoicePage() {
                 rows={6} placeholder="Paste example post content. For threads, separate posts with ---"
                 className={`${FIELD} text-sm`} />
             </div>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <Label className="mb-1.5 block font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-stone-500">Label</Label>
                 <Input value={form.label} onChange={e => setForm({ ...form, label: e.target.value })}

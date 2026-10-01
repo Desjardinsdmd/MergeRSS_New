@@ -123,7 +123,7 @@ export default function PublicationForm({ publication, onSave, onCancel }) {
 
   return (
     <div className="panel space-y-6 p-5 sm:p-6">
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
           <Label className={LABEL}>Publication Name *</Label>
           <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
@@ -197,7 +197,7 @@ export default function PublicationForm({ publication, onSave, onCancel }) {
         )}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
           <Label className={LABEL}>Status</Label>
           <Select value={form.status} onValueChange={v => setForm({ ...form, status: v })}>
@@ -213,7 +213,7 @@ export default function PublicationForm({ publication, onSave, onCancel }) {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
           <Label className={LABEL}>Candidates Per Run</Label>
           <Input type="number" min={1} max={10} value={form.candidates_per_run}

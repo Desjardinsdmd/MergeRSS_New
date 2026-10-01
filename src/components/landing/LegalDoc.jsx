@@ -38,7 +38,7 @@ export default function LegalDoc({ eyebrow, title, updated, intro, sections, seo
 
         <nav aria-label="Sections" className="panel mt-10 p-5 animate-fade-up [animation-delay:80ms]">
           <p className="micro-label mb-3">Contents</p>
-          <ol className="grid gap-x-6 gap-y-2 sm:grid-cols-2">
+          <ol className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
             {sections.map((s, i) => (
               <li key={s.title} className="min-w-0">
                 <a

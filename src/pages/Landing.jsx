@@ -212,7 +212,7 @@ export default function Landing() {
 
       {/* Hero */}
       <section className="relative pb-16 pt-6 sm:pt-12 lg:pb-24">
-        <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-10">
+        <div className="mx-auto grid grid-cols-1 max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-10">
           <div className="min-w-0">
             <p className="eyebrow mb-5 inline-flex animate-fade-up items-center gap-2">
               <span className="relative flex h-1.5 w-1.5" aria-hidden="true">
@@ -299,7 +299,7 @@ export default function Landing() {
       {/* How it works */}
       <section id="how-it-works" className="mx-auto max-w-6xl scroll-mt-24 px-4 pt-24 sm:px-6">
         <SectionHeader eyebrow="How it works" title="Three steps to a ranked morning." sub="Set it up once. MergeRSS does the reading from then on." />
-        <ol className="grid gap-4 md:grid-cols-3">
+        <ol className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {STEPS.map((s, i) => (
             <Reveal as="li" key={s.title} delay={i * 90} className="panel panel-hover card-hover relative overflow-hidden p-6">
               <span className={cn('font-display text-5xl font-semibold leading-none tabular-nums', i === 0 ? 'text-[hsl(var(--brand))]' : 'text-stone-600')} aria-hidden="true">
@@ -320,7 +320,7 @@ export default function Landing() {
             For people who read widely and decide quickly.
           </h2>
         </Reveal>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {AUDIENCES.map(({ icon: Icon, title, desc }, i) => (
             <Reveal key={title} delay={(i % 2) * 80} className="group panel panel-hover card-hover flex gap-4 p-6">
               <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] transition group-hover:border-[hsl(var(--brand)/0.35)] group-hover:bg-[hsl(var(--brand)/0.14)]" aria-hidden="true">
@@ -342,7 +342,7 @@ export default function Landing() {
           title="Built for people who brief others."
           sub="Each piece answers one question: what changed, and does it matter to you."
         />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map(({ icon: Icon, title, desc }, i) => (
             <Reveal key={title} delay={(i % 3) * 80} className="group panel panel-hover card-hover p-6">
               <span className="mb-5 flex h-10 w-10 items-center justify-center rounded-xl border border-[hsl(var(--brand)/0.3)] bg-[hsl(var(--brand)/0.14)] transition group-hover:bg-[hsl(var(--brand)/0.22)]" aria-hidden="true">

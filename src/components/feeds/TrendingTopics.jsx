@@ -60,7 +60,7 @@ export default function TrendingTopics() {
       ) : topics.length === 0 ? (
         <div className="py-12 text-center text-stone-500">No trending topics found. Try again after your sources have refreshed.</div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {topics.map((topic, idx) => (
             <div key={idx} className="panel panel-hover p-5">
               <div className="mb-2 flex items-start justify-between gap-3">

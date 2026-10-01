@@ -187,7 +187,7 @@ export default function Pricing() {
           </p>
         )}
 
-        <div className="grid items-stretch gap-4 md:grid-cols-3 md:gap-5">
+        <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-3 md:gap-5">
           {plans.map((plan, i) => {
             const isCurrent = currentPlan === plan.id;
             return (
@@ -265,7 +265,7 @@ export default function Pricing() {
             <p className="eyebrow mb-3">Questions</p>
             <h2 id="faq-heading" className="font-display text-3xl font-semibold tracking-tight text-stone-100 sm:text-4xl">Plan details</h2>
           </Reveal>
-          <div className="grid gap-3 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {faqs.map((f, i) => (
               <Reveal key={f.q} delay={(i % 2) * 60} className="panel panel-hover p-5 sm:p-6">
                 <h3 className="font-display text-base font-semibold tracking-tight text-stone-100">{f.q}</h3>
