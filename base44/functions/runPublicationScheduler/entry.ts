@@ -14,6 +14,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 const DEFAULT_SUGGEST_COUNT = 2;   // drafts generated per slot
 const MAX_PENDING_DRAFTS = 6;      // don't pile up suggestions nobody has reviewed
+const PENDING_WINDOW_HOURS = 72;   // drafts older than this are stale and don't block new ones
 
 function extractItems(raw) {
     if (!raw) return [];
@@ -59,8 +60,9 @@ Deno.serve(async (req) => {
             const due = force_suggest || !pub.next_run_at || new Date(pub.next_run_at).getTime() <= now;
             if (!due) continue;
 
+            const pendingCutoff = new Date(now - PENDING_WINDOW_HOURS * 3600 * 1000).toISOString();
             const pending = extractItems(await base44.asServiceRole.entities.PublicationPost.filter(
-                { publication_id: pub.id, status: 'draft' }, '-created_date', 50
+                { publication_id: pub.id, status: 'draft', created_date: { $gte: pendingCutoff } }, '-created_date', 50
             ));
             const room = Math.max(0, MAX_PENDING_DRAFTS - pending.length);
             const want = Math.min(room, Number.isFinite(pub.auto_suggest_count) ? pub.auto_suggest_count : DEFAULT_SUGGEST_COUNT);
