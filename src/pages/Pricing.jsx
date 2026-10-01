@@ -1,16 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Check, Loader2, ArrowRight, Zap } from 'lucide-react';
+import { Check, Loader2, ArrowRight } from 'lucide-react';
 import * as planLimits from '@/lib/planLimits';
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import Reveal from '@/components/landing/Reveal';
+import SiteFooter from '@/components/landing/SiteFooter';
 
-// Read limits defensively: planLimits may gain keys (e.g. team) or change shape.
+// Read limits defensively: planLimits may gain keys or change shape.
 const LIMITS = planLimits?.PLAN_LIMITS || {};
+const TEAM = planLimits?.TEAM_PLAN || {};
 const FREE_SOURCES = Number.isFinite(LIMITS?.free?.feeds) ? LIMITS.free.feeds : 50;
 const FREE_BRIEFINGS = Number.isFinite(LIMITS?.free?.digests) ? LIMITS.free.digests : 5;
-const TEAM_MEMBERS = Number.isFinite(LIMITS?.team?.members) ? LIMITS.team.members : 5;
+const TEAM_MEMBERS = Number.isFinite(TEAM?.seats) ? TEAM.seats : 5;
+const TEAM_TRIAL_SEATS = Number.isFinite(TEAM?.trialSeats) ? TEAM.trialSeats : 2;
+const TEAM_PRICE = Number.isFinite(TEAM?.priceMonthly) ? TEAM.priceMonthly : 20;
+
+const FOCUS = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0910]';
 
 const plans = [
   {
@@ -47,7 +53,7 @@ const plans = [
   {
     id: 'team',
     name: 'Team',
-    price: 20,
+    price: TEAM_PRICE,
     unit: '/month per workspace',
     description: `Shared briefings for up to ${TEAM_MEMBERS} people`,
     features: [
@@ -57,6 +63,33 @@ const plans = [
       'Everything in Premium',
     ],
     cta: 'Start a team',
+  },
+];
+
+const faqs = [
+  {
+    q: 'What counts toward the Free limits',
+    a: `Free covers up to ${FREE_SOURCES} sources and ${FREE_BRIEFINGS} briefings. Premium removes both limits.`,
+  },
+  {
+    q: 'How the Team plan works',
+    a: `Team is $${TEAM_PRICE} a month per workspace and covers up to ${TEAM_MEMBERS} members, owner included. Without it, a workspace runs as a trial with ${TEAM_TRIAL_SEATS} seats, the owner plus one invited member, and shared briefings deliver by web and email only. With Team, shared briefings also post to your team Slack, Discord or Teams channel.`,
+  },
+  {
+    q: 'Whether members need Premium',
+    a: 'No. Team is billed per workspace, and each member keeps their own personal plan.',
+  },
+  {
+    q: 'Who buys the Team plan',
+    a: 'The workspace owner. Start a team, invite your members, then upgrade the workspace from the Team page.',
+  },
+  {
+    q: 'Cancelling',
+    a: 'Cancellations take effect at the end of the current billing period. Partial periods are not refunded.',
+  },
+  {
+    q: 'Payments',
+    a: 'Payments and subscriptions are handled by Stripe.',
   },
 ];
 
@@ -130,110 +163,120 @@ export default function Pricing() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0805] py-20 sm:py-24">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-14">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-stone-900 border border-stone-800 rounded-full text-xs font-medium text-[hsl(var(--primary))] mb-6">
-            <Zap className="w-3 h-3" aria-hidden="true" />
-            Simple pricing
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-stone-100 mb-4 tracking-tight">
-            Pick your plan
+    <div className="overflow-x-clip">
+      <div className="mx-auto max-w-6xl px-4 pt-12 sm:px-6 sm:pt-16">
+        <header className="mx-auto mb-12 max-w-2xl text-center">
+          <p className="eyebrow mb-4 animate-fade-up">Pricing</p>
+          <h1 className="animate-fade-up font-display text-[40px] font-semibold leading-[1.05] tracking-[-0.03em] text-stone-100 [animation-delay:60ms] sm:text-5xl md:text-[56px]">
+            Start free. Pay when your coverage grows.
           </h1>
-          <p className="text-lg text-stone-500 max-w-xl mx-auto">
+          <p className="mx-auto mt-5 max-w-xl animate-fade-up text-[15px] text-stone-400 [animation-delay:120ms] sm:text-base">
             Your briefing is free. Pay when you want more sources, more channels or a team.
           </p>
-        </div>
+        </header>
 
         {syncing && (
-          <p role="status" className="max-w-xl mx-auto mb-6 text-center text-sm text-stone-300 border border-stone-800 bg-stone-900 px-4 py-3 rounded-md flex items-center justify-center gap-2">
-            <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+          <p role="status" className="panel mx-auto mb-6 flex max-w-xl items-center justify-center gap-2 px-4 py-3 text-center text-sm text-stone-300">
+            <Loader2 className="h-4 w-4 animate-spin text-brand-light" aria-hidden="true" />
             Confirming your payment with Stripe...
           </p>
         )}
 
         {error && (
-          <p role="alert" className="max-w-xl mx-auto mb-6 text-center text-sm text-red-300 border border-red-900/50 bg-red-950/20 px-4 py-3 rounded-md">
+          <p role="alert" className="mx-auto mb-6 max-w-xl rounded-2xl border border-red-400/25 bg-red-400/10 px-4 py-3 text-center text-sm text-red-300">
             {error}
           </p>
         )}
 
-        <div className="grid md:grid-cols-3 gap-6">
-          {plans.map((plan) => {
+        <div className="grid items-stretch gap-4 md:grid-cols-3 md:gap-5">
+          {plans.map((plan, i) => {
             const isCurrent = currentPlan === plan.id;
             return (
-              <div
-                key={plan.id}
-                className={cn(
-                  'relative border p-7 flex flex-col transition-all rounded-md',
-                  plan.popular
-                    ? 'border-[hsl(var(--primary))]/40 bg-stone-900 shadow-lg shadow-[hsl(var(--primary))]/10'
-                    : 'border-stone-800 bg-stone-900/50 hover:border-stone-700'
-                )}
-              >
-                {plan.popular && (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                    <span className="px-4 py-1 bg-[hsl(var(--primary))] text-stone-900 text-xs font-semibold rounded-full tracking-wide">
-                      MOST POPULAR
-                    </span>
-                  </div>
-                )}
-
-                <div className="mb-5">
-                  <h2 className="text-xl font-bold text-stone-100 mb-1">{plan.name}</h2>
-                  <p className="text-stone-500 text-sm">{plan.description}</p>
-                </div>
-
-                <div className="mb-6 flex items-end gap-1">
-                  <span className="text-4xl font-bold text-stone-100">${plan.price}</span>
-                  <span className="text-stone-600 mb-1 text-sm">{plan.unit}</span>
-                </div>
-
-                <ul className="space-y-3 mb-8 flex-1">
-                  {plan.features.map((text) => (
-                    <li key={text} className="flex items-start gap-3 text-sm">
-                      <Check className="w-4 h-4 mt-0.5 text-[hsl(var(--primary))] flex-shrink-0" aria-hidden="true" />
-                      <span className="text-stone-300">{text}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <Button
-                  onClick={() => handleSelect(plan)}
-                  disabled={!!loadingPlan}
-                  aria-label={isCurrent ? `${plan.name} is your current plan. Go to the app` : plan.cta}
+              <Reveal key={plan.id} delay={i * 80} className="h-full">
+                <div
                   className={cn(
-                    'w-full h-11 font-semibold focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-stone-900',
-                    plan.popular
-                      ? 'bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900'
-                      : 'bg-stone-800 hover:bg-stone-700 text-stone-100'
+                    'relative flex h-full flex-col p-6 sm:p-7 card-hover',
+                    plan.popular ? 'panel-accent shadow-glow' : 'panel panel-hover'
                   )}
                 >
-                  {loadingPlan === plan.id ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> : (
-                    <>
-                      {isCurrent ? 'Go to the app' : plan.cta}
-                      <ArrowRight className="w-4 h-4 ml-1" aria-hidden="true" />
-                    </>
-                  )}
-                </Button>
+                  <div className="mb-5 flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h2 className="font-display text-xl font-semibold tracking-tight text-stone-100">{plan.name}</h2>
+                      <p className="mt-1 text-sm text-stone-400">{plan.description}</p>
+                    </div>
+                    {plan.popular && <span className="chip-brand flex-shrink-0 uppercase tracking-wider">Most popular</span>}
+                  </div>
 
-                {isCurrent && (
-                  <p className="text-center text-sm text-[hsl(var(--primary))] font-medium mt-3">Your current plan</p>
-                )}
-              </div>
+                  <div className="mb-6 flex flex-wrap items-baseline gap-x-1.5 gap-y-1">
+                    <span className="font-display text-5xl font-semibold tabular-nums tracking-tight text-stone-100">${plan.price}</span>
+                    <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-stone-500">{plan.unit}</span>
+                  </div>
+
+                  <ul className="mb-8 flex-1 space-y-3">
+                    {plan.features.map((text) => (
+                      <li key={text} className="flex items-start gap-3 text-sm">
+                        <span className={cn(
+                          'mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-md',
+                          plan.popular ? 'bg-[hsl(var(--brand)/0.25)]' : 'bg-white/[0.06]'
+                        )}>
+                          <Check className="h-3 w-3 text-brand-light" aria-hidden="true" />
+                        </span>
+                        <span className="text-stone-300">{text}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <button
+                    type="button"
+                    onClick={() => handleSelect(plan)}
+                    disabled={!!loadingPlan}
+                    aria-label={isCurrent ? `${plan.name} is your current plan. Go to the app` : plan.cta}
+                    className={cn(
+                      'h-11 w-full disabled:cursor-not-allowed disabled:opacity-60',
+                      plan.popular ? 'btn-brand' : 'btn-ghost',
+                      FOCUS
+                    )}
+                  >
+                    {loadingPlan === plan.id ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : (
+                      <>
+                        {isCurrent ? 'Go to the app' : plan.cta}
+                        <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                      </>
+                    )}
+                  </button>
+
+                  {isCurrent && (
+                    <p className="meta mt-3 text-center text-brand-light">Your current plan</p>
+                  )}
+                </div>
+              </Reveal>
             );
           })}
         </div>
 
-        <div className="mt-14 text-center">
-          <p className="text-stone-500 text-sm">
-            Need more seats or invoicing?{' '}
-            <a href="mailto:support@mergerss.com" className="text-[hsl(var(--primary))] hover:opacity-80 font-medium transition-opacity rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))]">
-              Contact us
-            </a>
-          </p>
-        </div>
+        <p className="mt-8 text-center text-sm text-stone-400">
+          Need more seats or invoicing?{' '}
+          <a href="mailto:support@mergerss.com" className={cn('rounded-sm font-medium text-brand-light transition hover:text-stone-100', FOCUS)}>
+            Contact us
+          </a>
+        </p>
+
+        <section aria-labelledby="faq-heading" className="mx-auto mt-24 max-w-4xl">
+          <Reveal className="mb-8 text-center">
+            <p className="eyebrow mb-3">Questions</p>
+            <h2 id="faq-heading" className="font-display text-3xl font-semibold tracking-tight text-stone-100 sm:text-4xl">Plan details</h2>
+          </Reveal>
+          <div className="grid gap-3 md:grid-cols-2">
+            {faqs.map((f, i) => (
+              <Reveal key={f.q} delay={(i % 2) * 60} className="panel panel-hover p-5 sm:p-6">
+                <h3 className="font-display text-base font-semibold tracking-tight text-stone-100">{f.q}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-stone-400">{f.a}</p>
+              </Reveal>
+            ))}
+          </div>
+        </section>
       </div>
+      <SiteFooter />
     </div>
   );
 }
