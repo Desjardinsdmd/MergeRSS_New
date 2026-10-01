@@ -106,5 +106,17 @@ const sections = [
 ];
 
 export default function Terms() {
-  return <LegalDoc eyebrow="Legal" title="Terms of Service" updated="March 1, 2026" sections={sections} />;
+  return (
+    <LegalDoc
+      eyebrow="Legal"
+      title="Terms of Service"
+      updated="March 1, 2026"
+      sections={sections}
+      seo={{
+        title: 'Terms of Service · MergeRSS',
+        description: 'The terms for using MergeRSS: accounts, acceptable use, subscriptions and billing, AI-generated content and liability.',
+        path: '/Terms',
+      }}
+    />
+  );
 }
