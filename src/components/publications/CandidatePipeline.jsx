@@ -15,7 +15,7 @@ import {
 import { Loader2, RefreshCw, Search, Filter, BarChart3, TrendingUp, ArrowUpDown, X, Send } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-import CandidateRow from './CandidateRow';
+import CandidateRow, { CANDIDATE_GRID } from './CandidateRow';
 
 export default function CandidatePipeline({ publicationId }) {
   const [tagFilter, setTagFilter] = useState('all');
@@ -138,44 +138,43 @@ export default function CandidatePipeline({ publicationId }) {
   return (
     <div className="space-y-4">
       {/* Stats bar */}
-      <div className="flex items-center gap-4 flex-wrap">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+        <span className="inline-flex items-center gap-2 text-sm text-stone-400">
           <BarChart3 className="w-4 h-4 text-stone-500" />
-          <span className="text-sm text-stone-400">
-            <span className="font-mono text-stone-200">{data?.total_clusters || 0}</span> stories in the last 24h
-          </span>
-        </div>
+          <span><span className="font-mono text-stone-200">{data?.total_clusters || 0}</span> stories in the last 24h</span>
+        </span>
         {fbStats.manual_selects > 0 && (
           <Badge variant="outline" className="rounded-md border-[hsl(var(--brand)/0.3)] bg-[hsl(var(--brand)/0.14)] font-mono text-[10px] font-medium text-[#C4A5FD]">
             <TrendingUp className="w-3 h-3 mr-1" />
-            {fbStats.manual_selects} picks · {fbStats.skips || 0} skips (learning)
+            {fbStats.manual_selects} picks · {fbStats.skips || 0} skips
           </Badge>
         )}
-        <div className="flex-1" />
-        <Button variant="ghost" size="sm" className="rounded-xl text-stone-400 hover:bg-white/[0.05] hover:text-stone-100" onClick={() => refetch()} disabled={isRefetching}>
+        <Button variant="ghost" size="sm" className="ml-auto h-9 rounded-xl text-stone-400 hover:bg-white/[0.05] hover:text-stone-100" onClick={() => refetch()} disabled={isRefetching}>
           <RefreshCw className={`w-4 h-4 mr-1 ${isRefetching ? 'animate-spin' : ''}`} />
           Refresh
         </Button>
       </div>
 
-      {/* Filters */}
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1 max-w-xs">
+      {/* Filters: search full width on phones, then two selects side by side */}
+      <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-3">
+        <div className="relative col-span-2 sm:max-w-xs sm:flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500" />
           <Input
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder="Search stories..."
-            className="pl-9 rounded-xl border-white/10 bg-stone-800 text-stone-100 text-sm"
+            className="h-10 pl-9 rounded-xl border-white/10 bg-stone-800 text-stone-100 text-sm"
           />
         </div>
         <Select value={tagFilter} onValueChange={setTagFilter}>
-          <SelectTrigger className="w-36 rounded-xl border-white/10 bg-stone-800 text-stone-100 text-sm">
-            <Filter className="w-3 h-3 mr-1 text-stone-500" />
-            <SelectValue />
+          <SelectTrigger className="h-10 w-full sm:w-40 rounded-xl border-white/10 bg-stone-800 text-stone-100 text-sm">
+            <span className="flex min-w-0 items-center gap-1.5">
+              <Filter className="w-3.5 h-3.5 shrink-0 text-stone-500" />
+              <SelectValue />
+            </span>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Tags</SelectItem>
+            <SelectItem value="all">All tags</SelectItem>
             <SelectItem value="Trending">Trending</SelectItem>
             <SelectItem value="Risk">Risk</SelectItem>
             <SelectItem value="Opportunity">Opportunity</SelectItem>
@@ -183,20 +182,22 @@ export default function CandidatePipeline({ publicationId }) {
           </SelectContent>
         </Select>
         <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="w-36 rounded-xl border-white/10 bg-stone-800 text-stone-100 text-sm">
-            <ArrowUpDown className="w-3 h-3 mr-1 text-stone-500" />
-            <SelectValue />
+          <SelectTrigger className="h-10 w-full sm:w-40 rounded-xl border-white/10 bg-stone-800 text-stone-100 text-sm">
+            <span className="flex min-w-0 items-center gap-1.5">
+              <ArrowUpDown className="w-3.5 h-3.5 shrink-0 text-stone-500" />
+              <SelectValue />
+            </span>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="newest">Newest First</SelectItem>
-            <SelectItem value="sources">Most Sources</SelectItem>
+            <SelectItem value="newest">Newest first</SelectItem>
+            <SelectItem value="sources">Most sources</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       {/* Bulk action bar */}
       {selectedIds.size > 0 && (
-        <div className="panel-raised flex items-center gap-3 px-4 py-2">
+        <div className="panel-raised sticky top-20 z-20 flex flex-wrap items-center gap-2 px-3 py-2 lg:top-3">
           <span className="text-sm text-stone-300 font-medium"><span className="font-mono">{selectedIds.size}</span> selected</span>
           <div className="flex-1" />
           <Button size="sm" variant="ghost" disabled={bulkActing}
@@ -220,12 +221,22 @@ export default function CandidatePipeline({ publicationId }) {
       )}
 
       {/* Table */}
-      <Card className="overflow-hidden">
-        {/* Header */}
-        <div className="grid grid-cols-[32px_1fr_100px_80px_80px_140px] gap-3 items-center px-4 py-2.5 border-b border-white/[0.07] bg-white/[0.02]">
+      <Card className="panel overflow-hidden">
+        {/* Header: select-all on phones, column labels on desktop */}
+        <div className="flex items-center gap-3 border-b border-white/[0.07] bg-white/[0.02] px-4 py-2.5 md:hidden">
           <Checkbox
             checked={filtered.length > 0 && selectedIds.size === filtered.length}
             onCheckedChange={toggleAll}
+            aria-label="Select all stories"
+            className="border-stone-600 data-[state=checked]:bg-[hsl(var(--brand))] data-[state=checked]:border-[hsl(var(--brand))] data-[state=checked]:text-white"
+          />
+          <span className="micro-label">Select all · {filtered.length} stories</span>
+        </div>
+        <div className={`hidden border-b border-white/[0.07] bg-white/[0.02] px-4 py-2.5 ${CANDIDATE_GRID}`}>
+          <Checkbox
+            checked={filtered.length > 0 && selectedIds.size === filtered.length}
+            onCheckedChange={toggleAll}
+            aria-label="Select all stories"
             className="border-stone-600 data-[state=checked]:bg-[hsl(var(--brand))] data-[state=checked]:border-[hsl(var(--brand))] data-[state=checked]:text-white"
           />
           <span className="micro-label">Story</span>
