@@ -291,11 +291,15 @@ export function drawLine(doc, line, x, y, base) {
     else if (run.code) rgb = C.body;
     color(doc, rgb);
     const text = f.text;
-    if (!text.trim()) continue;
+    if (!text.trim()) {
+      // Keep real spaces in the text layer so copy and extraction read naturally.
+      doc.text(text, x + f.x, y);
+      continue;
+    }
+    doc.text(text, x + f.x, y);
     const lead = text.length - text.trimStart().length;
     const tx = x + f.x + (lead ? measure(doc, text.slice(0, lead), run, base) : 0);
     const shown = text.trim();
-    doc.text(shown, tx, y);
     if (run.href) {
       const w = measure(doc, shown, run, base);
       stroke(doc, [126, 92, 190]);
