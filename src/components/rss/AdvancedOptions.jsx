@@ -12,15 +12,15 @@ export default function AdvancedOptions({ options, onChange }) {
     const update = (key, value) => onChange(prev => ({ ...prev, [key]: value }));
 
     return (
-         <div className={cn("border rounded-lg overflow-hidden transition-colors", open ? "border-stone-700" : "border-stone-800")}>
+         <div className={cn("overflow-hidden rounded-xl border transition-colors", open ? "border-white/[0.12]" : "border-white/[0.07]")}>
              <button
                  type="button"
                  onClick={() => setOpen(v => !v)}
-                 className="w-full flex items-center justify-between px-4 py-3 text-sm text-stone-400 hover:bg-stone-800/50 transition-colors focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-inset"
+                 className="flex w-full items-center justify-between px-4 py-3 text-sm text-stone-400 transition-colors hover:bg-white/[0.03] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[hsl(var(--primary))]"
                  aria-expanded={open}
                  aria-label={`${open ? 'Hide' : 'Show'} advanced options`}
              >
-                 <span className="font-medium text-stone-300">Advanced Options</span>
+                 <span className="micro-label">Advanced options</span>
                  {open
                      ? <ChevronUp className="w-4 h-4 text-stone-500" aria-hidden="true" />
                      : <ChevronDown className="w-4 h-4 text-stone-500" aria-hidden="true" />
@@ -28,13 +28,13 @@ export default function AdvancedOptions({ options, onChange }) {
              </button>
 
             {open && (
-                <div className="border-t border-stone-800 px-4 py-4 space-y-5 bg-stone-900/40">
+                <div className="space-y-5 border-t border-white/[0.07] bg-white/[0.015] px-4 py-4">
                     {/* Frequency & Item Limit */}
                     <div className="grid sm:grid-cols-2 gap-4">
                         <div>
                             <Label htmlFor="frequency" className="text-xs text-stone-400 mb-1 block font-medium">How often to check for new content</Label>
                             <Select value={options.refresh_frequency} onValueChange={v => update('refresh_frequency', v)}>
-                                <SelectTrigger id="frequency" className="text-sm bg-stone-800 border-stone-700 text-stone-200" aria-label="Update frequency">
+                                <SelectTrigger id="frequency" className="rounded-xl text-sm" aria-label="Update frequency">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -48,19 +48,19 @@ export default function AdvancedOptions({ options, onChange }) {
                             <p className="text-xs text-stone-500 mt-1">More frequent = fresher content but more API calls</p>
                         </div>
                         <div>
-                            <Label htmlFor="item-limit" className="text-xs text-stone-400 mb-1 block font-medium">Maximum articles to include</Label>
+                            <Label htmlFor="item-limit" className="text-xs text-stone-400 mb-1 block font-medium">Maximum stories to include</Label>
                             <Select value={String(options.item_limit)} onValueChange={v => update('item_limit', Number(v))}>
-                                <SelectTrigger id="item-limit" className="text-sm bg-stone-800 border-stone-700 text-stone-200" aria-label="Item limit">
+                                <SelectTrigger id="item-limit" className="rounded-xl text-sm" aria-label="Item limit">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="10">10 items (quick read)</SelectItem>
-                                    <SelectItem value="25">25 items (balanced, recommended)</SelectItem>
-                                    <SelectItem value="50">50 items (comprehensive)</SelectItem>
-                                    <SelectItem value="100">100 items (full feed)</SelectItem>
+                                    <SelectItem value="10">10 stories (quick read)</SelectItem>
+                                    <SelectItem value="25">25 stories (balanced, recommended)</SelectItem>
+                                    <SelectItem value="50">50 stories (comprehensive)</SelectItem>
+                                    <SelectItem value="100">100 stories (full RSS feed)</SelectItem>
                                 </SelectContent>
                             </Select>
-                            <p className="text-xs text-stone-500 mt-1">Limits the number of articles in your feed</p>
+                            <p className="text-xs text-stone-500 mt-1">Limits the number of stories in your RSS feed</p>
                         </div>
                     </div>
 
@@ -68,13 +68,13 @@ export default function AdvancedOptions({ options, onChange }) {
                     <div className="flex items-center justify-between py-1">
                         <div>
                             <p className="text-sm font-medium text-stone-300" id="full-content-label">Include full content</p>
-                            <p className="text-xs text-stone-500">Fetch full article body where available</p>
+                            <p className="text-xs text-stone-500">Fetch the full story body where available</p>
                         </div>
                         <Switch
                             checked={options.include_full_content}
                             onCheckedChange={v => update('include_full_content', v)}
                             aria-labelledby="full-content-label"
-                            aria-label="Include full article content in feed"
+                            aria-label="Include full story content in RSS feed"
                         />
                     </div>
 
@@ -83,15 +83,15 @@ export default function AdvancedOptions({ options, onChange }) {
                          <Label htmlFor="utm-params" className="text-xs text-stone-400 mb-1 block font-medium">UTM parameters (optional)</Label>
                          <Input
                              id="utm-params"
-                             className="text-sm bg-stone-800 border-stone-700 text-stone-200 placeholder:text-stone-600"
+                             className="rounded-xl font-mono text-[13px]"
                              placeholder="utm_source=mergerss&utm_medium=rss&utm_campaign=feed"
                              value={options.utm_params}
                              onChange={e => update('utm_params', e.target.value)}
                              aria-label="UTM parameters for tracking"
-                             title="Add Google Analytics tracking parameters to article links"
+                             title="Add Google Analytics tracking parameters to story links"
                          />
                          <p className="text-xs text-stone-500 mt-1">
-                             Automatically added to all article links. Use for Google Analytics tracking. Format: <code className="bg-stone-800 px-1 rounded text-stone-300">key1=value1&key2=value2</code>
+                             Automatically added to all story links. Use for Google Analytics tracking. Format: <code className="rounded-md bg-white/[0.06] px-1 font-mono text-stone-300">key1=value1&key2=value2</code>
                          </p>
                      </div>
                 </div>
