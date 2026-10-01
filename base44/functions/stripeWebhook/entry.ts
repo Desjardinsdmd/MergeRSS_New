@@ -205,7 +205,51 @@ async function handleCheckoutCompleted(base44, stripe, session) {
     console.log(`[Stripe] Checkout completed for ${userEmail}: sub=${session.subscription} status=${status} plan=${plan}`);
 }
 
-async function handleSubscriptionChange(base44, stripe, subscription, eventType) {
+// Events can arrive out of order or be retried, so the payload may be stale. Re-read the
+// subscription from Stripe and apply its current state; fall back to the payload only if
+// the retrieve fails.
+async function freshSubscription(stripe, payload, eventType) {
+    if (!payload?.id) return payload;
+    try {
+        const sub = await stripe.subscriptions.retrieve(payload.id);
+        if (sub?.id) return sub;
+    } catch (e) {
+        console.log(`[Stripe] ${eventType}: could not re-fetch ${payload.id}, using event payload: ${e.message}`);
+    }
+    return payload;
+}
+
+// ── Idempotency ────────────────────────────────────────────────────────────────
+// Processed event ids are stored in SyncState (admin-only) as key `stripe_evt:<id>`.
+// The marker is written only after successful processing, so failed events still retry.
+const EVT_PREFIX = 'stripe_evt:';
+
+async function alreadyProcessed(base44, eventId) {
+    if (!eventId) return false;
+    try {
+        const rows = await base44.asServiceRole.entities.SyncState.filter({ key: EVT_PREFIX + eventId });
+        return rows.length > 0;
+    } catch (e) {
+        console.log(`[Stripe] Idempotency lookup failed for ${eventId}: ${e.message}`);
+        return false;
+    }
+}
+
+async function markProcessed(base44, event) {
+    if (!event?.id) return;
+    try {
+        await base44.asServiceRole.entities.SyncState.create({
+            key: EVT_PREFIX + event.id,
+            history_id: `${event.type}@${new Date().toISOString()}`,
+            enabled: false,
+        });
+    } catch (e) {
+        console.log(`[Stripe] Could not record processed event ${event.id}: ${e.message}`);
+    }
+}
+
+async function handleSubscriptionChange(base44, stripe, payload, eventType) {
+    const subscription = await freshSubscription(stripe, payload, eventType);
     const status = eventType === 'customer.subscription.deleted' ? 'canceled' : subscription.status;
     const plan = planForStatus(status);
     const customerId = typeof subscription.customer === 'string' ? subscription.customer : subscription.customer?.id;
@@ -286,6 +330,11 @@ Deno.serve(async (req) => {
     try {
         console.log(`[Stripe] Event received: ${event.type} (${event.id})`);
 
+        if (await alreadyProcessed(base44, event.id)) {
+            console.log(`[Stripe] Duplicate event ${event.id} (${event.type}); already processed`);
+            return Response.json({ received: true, duplicate: true });
+        }
+
         switch (event.type) {
             case 'checkout.session.completed':
                 await handleCheckoutCompleted(base44, stripe, event.data.object);
@@ -298,6 +347,8 @@ Deno.serve(async (req) => {
             default:
                 console.log(`[Stripe] Unhandled event type ${event.type}`);
         }
+
+        await markProcessed(base44, event);
 
         return Response.json({ received: true });
     } catch (error) {
