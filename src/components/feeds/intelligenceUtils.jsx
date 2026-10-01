@@ -62,9 +62,11 @@ export function whatHappened(item) {
 
 export function signalLevelStyle(score) {
     if (score == null) return null;
-    if (score >= 72) return { label: 'HIGH', class: 'text-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 border-[hsl(var(--primary))]/40 font-black' };
-    if (score >= 40) return { label: 'MED',  class: 'text-blue-400 bg-blue-950 border-blue-800 font-bold' };
-    return                  { label: 'LOW',  class: 'text-stone-500 bg-stone-800 border-stone-700' };
+    // Mirrors SignalPill (BRAND.md): HIGH emerald outline, MED neutral, LOW faint.
+    const base = 'rounded-md font-mono font-semibold uppercase tracking-wider';
+    if (score >= 72) return { label: 'HIGH', class: `${base} text-emerald-300 bg-emerald-400/10 border-emerald-400/40` };
+    if (score >= 40) return { label: 'MED',  class: `${base} text-stone-300 bg-white/[0.03] border-white/15` };
+    return                  { label: 'LOW',  class: `${base} text-stone-500 border-white/10` };
 }
 
 // ─── Confidence (human language) ─────────────────────────────────────────────
@@ -85,21 +87,23 @@ export function decisionState(item, clusterSize = 1) {
         : 99;
     const isRecent = ageHours < 12;
 
+    const base = 'rounded-md font-mono uppercase tracking-wider';
+
     // HIGH signal
     if (score >= 72) {
-        if (clusterSize >= 3) return { label: 'Important',      style: 'text-[hsl(var(--primary))] bg-[hsl(var(--primary))]/15 border-[hsl(var(--primary))]/40', priority: 4 };
-        if (clusterSize === 2) return { label: 'Important',      style: 'text-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 border-[hsl(var(--primary))]/30', priority: 3 };
-        return                        { label: 'Early Signal',   style: 'text-amber-400 bg-amber-950/40 border-amber-800/50',                                      priority: 2 };
+        if (clusterSize >= 3) return { label: 'Important',      style: `${base} text-[#C4A5FD] bg-[hsl(var(--primary)/0.16)] border-[hsl(var(--primary)/0.4)]`, priority: 4 };
+        if (clusterSize === 2) return { label: 'Important',      style: `${base} text-[#C4A5FD] bg-[hsl(var(--primary)/0.10)] border-[hsl(var(--primary)/0.3)]`, priority: 3 };
+        return                        { label: 'Early signal',   style: `${base} text-[#C4A5FD] bg-[hsl(var(--primary)/0.08)] border-[hsl(var(--primary)/0.25)]`, priority: 2 };
     }
 
     // MED signal
     if (score >= 40) {
-        if (clusterSize >= 2) return   { label: 'Watch',         style: 'text-sky-400 bg-sky-950/30 border-sky-800/40',                                            priority: 2 };
-        return                         { label: 'Watch',         style: 'text-stone-400 bg-stone-800/50 border-stone-700',                                         priority: 1 };
+        if (clusterSize >= 2) return   { label: 'Watch',         style: `${base} text-sky-300 bg-sky-400/10 border-sky-400/25`,                                    priority: 2 };
+        return                         { label: 'Watch',         style: `${base} text-stone-300 bg-white/[0.03] border-white/15`,                                  priority: 1 };
     }
 
     // LOW signal
-    return                             { label: 'Low Priority',  style: 'text-stone-600 bg-stone-800/30 border-stone-800',                                         priority: 0 };
+    return                             { label: 'Low priority',  style: `${base} text-stone-500 border-white/10`,                                                  priority: 0 };
 }
 
 // ─── Clustering ───────────────────────────────────────────────────────────────
