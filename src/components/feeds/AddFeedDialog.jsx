@@ -17,7 +17,6 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 import { Loader2, X, Plus, Globe, AlertCircle, CheckCircle2, ShieldAlert, WifiOff, Lock, FileX } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
@@ -72,20 +71,20 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
 
   const validate = () => {
     const errs = {};
-    if (!formData.name.trim()) errs.name = 'Feed name is required';
+    if (!formData.name.trim()) errs.name = 'Source name is required';
     if (!formData.url.trim()) errs.url = 'RSS URL is required';
     else if (!formData.url.startsWith('http')) errs.url = 'URL must start with http:// or https://';
     return errs;
   };
 
   const DEAD_END_LABELS = {
-    '404_gone': { icon: FileX, label: '404 – Page Not Found', detail: 'This URL returned a 404 or 410 error. The feed no longer exists at this address.' },
-    'blocked_antibot': { icon: ShieldAlert, label: 'Bot Protection Detected', detail: 'This site is blocking automated access (Cloudflare, CAPTCHA, or similar). The feed cannot be fetched.' },
-    'paywall_login': { icon: Lock, label: 'Paywall / Login Required', detail: 'This URL requires a login or paid subscription to access.' },
-    'network_error': { icon: WifiOff, label: 'Network Error', detail: 'The URL could not be reached. It may be offline or the domain may not exist.' },
-    'timeout': { icon: WifiOff, label: 'Connection Timed Out', detail: 'The server took too long to respond. It may be down or unreachable.' },
-    'feed_validation_failed': { icon: AlertCircle, label: 'Invalid Feed Content', detail: 'This URL returned something that doesn\'t look like a valid RSS feed with articles.' },
-    'no_articles_found': { icon: AlertCircle, label: 'No Articles Found', detail: 'This URL loaded but no articles or feed entries could be found.' },
+    '404_gone': { icon: FileX, label: '404 · Page not found', detail: 'This URL returned a 404 or 410 error. The source no longer exists at this address.' },
+    'blocked_antibot': { icon: ShieldAlert, label: 'Bot protection detected', detail: 'This site is blocking automated access (Cloudflare, CAPTCHA, or similar). The source cannot be fetched.' },
+    'paywall_login': { icon: Lock, label: 'Paywall or login required', detail: 'This URL requires a login or paid subscription to access.' },
+    'network_error': { icon: WifiOff, label: 'Network error', detail: 'The URL could not be reached. It may be offline or the domain may not exist.' },
+    'timeout': { icon: WifiOff, label: 'Connection timed out', detail: 'The server took too long to respond. It may be down or unreachable.' },
+    'feed_validation_failed': { icon: AlertCircle, label: 'Invalid RSS feed content', detail: 'This URL returned something that doesn\'t look like a valid RSS feed with stories.' },
+    'no_articles_found': { icon: AlertCircle, label: 'No stories found', detail: 'This URL loaded but no stories or feed entries could be found.' },
   };
 
   const checkFeedHealth = async (url) => {
@@ -245,25 +244,25 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{editFeed ? 'Edit Feed' : 'Add New Feed'}</DialogTitle>
+          <DialogTitle className="font-display text-lg font-semibold text-stone-100">{editFeed ? 'Edit source' : 'Add source'}</DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           {fetchingItems && (
-            <div role="status" aria-live="polite" className="flex items-center gap-2 px-3 py-2.5 bg-stone-800 border border-stone-700 text-stone-300 text-sm font-medium rounded-none">
-              <Loader2 className="w-4 h-4 flex-shrink-0 animate-spin" aria-hidden="true" />
-              Fetching your first articles…
+            <div role="status" aria-live="polite" className="flex items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.04] px-3 py-2.5 text-sm font-medium text-stone-300">
+              <Loader2 className="w-4 h-4 flex-shrink-0 animate-spin text-[hsl(var(--primary))]" aria-hidden="true" />
+              Fetching your first stories…
             </div>
           )}
           {success && !fetchingItems && (
-            <div role="status" aria-live="polite" className="flex items-center gap-2 px-3 py-2.5 bg-emerald-900/40 border border-emerald-700 text-emerald-300 text-sm font-medium rounded-none">
+            <div role="status" aria-live="polite" className="flex items-center gap-2 rounded-xl border border-emerald-400/25 bg-emerald-400/10 px-3 py-2.5 text-sm font-medium text-emerald-300">
               <CheckCircle2 className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
-              {editFeed ? 'Feed updated successfully!' : 'Feed added! Articles are loading.'}
+              {editFeed ? 'Source updated.' : 'Source added. Stories are loading.'}
             </div>
           )}
 
           <div>
-            <Label htmlFor="name">Feed Name <span className="text-[hsl(var(--primary))]" aria-hidden="true">*</span></Label>
+            <Label htmlFor="name">Source name <span className="text-[hsl(var(--primary))]" aria-hidden="true">*</span></Label>
             <Input
               id="name"
               value={formData.name}
@@ -278,7 +277,7 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
           </div>
 
           <div>
-            <Label htmlFor="url">RSS URL <span className="text-[hsl(var(--primary))]" aria-hidden="true">*</span></Label>
+            <Label htmlFor="url">RSS feed URL <span className="text-[hsl(var(--primary))]" aria-hidden="true">*</span></Label>
             <Input
               id="url"
               type="url"
@@ -288,11 +287,11 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
               aria-required="true"
               aria-invalid={!!errors.url}
               aria-describedby={errors.url ? 'url-error' : 'url-hint'}
-              className={cn(errors.url && 'border-red-500 focus-visible:ring-red-500')}
+              className={cn('font-mono text-[13px]', errors.url && 'border-red-500 focus-visible:ring-red-500')}
             />
             {errors.url
               ? <p id="url-error" role="alert" className="mt-1 text-xs text-red-400 flex items-center gap-1"><AlertCircle className="w-3 h-3" aria-hidden="true" />{errors.url}</p>
-              : <p id="url-hint" className="mt-1 text-xs text-stone-500">Paste a direct RSS/Atom feed URL, e.g. <code className="text-stone-400">https://example.com/feed.xml</code></p>
+              : <p id="url-hint" className="mt-1 text-xs text-stone-500">Paste a direct RSS/Atom feed URL, e.g. <code className="font-mono text-stone-400">https://example.com/feed.xml</code></p>
             }
           </div>
 
@@ -304,7 +303,7 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
                 if (value !== '__custom__') setFormData({ ...formData, category: value });
               }}
             >
-              <SelectTrigger id="category" aria-label="Select feed category">
+              <SelectTrigger id="category" aria-label="Select source category">
                 <SelectValue>{formData.category}</SelectValue>
               </SelectTrigger>
               <SelectContent>
@@ -331,6 +330,7 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
                 <Button
                   type="button"
                   variant="outline"
+                  className="rounded-xl"
                   onClick={() => { if (customCategoryInput.trim()) setFormData({ ...formData, category: customCategoryInput.trim() }); }}
                 >
                   Set
@@ -338,7 +338,7 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
               </div>
             )}
             {!DEFAULT_CATEGORIES.includes(formData.category) && formData.category && (
-              <p className="mt-1 text-xs text-stone-400">Custom category: <span className="text-[hsl(var(--primary))]">{formData.category}</span></p>
+              <p className="mt-1 text-xs text-stone-400">Custom category: <span className="chip-brand">{formData.category}</span></p>
             )}
           </div>
 
@@ -359,6 +359,7 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
                 onClick={addTag}
                 aria-label="Add tag button"
                 title="Add tag"
+                className="rounded-xl"
               >
                 <Plus className="w-4 h-4" aria-hidden="true" />
               </Button>
@@ -366,7 +367,7 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
             {formData.tags.length > 0 && (
               <div className="flex flex-wrap gap-2" role="list" aria-label="Added tags">
                 {formData.tags.map((tag) => (
-                  <Badge key={`${tag}-badge`} variant="secondary" className="gap-1" role="listitem">
+                  <span key={`${tag}-badge`} className="chip-brand gap-1" role="listitem">
                     {tag}
                     <button 
                       type="button" 
@@ -377,7 +378,7 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
                     >
                       <X className="w-3 h-3" aria-hidden="true" />
                     </button>
-                  </Badge>
+                  </span>
                 ))}
               </div>
             )}
@@ -385,16 +386,16 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
 
           {/* Share to Directory */}
           {editFeed && (
-            <div className="border border-stone-800 rounded-xl p-4 space-y-3 bg-stone-800">
+            <div className="panel-raised space-y-3 p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Globe className="w-4 h-4 text-[hsl(var(--primary))]" />
                   <div>
-                    <p className="text-sm font-medium text-stone-200">Share to Public Directory</p>
+                    <p className="text-sm font-medium text-stone-100">Share to public directory</p>
                     <p className="text-xs text-stone-500">
                       {canShareToDirectory 
-                        ? 'Let others discover and add this feed'
-                        : 'Feeds from the directory cannot be re-shared'}
+                        ? 'Let others discover and add this source'
+                        : 'Sources from the directory cannot be re-shared'}
                     </p>
                   </div>
                 </div>
@@ -410,7 +411,7 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
                   <Input
                     value={formData.public_description}
                     onChange={(e) => setFormData({ ...formData, public_description: e.target.value })}
-                    placeholder="What makes this feed great?"
+                    placeholder="What makes this source worth following?"
                     className="mt-1 text-sm"
                   />
                 </div>
@@ -420,10 +421,10 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
 
           {/* Dead-end warning banner */}
           {deadEndWarning && !deadEndWarning.acknowledged && (() => {
-            const info = DEAD_END_LABELS[deadEndWarning.category] || { icon: AlertCircle, label: 'Feed Unreachable', detail: 'This feed could not be reached or validated.' };
+            const info = DEAD_END_LABELS[deadEndWarning.category] || { icon: AlertCircle, label: 'Source unreachable', detail: 'This source could not be reached or validated.' };
             const Icon = info.icon;
             return (
-              <div className="rounded-lg border border-red-800 bg-red-950/40 p-4 space-y-3">
+              <div className="space-y-3 rounded-xl border border-red-400/25 bg-red-400/10 p-4">
                 <div className="flex items-start gap-3">
                   <Icon className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
                   <div>
@@ -432,26 +433,26 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
                   </div>
                 </div>
                 <p className="text-xs text-stone-400 pl-8">
-                  You can still add this feed, but it will likely show errors and won't deliver articles until the source is fixed.
+                  You can still add this source, but it will likely show errors and won't deliver stories until it is fixed.
                 </p>
                 <div className="flex gap-2 pl-8">
                   <Button
                     type="button"
                     size="sm"
                     variant="outline"
-                    className="text-xs border-stone-700 text-stone-400 hover:text-stone-200"
+                    className="rounded-xl text-xs"
                     onClick={() => setDeadEndWarning(prev => ({ ...prev, acknowledged: true }))}
                   >
-                    Add Anyway
+                    Add anyway
                   </Button>
                   <Button
                     type="button"
                     size="sm"
                     variant="ghost"
-                    className="text-xs text-stone-500 hover:text-stone-300"
+                    className="rounded-xl text-xs text-stone-500 hover:text-stone-300"
                     onClick={() => setDeadEndWarning(null)}
                   >
-                    Try a Different URL
+                    Try a different URL
                   </Button>
                 </div>
               </div>
@@ -459,7 +460,7 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
           })()}
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="rounded-xl">
               Cancel
             </Button>
             <Button
@@ -468,7 +469,7 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
               className="btn-brand"
             >
               {(loading || validatingRss) && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {validatingRss ? 'Checking feed…' : editFeed ? 'Save Changes' : deadEndWarning?.acknowledged ? 'Add Anyway' : 'Add Feed'}
+              {validatingRss ? 'Checking source…' : editFeed ? 'Save changes' : deadEndWarning?.acknowledged ? 'Add anyway' : 'Add source'}
             </Button>
           </DialogFooter>
         </form>
