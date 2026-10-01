@@ -386,6 +386,32 @@ Deno.serve(async (req) => {
           code: e['delivery-status']?.code, routes: (e.routes || []).map(r => r.id || r.description),
         }));
       } catch (e) { out.events_error = e?.message; }
+
+      // Optional replay: re-post a stored inbound message to the webhook with a fresh signature.
+      if (body.replay_recipient) {
+        try {
+          const nowS = Math.floor(Date.now() / 1000);
+          const q = new URLSearchParams({ begin: String(nowS), end: String(nowS - 72 * 3600), ascending: 'no', limit: '20', event: 'accepted', recipient: String(body.replay_recipient) });
+          const ev = await mailgunFetch(cfg, `/v3/${cfg.domain}/events?${q.toString()}`);
+          const hit = (ev.items || []).find(e => e.storage?.url);
+          if (!hit) throw new Error('no stored message found');
+          const msg = await mailgunFetch(cfg, hit.storage.url.replace(/^https:\/\/[^/]+/, ''), { headers: { Accept: 'application/json' } });
+          const signingKey = Deno.env.get('MAILGUN_WEBHOOK_SIGNING_KEY') || cfg.apiKey;
+          const token = crypto.randomUUID().replace(/-/g, '');
+          const ts = String(Math.floor(Date.now() / 1000));
+          const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(signingKey), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+          const sig = Array.from(new Uint8Array(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(ts + token))), b => b.toString(16).padStart(2, '0')).join('');
+          const form = new FormData();
+          form.append('recipient', String(body.replay_recipient));
+          for (const k of ['sender', 'from', 'From', 'subject', 'Subject', 'body-plain', 'body-html', 'stripped-text', 'stripped-html', 'Message-Id', 'To', 'List-Unsubscribe']) {
+            if (typeof msg[k] === 'string') form.append(k, msg[k]);
+          }
+          if (msg['message-headers']) form.append('message-headers', typeof msg['message-headers'] === 'string' ? msg['message-headers'] : JSON.stringify(msg['message-headers']));
+          form.append('timestamp', ts); form.append('token', token); form.append('signature', sig);
+          const r = await fetch(webhookUrl(), { method: 'POST', body: form, signal: AbortSignal.timeout(60000) });
+          out.replay = { status: r.status, body: (await r.text()).slice(0, 500), message_keys: Object.keys(msg).slice(0, 40) };
+        } catch (e) { out.replay_error = e?.message; }
+      }
       console.log('[newsletterInbox] diagnose', JSON.stringify(out).slice(0, 8000));
       await svc.SyncState.create({ key: 'mailgun_diagnose', history_id: JSON.stringify(out).slice(0, 20000), enabled: false }).catch(() => {});
       return Response.json(out);
