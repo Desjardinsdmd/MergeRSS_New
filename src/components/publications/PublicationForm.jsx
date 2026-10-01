@@ -231,7 +231,7 @@ export default function PublicationForm({ publication, onSave, onCancel }) {
               <SelectItem value="take">Take (single post, opinionated)</SelectItem>
             </SelectContent>
           </Select>
-          <p className="text-xs text-stone-600 mt-1">Variant selected by default when you review drafts.</p>
+          <p className="text-xs text-stone-600 mt-1">Preferred draft style for this publication.</p>
         </div>
       </div>
 
