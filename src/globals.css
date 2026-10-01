@@ -2,147 +2,133 @@
 @tailwind components;
 @tailwind utilities;
 
+/* MergeRSS design system v3, "briefing studio". Source of truth: BRAND.md.
+   Fonts (Inter, Space Grotesk, JetBrains Mono) are loaded in index.html. */
+
 @layer base {
-  /* ─── Design Tokens ─────────────────────────────────────────────────────── */
   :root {
-    /* Base palette: Tailwind stone, matching component classes (see BRAND.md) */
-    --background: 34.3 36.8% 3.7%;          /* #0d0a06 app shell */
-    --foreground: 60 4.8% 95.9%;         /* stone-100 */
-    --card: 24 9.8% 10%;                /* stone-900 */
-    --card-foreground: 60 4.8% 95.9%;
-    --popover: 24 9.8% 10%;
-    --popover-foreground: 60 4.8% 95.9%;
+    /* Surfaces: violet-tinted near-black */
+    --background: 249 28% 5%;            /* #0A0910 page */
+    --foreground: 260 27% 96%;           /* #F3F1F7 */
+    --card: 252 19% 10%;                 /* #17151F panels */
+    --card-foreground: 260 27% 96%;
+    --popover: 253 19% 9%;
+    --popover-foreground: 260 27% 96%;
 
-    /* Brand accent (defaults to violet; users can override via accent picker) */
-    --accent-primary: 263 70% 64%;     /* brand violet #9463e3 */
-    --accent-primary-foreground: 24 9.8% 10%;  /* stone-900 on primary */
+    /* Brand accent. The logo and brand marks always use the fixed brand violet;
+       --primary can be changed by the accent picker for buttons and highlights. */
+    --brand: 265 90% 66%;                /* #9B5CF6 */
+    --brand-deep: 262 83% 58%;           /* #7C3AED */
+    --accent-primary: 265 90% 66%;
+    --accent-primary-foreground: 0 0% 100%;
     --primary: var(--accent-primary);
-    --primary-foreground: 24 9.8% 10%;
+    --primary-foreground: 0 0% 100%;     /* white text on violet */
 
-    /* Surface layers */
-    --secondary: 12 6.5% 15.1%;          /* stone-800 */
-    --secondary-foreground: 20 5.9% 90%;
-    --muted: 12 6.5% 15.1%;
-    --muted-foreground: 24 5.4% 63.9%;   /* stone-400 */
+    --secondary: 254 16% 16%;            /* #25222F */
+    --secondary-foreground: 260 27% 96%;
+    --muted: 254 16% 16%;
+    --muted-foreground: 255 11% 65%;     /* #A29DB1 */
+    --accent: 254 16% 16%;
+    --accent-foreground: 260 27% 96%;
 
-    /* Interactive */
-    --accent: 12 6.5% 15.1%;
-    --accent-foreground: 60 4.8% 95.9%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    /* Semantic */
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 98%;
+    --border: 254 16% 16%;
+    --input: 254 16% 16%;
+    --ring: 265 90% 66%;
+    --radius: 0.75rem;                   /* 12px; panels use rounded-2xl (20px) */
 
-    /* Chrome */
-    --border: 12 6.5% 15.1%;
-    --input: 12 6.5% 15.1%;
-    --ring: 263 70% 64%;
-    --radius: 0.375rem;
+    --chart-1: 265 90% 66%;
+    --chart-2: 158 64% 52%;
+    --chart-3: 213 94% 68%;
+    --chart-4: 43 96% 56%;
+    --chart-5: 0 91% 71%;
+
+    --sidebar-background: 252 19% 10%;
+    --sidebar-foreground: 260 27% 96%;
+    --sidebar-primary: 265 90% 66%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 254 16% 16%;
+    --sidebar-accent-foreground: 260 27% 96%;
+    --sidebar-border: 254 16% 16%;
+    --sidebar-ring: 265 90% 66%;
   }
 
-  /* Dark mode mirrors :root (app is dark-first) */
   .dark {
-    --background: 34.3 36.8% 3.7%;
-    --foreground: 60 4.8% 95.9%;
-    --card: 24 9.8% 10%;
-    --card-foreground: 60 4.8% 95.9%;
-    --popover: 24 9.8% 10%;
-    --popover-foreground: 60 4.8% 95.9%;
-    --primary: 263 70% 64%;
-    --primary-foreground: 24 9.8% 10%;
-    --secondary: 12 6.5% 15.1%;
-    --secondary-foreground: 20 5.9% 90%;
-    --muted: 12 6.5% 15.1%;
-    --muted-foreground: 24 5.4% 63.9%;
-    --accent: 12 6.5% 15.1%;
-    --accent-foreground: 60 4.8% 95.9%;
-    --destructive: 0 62% 40%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 12 6.5% 15.1%;
-    --input: 12 6.5% 15.1%;
-    --ring: 263 70% 64%;
+    --background: 249 28% 5%;
+    --foreground: 260 27% 96%;
+    --card: 252 19% 10%;
+    --card-foreground: 260 27% 96%;
+    --popover: 253 19% 9%;
+    --popover-foreground: 260 27% 96%;
+    --primary: var(--accent-primary);
+    --primary-foreground: 0 0% 100%;
+    --secondary: 254 16% 16%;
+    --secondary-foreground: 260 27% 96%;
+    --muted: 254 16% 16%;
+    --muted-foreground: 255 11% 65%;
+    --accent: 254 16% 16%;
+    --accent-foreground: 260 27% 96%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 254 16% 16%;
+    --input: 254 16% 16%;
+    --ring: 265 90% 66%;
   }
 
-  /* High-contrast dark mode — WCAG AAA contrast (7:1+) */
+  /* High-contrast dark mode (WCAG AAA) */
   .hc-dark {
-    --background: 0 0% 0%;                /* #000000 – pure black */
-    --foreground: 0 0% 100%;              /* #ffffff – pure white (21:1) */
-    --card: 0 0% 8%;                      /* #141414 */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 8%;
     --card-foreground: 0 0% 100%;
     --popover: 0 0% 8%;
     --popover-foreground: 0 0% 100%;
-    --primary: 263 80% 70%;               /* Brighter accent for HC */
+    --primary: 265 95% 74%;
     --primary-foreground: 0 0% 0%;
-    --secondary: 0 0% 15%;                /* Darker grays for contrast */
+    --secondary: 0 0% 15%;
     --secondary-foreground: 0 0% 100%;
     --muted: 0 0% 20%;
-    --muted-foreground: 0 0% 90%;         /* 9:1 contrast */
+    --muted-foreground: 0 0% 90%;
     --accent: 0 0% 25%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 100% 50%;            /* Brighter red */
+    --destructive: 0 100% 50%;
     --destructive-foreground: 0 0% 0%;
-    --border: 0 0% 100%;                  /* White borders */
+    --border: 0 0% 100%;
     --input: 0 0% 20%;
-    --ring: 263 80% 70%;
-  }
-
-  /* Light mode — WCAG AAA contrast ratios (7:1+) */
-  .light {
-    --background: 36 20% 98%;           /* #f5f1ed – warm off-white */
-    --foreground: 22 16% 5%;            /* #0f0c0a – near-black, 19:1 on bg (AAA) */
-    --card: 0 0% 100%;                  /* #ffffff – pure white */
-    --card-foreground: 22 16% 5%;       /* 19:1 contrast (AAA) */
-    --popover: 0 0% 100%;
-    --popover-foreground: 22 16% 5%;
-    --primary: 263 60% 52%;             /* brand violet, darkened for light mode */
-    --primary-foreground: 0 0% 0%;      /* pure black on accent (21:1) */
-    --secondary: 22 16% 18%;            /* darker stone for better contrast */
-    --secondary-foreground: 0 0% 100%;
-    --muted: 36 15% 88%;                /* light gray */
-    --muted-foreground: 22 12% 40%;     /* 8:1 contrast on muted bg (AAA) */
-    --accent: 36 20% 88%;               /* slightly darker for better contrast */
-    --accent-foreground: 22 16% 5%;     /* dark text on accent (AAA) */
-    --destructive: 0 84% 45%;           /* darker red for better visibility */
-    --destructive-foreground: 0 0% 100%;
-    --border: 36 15% 82%;               /* slightly darker border for visibility */
-    --input: 36 15% 90%;                /* input background */
-    --ring: 263 60% 52%;                 /* focus ring */
+    --ring: 265 95% 74%;
   }
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
+  * { @apply border-border; }
+
+  html { font-size: 100%; }
 
   body {
-    @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1, "kern" 1;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
-    font-size: 1rem;         /* 16px base — scales with user zoom */
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1, "kern" 1, "cv11" 1;
+    font-size: 1rem;
     line-height: 1.6;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
 
-  /* ─── Type Scale ─────────────────────────────────────────────────────────── */
-  h1 { font-size: clamp(1.75rem, 4vw, 2.5rem); font-weight: 700; line-height: 1.15; letter-spacing: -0.02em; }
-  h2 { font-size: clamp(1.375rem, 3vw, 1.875rem); font-weight: 700; line-height: 1.2; letter-spacing: -0.015em; }
-  h3 { font-size: clamp(1.125rem, 2.5vw, 1.375rem); font-weight: 600; line-height: 1.3; letter-spacing: -0.01em; }
+  /* Headings use the display face; sizes stay component-controlled */
+  h1, h2, h3 { font-family: theme('fontFamily.display'); letter-spacing: -0.02em; }
+  h1 { font-size: clamp(1.75rem, 4vw, 2.5rem); font-weight: 600; line-height: 1.15; }
+  h2 { font-size: clamp(1.375rem, 3vw, 1.875rem); font-weight: 600; line-height: 1.2; }
+  h3 { font-size: clamp(1.125rem, 2.5vw, 1.375rem); font-weight: 600; line-height: 1.3; }
   h4 { font-size: 1.0625rem; font-weight: 600; line-height: 1.4; }
   h5, h6 { font-size: 0.9375rem; font-weight: 600; line-height: 1.45; }
-
   p { line-height: 1.65; }
 
-  /* Accessible focus ring */
   :focus-visible {
     outline: 2px solid hsl(var(--ring));
     outline-offset: 2px;
-    border-radius: 3px;
+    border-radius: 6px;
   }
 
-  /* Labels above inputs */
   label {
     display: block;
     font-size: 0.8125rem;
@@ -150,97 +136,95 @@
     margin-bottom: 0.375rem;
     color: hsl(var(--muted-foreground));
   }
+
+  ::placeholder { color: hsl(var(--muted-foreground) / 0.65); }
+  ::selection { background: hsl(var(--brand) / 0.35); }
+}
+
+/* ─── Signature components ──────────────────────────────────────────────── */
+@layer components {
+  /* Page backdrop: near-black with a soft violet glow, top-left and bottom-right */
+  .app-backdrop {
+    background-color: hsl(var(--background));
+    background-image:
+      radial-gradient(60rem 40rem at -10% -15%, hsl(var(--brand) / 0.16), transparent 60%),
+      radial-gradient(50rem 40rem at 110% 110%, hsl(var(--brand-deep) / 0.10), transparent 60%);
+    background-attachment: fixed;
+  }
+
+  /* Glass panel: the base surface for cards, sidebars and sections */
+  .panel {
+    @apply rounded-2xl border border-white/[0.07] bg-white/[0.025] shadow-panel backdrop-blur-xl;
+  }
+  .panel-raised { @apply rounded-xl border border-white/[0.07] bg-white/[0.04]; }
+  .panel-accent {
+    @apply rounded-2xl border border-[hsl(var(--brand)/0.35)];
+    background: linear-gradient(135deg, hsl(var(--brand) / 0.20), hsl(var(--brand-deep) / 0.06) 60%, transparent);
+  }
+  .panel-hover { @apply transition-colors duration-150 hover:border-white/[0.12] hover:bg-white/[0.04]; }
+
+  /* Brand mark: violet gradient tile with the RSS glyph in white */
+  .logo-mark {
+    @apply flex items-center justify-center rounded-xl text-white;
+    background: linear-gradient(135deg, #B57BFF 0%, #9B5CF6 45%, #7C3AED 100%);
+    box-shadow: 0 6px 18px -6px rgb(155 92 246 / 0.7);
+  }
+
+  /* Mono micro label: section names, eyebrows, metadata lines */
+  .micro-label { @apply font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-stone-500; }
+  .eyebrow { @apply font-mono text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--primary))]; }
+  .meta { @apply font-mono text-[10.5px] uppercase tracking-[0.08em] text-stone-500; }
+
+  /* Chips */
+  .chip { @apply inline-flex items-center rounded-md px-1.5 py-0.5 font-mono text-[10px] font-medium; }
+  .chip-brand { @apply chip bg-[hsl(var(--brand)/0.16)] text-[#C4A5FD]; }
+  .chip-neutral { @apply chip border border-white/10 text-stone-300; }
+
+  /* Buttons */
+  .btn-brand {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white transition;
+    background: linear-gradient(135deg, #A66CFA, #8B4CF0);
+    box-shadow: 0 8px 24px -8px rgb(155 92 246 / 0.75);
+  }
+  .btn-brand:hover { filter: brightness(1.08); }
+  .btn-soft {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-[hsl(var(--brand)/0.3)] bg-[hsl(var(--brand)/0.14)] px-3 py-1.5 text-sm font-medium text-[#D9C7FE] transition hover:bg-[hsl(var(--brand)/0.22)];
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 px-3 py-1.5 text-sm font-medium text-stone-300 transition hover:bg-white/[0.05] hover:text-stone-100;
+  }
+
+  /* Sidebar nav item */
+  .nav-item { @apply flex items-center gap-3 rounded-xl px-3 py-2 text-[15px] text-stone-400 transition-colors hover:bg-white/[0.04] hover:text-stone-100; }
+  .nav-item-active { @apply border border-[hsl(var(--brand)/0.3)] bg-[hsl(var(--brand)/0.16)] text-stone-100; }
 }
 
 /* ─── Scrollbar ──────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: hsl(22 12% 20%); border-radius: 9999px; }
-::-webkit-scrollbar-thumb:hover { background: hsl(22 12% 28%); }
+::-webkit-scrollbar-thumb { background: hsl(254 16% 22%); border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: hsl(254 16% 30%); }
 
-/* ─── Utilities ──────────────────────────────────────────────────────────── */
-/* Ensure text scales correctly (no fixed px that block zoom) */
-html { font-size: 100%; }
-
-/* Stronger contrast for placeholder text (WCAG AA) */
-::placeholder { color: hsl(var(--muted-foreground) / 0.65); }
-
-/* High-contrast mode helpers */
-.hc-dark-ring { outline: 2px solid #fff; outline-offset: 2px; }
-
-/* ─── Consistent Button Styles ───────────────────────────────────────────── */
-/* Ensure primary buttons always have enough contrast */
-.btn-primary,
-button[class*="bg-amber-400"],
-a[class*="bg-amber-400"] {
-  color: #0a0805 !important;
-  font-weight: 600;
-}
-
-/* Subtle transition for all interactive elements */
+/* ─── Interaction ────────────────────────────────────────────────────────── */
 button, a, [role="button"] {
-  transition: opacity 0.15s ease, background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  transition: opacity 0.15s ease, background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
 }
 
-/* Smooth theme transitions */
-html {
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
+.card-body { color: theme('colors.stone.400'); }
 
-body {
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-/* Primary CTA button micro-interaction */
-button.bg-amber-400:hover,
-a.bg-amber-400:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(251, 191, 36, 0.25);
-}
-button.bg-amber-400:active,
-a.bg-amber-400:active {
-  transform: translateY(0);
-  box-shadow: none;
-}
-
-/* ─── Card text contrast boost ───────────────────────────────────────────── */
-/* stone-400 on stone-900 ≈ 6.5:1 — comfortably above WCAG AA */
-.card-body { color: hsl(36 20% 72%); }  /* stone-400 equivalent */
-
-/* ─── Micro-animations ───────────────────────────────────────────────────── */
-.animate-in {
-  animation: animateIn 0.2s ease-out;
-}
+.animate-in { animation: animateIn 0.2s ease-out; }
 @keyframes animateIn {
   from { opacity: 0; transform: translateY(-4px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Hover lift for clickable cards */
-.card-hover {
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-.card-hover:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-}
+.card-hover { transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease; }
+.card-hover:hover { transform: translateY(-1px); box-shadow: 0 10px 30px -12px rgb(0 0 0 / 0.7); }
 
-/* Line clamp utilities */
-.line-clamp-1 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 1;
-}
-.line-clamp-2 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-.line-clamp-3 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
+.line-clamp-1 { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; }
+.line-clamp-2 { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.line-clamp-3 { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
