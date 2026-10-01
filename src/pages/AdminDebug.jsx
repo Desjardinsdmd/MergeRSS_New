@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
+import { PageHeader, MicroLabel } from '@/components/brand/Brand';
 import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 
 function AdminDebugPage() {
@@ -35,54 +35,52 @@ function AdminDebugPage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
+    <div className="mx-auto max-w-2xl p-6 lg:p-8">
+      <PageHeader eyebrow="Admin" title="Stripe subscription debug" subtitle="Look up a customer by email and resync their plan." />
       <Card>
-        <CardHeader>
-          <CardTitle>Stripe Subscription Debug</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-6 p-5 sm:p-6">
           <div className="space-y-3">
-            <label className="text-sm font-medium">Email Address</label>
+            <MicroLabel as="label">Email address</MicroLabel>
             <div className="flex gap-2">
               <Input
                 placeholder="testmergerss@gmail.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
-              <Button onClick={handleLookup} disabled={!email || loading}>
+              <button type="button" className="btn-brand disabled:opacity-50" onClick={handleLookup} disabled={!email || loading}>
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Lookup'}
-              </Button>
+              </button>
             </div>
           </div>
 
           {result && (
             <div className="space-y-3">
-              <div className="bg-stone-900 rounded p-4">
-                <pre className="text-xs text-stone-300 overflow-auto max-h-96">
+              <div className="panel-raised p-4">
+                <pre className="max-h-96 overflow-auto font-mono text-xs text-stone-300">
                   {JSON.stringify(result, null, 2)}
                 </pre>
               </div>
 
               {result.stripe_customer_id && (
-                <Button
+                <button
+                  type="button"
                   onClick={handleSync}
                   disabled={loading}
-                  variant="outline"
-                  className="w-full"
+                  className="btn-soft w-full py-2 disabled:opacity-50"
                 >
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : 'Sync User Plan'}
-                </Button>
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Sync user plan'}
+                </button>
               )}
 
               {result.stripe_customer_id && result.stripe_subscription_id && (
-                <div className="flex items-center gap-2 text-green-500 text-sm">
+                <div className="flex items-center gap-2 text-emerald-400 text-sm">
                   <CheckCircle className="w-4 h-4" />
                   Active Stripe subscription found
                 </div>
               )}
 
               {!result.stripe_customer_id && !result.error && (
-                <div className="flex items-center gap-2 text-orange-500 text-sm">
+                <div className="flex items-center gap-2 text-amber-400 text-sm">
                   <XCircle className="w-4 h-4" />
                   No Stripe customer found
                 </div>

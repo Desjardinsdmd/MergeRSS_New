@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { PageHeader, MicroLabel } from '@/components/brand/Brand';
 import { Users, Rss, FileText, TrendingUp, Star, Loader2 } from 'lucide-react';
 
 export default function AdminAnalytics() {
@@ -49,7 +48,9 @@ export default function AdminAnalytics() {
   );
   if (user.role !== 'admin') {
     return (
-      <div className="p-8 text-center text-stone-500">Access denied. Admin only.</div>
+      <div className="mx-auto max-w-3xl p-6 lg:p-8">
+        <div className="panel p-8 text-center text-sm text-stone-500">Access denied. Admin only.</div>
+      </div>
     );
   }
 
@@ -73,94 +74,67 @@ export default function AdminAnalytics() {
   ].filter(Boolean)).size;
 
   const stats = [
-    { name: 'Total Feeds', value: allFeeds.length, icon: Rss, color: 'bg-amber-900/30 text-amber-400' },
-    { name: 'Total Digests', value: allDigests.length, icon: FileText, color: 'bg-blue-900/30 text-blue-400' },
-    { name: 'Digest Adds (all-time)', value: totalAdded, icon: Users, color: 'bg-green-900/30 text-green-400' },
-    { name: 'Deliveries Sent', value: sentDeliveries, icon: TrendingUp, color: 'bg-emerald-900/30 text-emerald-400' },
-    { name: 'Unread Deliveries', value: unreadDeliveries, icon: TrendingUp, color: 'bg-red-900/30 text-red-400' },
-    { name: 'Unique Users', value: uniqueUsers, icon: Users, color: 'bg-sky-900/30 text-sky-400' },
+    { name: 'Sources', value: allFeeds.length, icon: Rss },
+    { name: 'Briefings', value: allDigests.length, icon: FileText },
+    { name: 'Briefing adds (all-time)', value: totalAdded, icon: Users },
+    { name: 'Deliveries sent', value: sentDeliveries, icon: TrendingUp, tone: 'text-emerald-300' },
+    { name: 'Unread deliveries', value: unreadDeliveries, icon: TrendingUp },
+    { name: 'Unique users', value: uniqueUsers, icon: Users },
   ];
 
+  const rankList = (rows, renderValue) => (
+    <ol className="divide-y divide-white/[0.06]">
+      {rows.map((row, i) => (
+        <li key={row.id} className="flex items-center justify-between gap-3 py-2.5">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className={`w-5 font-display text-sm font-semibold ${i === 0 ? 'text-[#C4A5FD]' : 'text-stone-500'}`}>{i + 1}</span>
+            <span className="truncate text-sm text-stone-300">{row.name}</span>
+          </div>
+          <span className="chip-brand flex-shrink-0">{renderValue(row)}</span>
+        </li>
+      ))}
+    </ol>
+  );
+
   return (
-    <div className="p-6 lg:p-8 max-w-5xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-stone-100">Analytics</h1>
-        <p className="text-stone-500 text-sm mt-1">Platform-wide usage statistics</p>
-      </div>
+    <div className="mx-auto max-w-5xl p-6 lg:p-8">
+      <PageHeader title="Analytics" subtitle="Platform-wide usage." />
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-         {stats.map(stat => (
-           <Card key={stat.name} className="border-stone-800 bg-stone-900">
-             <CardContent className="p-4">
-               <div className={`p-2 rounded-lg w-fit mb-3 ${stat.color}`}>
-                 <stat.icon className="w-4 h-4" />
-               </div>
-               <p className="text-2xl font-bold text-stone-100">{stat.value}</p>
-               <p className="text-sm text-stone-500">{stat.name}</p>
-            </CardContent>
-          </Card>
+      <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-3">
+        {stats.map(stat => (
+          <div key={stat.name} className="panel p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <MicroLabel>{stat.name}</MicroLabel>
+              <stat.icon className="h-4 w-4 text-stone-600" aria-hidden="true" />
+            </div>
+            <p className={`font-display text-3xl font-semibold tabular-nums ${stat.tone || 'text-stone-100'}`}>{stat.value}</p>
+          </div>
         ))}
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
-        {/* Top digest adds */}
-        <Card className="border-stone-800 bg-stone-900">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2 text-stone-200">
-              <Star className="w-4 h-4 text-amber-400" />
-              Top Digests by Adds
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            {digestAdds.length === 0 ? (
-              <p className="text-sm text-stone-600">No data yet</p>
-            ) : (
-              <div className="space-y-2">
-                {digestAdds.map((d, i) => (
-                  <div key={d.id} className="flex items-center justify-between py-1.5">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-xs text-stone-500 w-4">{i + 1}</span>
-                      <span className="text-sm text-stone-300 truncate">{d.name}</span>
-                    </div>
-                    <Badge className="bg-amber-900/30 text-amber-400 border-0 text-xs ml-2 flex-shrink-0">
-                      {d.added_count} adds
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Top briefing adds */}
+        <section className="panel p-5">
+          <h2 className="mb-3 flex items-center gap-2 font-display text-lg font-semibold text-stone-100">
+            <Star className="h-4 w-4 text-[#C4A5FD]" aria-hidden="true" />
+            Top briefings by adds
+          </h2>
+          {digestAdds.length === 0 ? (
+            <p className="text-sm text-stone-500">No data yet</p>
+          ) : rankList(digestAdds, d => `${d.added_count} adds`)}
+        </section>
 
-        {/* Top directory feeds */}
-        <Card className="border-stone-800 bg-stone-900">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2 text-stone-200">
-              <Rss className="w-4 h-4 text-amber-400" />
-              Top Directory Feeds by Subscribers
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            {topDirFeeds.length === 0 ? (
-              <p className="text-sm text-stone-600">No data yet</p>
-            ) : (
-              <div className="space-y-2">
-                {topDirFeeds.map((f, i) => (
-                  <div key={f.id} className="flex items-center justify-between py-1.5">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-xs text-stone-500 w-4">{i + 1}</span>
-                      <span className="text-sm text-stone-300 truncate">{f.name}</span>
-                    </div>
-                    <Badge className="bg-amber-900/30 text-amber-400 border-0 text-xs ml-2 flex-shrink-0">
-                      {f.added_count || 0} subs
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {/* Top directory sources */}
+        <section className="panel p-5">
+          <h2 className="mb-3 flex items-center gap-2 font-display text-lg font-semibold text-stone-100">
+            <Rss className="h-4 w-4 text-[#C4A5FD]" aria-hidden="true" />
+            Top directory sources by subscribers
+          </h2>
+          {topDirFeeds.length === 0 ? (
+            <p className="text-sm text-stone-500">No data yet</p>
+          ) : rankList(topDirFeeds, f => `${f.added_count || 0} subs`)}
+        </section>
       </div>
     </div>
   );
