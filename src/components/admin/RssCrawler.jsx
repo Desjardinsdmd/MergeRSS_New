@@ -56,7 +56,7 @@ export default function RssCrawler() {
   };
 
   return (
-    <Card className="panel-accent">
+    <Card className="panel-accent border-[hsl(var(--brand)/0.35)] bg-transparent">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 font-display text-base font-semibold text-stone-100">
           <Sparkles className="w-4 h-4 text-[#C4A5FD]" />
