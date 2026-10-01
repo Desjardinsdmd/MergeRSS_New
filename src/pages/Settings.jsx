@@ -16,7 +16,6 @@ import {
   Users,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -27,14 +26,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import DashboardLayoutSettings from '@/components/settings/DashboardLayoutSettings';
 import NotificationPreferences from '@/components/settings/NotificationPreferences';
-import ThemeSettings from '@/components/settings/ThemeSettings';
+import ThemeSettings, { resolveAccent } from '@/components/settings/ThemeSettings';
+import { PageHeader, MicroLabel } from '@/components/brand/Brand';
 import { useWorkspace } from '@/components/feeds/workspaceApi';
 
-// IANA zone names only: digests default to User.timezone and the backend passes it
+// IANA zone names only: briefings (Digest entities) default to User.timezone and the backend passes it
 // straight to Intl.DateTimeFormat.
 const FALLBACK_TIMEZONES = [
   'America/New_York',
@@ -96,7 +95,7 @@ export default function Settings() {
   const [interestProfile, setInterestProfile] = useState('');
   const [interestField, setInterestField] = useState('');
   const [dashboardLayout, setDashboardLayout] = useState({});
-  const [accentColor, setAccentColor] = useState('amber');
+  const [accentColor, setAccentColor] = useState('violet');
 
   useEffect(() => {
     const loadUser = async () => {
@@ -111,7 +110,7 @@ export default function Settings() {
       setInterestProfile(userData.interest_profile || '');
       setInterestField(userData.interest_field || '');
       setDashboardLayout(userData.dashboard_layout || {});
-      setAccentColor(userData.accent_color || 'amber');
+      setAccentColor(resolveAccent(userData.accent_color).id);
     };
     loadUser();
   }, []);
@@ -165,126 +164,99 @@ export default function Settings() {
   };
 
   return (
-    <div className="p-6 lg:p-8 max-w-3xl mx-auto">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-stone-100">Settings</h1>
-        <p className="text-stone-500">
-          Manage your account and preferences
-        </p>
-      </div>
+    <div className="mx-auto max-w-3xl p-6 lg:p-8">
+      <PageHeader title="Settings" subtitle="Manage your account and preferences" />
 
-      <div className="space-y-6">
-        {/* Profile Section */}
-        <Card className="border-stone-800 bg-stone-900">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-lg text-stone-100">
-              <User className="w-5 h-5 text-[hsl(var(--primary))]" />
-              Profile
-            </CardTitle>
-            {!editingProfile && (
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setEditingProfile(true)}
-              >
-                Edit Profile
-              </Button>
-            )}
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {editingProfile ? (
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <Label className="text-stone-400">Name</Label>
-                  <Input 
-                    value={formData.full_name} 
-                    onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                    placeholder="Your full name"
-                    className="bg-stone-800 border-stone-700 text-stone-100 placeholder-stone-600"
-                  />
-                  </div>
-                  <div>
-                  <Label className="text-stone-400">Email</Label>
-                  <Input 
-                    value={formData.email} 
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="your@email.com"
-                    className="bg-stone-800 border-stone-700 text-stone-100 placeholder-stone-600"
-                  />
-                  </div>
+      <div className="space-y-5">
+        {/* Profile */}
+        <Section
+          icon={User}
+          title="Profile"
+          id="profile"
+          action={!editingProfile && (
+            <Button variant="outline" size="sm" onClick={() => setEditingProfile(true)}>
+              Edit profile
+            </Button>
+          )}
+        >
+          {editingProfile ? (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <Label htmlFor="settings-name" className="micro-label">Name</Label>
+                <Input
+                  id="settings-name"
+                  value={formData.full_name}
+                  onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                  placeholder="Your full name"
+                />
               </div>
-            ) : (
-              <div className="grid gap-4 sm:grid-cols-2">
-                 <div>
-                   <Label className="text-stone-400">Name</Label>
-                   <Input value={user?.full_name || ''} disabled className="bg-stone-800 border-stone-700 text-stone-500" />
-                 </div>
-                 <div>
-                   <Label className="text-stone-400">Email</Label>
-                   <Input value={user?.email || ''} disabled className="bg-stone-800 border-stone-700 text-stone-500" />
-                 </div>
-               </div>
-            )}
-          </CardContent>
-        </Card>
+              <div>
+                <Label htmlFor="settings-email" className="micro-label">Email</Label>
+                <Input
+                  id="settings-email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  placeholder="your@email.com"
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <Label htmlFor="settings-name-ro" className="micro-label">Name</Label>
+                <Input id="settings-name-ro" value={user?.full_name || ''} disabled className="text-stone-400" />
+              </div>
+              <div>
+                <Label htmlFor="settings-email-ro" className="micro-label">Email</Label>
+                <Input id="settings-email-ro" value={user?.email || ''} disabled className="font-mono text-[13px] text-stone-400" />
+              </div>
+            </div>
+          )}
+        </Section>
 
-        {/* Preferences Section */}
-        <Card className="border-stone-800 bg-stone-900">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg text-stone-100">
-              <Globe className="w-5 h-5 text-[hsl(var(--primary))]" />
-              Preferences
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-               <Label htmlFor="settings-tz" className="text-stone-400 font-medium">Your timezone</Label>
-               <Select
-                 value={formData.timezone}
-                 onValueChange={(v) => setFormData({ ...formData, timezone: v })}
-               >
-                 <SelectTrigger id="settings-tz" className="w-full sm:w-72 bg-stone-800 border-stone-700 text-stone-100 mt-1.5" aria-label="Select your timezone">
-                   <SelectValue />
-                 </SelectTrigger>
-                 <SelectContent className="bg-stone-800 border-stone-700 max-h-72">
-                   {(TIMEZONES.includes(formData.timezone) ? TIMEZONES : [formData.timezone, ...TIMEZONES]).map((tz) => (
-                     <SelectItem key={tz} value={tz} className="text-stone-100">{tz.replace(/_/g, ' ')}</SelectItem>
-                   ))}
-                 </SelectContent>
-               </Select>
-               <p className="text-xs text-stone-500 mt-1.5">
-                 Default for digest delivery times and dates throughout the app. A digest with its own timezone keeps it.
-               </p>
-             </div>
-          </CardContent>
-        </Card>
+        {/* Preferences */}
+        <Section icon={Globe} title="Preferences" id="preferences">
+          <div>
+            <Label htmlFor="settings-tz" className="micro-label">Your timezone</Label>
+            <Select
+              value={formData.timezone}
+              onValueChange={(v) => setFormData({ ...formData, timezone: v })}
+            >
+              <SelectTrigger id="settings-tz" className="w-full sm:w-72" aria-label="Select your timezone">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="max-h-72">
+                {(TIMEZONES.includes(formData.timezone) ? TIMEZONES : [formData.timezone, ...TIMEZONES]).map((tz) => (
+                  <SelectItem key={tz} value={tz}>{tz.replace(/_/g, ' ')}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="mt-1.5 text-xs text-stone-500">
+              Default for briefing delivery times and dates throughout the app. A briefing with its own timezone keeps it.
+            </p>
+          </div>
+        </Section>
 
-        {/* Interest profile: enrichment scores article importance against this */}
-        <Card className="border-stone-800 bg-stone-900">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg text-stone-100">
-              <Target className="w-5 h-5 text-[hsl(var(--primary))]" />
-              What matters to you
-            </CardTitle>
-            <CardDescription className="text-stone-500">
-              New articles from your feeds are scored for importance against this description. Leave it blank for general newsworthiness.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        {/* Interest profile: enrichment scores story importance against this */}
+        <Section
+          icon={Target}
+          title="What matters to you"
+          id="interests"
+          description="New stories from your sources are scored for importance against this description. Leave it blank for general newsworthiness."
+        >
+          <div className="space-y-4">
             <div>
-              <Label htmlFor="settings-interest-field" className="text-stone-400 font-medium">Your field</Label>
+              <Label htmlFor="settings-interest-field" className="micro-label">Your field</Label>
               <Input
                 id="settings-interest-field"
                 value={interestField}
                 maxLength={80}
                 onChange={(e) => setInterestField(e.target.value)}
                 placeholder="e.g. Multifamily development"
-                className="mt-1.5 bg-stone-800 border-stone-700 text-stone-100 placeholder-stone-600"
               />
             </div>
             <div>
-              <Label htmlFor="settings-interest-profile" className="text-stone-400 font-medium">What you care about</Label>
+              <Label htmlFor="settings-interest-profile" className="micro-label">What you care about</Label>
               <Textarea
                 id="settings-interest-profile"
                 value={interestProfile}
@@ -292,14 +264,13 @@ export default function Settings() {
                 onChange={(e) => setInterestProfile(e.target.value)}
                 rows={5}
                 placeholder="e.g. I'm a Canadian multifamily developer in Ottawa. I care about CMHC financing, zoning changes, construction costs, rents and cap rates."
-                className="mt-1.5 bg-stone-800 border-stone-700 text-stone-100 placeholder-stone-600"
               />
-              <p className="text-xs text-stone-500 mt-1.5">
-                {interestProfile.length}/{INTEREST_PROFILE_MAX} characters. Applies to articles fetched after you save.
+              <p className="meta mt-1.5">
+                {interestProfile.length}/{INTEREST_PROFILE_MAX} characters · applies to stories fetched after you save
               </p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </Section>
 
         {/* Appearance */}
         <ThemeSettings
@@ -323,119 +294,99 @@ export default function Settings() {
         {/* Notifications */}
         <NotificationPreferences prefs={notifPrefs} onChange={setNotifPrefs} />
 
-        {/* Dashboard Layout */}
+        {/* Today layout */}
         <DashboardLayoutSettings layout={dashboardLayout} onChange={setDashboardLayout} />
 
-        {/* Subscription Section */}
-        <Card className="border-stone-800 bg-stone-900">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg text-stone-100">
-              <CreditCard className="w-5 h-5 text-[hsl(var(--primary))]" />
-              Subscription
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-              <div className="flex items-center gap-3 flex-1">
-                <div className={`w-10 h-10 flex-shrink-0 flex items-center justify-center ${
-                  isPremium ? 'bg-amber-400' : 'bg-stone-800'
-                }`}>
-                  <Crown className={`w-5 h-5 ${isPremium ? 'text-stone-900' : 'text-stone-500'}`} />
+        {/* Subscription */}
+        <Section icon={CreditCard} title="Subscription" id="subscription">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+            <div className="flex flex-1 items-center gap-3">
+              <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg ${
+                isPremium ? 'logo-mark' : 'border border-white/10 bg-white/[0.04]'
+              }`}>
+                <Crown className={`h-5 w-5 ${isPremium ? 'text-white' : 'text-stone-500'}`} aria-hidden="true" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold text-stone-100">
+                    {isPremium ? 'Premium' : 'Free'} plan
+                  </p>
+                  {isPremium && <span className="chip-brand">Active</span>}
                 </div>
-                <div>
+                <p className="text-sm text-stone-500">
+                  {isPremium
+                    ? 'Unlimited sources, briefings and integrations'
+                    : '50 sources, 5 briefings, web and email delivery'
+                  }
+                </p>
+              </div>
+            </div>
+
+            {isPremium ? (
+              <Button
+                variant="outline"
+                onClick={() => openPortal('personal')}
+                disabled={portalBusy === 'personal'}
+                className="w-full sm:w-auto"
+              >
+                Manage billing
+                {portalBusy === 'personal' ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <ExternalLink className="h-4 w-4" aria-hidden="true" />}
+              </Button>
+            ) : (
+              <Link to={createPageUrl('Pricing')} className="btn-brand w-full sm:w-auto">
+                Upgrade
+              </Link>
+            )}
+          </div>
+
+          {isTeamOwner && (
+            <div className="mt-4 flex flex-col gap-4 border-t border-white/[0.06] pt-4 sm:flex-row sm:items-center">
+              <div className="flex flex-1 items-center gap-3">
+                <div className="logo-mark h-10 w-10 flex-shrink-0 rounded-lg">
+                  <Users className="h-5 w-5 text-white" aria-hidden="true" />
+                </div>
+                <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="font-semibold text-stone-100">
-                      {isPremium ? 'Premium' : 'Free'} Plan
-                    </p>
-                    {isPremium && (
-                      <Badge className="bg-[hsl(var(--primary))] text-stone-900 font-semibold">Active</Badge>
+                    <p className="font-semibold text-stone-100">Team plan</p>
+                    {workspace.subscription_status === 'past_due' ? (
+                      <span className="chip border border-amber-400/25 bg-amber-400/10 text-amber-300">Past due</span>
+                    ) : (
+                      <span className="chip-brand">Active</span>
                     )}
                   </div>
-                  <p className="text-sm text-stone-500">
-                    {isPremium 
-                      ? 'Unlimited feeds, digests, and integrations'
-                      : '50 feeds, 5 digests, web & email delivery'
-                    }
+                  <p className="truncate text-sm text-stone-500">
+                    {workspace.name} · you are the owner
                   </p>
                 </div>
               </div>
-              
-              {isPremium ? (
-                <Button 
-                  variant="outline"
-                  onClick={() => openPortal('personal')}
-                  disabled={portalBusy === 'personal'}
-                  className="border-stone-700 text-stone-300 hover:bg-stone-800 w-full sm:w-auto"
-                >
-                  Manage Billing
-                  {portalBusy === 'personal' ? <Loader2 className="w-4 h-4 ml-2 animate-spin" /> : <ExternalLink className="w-4 h-4 ml-2" />}
-                </Button>
-              ) : (
-                <Link to={createPageUrl('Pricing')} className="w-full sm:w-auto">
-                  <Button className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold rounded-lg w-full sm:w-auto">
-                    Upgrade
-                  </Button>
-                </Link>
-              )}
+              <Button
+                variant="outline"
+                onClick={() => openPortal('team', { workspace_id: workspace.id })}
+                disabled={portalBusy === 'team'}
+                className="w-full sm:w-auto"
+              >
+                Manage team billing
+                {portalBusy === 'team' ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <ExternalLink className="h-4 w-4" aria-hidden="true" />}
+              </Button>
             </div>
-
-            {isTeamOwner && (
-              <div className="flex flex-col sm:flex-row sm:items-center gap-4 mt-4 pt-4 border-t border-stone-800">
-                <div className="flex items-center gap-3 flex-1">
-                  <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-amber-400">
-                    <Users className="w-5 h-5 text-stone-900" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-semibold text-stone-100">Team Plan</p>
-                      <Badge className="bg-[hsl(var(--primary))] text-stone-900 font-semibold">
-                        {workspace.subscription_status === 'past_due' ? 'Past due' : 'Active'}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-stone-500 truncate">
-                      {workspace.name} · you are the owner
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  variant="outline"
-                  onClick={() => openPortal('team', { workspace_id: workspace.id })}
-                  disabled={portalBusy === 'team'}
-                  className="border-stone-700 text-stone-300 hover:bg-stone-800 w-full sm:w-auto"
-                >
-                  Manage Team billing
-                  {portalBusy === 'team' ? <Loader2 className="w-4 h-4 ml-2 animate-spin" /> : <ExternalLink className="w-4 h-4 ml-2" />}
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+          )}
+        </Section>
 
         {/* Integrations (moved out of the sidebar) */}
-        <Link to={createPageUrl('Integrations')} className="block">
-          <Card className="border-stone-800 bg-stone-900 hover:border-stone-700 transition-colors">
-            <CardContent className="flex items-center justify-between py-4">
-              <div className="flex items-center gap-3">
-                <Plug className="w-5 h-5 text-[hsl(var(--primary))]" />
-                <div>
-                  <p className="font-medium text-stone-100">Integrations</p>
-                  <p className="text-sm text-stone-500">Connect Slack, email, webhooks and other destinations</p>
-                </div>
-              </div>
-              <ChevronRight className="w-4 h-4 text-stone-500" />
-            </CardContent>
-          </Card>
+        <Link to={createPageUrl('Integrations')} className="panel panel-hover flex items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-3">
+            <Plug className="h-4 w-4 text-[hsl(var(--primary))]" aria-hidden="true" />
+            <div>
+              <p className="font-medium text-stone-100">Integrations</p>
+              <p className="text-sm text-stone-500">Connect Slack, email, webhooks and other destinations</p>
+            </div>
+          </div>
+          <ChevronRight className="h-4 w-4 text-stone-500" aria-hidden="true" />
         </Link>
 
-        {/* Help Section */}
-        <Card className="border-stone-800 bg-stone-900">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg text-stone-100">
-              <PlayCircle className="w-5 h-5 text-[hsl(var(--primary))]" />
-              Help & Onboarding
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center justify-between">
+        {/* Help */}
+        <Section icon={PlayCircle} title="Help and onboarding" id="help">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="font-medium text-stone-100">Run setup again</p>
               <p className="text-sm text-stone-500">Go back through the welcome setup: interests, sources and your first briefing</p>
@@ -450,37 +401,49 @@ export default function Settings() {
                   toast.error(e?.message || 'Could not restart setup');
                 }
               }}
-              className="border-stone-700 text-stone-300 hover:bg-stone-800"
             >
               Run setup again
             </Button>
-          </CardContent>
-        </Card>
+          </div>
+        </Section>
 
-        {/* Save Button */}
+        {/* Save */}
         <div className="flex justify-end gap-2">
           {editingProfile && (
             <Button
               variant="outline"
               onClick={() => setEditingProfile(false)}
               disabled={loading}
-              className="border-stone-700 text-stone-300 hover:bg-stone-800"
             >
               Cancel
             </Button>
           )}
-          <Button
-            onClick={handleSave}
-            disabled={loading}
-            className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold rounded-lg"
-          >
-            {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            Save Settings
+          <Button onClick={handleSave} disabled={loading}>
+            {loading && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
+            Save settings
           </Button>
         </div>
-
-
       </div>
     </div>
+  );
+}
+
+/** Settings section: glass panel with display title, optional description and right-side action. */
+function Section({ icon: Icon, title, id, description, action, children }) {
+  const headingId = `settings-${id}-heading`;
+  return (
+    <section className="panel p-6" aria-labelledby={headingId}>
+      <div className="mb-5 flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <Icon className="h-4 w-4 text-[hsl(var(--primary))]" aria-hidden="true" />
+            <h2 id={headingId} className="font-display text-lg font-semibold text-stone-100">{title}</h2>
+          </div>
+          {description && <p className="mt-1 text-sm text-stone-500">{description}</p>}
+        </div>
+        {action}
+      </div>
+      {children}
+    </section>
   );
 }
