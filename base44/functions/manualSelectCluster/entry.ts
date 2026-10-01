@@ -31,6 +31,9 @@ Deno.serve(async (req) => {
     try { body = await req.json(); } catch {}
 
     const { publication_id, cluster_id, user_notes } = body;
+    // auto=true when the scheduler suggests a story; recorded separately so it doesn't
+    // count as an editorial pick in SelectionFeedback.
+    const isAuto = body.auto === true;
     if (!publication_id || !cluster_id) {
         return Response.json({ error: 'publication_id and cluster_id required' }, { status: 400 });
     }
@@ -60,7 +63,7 @@ Deno.serve(async (req) => {
         publication_id,
         cluster_id,
         lens_id: lens.id,
-        action: 'manual_select',
+        action: isAuto ? 'auto_select' : 'manual_select',
         original_score: Math.round(combinedScore * 10) / 10,
         lens_score: lensScore,
         cluster_title: cluster.representative_title,
@@ -160,7 +163,9 @@ Return as JSON.`,
         publication_id: pub.id,
         cluster_id: cluster.id,
         candidate_pool: [],
-        selection_reason: `Manually selected by ${user.full_name || user.email}${user_notes ? ': ' + user_notes : ''}`,
+        selection_reason: isAuto
+            ? `Auto-suggested by scheduler (lens score ${lensScore})`
+            : `Manually selected by ${user.full_name || user.email}${user_notes ? ': ' + user_notes : ''}`,
         draft_variants: variants,
         chosen_variant_index: chosenIndex,
         status: 'draft',
