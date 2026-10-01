@@ -327,8 +327,17 @@ Deno.serve(async (req) => {
     // ── Admin role addresses (support@, postmaster@, abuse@) -> relay to the admin inbox ──
     const adminAddress = [...new Set(recipientCandidates)].find(e => ADMIN_LOCAL_PARTS.has(e.split('@')[0]));
     if (adminAddress) {
+      // Idempotency: Mailgun retries a route forward when our response is slow or non-2xx,
+      // which re-relayed the same message several times. Skip anything already relayed.
+      const relayMsgId = (field(formData, 'Message-Id', 'message-id', 'Message-ID') || headers['message-id'] || '').trim();
+      const relayKey = relayMsgId ? `relay:${relayMsgId}`.slice(0, 500) : '';
+      if (relayKey) {
+        const seen = extractItems(await svc.SyncState.filter({ key: relayKey }, '-created_date', 1).catch(() => []));
+        if (seen.length) return Response.json({ success: true, duplicate: true, relayed: adminAddress });
+      }
       try {
         await relayAdminMail(formData, headers, adminAddress, domain);
+        if (relayKey) await svc.SyncState.create({ key: relayKey, enabled: false }).catch(() => {});
         return Response.json({ success: true, relayed: adminAddress });
       } catch (e) {
         // Non-2xx makes Mailgun retry the forward for several hours, so nothing is lost while
