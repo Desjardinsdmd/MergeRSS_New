@@ -51,16 +51,17 @@ export default function ArticleVisualBadge({ item, onVisualReady }) {
       <div className="relative">
         <button
           onClick={(e) => { e.stopPropagation(); setShowPreview(!showPreview); }}
-          className="flex items-center gap-1 text-xs text-green-500 hover:opacity-80 transition"
+          className="flex items-center gap-1 font-mono text-[11px] text-emerald-400 transition hover:opacity-80"
           title="View AI visual"
+          aria-expanded={showPreview}
         >
-          <CheckCircle2 className="w-3 h-3 text-green-500" />
+          <CheckCircle2 className="w-3 h-3 text-emerald-400" />
           <Eye className="w-3 h-3" />
           <span>Visual</span>
         </button>
         {showPreview && (
           <div
-            className="absolute bottom-full left-0 mb-2 z-50 w-64 rounded overflow-hidden shadow-2xl border border-stone-700"
+            className="absolute bottom-full left-0 z-50 mb-2 w-64 overflow-hidden rounded-xl border border-white/10 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <img src={imageUrl} alt="AI-generated visual" className="w-full h-auto" />
@@ -72,7 +73,7 @@ export default function ArticleVisualBadge({ item, onVisualReady }) {
 
   if (status === 'running') {
     return (
-      <div className="flex items-center gap-1 text-xs text-stone-500">
+      <div className="flex items-center gap-1 font-mono text-[11px] text-stone-500">
         <Loader2 className="w-3 h-3 animate-spin" />
         <span>Generating...</span>
       </div>
@@ -84,13 +85,13 @@ export default function ArticleVisualBadge({ item, onVisualReady }) {
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <span className="flex items-center gap-1 text-xs text-stone-600 cursor-default select-none">
-              <XCircle className="w-3 h-3 text-stone-600" />
+            <span className="flex cursor-default select-none items-center gap-1 font-mono text-[11px] text-stone-500">
+              <XCircle className="w-3 h-3 text-stone-500" />
               <span>No visual</span>
             </span>
           </TooltipTrigger>
-          <TooltipContent side="top" className="bg-stone-950 border border-stone-700 text-stone-300 text-xs max-w-[200px]">
-            This article's content isn't suitable for an illustrative visual
+          <TooltipContent side="top" className="max-w-[200px] rounded-xl border border-white/10 bg-stone-950 text-xs text-stone-300">
+            This story's content isn't suitable for an illustrative visual
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -100,8 +101,8 @@ export default function ArticleVisualBadge({ item, onVisualReady }) {
   return (
     <button
       onClick={handleGenerate}
-      className="flex items-center gap-1 text-xs text-stone-600 hover:text-[hsl(var(--primary))] transition"
-      title="Generate AI visual for this article"
+      className="flex items-center gap-1 font-mono text-[11px] text-stone-500 transition hover:text-[#C4A5FD]"
+      title="Generate AI visual for this story"
     >
       <Sparkles className="w-3 h-3" />
       <span>Visual</span>

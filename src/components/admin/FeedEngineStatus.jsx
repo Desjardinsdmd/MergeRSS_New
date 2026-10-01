@@ -98,7 +98,7 @@ export default function FeedEngineStatus({ onRefresh }) {
 
         {/* Active Lock Banner */}
         {activeLock && (
-          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-sky-400/10 border border-blue-800">
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-sky-400/10 border border-sky-400/25">
             <Lock className="w-4 h-4 text-sky-400 flex-shrink-0" />
             <div className="min-w-0 flex-1">
               <p className="text-sky-300 text-sm font-semibold">
