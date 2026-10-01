@@ -641,6 +641,9 @@ function normalizeBrief(raw, topItems) {
                 takeaway: stripTags(s.takeaway || ''),
                 url: safeUrl(item.url),
                 tag: item.intelligence_tag && item.intelligence_tag !== 'Neutral' ? item.intelligence_tag : '',
+                category: item.category && item.category !== 'General' ? String(item.category) : '',
+                source: item.__source_name || hostOf(item.url),
+                published: item.published_date || item.created_date || '',
                 image: '',
             });
         }
@@ -654,7 +657,7 @@ function normalizeBrief(raw, topItems) {
     };
 }
 
-// No-LLM fallback so a digest still goes out cleanly if the model call fails.
+// No-LLM fallback so a briefing still goes out cleanly if the model call fails.
 function fallbackBrief(topItems, target) {
     return {
         title_line: `${Math.min(target, topItems.length)} stories worth your time`,
@@ -667,6 +670,9 @@ function fallbackBrief(topItems, target) {
                 takeaway: '',
                 url: safeUrl(item.url),
                 tag: item.intelligence_tag && item.intelligence_tag !== 'Neutral' ? item.intelligence_tag : '',
+                category: item.category && item.category !== 'General' ? String(item.category) : '',
+                source: item.__source_name || hostOf(item.url),
+                published: item.published_date || item.created_date || '',
                 image: '',
             })),
         }],
@@ -1089,6 +1095,8 @@ Deno.serve(async (req) => {
                 // Pick the 20 strongest candidates by enrichment importance (falls back to
                 // recency) and drop duplicate stories, keeping prompt size unchanged.
                 const topItems = selectCandidates(items, since, now, 20);
+                // Source name for the email / chat meta line (in-memory only, never saved).
+                for (const it of topItems) it.__source_name = ownerFeedById[it.feed_id]?.name || '';
 
                 const storyTarget = Math.min(STORY_TARGET[digest.output_length] || STORY_TARGET.medium, topItems.length);
                 const prompt = buildBriefPrompt(digest, topItems, since, now, storyTarget);
