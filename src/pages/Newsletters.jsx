@@ -3,10 +3,9 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  Mail, Copy, Check, Pause, Play, Trash2, RotateCcw, ExternalLink, AlertTriangle,
+  Copy, Check, Pause, Play, Trash2, RotateCcw, ExternalLink, AlertTriangle,
   Inbox, Loader2, X, MailCheck, Info, ChevronDown, ChevronRight, Pencil,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { PageHeader, MicroLabel } from '@/components/brand/Brand';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
