@@ -83,7 +83,7 @@ export function monoWidth(doc, text, size, charSpace = 0, style = 'normal') {
  * Mono label. align: 'left' | 'right' | 'center'. Draws uppercase by default.
  * Returns drawn width.
  */
-export function mono(doc, text, x, y, { size = 6.8, rgb = C.meta, charSpace = 0.55, style = 'normal', align = 'left', upper = true } = {}) {
+export function mono(doc, text, x, y, { size = 6.8, rgb = C.meta, charSpace = 0.28, style = 'normal', align = 'left', upper = true } = {}) {
   const s = upper ? String(text).toUpperCase() : String(text);
   const w = monoWidth(doc, s, size, charSpace, style);
   let tx = x;
@@ -117,11 +117,11 @@ export function wrapMono(doc, text, maxW, size, charSpace, style = 'normal') {
 }
 
 /** Chip / badge: mono uppercase text on a tinted rounded fill. Returns { w, h }. */
-export function chipSize(doc, text, { size = 6.2, charSpace = 0.45, padX = 2.2, h = 5 } = {}) {
+export function chipSize(doc, text, { size = 6.2, charSpace = 0.23, padX = 2.2, h = 5 } = {}) {
   return { w: monoWidth(doc, String(text).toUpperCase(), size, charSpace, 'bold') + padX * 2, h };
 }
 
-export function chip(doc, text, x, y, toneDef, { size = 6.2, charSpace = 0.45, padX = 2.2, h = 5 } = {}) {
+export function chip(doc, text, x, y, toneDef, { size = 6.2, charSpace = 0.23, padX = 2.2, h = 5 } = {}) {
   const { w } = chipSize(doc, text, { size, charSpace, padX, h });
   panel(doc, x, y, w, h, { bg: toneDef.bg, border: toneDef.border, radius: RADIUS.chip, lw: 0.2 });
   mono(doc, text, x + padX, y + h / 2 + size * PT * 0.36, { size, rgb: toneDef.fg, charSpace, style: 'bold' });

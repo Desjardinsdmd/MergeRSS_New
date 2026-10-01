@@ -76,7 +76,7 @@ function textItems(doc, runs, x, w, style, extra = {}) {
   }));
 }
 
-function monoItems(doc, text, x, w, { size = 7, rgb = C.violetLight, charSpace = 0.7, style = 'bold', lh = 4.6 } = {}) {
+function monoItems(doc, text, x, w, { size = 7, rgb = C.violetLight, charSpace = 0.35, style = 'bold', lh = 4.6 } = {}) {
   const lines = wrapMono(doc, String(text).toUpperCase(), w, size, charSpace, style);
   return lines.map(l => ({
     h: lh,
@@ -270,7 +270,7 @@ function paintInterior(doc, ctx) {
   color(doc, C.strong);
   doc.text('MergeRSS', G.mX + 8.6, 13.1);
   const label = fitMono(doc, ctx.title.toUpperCase(), 110, 6.4, 0.5);
-  mono(doc, label, G.pageW - G.mX, 12.9, { size: 6.4, rgb: C.meta, charSpace: 0.5, align: 'right' });
+  mono(doc, label, G.pageW - G.mX, 12.9, { size: 6.4, rgb: C.meta, charSpace: 0.25, align: 'right' });
   hline(doc, G.mX, G.pageW - G.mX, 19, C.hairline, 0.25);
 }
 
@@ -280,7 +280,7 @@ function stampFooters(doc, ctx) {
     doc.setPage(p);
     hline(doc, G.mX, G.pageW - G.mX, G.footerLine, C.hairline, 0.25);
     const y = G.footerLine + 6;
-    const opts = { size: 6.3, rgb: C.meta, charSpace: 0.5 };
+    const opts = { size: 6.3, rgb: C.meta, charSpace: 0.25 };
     mono(doc, 'MergeRSS intelligence report', G.mX, y, opts);
     if (ctx.generated) mono(doc, ctx.generated, G.pageW / 2, y, { ...opts, align: 'center' });
     mono(doc, `${p} / ${n}`, G.pageW - G.mX, y, { ...opts, rgb: C.muted, align: 'right' });
@@ -299,11 +299,11 @@ function buildCover(doc, ctx) {
   setFont(doc, FONT.display, 'bold', 15);
   color(doc, C.strong);
   doc.text('MergeRSS', G.mX + 16, top + 5.6);
-  mono(doc, 'briefing studio', G.mX + 16.2, top + 10.4, { size: 7, rgb: C.meta, charSpace: 0.35, upper: false });
+  mono(doc, 'briefing studio', G.mX + 16.2, top + 10.4, { size: 7, rgb: C.meta, charSpace: 0.17, upper: false });
 
   // Title block
   let y = 96;
-  mono(doc, 'Intelligence report', G.mX, y, { size: 8, rgb: C.violet, charSpace: 1.3, style: 'bold' });
+  mono(doc, 'Intelligence report', G.mX, y, { size: 8, rgb: C.violet, charSpace: 0.65, style: 'bold' });
   y += 13;
   const titleSize = ctx.title.length > 60 ? 25 : 30;
   setFont(doc, FONT.display, 'bold', titleSize);
@@ -322,7 +322,7 @@ function buildCover(doc, ctx) {
   doc.text(ctx.subtitle, G.mX, y);
   y += 8;
   if (ctx.range) {
-    mono(doc, ctx.range, G.mX, y, { size: 8, rgb: C.body, charSpace: 0.7 });
+    mono(doc, ctx.range, G.mX, y, { size: 8, rgb: C.body, charSpace: 0.35 });
     y += 4;
   }
 
@@ -339,7 +339,7 @@ function buildCover(doc, ctx) {
       setFont(doc, FONT.display, 'bold', 24);
       color(doc, i === 0 ? C.violetLight : C.strong);
       doc.text(String(s.value), cx, y + 14.5);
-      mono(doc, s.label, cx, y + 21.5, { size: 6.3, rgb: C.meta, charSpace: 0.55 });
+      mono(doc, s.label, cx, y + 21.5, { size: 6.3, rgb: C.meta, charSpace: 0.28 });
     });
     y += h;
   }
@@ -387,7 +387,7 @@ function sectionBand(flow, num, label) {
   doc.text(n, G.mX + 5, by);
   vline(doc, G.mX + 13.5, y + 3, y + BAND_H - 3, first ? mix(C.white, C.violet, 0.45) : C.line, 0.25);
   mono(doc, label, G.mX + 17.5, y + BAND_H / 2 + 7.2 * PT * 0.36, {
-    size: 7.2, rgb: first ? C.white : C.muted, charSpace: 0.9, style: 'bold',
+    size: 7.2, rgb: first ? C.white : C.muted, charSpace: 0.45, style: 'bold',
   });
   flow.y += BAND_H;
   flow.fresh = false;
@@ -399,7 +399,7 @@ function warningCard(flow, msg) {
   const t = TONES.amber;
   const x = G.mX + 13;
   const items = [
-    ...monoItems(doc, 'Data range', x, G.col - 19, { size: 6.5, rgb: C.amber, charSpace: 0.6, lh: 4.4 }),
+    ...monoItems(doc, 'Data range', x, G.col - 19, { size: 6.5, rgb: C.amber, charSpace: 0.3, lh: 4.4 }),
     ...textItems(doc, parseInline(msg), x, G.col - 19, { size: 9, rgb: mix(C.amber, C.strong, 0.55), lh: LINE(9, 1.45) }),
   ];
   flow.panel(items, {
@@ -437,7 +437,7 @@ function executiveSummary(flow, r) {
     const x = G.mX + 9;
     const w = G.col - 16;
     const items = [
-      ...monoItems(doc, 'Key takeaway', x, w, { size: 6.6, rgb: C.violetLight, charSpace: 0.8, lh: 4.6 }),
+      ...monoItems(doc, 'Key takeaway', x, w, { size: 6.6, rgb: C.violetLight, charSpace: 0.4, lh: 4.6 }),
       spacer(1.8),
       ...textItems(doc, takeaway, x, w, ST.takeaway),
     ];
@@ -505,7 +505,7 @@ function trajectories(flow, r) {
       keep: 1,
       draw: (y) => {
         dot(doc, x + 1, y + 2.6, 1.1, d.tone.fg);
-        mono(doc, d.label, x + 4.2, y + 3.7, { size: 6.8, rgb: d.tone.fg, charSpace: 0.7, style: 'bold' });
+        mono(doc, d.label, x + 4.2, y + 3.7, { size: 6.8, rgb: d.tone.fg, charSpace: 0.35, style: 'bold' });
         mono(doc, String(d.items.length), x + w, y + 3.7, { size: 6.8, rgb: C.meta, charSpace: 0, align: 'right' });
       },
     };
@@ -571,7 +571,7 @@ function timeline(flow, points) {
         dot(doc, spineX, cy, 2.5, C.ink);
         dot(doc, spineX, cy, 2.1, mix(C.violet, C.ink, 0.28));
         dot(doc, spineX, cy, 1.25, C.violet);
-        if (dateText) mono(doc, fitMono(doc, dateText.toUpperCase(), tw, 6.8, 0.7, 'bold'), tx, cy + 6.8 * PT * 0.36, { size: 6.8, rgb: C.violetLight, charSpace: 0.7, style: 'bold' });
+        if (dateText) mono(doc, fitMono(doc, dateText.toUpperCase(), tw, 6.8, 0.7, 'bold'), tx, cy + 6.8 * PT * 0.36, { size: 6.8, rgb: C.violetLight, charSpace: 0.35, style: 'bold' });
       },
     });
     const withSpine = (list) => list.map(it => {
@@ -612,7 +612,7 @@ function dataSummary(flow, cells) {
   const y = flow.y;
   built.forEach(b => {
     panel(doc, b.x, y, w, h);
-    mono(doc, b.c.label, b.x + pad, y + pad + 2.4, { size: 6.3, rgb: C.meta, charSpace: 0.55 });
+    mono(doc, b.c.label, b.x + pad, y + pad + 2.4, { size: 6.3, rgb: C.meta, charSpace: 0.28 });
     let yy = y + pad + 6;
     for (const it of b.vals) { it.draw(yy); yy += it.h; }
   });
@@ -628,7 +628,7 @@ function endMark(flow) {
   const cx = G.pageW / 2;
   hline(doc, cx - 34, cx - 13, y, C.line, 0.25);
   hline(doc, cx + 13, cx + 34, y, C.line, 0.25);
-  mono(doc, 'End of report', cx, y + 1.1, { size: 6.3, rgb: C.faint, charSpace: 0.6, align: 'center' });
+  mono(doc, 'End of report', cx, y + 1.1, { size: 6.3, rgb: C.faint, charSpace: 0.3, align: 'center' });
   flow.y += h;
 }
 
