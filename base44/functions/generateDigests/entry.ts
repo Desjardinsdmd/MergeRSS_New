@@ -108,11 +108,11 @@ function selectCandidates(items, since, now, max) {
 
 // ── Skip notices (2026-09-26) ──────────────────────────────────────────────
 const SKIP_REASON_TEXT = {
-    no_feeds: 'none of the feeds this digest used still exist in your account',
-    feeds_paused: 'all of the feeds it draws from are paused or failing',
-    no_items_in_categories: 'none of your feeds published anything in its categories during the period',
-    no_items_for_tags: 'none of your feeds published anything with its tags during the period',
-    no_items: 'none of its feeds published anything new during the period',
+    no_feeds: 'none of the sources this briefing used still exist in your account',
+    feeds_paused: 'all of the sources it draws from are paused or failing',
+    no_items_in_categories: 'none of your sources published a story in its categories during the period',
+    no_items_for_tags: 'none of your sources published a story with its tags during the period',
+    no_items: 'none of its sources published a new story during the period',
 };
 
 // ─── CANONICAL COPY: brand v3 + emailShell (source of truth: functions/lib/brand.ts) ──
@@ -971,9 +971,9 @@ Deno.serve(async (req) => {
                         if (valid.length === 0) {
                             notes.push(digest.workspace_id
                                 ? `All ${dangling} selected source(s) are no longer shared with the team, so this briefing now uses ${digest.categories?.length ? `shared ${digest.categories.join(', ')} sources` : 'all shared sources'}.`
-                                : `All ${dangling} selected feed(s) were removed from your account, so this digest now uses ${digest.categories?.length ? `your ${digest.categories.join(', ')} feeds` : 'all of your feeds'}.`);
+                                : `All ${dangling} selected source(s) were removed from your account, so this briefing now uses ${digest.categories?.length ? `your ${digest.categories.join(', ')} sources` : 'all of your sources'}.`);
                         } else {
-                            notes.push(`${dangling} selected source(s) are no longer available and were removed from this ${digest.workspace_id ? 'briefing' : 'digest'}.`);
+                            notes.push(`${dangling} selected source(s) are no longer available and were removed from this briefing.`);
                         }
                     }
                     if (valid.length > 0) scopedFeeds = valid.map(id => ownerFeedById[id]);
@@ -989,8 +989,8 @@ Deno.serve(async (req) => {
                     const dead = digest.tags.filter(t => !carried.has(t));
                     if (dead.length) {
                         notes.push(liveTags.length
-                            ? `Tag filter ${dead.map(t => `"${t}"`).join(', ')} ignored: none of your current feeds carry it.`
-                            : `Tag filter ${dead.map(t => `"${t}"`).join(', ')} ignored: none of your current feeds carry it, so the digest uses its categories instead.`);
+                            ? `Tag filter ${dead.map(t => `"${t}"`).join(', ')} ignored: none of your current sources carry it.`
+                            : `Tag filter ${dead.map(t => `"${t}"`).join(', ')} ignored: none of your current sources carry it, so the briefing uses its categories instead.`);
                     }
                 }
 
@@ -1049,22 +1049,23 @@ Deno.serve(async (req) => {
                             // After 2 skipped slots in a row, email the owner once per stall.
                             if (skips >= 2 && !digest.last_notified_skip_at) {
                                 const lines = [
-                                    `Your ${digest.frequency || 'scheduled'} digest "${digest.name}" has not been sent for the last ${skips} scheduled deliveries, because ${SKIP_REASON_TEXT[reasonCode] || SKIP_REASON_TEXT.no_items}.`,
+                                    `Your ${digest.frequency || 'scheduled'} briefing "${digest.name}" has not been sent for the last ${skips} scheduled deliveries, because ${SKIP_REASON_TEXT[reasonCode] || SKIP_REASON_TEXT.no_items}.`,
                                 ];
                                 if (digest.categories?.length) lines.push(`Categories: ${digest.categories.join(', ')}.`);
                                 if (digest.tags?.length) lines.push(`Tags: ${digest.tags.join(', ')}.`);
                                 if (digest.auto_adjustment_note) lines.push(digest.auto_adjustment_note);
-                                if (reasonCode === 'feeds_paused') lines.push('Check the feeds page for errors, or add feeds in these categories.');
-                                else if (reasonCode === 'no_feeds') lines.push('Pick new feeds for this digest, or let it use all feeds in its categories.');
-                                else lines.push('Broaden its categories or tags, or add feeds that cover them. We will keep trying at each scheduled time.');
+                                if (reasonCode === 'feeds_paused') lines.push('Check the Sources page for errors, or add sources in these categories.');
+                                else if (reasonCode === 'no_feeds') lines.push('Pick new sources for this briefing, or let it use all sources in its categories.');
+                                else lines.push('Broaden its categories or tags, or add sources that cover them. We will keep trying at each scheduled time.');
                                 const n = await notifyOwner(base44, {
                                     email: digest.created_by,
                                     pref: 'digestReminders',
-                                    subject: `Your digest "${clip(digest.name, 60)}" is not sending`,
+                                    subject: `Your briefing "${clip(digest.name, 60)}" is not sending`,
                                     heading: `"${digest.name}" has been skipped ${skips} times`,
                                     lines,
                                     ctaUrl: 'https://mergerss.com/Digests',
-                                    ctaLabel: 'Fix this digest',
+                                    ctaLabel: 'Fix this briefing',
+                                    tone: 'warning',
                                 }).catch(() => ({ sent: false }));
                                 if (n?.sent) skipPatch.last_notified_skip_at = now.toISOString();
                                 result.owner_notified = !!n?.sent;
@@ -1087,7 +1088,7 @@ Deno.serve(async (req) => {
                     if (fallbackItems.length > 0) {
                         items = fallbackItems;
                     } else {
-                        results.push({ digest: digest.name, skipped: true, reason: 'No items available for the configured feeds/categories' });
+                        results.push({ digest: digest.name, skipped: true, reason: 'No stories available for the selected sources and categories' });
                         continue;
                     }
                 }

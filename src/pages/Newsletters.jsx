@@ -7,8 +7,7 @@ import {
   Inbox, Loader2, X, MailCheck, Info, ChevronDown, ChevronRight, Pencil,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
+import { PageHeader, MicroLabel } from '@/components/brand/Brand';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from '@/components/ui/dialog';
@@ -107,17 +106,17 @@ function ChangeAddress({ address, domain, onSaved }) {
       <button
         type="button"
         onClick={start}
-        className="mt-2 inline-flex items-center gap-1 text-xs text-stone-400 hover:text-amber-300"
+        className="mt-3 inline-flex items-center gap-1 rounded-md text-xs font-medium text-[#C4A5FD] hover:text-white"
       >
-        <Pencil className="w-3 h-3" /> Change address
+        <Pencil className="w-3 h-3" aria-hidden="true" /> Change address
       </button>
     );
   }
 
   return (
-    <form onSubmit={save} className="mt-3 rounded-lg border border-stone-800 bg-stone-950/60 p-3">
-      <label htmlFor="newsletter-alias" className="block text-xs text-stone-400 mb-1.5">New address</label>
-      <div className="flex items-center rounded-lg bg-stone-950 border border-stone-800 focus-within:border-amber-600 overflow-hidden">
+    <form onSubmit={save} className="panel-raised mt-3 p-3">
+      <label htmlFor="newsletter-alias" className="micro-label mb-1.5">New address</label>
+      <div className="flex items-center rounded-xl bg-stone-950/70 border border-white/[0.08] focus-within:border-[hsl(var(--primary))] overflow-hidden">
         <input
           id="newsletter-alias"
           autoFocus
@@ -128,41 +127,41 @@ function ChangeAddress({ address, domain, onSaved }) {
           onChange={(e) => { setValue(e.target.value.toLowerCase()); setServerError(null); }}
           aria-invalid={!!error}
           aria-describedby="newsletter-alias-help"
-          className="flex-1 min-w-0 bg-transparent px-3 py-2 text-sm text-amber-300 outline-none placeholder:text-stone-600"
+          className="flex-1 min-w-0 bg-transparent px-3 py-2 font-mono text-sm text-stone-100 outline-none placeholder:text-stone-600"
           placeholder="yourname.reads"
         />
-        <span className="px-3 py-2 text-sm text-stone-500 border-l border-stone-800 flex-shrink-0">@{domain}</span>
+        <span className="px-3 py-2 font-mono text-sm text-stone-500 border-l border-white/[0.08] flex-shrink-0">@{domain}</span>
       </div>
       <div id="newsletter-alias-help" className="mt-2 space-y-1">
         {error ? (
           <p className="text-xs text-red-400">{error}</p>
         ) : (
-          <p className="text-xs text-stone-600">3 to 30 characters: letters, numbers, and single dots, hyphens or underscores.</p>
+          <p className="text-xs text-stone-500">3 to 30 characters: letters, numbers, and single dots, hyphens or underscores.</p>
         )}
-        <p className="text-xs text-amber-400/90 flex items-start gap-1.5">
-          <AlertTriangle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
-          <span>{current ? <>Your current address <span className="text-amber-300">{address}</span> will stop receiving immediately.</> : 'Your previous address will stop receiving immediately.'} Update any newsletter subscriptions and forwarding rules. You can change it up to 3 times a day.</span>
+        <p className="rounded-xl border border-amber-400/25 bg-amber-400/10 px-3 py-2 text-xs text-amber-400 flex items-start gap-1.5">
+          <AlertTriangle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" aria-hidden="true" />
+          <span>{current ? <>Your current address <span className="font-mono">{address}</span> will stop receiving immediately.</> : 'Your previous address will stop receiving immediately.'} Update any newsletter subscriptions and forwarding rules. You can change it up to 3 times a day.</span>
         </p>
       </div>
       <div className="flex items-center gap-2 mt-3">
-        <Button type="submit" size="sm" disabled={saving || unchanged || !!localError}
-          className="bg-amber-500 hover:bg-amber-400 text-stone-900 font-semibold">
-          {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : null} Save address
-        </Button>
-        <Button type="button" size="sm" variant="ghost" onClick={() => setOpen(false)} disabled={saving}
-          className="text-stone-400 hover:text-stone-200 hover:bg-stone-800">
+        <button type="submit" disabled={saving || unchanged || !!localError}
+          className="btn-soft disabled:cursor-not-allowed disabled:opacity-50">
+          {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null} Save address
+        </button>
+        <button type="button" onClick={() => setOpen(false)} disabled={saving}
+          className="btn-ghost">
           Cancel
-        </Button>
+        </button>
       </div>
     </form>
   );
 }
 
 const STATUS_LABEL = {
-  active: { text: 'Active', cls: 'bg-emerald-900/40 text-emerald-300' },
-  paused: { text: 'Paused', cls: 'bg-stone-800 text-stone-400' },
-  over_limit: { text: 'Over plan limit', cls: 'bg-amber-900/40 text-amber-300' },
-  removed: { text: 'Removed', cls: 'bg-stone-800 text-stone-500' },
+  active: { text: 'Active', cls: 'border-emerald-400/25 bg-emerald-400/10 text-emerald-300' },
+  paused: { text: 'Paused', cls: 'border-amber-400/25 bg-amber-400/10 text-amber-400' },
+  over_limit: { text: 'Over plan limit', cls: 'border-amber-400/25 bg-amber-400/10 text-amber-400' },
+  removed: { text: 'Removed', cls: 'border-white/10 text-stone-500' },
 };
 
 function EmailReader({ emailId, onClose }) {
@@ -184,22 +183,23 @@ function EmailReader({ emailId, onClose }) {
 
   return (
     <Dialog open={!!emailId} onOpenChange={(o) => { if (!o) onClose(); }}>
-      <DialogContent className="max-w-3xl w-[calc(100vw-2rem)] bg-stone-950 border-stone-800 p-0 overflow-hidden">
-        <DialogHeader className="px-5 pt-5 pb-3 border-b border-stone-800">
-          <DialogTitle className="text-stone-100 text-base leading-snug pr-6">
+      <DialogContent className="max-w-3xl w-[calc(100vw-2rem)] bg-stone-950 border-white/[0.08] rounded-2xl p-0 overflow-hidden">
+        <DialogHeader className="px-5 pt-5 pb-3">
+          <DialogTitle className="font-display text-stone-100 text-base leading-snug pr-6">
             {isLoading ? 'Loading...' : (email?.subject || 'Newsletter')}
           </DialogTitle>
-          <DialogDescription className="text-stone-500 text-xs">
+          <DialogDescription className="font-mono text-stone-500 text-[11px]">
             {email ? `${email.from_name || email.from_email} · ${fmtDate(email.received_at)}` : data?.error || ''}
           </DialogDescription>
           {viewUrl && (
             <a href={viewUrl} target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300 mt-1">
-              <ExternalLink className="w-3 h-3" /> Open web version
+              className="inline-flex items-center gap-1 text-xs font-medium text-[#C4A5FD] hover:text-white mt-1">
+              <ExternalLink className="w-3 h-3" aria-hidden="true" /> Open web version
             </a>
           )}
         </DialogHeader>
-        <div className="h-[70vh] bg-white">
+        {/* Newsletters are designed for white: the preview stays light inside a rounded frame. */}
+        <div className="mx-4 mb-4 h-[70vh] overflow-hidden rounded-2xl border border-white/[0.08] bg-white">
           {isLoading ? (
             <div className="h-full flex items-center justify-center bg-stone-950">
               <Loader2 className="w-5 h-5 animate-spin text-stone-500" />
@@ -258,7 +258,7 @@ export default function Newsletters() {
       if (res?.success === false || res?._failed) {
         toast.error(res?.error || 'Something went wrong');
       } else if (payload.action === 'pause') {
-        toast.success('Sender paused. New issues are kept but won\'t reach your feeds.');
+        toast.success('Sender paused. New issues are kept but won\'t reach your sources.');
       } else if (payload.action === 'unpause' || payload.action === 'restore') {
         toast.success(res?.backfilled ? `Sender active. Added ${res.backfilled} stored issue${res.backfilled === 1 ? '' : 's'}.` : 'Sender active.');
       } else if (payload.action === 'remove') {
@@ -293,59 +293,54 @@ export default function Newsletters() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto">
-      <div className="mb-6 flex items-center gap-3">
-        <div className="w-10 h-10 bg-[hsl(var(--primary))] rounded-xl flex items-center justify-center flex-shrink-0">
-          <Mail className="w-5 h-5 text-stone-900" />
-        </div>
-        <div className="min-w-0">
-          <h1 className="text-2xl font-bold text-stone-100">Newsletters</h1>
-          <p className="text-sm text-stone-500">Newsletters sent to your private address show up in your sources, search and briefings.</p>
-        </div>
-      </div>
+      <PageHeader
+        title="Newsletters"
+        subtitle="Send newsletters to your private address and each sender becomes a source. Their stories show up in search and in your briefings."
+      />
 
       {isLoading ? (
-        <div className="text-center py-16 text-stone-600">
-          <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2" /> Loading...
+        <div className="text-center py-16 text-stone-500">
+          <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2 text-[hsl(var(--primary))]" /> Loading...
         </div>
       ) : error ? (
-        <Card className="border-red-900/50 bg-stone-900">
-          <CardContent className="p-4 text-sm text-red-300">Could not load your newsletter inbox. {error.message}</CardContent>
-        </Card>
+        <div className="rounded-2xl border border-red-400/25 bg-red-400/10 p-4 text-sm text-red-300" role="alert">
+          Could not load your newsletter inbox. {error.message}
+        </div>
       ) : (
         <>
           {/* Address */}
           {!configured ? (
-            <Card className="border-stone-800 bg-stone-900 mb-6">
-              <CardContent className="p-5">
+            <div className="panel mb-6">
+              <div className="p-5">
                 <div className="flex items-start gap-3">
-                  <Info className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+                  <Info className="w-5 h-5 text-[hsl(var(--primary))] flex-shrink-0 mt-0.5" aria-hidden="true" />
                   <div>
-                    <p className="text-stone-200 font-medium">Newsletter inbox isn't set up yet</p>
+                    <p className="text-stone-100 font-medium">Newsletter inbox isn't set up yet</p>
                     <p className="text-sm text-stone-500 mt-1">
                       Private newsletter addresses are coming soon. Once the inbox is switched on, your address will appear here.
                     </p>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ) : (
-            <Card className="border-stone-800 bg-stone-900 mb-6">
-              <CardContent className="p-5">
-                <p className="text-xs uppercase tracking-wide text-stone-500 mb-2">Your newsletter address</p>
+            <div className="panel-accent mb-6">
+              <div className="p-5">
+                <MicroLabel className="mb-2 text-[#C4A5FD]">Your newsletter inbox</MicroLabel>
                 {address ? (
                   <div className="flex items-center gap-2">
-                    <code className="flex-1 min-w-0 truncate rounded-lg bg-stone-950 border border-stone-800 px-3 py-2 text-sm text-amber-300 select-all">
+                    <code className="flex-1 min-w-0 truncate rounded-xl bg-stone-950/70 border border-white/[0.08] px-3 py-2 font-mono text-sm text-stone-100 select-all">
                       {address}
                     </code>
-                    <Button
-                      variant="outline"
-                      size="icon"
+                    <button
+                      type="button"
                       onClick={copy}
                       aria-label={copied ? 'Address copied' : 'Copy newsletter address'}
-                      className="flex-shrink-0 border-stone-700 bg-stone-900 hover:bg-stone-800"
+                      className="btn-soft flex-shrink-0 py-2"
                     >
-                      {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-stone-300" />}
-                    </Button>
+                      {copied ? <Check className="w-4 h-4 text-emerald-300" /> : <Copy className="w-4 h-4" />}
+                      <span className="hidden sm:inline">{copied ? 'Copied' : 'Copy'}</span>
+                    </button>
                   </div>
                 ) : (
                   <p className="text-sm text-stone-400">We couldn't create your address right now. Refresh the page to try again.</p>
@@ -361,38 +356,38 @@ export default function Newsletters() {
                     }}
                   />
                 )}
-                <ul className="mt-4 space-y-1.5 text-sm text-stone-400 list-disc pl-5">
+                <ul className="mt-4 space-y-1.5 text-sm text-stone-300 list-disc pl-5 marker:text-[hsl(var(--primary))]">
                   <li>Subscribe to newsletters with this address, or</li>
                   <li>set a forwarding rule in Gmail or Outlook that forwards newsletters to it.</li>
                 </ul>
-                <p className="mt-3 text-xs text-stone-600">
+                <p className="mt-3 text-xs text-stone-400">
                   Keep this address private: anything sent to it lands in your sources. Confirmation emails (including Gmail/Outlook forwarding checks) appear below so you can approve them.
                 </p>
                 {data?.route_error && (
-                  <p className="mt-3 text-xs text-amber-400 flex items-start gap-1.5">
-                    <AlertTriangle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" /> {data.route_error}
+                  <p className="mt-3 rounded-xl border border-amber-400/25 bg-amber-400/10 px-3 py-2 text-xs text-amber-400 flex items-start gap-1.5" role="status">
+                    <AlertTriangle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" aria-hidden="true" /> {data.route_error}
                   </p>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           )}
 
           {/* Pending confirmations */}
           {confirmations.length > 0 && (
             <section className="mb-6" aria-labelledby="confirmations-heading">
-              <h2 id="confirmations-heading" className="text-sm font-semibold text-amber-300 mb-2 flex items-center gap-2">
-                <MailCheck className="w-4 h-4" /> Waiting for your confirmation ({confirmations.length})
+              <h2 id="confirmations-heading" className="micro-label text-amber-400 mb-2 flex items-center gap-2">
+                <MailCheck className="w-3.5 h-3.5" aria-hidden="true" /> Waiting for your confirmation ({confirmations.length})
               </h2>
               <div className="space-y-2">
                 {confirmations.map(c => {
                   const link = c.confirm_url ? safeHttpUrl(c.confirm_url) : null;
                   return (
-                    <Card key={c.id} className="border-amber-900/60 bg-amber-950/20">
-                      <CardContent className="p-4">
+                    <div key={c.id} className="rounded-xl border border-amber-400/25 bg-amber-400/10">
+                      <div className="p-4">
                         <div className="flex items-start gap-3">
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm text-stone-200 font-medium line-clamp-2">{c.subject}</p>
-                            <p className="text-xs text-stone-500 mt-0.5 truncate">{c.from_name || c.from_email} · {fmtDate(c.received_at)}</p>
+                            <p className="text-sm text-stone-100 font-medium line-clamp-2">{c.subject}</p>
+                            <p className="font-mono text-[11px] text-stone-400 mt-0.5 truncate">{c.from_name || c.from_email} · {fmtDate(c.received_at)}</p>
                             <div className="flex flex-wrap items-center gap-2 mt-3">
                               {link ? (
                                 <a
@@ -400,17 +395,17 @@ export default function Newsletters() {
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   onClick={() => act.mutate({ action: 'dismiss_confirmation', email_id: c.id, done: true })}
-                                  className="inline-flex items-center gap-1.5 rounded-md bg-amber-500 hover:bg-amber-400 text-stone-900 text-xs font-semibold px-3 py-1.5"
+                                  className="btn-soft text-xs"
                                 >
-                                  <ExternalLink className="w-3.5 h-3.5" /> Open confirmation link
+                                  <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" /> Open confirmation link
                                 </a>
                               ) : (
-                                <span className="text-xs text-stone-500">No link found, open the email to confirm.</span>
+                                <span className="text-xs text-stone-400">No link found, open the email to confirm.</span>
                               )}
                               <button
                                 type="button"
                                 onClick={() => setReaderId(c.id)}
-                                className="text-xs text-stone-400 hover:text-stone-200 underline-offset-2 hover:underline"
+                                className="text-xs font-medium text-[#C4A5FD] hover:text-white underline-offset-2 hover:underline"
                               >
                                 View email
                               </button>
@@ -420,13 +415,13 @@ export default function Newsletters() {
                             type="button"
                             aria-label={`Dismiss confirmation from ${c.from_name || c.from_email}`}
                             onClick={() => act.mutate({ action: 'dismiss_confirmation', email_id: c.id })}
-                            className="p-1.5 rounded-lg text-stone-500 hover:text-stone-200 hover:bg-stone-800"
+                            className="p-1.5 rounded-lg text-stone-400 hover:text-stone-100 hover:bg-white/[0.06]"
                           >
-                            <X className="w-4 h-4" />
+                            <X className="w-4 h-4" aria-hidden="true" />
                           </button>
                         </div>
-                      </CardContent>
-                    </Card>
+                      </div>
+                    </div>
                   );
                 })}
               </div>
@@ -435,30 +430,30 @@ export default function Newsletters() {
 
           {/* Plan limit warning */}
           {overLimit.length > 0 && (
-            <Card className="border-amber-900/60 bg-stone-900 mb-4">
-              <CardContent className="p-4 text-sm text-amber-300 flex items-start gap-2">
-                <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+            <div className="rounded-xl border border-amber-400/25 bg-amber-400/10 mb-4" role="status">
+              <div className="p-4 text-sm text-amber-400 flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" aria-hidden="true" />
                 <span>
                   {overLimit.length} sender{overLimit.length === 1 ? ' is' : 's are'} over your plan's {data?.limit || 50}-source limit.
-                  Their emails are saved but won't appear in your feeds until you remove a source or upgrade to Premium, then resume the sender.
+                  Their emails are saved but won't appear in your sources until you remove a source or upgrade to Premium, then resume the sender.
                 </span>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           )}
 
           {/* Senders */}
           <section aria-labelledby="senders-heading">
             <div className="flex items-baseline justify-between mb-2">
-              <h2 id="senders-heading" className="text-sm font-semibold text-stone-300">Senders</h2>
+              <h2 id="senders-heading" className="micro-label">Senders</h2>
               {data?.limit && data?.source_count != null && (
-                <span className="text-xs text-stone-600">{data.source_count}/{data.limit} sources used</span>
+                <span className="meta">{data.source_count}/{data.limit} sources used</span>
               )}
             </div>
             {visible.length === 0 ? (
-              <div className="text-center py-12 border border-dashed border-stone-800 rounded-xl">
-                <Inbox className="w-10 h-10 text-stone-700 mx-auto mb-3" />
-                <p className="text-stone-400 font-medium">No newsletters yet</p>
-                <p className="text-stone-600 text-sm mt-1 px-6">
+              <div className="panel text-center py-12">
+                <Inbox className="w-10 h-10 text-stone-600 mx-auto mb-3" aria-hidden="true" />
+                <p className="text-stone-200 font-medium">No newsletters yet</p>
+                <p className="text-stone-500 text-sm mt-1 px-6">
                   {configured ? 'Each sender that emails your address becomes a source here.' : 'Senders will appear here once your inbox is live.'}
                 </p>
               </div>
@@ -468,18 +463,18 @@ export default function Newsletters() {
                   const st = STATUS_LABEL[s.status] || STATUS_LABEL.active;
                   const busy = busyId === s.id;
                   return (
-                    <Card key={s.id} className="border-stone-800 bg-stone-900">
-                      <CardContent className="p-4">
+                    <div key={s.id} className="panel panel-hover">
+                      <div className="p-4">
                         <div className="flex items-start gap-3">
                           <div className="flex-1 min-w-0">
                             <div className="flex flex-wrap items-center gap-2">
-                              <p className="text-sm font-medium text-stone-200 truncate max-w-full">{s.name}</p>
-                              <Badge className={`text-[10px] border-0 ${st.cls}`}>{st.text}</Badge>
+                              <p className="text-sm font-semibold text-stone-100 truncate max-w-full">{s.name}</p>
+                              <span className={`rounded-md border px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wider ${st.cls}`}>{st.text}</span>
                             </div>
-                            <p className="text-xs text-stone-500 truncate mt-0.5">{s.from_email}</p>
-                            <p className="text-xs text-stone-600 mt-1">
+                            <p className="font-mono text-xs text-stone-400 truncate mt-0.5">{s.from_email}</p>
+                            <p className="meta mt-1.5 normal-case tracking-normal">
                               Last received {fmtDate(s.last_email_date)} · {s.email_count} email{s.email_count === 1 ? '' : 's'}
-                              {s.item_count != null ? ` · ${s.item_count} item${s.item_count === 1 ? '' : 's'}` : ''}
+                              {s.item_count != null ? ` · ${s.item_count} stor${s.item_count === 1 ? 'y' : 'ies'}` : ''}
                             </p>
                           </div>
                           <div className="flex items-center gap-1 flex-shrink-0">
@@ -491,7 +486,7 @@ export default function Newsletters() {
                                 aria-label={`Pause ${s.name}`}
                                 title="Pause"
                                 onClick={() => act.mutate({ action: 'pause', subscription_id: s.id })}
-                                className="p-2 rounded-lg text-stone-500 hover:text-amber-400 hover:bg-stone-800"
+                                className="p-2 rounded-lg text-stone-500 hover:text-stone-100 hover:bg-white/[0.06]"
                               >
                                 <Pause className="w-4 h-4" />
                               </button>
@@ -501,7 +496,7 @@ export default function Newsletters() {
                                 aria-label={`Resume ${s.name}`}
                                 title="Resume"
                                 onClick={() => act.mutate({ action: 'unpause', subscription_id: s.id })}
-                                className="p-2 rounded-lg text-stone-500 hover:text-emerald-400 hover:bg-stone-800"
+                                className="p-2 rounded-lg text-stone-500 hover:text-emerald-400 hover:bg-white/[0.06]"
                               >
                                 <Play className="w-4 h-4" />
                               </button>
@@ -512,14 +507,14 @@ export default function Newsletters() {
                               title="Remove"
                               disabled={busy}
                               onClick={() => setConfirmRemove(s)}
-                              className="p-2 rounded-lg text-stone-500 hover:text-red-400 hover:bg-stone-800 disabled:opacity-40"
+                              className="p-2 rounded-lg text-stone-500 hover:text-red-400 hover:bg-white/[0.06] disabled:opacity-40"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
+                      </div>
+                    </div>
                   );
                 })}
               </div>
@@ -531,7 +526,7 @@ export default function Newsletters() {
                   type="button"
                   onClick={() => setShowRemoved(v => !v)}
                   aria-expanded={showRemoved}
-                  className="flex items-center gap-1 text-xs text-stone-500 hover:text-stone-300"
+                  className="flex items-center gap-1 rounded-md text-xs font-medium text-stone-500 hover:text-stone-300"
                 >
                   {showRemoved ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
                   Removed senders ({removed.length})
@@ -539,10 +534,10 @@ export default function Newsletters() {
                 {showRemoved && (
                   <div className="mt-2 space-y-1">
                     {removed.map(s => (
-                      <div key={s.id} className="flex items-center gap-2 rounded-lg border border-stone-800 bg-stone-900/60 px-3 py-2">
+                      <div key={s.id} className="panel-raised flex items-center gap-2 px-3 py-2">
                         <div className="flex-1 min-w-0">
                           <p className="text-sm text-stone-400 truncate">{s.name}</p>
-                          <p className="text-xs text-stone-600 truncate">{s.from_email}</p>
+                          <p className="font-mono text-xs text-stone-600 truncate">{s.from_email}</p>
                         </div>
                         <button
                           type="button"
@@ -550,7 +545,7 @@ export default function Newsletters() {
                           title="Restore"
                           disabled={busyId === s.id}
                           onClick={() => act.mutate({ action: 'restore', subscription_id: s.id })}
-                          className="p-2 rounded-lg text-stone-500 hover:text-emerald-400 hover:bg-stone-800 disabled:opacity-40"
+                          className="p-2 rounded-lg text-stone-500 hover:text-emerald-400 hover:bg-white/[0.06] disabled:opacity-40"
                         >
                           {busyId === s.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
                         </button>
@@ -565,18 +560,18 @@ export default function Newsletters() {
       )}
 
       <AlertDialog open={!!confirmRemove} onOpenChange={(o) => { if (!o) setConfirmRemove(null); }}>
-        <AlertDialogContent className="bg-stone-950 border-stone-800">
+        <AlertDialogContent className="bg-stone-950 border-white/[0.08] rounded-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-stone-100">Remove {confirmRemove?.name}?</AlertDialogTitle>
             <AlertDialogDescription className="text-stone-400">
-              This deletes the source and its items from your feeds. Future emails from {confirmRemove?.from_email} will be ignored.
+              This deletes the source and its stories. Future emails from {confirmRemove?.from_email} will be ignored.
               To stop them entirely, unsubscribe from the newsletter itself.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="border-stone-700 bg-stone-900 text-stone-300 hover:bg-stone-800">Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="rounded-xl border-white/10 bg-transparent text-stone-300 hover:bg-white/[0.05]">Cancel</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-red-600 hover:bg-red-500 text-white"
+              className="rounded-xl bg-red-600 hover:bg-red-500 text-white"
               onClick={() => { if (confirmRemove) act.mutate({ action: 'remove', subscription_id: confirmRemove.id }); setConfirmRemove(null); }}
             >
               Remove
