@@ -72,9 +72,11 @@ const PRIVATE_IP_PATTERNS = [
 const BLOCKED_HOSTNAMES = new Set(['localhost', '169.254.169.254', 'metadata.google.internal']);
 function isSsrf(url) {
     try {
-        const { hostname } = new URL(url);
-        if (BLOCKED_HOSTNAMES.has(hostname)) return true;
-        return PRIVATE_IP_PATTERNS.some(re => re.test(hostname));
+        const u = new URL(url);
+        if (!['http:', 'https:'].includes(u.protocol)) return true;
+        const hostname = u.hostname.toLowerCase();
+        if (BLOCKED_HOSTNAMES.has(hostname) || __BLOCKED_HOSTS.has(hostname) || hostname.endsWith('.localhost') || hostname.endsWith('.internal')) return true;
+        return PRIVATE_IP_PATTERNS.some(re => re.test(hostname)) || __isPrivateIp(hostname);
     } catch { return true; }
 }
 
@@ -231,7 +233,6 @@ async function processOneFeed(feed, base44, now) {
     const targetUrl = feed.native_feed_url || feed.source_url;
     const res = await safeFetch(targetUrl, {
         headers: { 'User-Agent': UA, 'Accept': 'text/html,application/xml,*/*' },
-        redirect: 'follow',
         signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
 
@@ -312,7 +313,10 @@ Deno.serve(async (req) => {
             if ((feed.error_count || 0) >= 5) {
                 if (feed.last_fetched && (now - new Date(feed.last_fetched)) < 86400000) return false;
             }
+            // Both URLs are checked: processOneFeed fetches native_feed_url when set.
+            // (safeFetch re-validates every hop incl. DNS; this is a cheap pre-filter.)
             if (isSsrf(feed.source_url)) return false;
+            if (feed.native_feed_url && isSsrf(feed.native_feed_url)) return false;
             return true;
         });
 
