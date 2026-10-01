@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
-import { Badge } from '@/components/ui/badge';
 import { Loader2, X, FlaskConical } from 'lucide-react';
 import { toast } from 'sonner';
 import { queryArticles } from '@/api/articles';
+import { MicroLabel } from '@/components/brand/Brand';
+
+const FIELD = 'rounded-xl border-white/10 bg-stone-800 text-stone-100';
+const LABEL = 'mb-1.5 block font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-stone-500';
 
 const DEFAULT_PROMPT = `LENS: [Your Lens Name]
 You are scoring for [describe your audience].
@@ -133,100 +135,111 @@ export default function LensForm({ lens, onSave, onCancel }) {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2">
+    <div className="space-y-5">
+      <div className="panel space-y-5 p-5 sm:p-6">
+        <MicroLabel>Lens</MicroLabel>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <Label className={LABEL}>Lens name *</Label>
+            <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
+              placeholder="e.g. Defense Tech Investor" className={FIELD} />
+          </div>
+          <div>
+            <Label className={LABEL}>Audience description</Label>
+            <Input value={form.audience_description} onChange={e => setForm({ ...form, audience_description: e.target.value })}
+              placeholder="Who is this lens scoring for?" className={FIELD} />
+          </div>
+        </div>
+
         <div>
-          <Label className="text-stone-400">Lens Name *</Label>
-          <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
-            placeholder="e.g. Defense Tech Investor" className="bg-stone-800 border-stone-700 text-stone-100" />
+          <Label className={LABEL}>Description</Label>
+          <Input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
+            placeholder="Brief description of this lens" className={FIELD} />
         </div>
+
         <div>
-          <Label className="text-stone-400">Audience Description</Label>
-          <Input value={form.audience_description} onChange={e => setForm({ ...form, audience_description: e.target.value })}
-            placeholder="Who is this lens scoring for?" className="bg-stone-800 border-stone-700 text-stone-100" />
+          <Label className={LABEL}>Scoring prompt *</Label>
+          <Textarea value={form.scoring_prompt} onChange={e => setForm({ ...form, scoring_prompt: e.target.value })}
+            rows={12} className={`${FIELD} font-mono text-[13px] leading-relaxed`} />
+          <p className="mt-1.5 text-xs text-stone-500">This prompt is sent to the LLM to score each story. Be specific about what matters.</p>
         </div>
       </div>
 
-      <div>
-        <Label className="text-stone-400">Description</Label>
-        <Input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
-          placeholder="Brief description of this lens" className="bg-stone-800 border-stone-700 text-stone-100" />
-      </div>
-
-      <div>
-        <Label className="text-stone-400">Scoring Prompt *</Label>
-        <Textarea value={form.scoring_prompt} onChange={e => setForm({ ...form, scoring_prompt: e.target.value })}
-          rows={12} className="bg-stone-800 border-stone-700 text-stone-100 font-mono text-sm" />
-        <p className="text-xs text-stone-600 mt-1">This prompt is sent to the LLM to score each article. Be specific about what matters.</p>
-      </div>
-
-      <div>
-        <Label className="text-stone-400">Feed Categories (filter)</Label>
-        <div className="flex flex-wrap gap-2 mt-2">
-          {allCategories.map(cat => (
-            <Badge key={cat} variant={form.feed_filter_categories.includes(cat) ? 'default' : 'outline'}
-              className="cursor-pointer" onClick={() => toggleCategory(cat)}>
-              {cat}
-            </Badge>
-          ))}
-          {!allCategories.length && <p className="text-xs text-stone-600">No feed categories found</p>}
+      <div className="panel space-y-5 p-5 sm:p-6">
+        <MicroLabel>Filters</MicroLabel>
+        <div>
+          <Label className={LABEL}>Source categories</Label>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {allCategories.map(cat => {
+              const on = form.feed_filter_categories.includes(cat);
+              return (
+                <button key={cat} type="button" onClick={() => toggleCategory(cat)}
+                  className={on ? 'chip-brand cursor-pointer border border-[hsl(var(--brand)/0.3)] px-2 py-1' : 'chip-neutral cursor-pointer px-2 py-1 hover:text-stone-100'}>
+                  {cat}
+                </button>
+              );
+            })}
+            {!allCategories.length && <p className="text-xs text-stone-500">No source categories found</p>}
+          </div>
+          <p className="mt-1.5 text-xs text-stone-500">Leave empty to score all sources. Selected categories limit which sources this lens applies to.</p>
         </div>
-        <p className="text-xs text-stone-600 mt-1">Leave empty to score all feeds. Selected categories will filter which feeds this lens applies to.</p>
-      </div>
 
-      <div>
-        <Label className="text-stone-400">Feed Tags (filter)</Label>
-        <div className="flex flex-wrap gap-2 mt-2 mb-2">
-          {form.feed_filter_tags.map(tag => (
-            <Badge key={tag} className="gap-1">
-              {tag}
-              <X className="w-3 h-3 cursor-pointer" onClick={() => removeTag(tag)} />
-            </Badge>
-          ))}
+        <div>
+          <Label className={LABEL}>Source tags</Label>
+          {form.feed_filter_tags.length > 0 && (
+            <div className="mb-2 mt-2 flex flex-wrap gap-2">
+              {form.feed_filter_tags.map(tag => (
+                <span key={tag} className="chip-brand gap-1 px-2 py-1">
+                  {tag}
+                  <X className="h-3 w-3 cursor-pointer" onClick={() => removeTag(tag)} />
+                </span>
+              ))}
+            </div>
+          )}
+          <div className="flex gap-2">
+            <Input value={tagInput} onChange={e => setTagInput(e.target.value)}
+              placeholder="Type or select a tag" className={`${FIELD} flex-1`}
+              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag(tagInput.trim()); }}}
+              list="tag-suggestions" />
+            <datalist id="tag-suggestions">
+              {allTags.filter(t => !form.feed_filter_tags.includes(t)).map(t => <option key={t} value={t} />)}
+            </datalist>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Input value={tagInput} onChange={e => setTagInput(e.target.value)}
-            placeholder="Type or select a tag" className="bg-stone-800 border-stone-700 text-stone-100 flex-1"
-            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag(tagInput.trim()); }}}
-            list="tag-suggestions" />
-          <datalist id="tag-suggestions">
-            {allTags.filter(t => !form.feed_filter_tags.includes(t)).map(t => <option key={t} value={t} />)}
-          </datalist>
-        </div>
-      </div>
 
-      <div>
-        <Label className="text-stone-400">Minimum Score Threshold: {form.minimum_score_threshold}</Label>
-        <Slider value={[form.minimum_score_threshold]} onValueChange={v => setForm({ ...form, minimum_score_threshold: v[0] })}
-          min={0} max={100} step={5} className="mt-2" />
-        <p className="text-xs text-stone-600 mt-1">Items scoring below this won't be eligible as publication candidates.</p>
+        <div>
+          <Label className={LABEL}>Minimum score threshold <span className="ml-1 text-stone-300">{form.minimum_score_threshold}</span></Label>
+          <Slider value={[form.minimum_score_threshold]} onValueChange={v => setForm({ ...form, minimum_score_threshold: v[0] })}
+            min={0} max={100} step={5} className="mt-2" />
+          <p className="mt-1.5 text-xs text-stone-500">Stories scoring below this are not eligible as publication candidates.</p>
+        </div>
       </div>
 
       {/* Test Section */}
-      <div className="border border-stone-800 rounded-lg p-4">
-        <div className="flex items-center justify-between mb-3">
-          <h4 className="text-sm font-medium text-stone-300 flex items-center gap-2">
-            <FlaskConical className="w-4 h-4" /> Test Lens
+      <div className="panel p-5 sm:p-6">
+        <div className="mb-3 flex items-center justify-between">
+          <h4 className="flex items-center gap-2 font-display text-sm font-semibold text-stone-200">
+            <FlaskConical className="h-4 w-4 text-[#C4A5FD]" /> Test lens
           </h4>
-          <Button variant="outline" size="sm" onClick={handleTest} disabled={testing || !form.scoring_prompt}>
-            {testing ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
-            {testing ? 'Testing...' : 'Run Test'}
-          </Button>
+          <button type="button" className="btn-soft disabled:opacity-50" onClick={handleTest} disabled={testing || !form.scoring_prompt}>
+            {testing ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+            {testing ? 'Testing...' : 'Run test'}
+          </button>
         </div>
         {testResults && (
           <div className="space-y-2">
             {testResults.map((r, i) => (
-              <div key={i} className="bg-stone-800 rounded p-3 text-sm">
-                <p className="font-medium text-stone-200 truncate">{r.title}</p>
-                <div className="flex items-center gap-3 mt-1">
-                  <Badge variant="outline">{r.importance_score}</Badge>
-                  <Badge className={r.intelligence_tag === 'Risk' ? 'bg-red-900/30 text-red-400' :
-                    r.intelligence_tag === 'Opportunity' ? 'bg-green-900/30 text-green-400' :
-                    r.intelligence_tag === 'Trending' ? 'bg-blue-900/30 text-blue-400' : 'bg-stone-700 text-stone-400'}>
+              <div key={i} className="panel-raised p-3 text-sm">
+                <p className="truncate font-medium text-stone-200">{r.title}</p>
+                <div className="mt-1.5 flex items-center gap-2">
+                  <span className="chip-neutral">{r.importance_score}</span>
+                  <span className={`chip border ${r.intelligence_tag === 'Risk' ? 'border-red-400/25 bg-red-400/10 text-red-300' :
+                    r.intelligence_tag === 'Opportunity' ? 'border-emerald-400/25 bg-emerald-400/10 text-emerald-300' :
+                    r.intelligence_tag === 'Trending' ? 'border-sky-400/25 bg-sky-400/10 text-sky-300' : 'border-white/10 text-stone-400'}`}>
                     {r.intelligence_tag}
-                  </Badge>
+                  </span>
                 </div>
-                <p className="text-stone-500 mt-1 text-xs">{r.ai_summary}</p>
+                <p className="mt-1.5 text-xs text-stone-400">{r.ai_summary}</p>
               </div>
             ))}
           </div>
@@ -234,11 +247,11 @@ export default function LensForm({ lens, onSave, onCancel }) {
       </div>
 
       <div className="flex justify-end gap-3 pt-2">
-        <Button variant="outline" onClick={onCancel}>Cancel</Button>
-        <Button onClick={handleSave} disabled={saving} className="bg-[hsl(var(--primary))] text-stone-900 font-semibold">
-          {saving && <Loader2 className="w-4 h-4 animate-spin mr-1" />}
-          {lens?.id ? 'Update Lens' : 'Create Lens'}
-        </Button>
+        <button type="button" className="btn-ghost py-2" onClick={onCancel}>Cancel</button>
+        <button type="button" onClick={handleSave} disabled={saving} className="btn-brand disabled:opacity-50">
+          {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+          {lens?.id ? 'Update lens' : 'Create lens'}
+        </button>
       </div>
     </div>
   );

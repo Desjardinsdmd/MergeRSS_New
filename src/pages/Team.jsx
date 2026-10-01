@@ -8,7 +8,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { PageHeader } from '@/components/brand/Brand';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
@@ -23,9 +23,9 @@ import { useWorkspace, workspaceCall, WORKSPACE_KEY } from '@/components/feeds/w
 
 const ROLE_ICON = { owner: Crown, editor: Edit3, viewer: Eye };
 const ROLE_COLOR = {
-  owner: 'bg-[hsl(var(--primary))]/20 text-[hsl(var(--primary))] border-[hsl(var(--primary))]/50',
-  editor: 'bg-stone-800 text-[hsl(var(--primary))] border-stone-700',
-  viewer: 'bg-stone-800 text-stone-400 border-stone-700',
+  owner: 'border-[hsl(var(--brand)/0.35)] bg-[hsl(var(--brand)/0.16)] text-[#C4A5FD]',
+  editor: 'border-[hsl(var(--brand)/0.2)] bg-[hsl(var(--brand)/0.08)] text-[#C4A5FD]',
+  viewer: 'border-white/10 bg-white/[0.03] text-stone-300',
 };
 
 const CHANNELS = [
@@ -37,7 +37,7 @@ const CHANNELS = [
 function RoleBadge({ role }) {
   const Icon = ROLE_ICON[role] || Eye;
   return (
-    <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium border', ROLE_COLOR[role] || ROLE_COLOR.viewer)}>
+    <span className={cn('inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wider', ROLE_COLOR[role] || ROLE_COLOR.viewer)}>
       <Icon className="w-3 h-3" aria-hidden="true" />
       {TEAM_ROLES[role]?.label || role}
     </span>
@@ -48,7 +48,7 @@ function Avatar({ email }) {
   return (
     <div
       aria-hidden="true"
-      className="w-8 h-8 flex-shrink-0 bg-[hsl(var(--primary))]/20 rounded-full flex items-center justify-center text-xs font-bold text-[hsl(var(--primary))]"
+      className="w-8 h-8 flex-shrink-0 bg-[hsl(var(--brand)/0.16)] rounded-full flex items-center justify-center font-mono text-xs font-semibold text-[#C4A5FD]"
     >
       {(email || '?')[0].toUpperCase()}
     </div>
@@ -199,22 +199,21 @@ export default function Team() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-24" role="status" aria-label="Loading team">
-        <Loader2 className="w-6 h-6 animate-spin text-stone-400" />
+        <Loader2 className="w-6 h-6 animate-spin text-[hsl(var(--primary))]" />
       </div>
     );
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-stone-100">Team</h1>
-        <p className="text-stone-500 text-sm mt-0.5">
-          Share sources and briefings with up to {TEAM_PLAN.seats} people. Your personal sources and briefings stay private.
-        </p>
-      </div>
+    <div className="p-6 lg:p-8 max-w-4xl mx-auto space-y-6">
+      <PageHeader
+        className="mb-0"
+        title="Team"
+        subtitle={`Share sources and briefings with up to ${TEAM_PLAN.seats} people. Your personal sources and briefings stay private.`}
+      />
 
       {error && (
-        <div role="alert" className="flex items-start gap-2 p-3 border border-red-900/60 bg-red-950/30 rounded-lg text-sm text-red-300">
+        <div role="alert" className="flex items-start gap-2 p-3 border border-red-400/25 bg-red-400/10 rounded-xl text-sm text-red-300">
           <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" aria-hidden="true" />
           {error.message}
         </div>
@@ -222,68 +221,67 @@ export default function Team() {
 
       {/* Invites addressed to me */}
       {invites.length > 0 && (
-        <Card className="border-[hsl(var(--primary))]/40 bg-stone-900">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2 text-stone-100">
+        <section className="panel-accent">
+          <div className="px-4 sm:px-6 pt-5 pb-4">
+            <h2 className="font-display text-base font-semibold flex items-center gap-2 text-stone-100">
               <Mail className="w-4 h-4 text-[hsl(var(--primary))]" aria-hidden="true" />
               Pending invites
-            </CardTitle>
+            </h2>
             {workspace && (
-              <CardDescription className="text-stone-500">
+              <p className="mt-1.5 text-sm text-stone-400">
                 You can be in one workspace at a time. Leave {workspace.name} to accept another.
-              </CardDescription>
+              </p>
             )}
-          </CardHeader>
-          <CardContent className="space-y-2">
+          </div>
+          <div className="px-4 sm:px-6 pb-5 space-y-2">
             {invites.map(inv => (
-              <div key={inv.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 border border-stone-800 rounded-lg">
+              <div key={inv.id} className="panel-raised flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3">
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-stone-200 truncate">{inv.workspace_name}</p>
-                  <p className="text-xs text-stone-500 truncate">From {inv.invited_by || inv.owner_email} · joins as {TEAM_ROLES[inv.role]?.label || inv.role}</p>
+                  <p className="text-sm font-semibold text-stone-100 truncate">{inv.workspace_name}</p>
+                  <p className="text-xs text-stone-400 truncate">From {inv.invited_by || inv.owner_email} · joins as {TEAM_ROLES[inv.role]?.label || inv.role}</p>
                 </div>
                 <div className="flex gap-2 flex-shrink-0">
-                  <Button
-                    size="sm"
+                  <button
+                    type="button"
                     disabled={!!workspace || busy === `accept-${inv.id}`}
                     onClick={() => run(`accept-${inv.id}`, () => workspaceCall('accept', { workspace_id: inv.workspace_id }), `Joined ${inv.workspace_name}`)}
-                    className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold"
+                    className="btn-soft disabled:cursor-not-allowed disabled:opacity-50"
                     aria-label={`Accept invite to ${inv.workspace_name}`}
                   >
-                    {busy === `accept-${inv.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4 mr-1" aria-hidden="true" />}
+                    {busy === `accept-${inv.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" aria-hidden="true" />}
                     Accept
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
+                  </button>
+                  <button
+                    type="button"
                     disabled={busy === `decline-${inv.id}`}
                     onClick={() => run(`decline-${inv.id}`, () => workspaceCall('decline', { workspace_id: inv.workspace_id }), 'Invite declined')}
-                    className="border-stone-700 text-stone-300"
+                    className="btn-ghost disabled:opacity-50"
                     aria-label={`Decline invite to ${inv.workspace_name}`}
                   >
-                    <X className="w-4 h-4 mr-1" aria-hidden="true" />
+                    <X className="w-4 h-4" aria-hidden="true" />
                     Decline
-                  </Button>
+                  </button>
                 </div>
               </div>
             ))}
-          </CardContent>
-        </Card>
+          </div>
+        </section>
       )}
 
       {/* No workspace yet */}
       {!workspace && (
-        <Card className="border-stone-800 bg-stone-900">
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2 text-stone-100">
+        <section className="panel">
+          <div className="px-4 sm:px-6 pt-5 pb-4">
+            <h2 className="font-display text-base font-semibold flex items-center gap-2 text-stone-100">
               <Users className="w-4 h-4 text-stone-500" aria-hidden="true" />
               Create a team workspace
-            </CardTitle>
-            <CardDescription className="text-stone-500 leading-relaxed">
+            </h2>
+            <p className="mt-1.5 text-sm text-stone-400 leading-relaxed">
               Try it free with one teammate. Shared briefings go to everyone by email and in their inbox.
               Upgrade to Team (${TEAM_PLAN.priceMonthly}/month per workspace) for {TEAM_PLAN.seats} seats and a shared Slack, Discord or Teams channel.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+            </p>
+          </div>
+          <div className="px-4 sm:px-6 pb-5">
             <form onSubmit={handleCreate} className="flex flex-col sm:flex-row gap-2">
               <Label htmlFor="ws-name" className="sr-only">Workspace name</Label>
               <Input
@@ -292,78 +290,79 @@ export default function Team() {
                 onChange={e => setWsName(e.target.value)}
                 placeholder={user?.full_name ? `${user.full_name}'s team` : 'Workspace name'}
                 maxLength={80}
-                className="bg-stone-950 border-stone-700 text-stone-100"
+                className="rounded-xl bg-white/[0.04] border-white/[0.08] text-stone-100"
               />
-              <Button
+              <button
                 type="submit"
                 disabled={busy === 'create'}
-                className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold"
+                className="btn-brand whitespace-nowrap disabled:opacity-60"
                 aria-label="Create workspace"
               >
                 {busy === 'create' ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Create workspace'}
-              </Button>
+              </button>
             </form>
-          </CardContent>
-        </Card>
+          </div>
+        </section>
       )}
 
       {workspace && (
         <>
           {/* Plan */}
-          <Card className="border-stone-800 bg-stone-900">
-            <CardContent className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <section className={isTeamPlan ? 'panel-accent' : 'panel'} aria-label="Plan">
+            <div className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="min-w-0">
+                <p className="micro-label mb-1.5">Plan</p>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h2 className="text-lg font-semibold text-stone-100 truncate">{workspace.name}</h2>
-                  <span className={cn('text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded',
-                    isTeamPlan ? 'bg-[hsl(var(--primary))] text-stone-900' : 'bg-stone-800 text-stone-400')}>
-                    {isTeamPlan ? 'Team' : 'Trial'}
+                  <h2 className="font-display text-lg font-semibold text-stone-100 truncate">{workspace.name}</h2>
+                  <span className={cn('uppercase tracking-wider', isTeamPlan ? 'chip-brand' : 'chip-neutral')}>
+                    {isTeamPlan ? 'Team plan' : 'Trial'}
                   </span>
                   <RoleBadge role={role} />
                 </div>
-                <p className="text-sm text-stone-500 mt-1">
-                  {seatsUsed} of {seatLimit} seats used
+                <p className="text-sm text-stone-400 mt-1.5">
+                  <span className="font-mono text-stone-300">{seatsUsed}/{seatLimit}</span> seats used
                   {isTeamPlan
-                    ? (workspace.subscription_status === 'past_due' ? ' · payment past due' : '')
+                    ? (workspace.subscription_status === 'past_due' ? <span className="ml-2 rounded-md border border-amber-400/25 bg-amber-400/10 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-amber-400">Payment past due</span> : '')
                     : ' · shared briefings deliver by email and inbox only'}
                 </p>
               </div>
               {isOwner && !isTeamPlan && (
-                <Button
+                <button
+                  type="button"
                   onClick={handleUpgrade}
                   disabled={busy === 'upgrade'}
-                  className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold flex-shrink-0"
+                  className="btn-brand flex-shrink-0 disabled:opacity-60"
                   aria-label={`Upgrade to Team for $${TEAM_PLAN.priceMonthly} per month`}
                 >
-                  {busy === 'upgrade' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" aria-hidden="true" />}
-                  Upgrade to Team · ${TEAM_PLAN.priceMonthly}/mo
-                </Button>
+                  {busy === 'upgrade' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" aria-hidden="true" />}
+                  Upgrade to Team · <span className="font-mono">${TEAM_PLAN.priceMonthly}/mo</span>
+                </button>
               )}
               {isOwner && isTeamPlan && (
-                <Button
-                  variant="outline"
+                <button
+                  type="button"
                   onClick={handleManageBilling}
                   disabled={busy === 'billing'}
-                  className="border-stone-700 text-stone-300 hover:bg-stone-800 flex-shrink-0"
+                  className="btn-soft flex-shrink-0 disabled:opacity-60"
                   aria-label="Manage Team billing"
                 >
-                  {busy === 'billing' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <CreditCard className="w-4 h-4 mr-2" aria-hidden="true" />}
+                  {busy === 'billing' ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" aria-hidden="true" />}
                   Manage billing
-                </Button>
+                </button>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </section>
 
           {/* Members */}
-          <Card className="border-stone-800 bg-stone-900">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2 text-stone-100">
+          <section className="panel">
+            <div className="px-4 sm:px-6 pt-5 pb-4">
+              <h2 className="font-display text-base font-semibold flex items-center gap-2 text-stone-100">
                 <Users className="w-4 h-4 text-stone-500" aria-hidden="true" />
                 Members
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <ul className="divide-y divide-stone-800" aria-label="Workspace members">
+              </h2>
+            </div>
+            <div>
+              <ul className="divide-y divide-white/[0.06] border-t border-white/[0.06]" aria-label="Workspace members">
                 {[...activeMembers, ...pendingMembers].map(m => {
                   const isMe = m.id === membership?.id;
                   const pending = m.status === 'invited';
@@ -372,8 +371,8 @@ export default function Team() {
                       <div className="flex items-center gap-3 min-w-0">
                         <Avatar email={m.user_email} />
                         <div className="min-w-0">
-                          <p className="text-sm font-medium text-stone-200 truncate">{m.user_email}</p>
-                          <p className="text-xs text-stone-500">
+                          <p className="text-sm font-medium text-stone-100 truncate">{m.user_email}</p>
+                          <p className="font-mono text-[11px] text-stone-500">
                             {pending ? 'Invite pending' : m.joined_at ? `Joined ${new Date(m.joined_at).toLocaleDateString()}` : 'Active'}
                             {isMe ? ' · you' : ''}
                           </p>
@@ -386,7 +385,7 @@ export default function Team() {
                             onValueChange={(v) => run(`role-${m.id}`, () => workspaceCall('set_role', { member_id: m.id, role: v }), `Role changed to ${TEAM_ROLES[v].label}`)}
                             disabled={busy === `role-${m.id}`}
                           >
-                            <SelectTrigger className="w-28 h-8 bg-stone-950 border-stone-700 text-stone-200" aria-label={`Role for ${m.user_email}`}>
+                            <SelectTrigger className="w-28 h-8 rounded-xl bg-white/[0.04] border-white/[0.08] text-stone-200" aria-label={`Role for ${m.user_email}`}>
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -397,12 +396,12 @@ export default function Team() {
                         ) : (
                           <RoleBadge role={m.role} />
                         )}
-                        {pending && <span className="text-xs px-2 py-0.5 rounded-md border border-stone-700 text-stone-400">Invited</span>}
+                        {pending && <span className="chip-neutral uppercase tracking-wider">Invited</span>}
                         {isOwner && m.role !== 'owner' && (
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="h-8 w-8 text-stone-500 hover:text-red-400"
+                            className="h-8 w-8 rounded-lg text-stone-500 hover:text-red-400"
                             onClick={() => setConfirm({ kind: 'remove', member: m })}
                             disabled={busy === `remove-${m.id}`}
                             aria-label={pending ? `Cancel invite for ${m.user_email}` : `Remove ${m.user_email}`}
@@ -417,7 +416,7 @@ export default function Team() {
               </ul>
 
               {isOwner && (
-                <form onSubmit={handleInvite} className="border-t border-stone-800 p-4 sm:px-6 space-y-2" aria-label="Invite a member">
+                <form onSubmit={handleInvite} className="border-t border-white/[0.06] p-4 sm:px-6 space-y-2" aria-label="Invite a member">
                   <div className="flex flex-col sm:flex-row gap-2">
                     <Label htmlFor="invite-email" className="sr-only">Email address</Label>
                     <Input
@@ -427,10 +426,10 @@ export default function Team() {
                       onChange={e => setInviteEmail(e.target.value)}
                       placeholder="colleague@company.com"
                       disabled={seatsFull}
-                      className="bg-stone-950 border-stone-700 text-stone-100"
+                      className="rounded-xl bg-white/[0.04] border-white/[0.08] text-stone-100"
                     />
                     <Select value={inviteRole} onValueChange={setInviteRole} disabled={seatsFull}>
-                      <SelectTrigger className="sm:w-32 bg-stone-950 border-stone-700 text-stone-200" aria-label="Role for the new member">
+                      <SelectTrigger className="sm:w-32 rounded-xl bg-white/[0.04] border-white/[0.08] text-stone-200" aria-label="Role for the new member">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -438,15 +437,15 @@ export default function Team() {
                         <SelectItem value="viewer">Viewer</SelectItem>
                       </SelectContent>
                     </Select>
-                    <Button
+                    <button
                       type="submit"
                       disabled={seatsFull || !inviteEmail.trim() || busy === 'invite'}
-                      className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold"
+                      className="btn-soft disabled:cursor-not-allowed disabled:opacity-50"
                       aria-label="Send invite"
                     >
-                      {busy === 'invite' ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4 mr-2" aria-hidden="true" />}
+                      {busy === 'invite' ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" aria-hidden="true" />}
                       Invite
-                    </Button>
+                    </button>
                   </div>
                   <p className="text-xs text-stone-500">
                     {seatsFull
@@ -457,27 +456,27 @@ export default function Team() {
                   </p>
                 </form>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </section>
 
           {/* Team channels */}
-          <Card className="border-stone-800 bg-stone-900">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2 text-stone-100">
+          <section className="panel">
+            <div className="px-4 sm:px-6 pt-5 pb-4">
+              <h2 className="font-display text-base font-semibold flex items-center gap-2 text-stone-100">
                 <Webhook className="w-4 h-4 text-stone-500" aria-hidden="true" />
                 Team channel
-              </CardTitle>
-              <CardDescription className="text-stone-500">
+              </h2>
+              <p className="mt-1.5 text-sm text-stone-400">
                 Shared briefings post here once, in addition to each member's email.
                 {!isTeamPlan && ' Channel posts start when the workspace is on the Team plan.'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+              </p>
+            </div>
+            <div className="px-4 sm:px-6 pb-5">
               {isOwner ? (
                 <form onSubmit={saveHooks} className="space-y-3">
                   {CHANNELS.map(c => (
                     <div key={c.key} className="space-y-1">
-                      <Label htmlFor={`hook-${c.key}`} className="text-xs text-stone-400">{c.label} webhook URL</Label>
+                      <Label htmlFor={`hook-${c.key}`} className="micro-label">{c.label} webhook URL</Label>
                       <div className="flex gap-2">
                         <Input
                           id={`hook-${c.key}`}
@@ -485,31 +484,30 @@ export default function Team() {
                           value={hooks[c.field]}
                           onChange={e => setHooks(h => ({ ...h, [c.field]: e.target.value }))}
                           placeholder={c.placeholder}
-                          className="bg-stone-950 border-stone-700 text-stone-100 font-mono text-xs"
+                          className="rounded-xl bg-white/[0.04] border-white/[0.08] text-stone-100 font-mono text-xs"
                         />
-                        <Button
+                        <button
                           type="button"
-                          variant="outline"
                           disabled={!workspace[c.field] || busy === `test-${c.key}`}
                           onClick={() => testHook(c.key)}
-                          className="border-stone-700 text-stone-300 flex-shrink-0"
+                          className="btn-ghost flex-shrink-0 disabled:cursor-not-allowed disabled:opacity-40"
                           aria-label={`Send a test message to the ${c.label} webhook`}
                         >
                           {busy === `test-${c.key}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" aria-hidden="true" />}
-                          <span className="hidden sm:inline ml-2">Test</span>
-                        </Button>
+                          <span className="hidden sm:inline">Test</span>
+                        </button>
                       </div>
                     </div>
                   ))}
                   <div className="flex items-center gap-3">
-                    <Button
+                    <button
                       type="submit"
                       disabled={busy === 'hooks'}
-                      className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold"
+                      className="btn-soft disabled:opacity-60"
                       aria-label="Save team channels"
                     >
                       {busy === 'hooks' ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save channels'}
-                    </Button>
+                    </button>
                     <span className="text-xs text-stone-500">Save before testing a new URL.</span>
                   </div>
                 </form>
@@ -525,15 +523,15 @@ export default function Team() {
                   ))}
                 </ul>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </section>
 
           <div className="flex justify-end">
             <Button
               variant="ghost"
               onClick={() => setConfirm({ kind: 'leave' })}
               disabled={busy === 'leave'}
-              className="text-stone-500 hover:text-red-400"
+              className="rounded-xl text-stone-500 hover:text-red-400"
               aria-label={isOwner ? 'Close this workspace' : 'Leave this workspace'}
             >
               {busy === 'leave' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <LogOut className="w-4 h-4 mr-2" aria-hidden="true" />}
@@ -544,7 +542,7 @@ export default function Team() {
       )}
 
       <AlertDialog open={!!confirm} onOpenChange={(o) => !o && setConfirm(null)}>
-        <AlertDialogContent className="bg-stone-900 border-stone-800">
+        <AlertDialogContent className="bg-stone-950 border-white/[0.08] rounded-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-stone-100">
               {confirm?.kind === 'remove'
@@ -562,8 +560,8 @@ export default function Team() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="border-stone-700 text-stone-300">Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={doConfirm} className="bg-red-600 hover:bg-red-700 text-white">
+            <AlertDialogCancel className="rounded-xl border-white/10 bg-transparent text-stone-300 hover:bg-white/[0.05]">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={doConfirm} className="rounded-xl bg-red-600 hover:bg-red-700 text-white">
               {confirm?.kind === 'remove' ? (confirm.member.status === 'invited' ? 'Cancel invite' : 'Remove') : isOwner ? 'Close' : 'Leave'}
             </AlertDialogAction>
           </AlertDialogFooter>
