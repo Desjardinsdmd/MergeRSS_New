@@ -47,7 +47,7 @@ export default function BulkFeedActions({ selectedIds, feeds, action: externalAc
         const newTags = [...(feed.tags || []), tagInput.trim()];
         return base44.entities.Feed.update(id, { tags: [...new Set(newTags)] });
       }));
-      toast.success(`Tag "${tagInput}" added to ${selectedIds.length} feed(s)`);
+      toast.success(`Tag "${tagInput}" added to ${selectedIds.length} source(s)`);
       onSuccess();
       setAction(null);
     } catch (err) {
@@ -67,7 +67,7 @@ export default function BulkFeedActions({ selectedIds, feeds, action: externalAc
       await Promise.all(selectedIds.map(id =>
         base44.entities.Feed.update(id, { category: selectedCategory })
       ));
-      toast.success(`${selectedIds.length} feed(s) moved to ${selectedCategory}`);
+      toast.success(`${selectedIds.length} source(s) moved to ${selectedCategory}`);
       onSuccess();
       setAction(null);
     } catch (err) {
@@ -89,7 +89,7 @@ export default function BulkFeedActions({ selectedIds, feeds, action: externalAc
           copied++;
         }
       }
-      toast.success(`${copied} feed(s) shared to the directory${copied < selectedIds.length ? ` (${selectedIds.length - copied} already shared)` : ''}`);
+      toast.success(`${copied} source(s) shared to the directory${copied < selectedIds.length ? ` (${selectedIds.length - copied} already shared)` : ''}`);
       onSuccess();
       setAction(null);
     } catch (err) {
@@ -105,18 +105,18 @@ export default function BulkFeedActions({ selectedIds, feeds, action: externalAc
     <Dialog open={!!action} onOpenChange={() => !loading && setAction(null)}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            {action === 'tag' && <Tag className="w-5 h-5" />}
-            {action === 'category' && <Folder className="w-5 h-5" />}
-            {action === 'directory' && <Globe className="w-5 h-5" />}
-            {action === 'tag' && 'Add Tag to Selected'}
-            {action === 'category' && 'Change Category'}
-            {action === 'directory' && 'Copy to Directory'}
+          <DialogTitle className="flex items-center gap-2 font-display text-lg font-semibold text-stone-100">
+            {action === 'tag' && <Tag className="w-5 h-5 text-[hsl(var(--primary))]" />}
+            {action === 'category' && <Folder className="w-5 h-5 text-[hsl(var(--primary))]" />}
+            {action === 'directory' && <Globe className="w-5 h-5 text-[hsl(var(--primary))]" />}
+            {action === 'tag' && 'Add tag to selected'}
+            {action === 'category' && 'Change category'}
+            {action === 'directory' && 'Copy to directory'}
           </DialogTitle>
           <DialogDescription>
-            {action === 'tag' && `Add a tag to ${selectedIds.length} selected feed(s)`}
-            {action === 'category' && `Change category for ${selectedIds.length} selected feed(s)`}
-            {action === 'directory' && `Copy ${selectedIds.length} feed(s) to the public directory`}
+            {action === 'tag' && `Add a tag to ${selectedIds.length} selected source(s)`}
+            {action === 'category' && `Change category for ${selectedIds.length} selected source(s)`}
+            {action === 'directory' && `Copy ${selectedIds.length} source(s) to the public directory`}
           </DialogDescription>
         </DialogHeader>
 
@@ -152,7 +152,7 @@ export default function BulkFeedActions({ selectedIds, feeds, action: externalAc
 
           {action === 'directory' && (
             <p className="text-sm text-stone-400">
-              These feeds will be added to the public directory so other users can discover and add them.
+              These sources will be added to the public directory so other users can discover and add them.
             </p>
           )}
         </div>
@@ -162,6 +162,7 @@ export default function BulkFeedActions({ selectedIds, feeds, action: externalAc
             variant="outline"
             onClick={() => setAction(null)}
             disabled={loading}
+            className="rounded-xl"
           >
             Cancel
           </Button>
@@ -174,10 +175,10 @@ export default function BulkFeedActions({ selectedIds, feeds, action: externalAc
             disabled={loading}
             className="btn-brand"
           >
-            {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            {action === 'tag' && 'Add Tag'}
-            {action === 'category' && 'Change Category'}
-            {action === 'directory' && 'Copy to Directory'}
+            {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+            {action === 'tag' && 'Add tag'}
+            {action === 'category' && 'Change category'}
+            {action === 'directory' && 'Copy to directory'}
           </Button>
         </DialogFooter>
       </DialogContent>
