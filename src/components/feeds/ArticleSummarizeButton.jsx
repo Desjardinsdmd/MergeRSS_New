@@ -37,7 +37,8 @@ export default function ArticleSummarizeButton({ item, onSummaryUpdate, compact 
       return (
         <button
           onClick={toggleSummary}
-          className="text-xs text-[hsl(var(--primary))]/70 hover:text-[hsl(var(--primary))] font-medium flex items-center gap-1 mt-2"
+          aria-expanded={showSummary}
+          className="mt-2 flex items-center gap-1 font-mono text-[11px] font-medium text-[#C4A5FD]/80 hover:text-[#C4A5FD]"
         >
           <Sparkles className="w-3 h-3" />
           {showSummary ? 'Hide' : 'Summary'}
@@ -49,12 +50,12 @@ export default function ArticleSummarizeButton({ item, onSummaryUpdate, compact 
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <span className="flex items-center gap-1 text-xs text-stone-600 cursor-default select-none mt-2">
-                <XCircle className="w-3 h-3 text-stone-600" />
+              <span className="mt-2 flex cursor-default select-none items-center gap-1 font-mono text-[11px] text-stone-500">
+                <XCircle className="w-3 h-3 text-stone-500" />
                 <span>Summary failed</span>
               </span>
             </TooltipTrigger>
-            <TooltipContent side="top" className="bg-stone-950 border border-stone-700 text-stone-300 text-xs max-w-[200px]">
+            <TooltipContent side="top" className="max-w-[200px] rounded-xl border border-white/10 bg-stone-950 text-xs text-stone-300">
               Could not generate summary — try again later
             </TooltipContent>
           </Tooltip>
@@ -66,7 +67,7 @@ export default function ArticleSummarizeButton({ item, onSummaryUpdate, compact 
       <button
         onClick={handleSummarize}
         disabled={loading}
-        className="text-xs text-stone-600 hover:text-[hsl(var(--primary))]/70 transition-colors flex items-center gap-1 mt-2 disabled:opacity-50"
+        className="mt-2 flex items-center gap-1 font-mono text-[11px] text-stone-500 transition-colors hover:text-[#C4A5FD] disabled:opacity-50"
       >
         {loading ? (
           <><Loader2 className="w-3 h-3 animate-spin" />Summarizing…</>
@@ -82,14 +83,15 @@ export default function ArticleSummarizeButton({ item, onSummaryUpdate, compact 
       <div className="mt-2">
         <button
           onClick={toggleSummary}
-          className="flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300 font-medium"
+          aria-expanded={showSummary}
+          className="flex items-center gap-1 font-mono text-[11px] font-medium text-[#C4A5FD] hover:text-[#D9C7FE]"
         >
           <Sparkles className="w-3 h-3" />
-          AI Summary
+          AI summary
           {showSummary ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
         </button>
         {showSummary && (
-          <p className="mt-1.5 text-xs text-stone-400 bg-stone-800 px-3 py-2 border border-stone-700 leading-relaxed">
+          <p className="panel-raised mt-1.5 px-3 py-2 text-[13px] leading-relaxed text-stone-300">
             {item.ai_summary}
           </p>
         )}
@@ -102,12 +104,12 @@ export default function ArticleSummarizeButton({ item, onSummaryUpdate, compact 
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <span className="flex items-center gap-1 text-xs text-stone-600 cursor-default select-none mt-1.5">
-              <XCircle className="w-3 h-3 text-stone-600" />
+            <span className="mt-1.5 flex cursor-default select-none items-center gap-1 font-mono text-[11px] text-stone-500">
+              <XCircle className="w-3 h-3 text-stone-500" />
               <span>Summary failed</span>
             </span>
           </TooltipTrigger>
-          <TooltipContent side="top" className="bg-stone-950 border border-stone-700 text-stone-300 text-xs max-w-[200px]">
+          <TooltipContent side="top" className="max-w-[200px] rounded-xl border border-white/10 bg-stone-950 text-xs text-stone-300">
             Could not generate summary — try again later
           </TooltipContent>
         </Tooltip>
@@ -119,7 +121,7 @@ export default function ArticleSummarizeButton({ item, onSummaryUpdate, compact 
     <button
       onClick={handleSummarize}
       disabled={loading}
-      className="flex items-center gap-1 text-xs text-stone-600 hover:text-amber-400 transition-colors mt-1.5 disabled:opacity-50"
+      className="mt-1.5 flex items-center gap-1 font-mono text-[11px] text-stone-500 transition-colors hover:text-[#C4A5FD] disabled:opacity-50"
     >
       {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
       {loading ? 'Summarizing…' : 'Summarize'}
