@@ -22,10 +22,10 @@ import { toast } from 'sonner';
 const PIPELINES = [
     {
         key: 'feed_fetch',       // matches job_type in fetchFeeds
-        label: 'Feed Fetch',
+        label: 'Source fetch',
         icon: Rss,
         functionName: 'fetchFeeds',
-        description: 'Fetches all active RSS feeds',
+        description: 'Fetches all active sources',
         healthRules: (meta) => {
             if (!meta) return 'unknown';
             if (!meta.feeds_attempted) return 'unknown';
@@ -36,17 +36,17 @@ const PIPELINES = [
             return 'healthy';
         },
         keyMetrics: (meta) => meta ? [
-            { label: 'Feeds OK', value: meta.feeds_ok ?? '—' },
+            { label: 'Sources OK', value: meta.feeds_ok ?? '—' },
             { label: 'Errors', value: meta.feeds_error ?? '—' },
-            { label: 'New Items', value: meta.new_items_total ?? '—' },
+            { label: 'New stories', value: meta.new_items_total ?? '—' },
         ] : [],
     },
     {
         key: 'feed_recovery',    // matches job_type in recoverFeeds
-        label: 'Feed Recovery',
+        label: 'Source recovery',
         icon: RefreshCw,
         functionName: 'recoverFeeds',
-        description: 'Retries system-paused feeds',
+        description: 'Retries system-paused sources',
         healthRules: (meta) => {
             if (!meta) return 'unknown';
             if ((meta.total_paused_eligible ?? 0) === 0) return 'healthy';
@@ -61,10 +61,10 @@ const PIPELINES = [
     },
     {
         key: 'clustering',       // matches job_type in clusterStories
-        label: 'Story Clustering',
+        label: 'Story clustering',
         icon: GitMerge,
         functionName: 'clusterStories',
-        description: 'Groups articles into story clusters',
+        description: 'Groups stories into clusters',
         healthRules: (meta, ageMinutes) => {
             if (!meta) return 'unknown';
             if (ageMinutes > 120) return 'stale';
@@ -74,14 +74,14 @@ const PIPELINES = [
             return 'degraded';
         },
         keyMetrics: (meta) => meta ? [
-            { label: 'Items Processed', value: meta.total_items_processed ?? '—' },
+            { label: 'Stories processed', value: meta.total_items_processed ?? '—' },
             { label: 'Clusters', value: meta.total_clusters ?? '—' },
-            { label: 'Multi-article', value: meta.multi_article_clusters ?? '—' },
+            { label: 'Multi-story', value: meta.multi_article_clusters ?? '—' },
         ] : [],
     },
     {
         key: 'scoring',          // matches job_type in scoreClusters
-        label: 'Trend Scoring',
+        label: 'Trend scoring',
         icon: TrendingUp,
         functionName: 'scoreClusters',
         description: 'Scores clusters by authority + velocity',
@@ -94,16 +94,16 @@ const PIPELINES = [
         keyMetrics: (meta) => meta ? [
             { label: 'Scored', value: meta.clusters_scored ?? '—' },
             { label: 'Failed', value: meta.clusters_failed ?? '—' },
-            { label: 'Domains Seeded', value: meta.domains_seeded ?? '—' },
+            { label: 'Domains seeded', value: meta.domains_seeded ?? '—' },
         ] : [],
     },
     {
         // source_health doesn't write a SystemHealth lock — queries by completed records
         key: 'source_health',
-        label: 'Source Health',
+        label: 'Source health',
         icon: Activity,
         functionName: 'computeSourceHealth',
-        description: 'Evaluates per-feed health metrics',
+        description: 'Evaluates per-source health metrics',
         healthRules: (meta) => {
             if (!meta) return 'unknown';
             if ((meta.evaluated_count ?? 0) === 0) return 'degraded';
@@ -114,19 +114,19 @@ const PIPELINES = [
         },
         keyMetrics: (meta) => meta ? [
             { label: 'Evaluated', value: meta.evaluated_count ?? '—' },
-            { label: 'Write Errors', value: meta.write_errors ?? 0 },
+            { label: 'Write errors', value: meta.write_errors ?? 0 },
             { label: 'Failing', value: meta.summary?.failing ?? '—' },
         ] : [],
     },
 ];
 
 const STATUS_CONFIG = {
-    healthy:  { color: 'bg-green-900/40 text-green-400 border-green-800',  icon: CheckCircle2, label: 'Healthy' },
-    degraded: { color: 'bg-amber-900/40 text-amber-400 border-amber-800',  icon: AlertTriangle, label: 'Degraded' },
-    stale:    { color: 'bg-orange-900/40 text-orange-400 border-orange-800', icon: Clock, label: 'Stale' },
-    failed:   { color: 'bg-red-900/40 text-red-400 border-red-800',        icon: XCircle, label: 'Failed' },
-    running:  { color: 'bg-blue-900/40 text-blue-400 border-blue-800',     icon: Loader2, label: 'Running' },
-    unknown:  { color: 'bg-stone-800 text-stone-400 border-stone-700',     icon: Clock, label: 'No Data' },
+    healthy:  { color: 'border-emerald-400/25 bg-emerald-400/10 text-emerald-300',      icon: CheckCircle2, label: 'Healthy' },
+    degraded: { color: 'border-amber-400/25 bg-amber-400/10 text-amber-300',    icon: AlertTriangle, label: 'Degraded' },
+    stale:    { color: 'border-amber-400/25 bg-amber-400/10 text-amber-300',    icon: Clock, label: 'Stale' },
+    failed:   { color: 'border-red-400/25 bg-red-400/10 text-red-300',   icon: XCircle, label: 'Failed' },
+    running:  { color: 'border-sky-400/25 bg-sky-400/10 text-sky-300',    icon: Loader2, label: 'Running' },
+    unknown:  { color: 'border-white/10 bg-white/[0.03] text-stone-400', icon: Clock, label: 'No data' },
 };
 
 function PipelineCard({ pipeline, jobs, onTrigger, triggering }) {
@@ -155,36 +155,36 @@ function PipelineCard({ pipeline, jobs, onTrigger, triggering }) {
     const PipelineIcon = pipeline.icon;
 
     return (
-        <Card className="border-stone-800 bg-stone-900">
-            <CardContent className="p-4">
+        <div className="panel-raised">
+            <div className="p-4">
                 {/* Header */}
                 <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
-                        <div className="p-1.5 rounded-md bg-stone-800">
-                            <PipelineIcon className="w-4 h-4 text-amber-400" />
+                        <div className="rounded-lg bg-[hsl(var(--brand)/0.14)] p-1.5">
+                            <PipelineIcon className="w-4 h-4 text-[#C4A5FD]" />
                         </div>
                         <div>
                             <p className="text-sm font-semibold text-stone-200">{pipeline.label}</p>
                             <p className="text-xs text-stone-500">{pipeline.description}</p>
                         </div>
                     </div>
-                    <Badge className={cn('text-xs border', statusCfg.color)}>
+                    <Badge className={cn('flex-shrink-0 rounded-md border px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wider shadow-none hover:bg-inherit', statusCfg.color)}>
                         <StatusIcon className={cn('w-3 h-3 mr-1', healthStatus === 'running' && 'animate-spin')} />
                         {statusCfg.label}
                     </Badge>
                 </div>
 
                 {/* Last run */}
-                <div className="text-xs text-stone-500 mb-3">
+                <div className="font-mono text-[11px] text-stone-500 mb-3">
                     {runningJob ? (
-                        <span className="text-blue-400">Running since {formatDistanceToNow(parseISO(runningJob.started_at))} ago</span>
+                        <span className="text-sky-400">Running since {formatDistanceToNow(parseISO(runningJob.started_at))} ago</span>
                     ) : latestJob ? (
                         <span>Last run: {formatDistanceToNow(parseISO(latestJob.completed_at || latestJob.started_at), { addSuffix: true })}</span>
                     ) : (
-                        <span className="text-stone-600">Never run</span>
+                        <span className="text-stone-500">Never run</span>
                     )}
                     {failedJob && !runningJob && (
-                        <span className="ml-2 text-red-400">• Last failure: {formatDistanceToNow(parseISO(failedJob.started_at), { addSuffix: true })}</span>
+                        <span className="ml-2 text-red-300">· Last failure: {formatDistanceToNow(parseISO(failedJob.started_at), { addSuffix: true })}</span>
                     )}
                 </div>
 
@@ -192,9 +192,9 @@ function PipelineCard({ pipeline, jobs, onTrigger, triggering }) {
                 {meta && (
                     <div className="grid grid-cols-3 gap-2 mb-3">
                         {pipeline.keyMetrics(meta).map(m => (
-                            <div key={m.label} className="bg-stone-800/60 rounded-md p-2 text-center">
-                                <p className="text-xs font-bold text-stone-200">{m.value}</p>
-                                <p className="text-[10px] text-stone-500 truncate">{m.label}</p>
+                            <div key={m.label} className="rounded-lg bg-white/[0.03] p-2 text-center">
+                                <p className="font-mono text-xs font-semibold text-stone-100">{m.value}</p>
+                                <p className="font-mono text-[9.5px] uppercase tracking-wider text-stone-500 truncate">{m.label}</p>
                             </div>
                         ))}
                     </div>
@@ -202,35 +202,34 @@ function PipelineCard({ pipeline, jobs, onTrigger, triggering }) {
 
                 {/* Stale warning */}
                 {healthStatus === 'stale' && (
-                    <div className="flex items-center gap-1.5 text-xs text-orange-400 bg-orange-950/30 rounded-md px-2 py-1.5 mb-3">
+                    <div className="flex items-center gap-1.5 text-xs text-amber-300 bg-amber-400/10 border border-amber-400/25 rounded-lg px-2 py-1.5 mb-3">
                         <AlertTriangle className="w-3 h-3 flex-shrink-0" />
-                        Pipeline output is stale — last run was {Math.round(ageMinutes)} minutes ago
+                        Pipeline output is stale. Last run was {Math.round(ageMinutes)} minutes ago
                     </div>
                 )}
 
                 {/* Degraded warning */}
                 {healthStatus === 'degraded' && (
-                    <div className="flex items-center gap-1.5 text-xs text-amber-400 bg-amber-950/20 rounded-md px-2 py-1.5 mb-3">
+                    <div className="flex items-center gap-1.5 text-xs text-amber-300 bg-amber-400/10 border border-amber-400/25 rounded-lg px-2 py-1.5 mb-3">
                         <AlertTriangle className="w-3 h-3 flex-shrink-0" />
-                        Pipeline ran but produced no output — may indicate upstream data issue
+                        Pipeline ran but produced no output. This may indicate an upstream data issue
                     </div>
                 )}
 
                 {/* Trigger button */}
-                <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full h-7 text-xs"
+                <button
+                    type="button"
+                    className="btn-ghost w-full py-1 text-xs disabled:opacity-50"
                     disabled={triggering === pipeline.key || !!runningJob}
                     onClick={() => onTrigger(pipeline)}
                 >
                     {triggering === pipeline.key
-                        ? <><Loader2 className="w-3 h-3 animate-spin mr-1" /> Triggering…</>
-                        : <>Trigger Now</>
+                        ? <><Loader2 className="w-3 h-3 animate-spin" /> Triggering…</>
+                        : <>Trigger now</>
                     }
-                </Button>
-            </CardContent>
-        </Card>
+                </button>
+            </div>
+        </div>
     );
 }
 
@@ -274,27 +273,27 @@ export default function PipelineStatusPanel() {
     const allHealthy = unhealthy === 0 && pipelineStatuses.some(s => s === 'healthy');
 
     return (
-        <Card className="border-stone-800 bg-stone-900/50 mb-6">
+        <Card className="mb-6">
             <CardHeader>
                 <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg flex items-center gap-2 text-stone-200">
-                        <Activity className="w-4 h-4 text-amber-400" />
-                        Pipeline Status
+                    <CardTitle className="flex items-center gap-2 font-display text-lg font-semibold text-stone-100">
+                        <Activity className="w-4 h-4 text-[#C4A5FD]" />
+                        Pipeline status
                     </CardTitle>
                     <div className="flex items-center gap-3">
                         {allHealthy && (
-                            <span className="flex items-center gap-1.5 text-xs text-green-400">
+                            <span className="flex items-center gap-1.5 text-xs text-emerald-400">
                                 <CheckCircle2 className="w-3.5 h-3.5" />
                                 All pipelines healthy
                             </span>
                         )}
                         {unhealthy > 0 && (
-                            <span className="flex items-center gap-1.5 text-xs text-amber-400">
+                            <span className="flex items-center gap-1.5 text-xs text-amber-300">
                                 <AlertTriangle className="w-3.5 h-3.5" />
                                 {unhealthy} pipeline{unhealthy > 1 ? 's' : ''} need attention
                             </span>
                         )}
-                        <Button variant="ghost" size="sm" onClick={() => refetch()}>
+                        <Button variant="ghost" size="sm" className="rounded-xl text-stone-400 hover:bg-white/[0.05] hover:text-stone-100" aria-label="Refresh pipelines" onClick={() => refetch()}>
                             <RefreshCw className="w-3.5 h-3.5" />
                         </Button>
                     </div>
