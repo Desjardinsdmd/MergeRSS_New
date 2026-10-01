@@ -291,7 +291,7 @@ function stampFooters(doc, ctx) {
 
 function buildCover(doc, ctx) {
   rect(doc, 0, 0, G.pageW, G.pageH, C.ink);
-  glow(doc, 24, 18, 150, 12, 0.03);
+  glow(doc, 24, 18, 150, 22, 0.016);
 
   // Lockup
   const top = 24;

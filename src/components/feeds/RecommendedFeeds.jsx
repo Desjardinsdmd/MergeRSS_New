@@ -2,20 +2,8 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Sparkles, Loader2, RefreshCw, Rss, Plus, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { addSourceViaApi } from '@/components/feeds/sourceApi';
-
-const categoryColors = {
-  CRE: 'bg-amber-950 text-amber-400',
-  Markets: 'bg-blue-950 text-blue-400',
-  Tech: 'bg-purple-950 text-purple-400',
-  News: 'bg-stone-800 text-stone-300',
-  Finance: 'bg-emerald-950 text-emerald-400',
-  Crypto: 'bg-orange-950 text-orange-400',
-  AI: 'bg-amber-950 text-amber-400',
-  Other: 'bg-stone-800 text-stone-300',
-};
 
 export default function RecommendedFeeds() {
   const [recommendations, setRecommendations] = useState([]);
@@ -64,16 +52,16 @@ export default function RecommendedFeeds() {
   if (!loaded) {
     return (
       <div className="text-center py-16">
-        <div className="w-16 h-16 bg-stone-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[hsl(var(--primary)/0.14)]">
           <Sparkles className="w-8 h-8 text-[hsl(var(--primary))]" />
         </div>
-        <h3 className="font-semibold text-stone-200 mb-1">Personalized feed recommendations</h3>
-        <p className="text-stone-500 text-sm max-w-xs mx-auto mb-6">
-          AI will analyze your current subscriptions and suggest feeds you'd likely enjoy.
+        <h3 className="mb-1 font-display text-lg font-semibold text-stone-100">Personalized source recommendations</h3>
+        <p className="mx-auto mb-6 max-w-xs text-sm text-stone-400">
+          AI will analyze your current sources and suggest others you'd likely want.
         </p>
         <Button onClick={load} className="btn-brand">
           {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Sparkles className="w-4 h-4 mr-2" />}
-          Get Recommendations
+          Get recommendations
         </Button>
       </div>
     );
@@ -82,8 +70,8 @@ export default function RecommendedFeeds() {
   return (
     <div>
       <div className="flex items-center justify-between mb-5">
-        <p className="text-sm text-stone-500">{summary || 'Personalized based on your current subscriptions'}</p>
-        <Button variant="outline" size="sm" onClick={load} disabled={loading} className="gap-1.5 rounded-lg border-stone-700 text-xs text-stone-400 hover:text-stone-200">
+        <p className="text-sm text-stone-400">{summary || 'Personalized based on your current sources'}</p>
+        <Button variant="outline" size="sm" onClick={load} disabled={loading} className="btn-ghost gap-1.5 text-xs">
           {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />} Refresh
         </Button>
       </div>
@@ -94,31 +82,31 @@ export default function RecommendedFeeds() {
           <p className="text-stone-500 text-sm">Analyzing your interests...</p>
         </div>
       ) : recommendations.length === 0 ? (
-        <div className="text-center py-12 text-stone-600">No recommendations available. Add more feeds to improve suggestions.</div>
+        <div className="py-12 text-center text-stone-500">No recommendations available. Add more sources to improve suggestions.</div>
       ) : (
         <div className="grid gap-3">
           {recommendations.map((feed) => (
-            <div key={feed.id} className="bg-stone-900 border border-stone-800 rounded-xl p-5 hover:border-[hsl(var(--primary))] hover:shadow-sm transition-all flex items-start gap-4">
-              <div className="w-9 h-9 bg-stone-800 rounded-lg flex items-center justify-center flex-shrink-0">
+            <div key={feed.id} className="panel panel-hover flex items-start gap-4 p-5">
+              <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--primary)/0.14)]">
                 <Rss className="w-4 h-4 text-[hsl(var(--primary))]" />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className="font-semibold text-stone-100 text-sm truncate">{feed.name}</h3>
+                <div className="mb-1 flex items-center gap-2">
+                  <h3 className="truncate text-[15px] font-semibold text-stone-100">{feed.name}</h3>
                   {feed.category && (
-                    <Badge className={`text-xs border-0 flex-shrink-0 ${categoryColors[feed.category] || categoryColors.Other}`}>
+                    <span className="chip-brand flex-shrink-0">
                       {feed.category}
-                    </Badge>
+                    </span>
                   )}
                 </div>
                 {feed.reason && (
-                  <p className="text-xs text-[hsl(var(--primary))] font-medium mb-1">✦ {feed.reason}</p>
+                  <p className="mb-1 text-xs font-medium text-[#C4A5FD]">✦ {feed.reason}</p>
                 )}
                 {feed.description && (
-                  <p className="text-xs text-stone-400 leading-relaxed line-clamp-2">{feed.description}</p>
+                  <p className="line-clamp-2 text-[13px] leading-relaxed text-stone-400">{feed.description}</p>
                 )}
                 {feed.added_count > 0 && (
-                  <p className="text-xs text-stone-500 mt-1">{feed.added_count} subscribers</p>
+                  <p className="meta mt-1">{feed.added_count} subscribers</p>
                 )}
               </div>
               <Button
@@ -126,7 +114,7 @@ export default function RecommendedFeeds() {
                 variant={added.has(feed.id) ? 'outline' : 'default'}
                 onClick={() => !added.has(feed.id) && handleAdd(feed)}
                 disabled={adding === feed.id || added.has(feed.id)}
-                className={`flex-shrink-0 rounded-lg text-xs ${added.has(feed.id) ? 'border-emerald-700 text-emerald-400' : 'btn-brand'}`}
+                className={`flex-shrink-0 rounded-xl text-xs ${added.has(feed.id) ? 'border-emerald-400/30 text-emerald-300' : 'btn-brand'}`}
               >
                 {adding === feed.id ? (
                   <Loader2 className="w-3 h-3 animate-spin" />
