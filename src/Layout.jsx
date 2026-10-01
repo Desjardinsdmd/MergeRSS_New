@@ -69,8 +69,6 @@ const ONBOARDING_EXEMPT = ['Welcome'];
 const adminNav = [
   // Admin-only features (single-tenant by design for now: they run on the app
   // owner's X account). Backend functions enforce this too.
-  // Email Feeds (Gmail connector path) retired Sept 2026: superseded by the per-user
-  // Mailgun newsletter inbox. Page + processGmailNewsletters kept for restore.
   { name: 'Publications', href: 'Publications', icon: Newspaper },
   { name: 'X Drafts', href: 'Drafts', icon: Send },
   { name: 'Lenses', href: 'SettingsLenses', icon: SlidersHorizontal },
