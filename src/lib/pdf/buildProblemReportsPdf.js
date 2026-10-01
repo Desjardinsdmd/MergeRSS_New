@@ -5,8 +5,8 @@
  */
 
 import { jsPDF } from 'jspdf';
-import { C, G, FONT, PT, TONES } from './tokens.js';
-import { setFont, color, rect, hline, panel, mono, chip, chipSize, logoMark } from './draw.js';
+import { C, G, FONT, TONES } from './tokens.js';
+import { setFont, color, rect, hline, panel, mono, chip, logoMark } from './draw.js';
 import { sanitizeText } from './markdown.js';
 
 const PRIORITY_TONE = { critical: TONES.red, high: TONES.red, medium: TONES.amber, low: TONES.neutral };
@@ -82,8 +82,10 @@ export function buildProblemReportsPdf(reports = [], { statusLabel = 'all' } = {
 
   reports.forEach((r, idx) => {
     const title = wrap(r.title || 'Untitled report', 11.5, 'bold', FONT.display);
-    const desc = r.description ? wrap(r.description, 9.5) : [];
-    const notes = r.admin_notes ? wrap(r.admin_notes, 9.5) : [];
+    // Caps keep every report on a single page; the full text lives in the app.
+    const clip = (lines, max) => (lines.length > max ? [...lines.slice(0, max - 1), `${lines[max - 1]} ...`] : lines);
+    const desc = r.description ? clip(wrap(r.description, 9.5), 22) : [];
+    const notes = r.admin_notes ? clip(wrap(r.admin_notes, 9.5), 8) : [];
     const browser = r.browser_info ? wrap(r.browser_info, 7.4, 'normal', FONT.mono).slice(0, 6) : [];
 
     const metaLine = [r.user_email || 'Unknown user', r.page ? `on ${r.page}` : '', fmtDate(r.created_date)].filter(Boolean).join('  ·  ');
@@ -101,7 +103,7 @@ export function buildProblemReportsPdf(reports = [], { statusLabel = 'all' } = {
     if (y + h > G.bottom && y > G.contentTop + 1) newPage();
 
     const top = y;
-    panel(doc, x, top, w, Math.min(h, G.bottom - top));
+    panel(doc, x, top, w, h);
     let cy = top + PAD;
 
     // Chips: number, priority, status
@@ -129,18 +131,14 @@ export function buildProblemReportsPdf(reports = [], { statusLabel = 'all' } = {
       if (label) { mono(doc, label, x + PAD, cy, { size: 6.4, rgb: C.meta }); cy += 2; }
       setFont(doc, family, 'normal', size);
       color(doc, rgb);
-      lines.forEach((line) => {
-        if (cy + lh > G.bottom) { newPage(); cy = y; }
-        cy += lh;
-        doc.text(line, x + PAD, cy);
-      });
+      lines.forEach((line) => { cy += lh; doc.text(line, x + PAD, cy); });
     };
 
     section('', desc, 9.5, LINE, FONT.body, C.body);
     section('Admin notes', notes, 9.5, LINE, FONT.body, C.violetLight);
     section('Browser', browser, 7.4, SMALL_LINE, FONT.mono, C.muted);
 
-    y = Math.max(cy + PAD, top + h) + 4;
+    y = top + h + 4;
   });
 
   footer();
@@ -151,7 +149,3 @@ export function downloadProblemReportsPdf(reports, statusFilter) {
   const doc = buildProblemReportsPdf(reports, { statusLabel: statusFilter || 'all' });
   doc.save(`mergerss-problem-reports-${statusFilter || 'all'}-${new Date().toISOString().slice(0, 10)}.pdf`);
 }
-
-// Keep chipSize referenced for tree-shaking parity with buildReportPdf consumers.
-export const _chipSize = chipSize;
-export const _PT = PT;
