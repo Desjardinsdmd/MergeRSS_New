@@ -1,15 +1,48 @@
 /** @type {import('tailwindcss').Config} */
+// MergeRSS design system v3 ("briefing studio"). See BRAND.md.
+// The `stone` scale is remapped to the brand's violet-tinted neutrals so every existing
+// stone-* class picks up the v3 palette. Do not use Tailwind's default warm stone anywhere.
 module.exports = {
     darkMode: ["class"],
     content: ["./index.html", "./src/**/*.{ts,tsx,js,jsx}"],
   theme: {
   	extend: {
+  		fontFamily: {
+  			sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+  			display: ['"Space Grotesk"', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+  			mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+  		},
   		borderRadius: {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
-  			sm: 'calc(var(--radius) - 4px)'
+  			sm: 'calc(var(--radius) - 4px)',
+  			xl: 'calc(var(--radius) + 4px)',
+  			'2xl': 'calc(var(--radius) + 8px)',
+  		},
+  		boxShadow: {
+  			glow: '0 0 0 1px hsl(var(--primary) / 0.35), 0 8px 28px -6px hsl(var(--primary) / 0.55)',
+  			panel: '0 1px 0 0 rgb(255 255 255 / 0.04) inset, 0 12px 32px -18px rgb(0 0 0 / 0.8)',
   		},
   		colors: {
+  			stone: {
+  				50: '#FAF9FC',
+  				100: '#F3F1F7',
+  				200: '#E4E1EC',
+  				300: '#C9C5D4',
+  				400: '#A29DB1',
+  				500: '#7C778B',
+  				600: '#5C576B',
+  				700: '#363244',
+  				800: '#25222F',
+  				900: '#17151F',
+  				950: '#0D0C13',
+  			},
+  			brand: {
+  				violet: '#9B5CF6',
+  				deep: '#7C3AED',
+  				light: '#C4A5FD',
+  				ink: '#0A0910',
+  			},
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {
@@ -63,25 +96,27 @@ module.exports = {
   		},
   		keyframes: {
   			'accordion-down': {
-  				from: {
-  					height: '0'
-  				},
-  				to: {
-  					height: 'var(--radix-accordion-content-height)'
-  				}
+  				from: { height: '0' },
+  				to: { height: 'var(--radix-accordion-content-height)' }
   			},
   			'accordion-up': {
-  				from: {
-  					height: 'var(--radix-accordion-content-height)'
-  				},
-  				to: {
-  					height: '0'
-  				}
+  				from: { height: 'var(--radix-accordion-content-height)' },
+  				to: { height: '0' }
+  			},
+  			'glow-pulse': {
+  				'0%, 100%': { opacity: '0.55' },
+  				'50%': { opacity: '0.9' }
+  			},
+  			'fade-up': {
+  				from: { opacity: '0', transform: 'translateY(8px)' },
+  				to: { opacity: '1', transform: 'translateY(0)' }
   			}
   		},
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
-  			'accordion-up': 'accordion-up 0.2s ease-out'
+  			'accordion-up': 'accordion-up 0.2s ease-out',
+  			'glow-pulse': 'glow-pulse 6s ease-in-out infinite',
+  			'fade-up': 'fade-up 0.5s ease-out both'
   		}
   	}
   },
