@@ -1,6 +1,7 @@
 import React from 'react';
 import Reveal from '@/components/landing/Reveal';
 import SiteFooter from '@/components/landing/SiteFooter';
+import Seo from '@/components/landing/Seo';
 
 /** Inline link style for legal copy. */
 export const legalLink = 'rounded-sm text-brand-light underline decoration-[hsl(var(--brand)/0.4)] underline-offset-4 transition hover:text-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))]';
@@ -23,9 +24,10 @@ export function LegalList({ items }) {
  * Readable document layout for Privacy and Terms.
  * `sections`: [{ title, body }] where body is any node. Numbers are generated (01, 02 ...).
  */
-export default function LegalDoc({ eyebrow, title, updated, intro, sections }) {
+export default function LegalDoc({ eyebrow, title, updated, intro, sections, seo }) {
   return (
     <div className="overflow-x-clip">
+      {seo && <Seo {...seo} />}
       <article className="mx-auto max-w-3xl px-4 pb-4 pt-12 sm:px-6 sm:pt-16">
         <header className="animate-fade-up">
           <p className="eyebrow mb-3">{eyebrow}</p>
