@@ -5,15 +5,16 @@ import { createPageUrl } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 import {
-  Rss, Clock, FileText, AlertCircle, ArrowRight, Sparkles, ExternalLink, Loader2, PauseCircle,
+  Rss, FileText, AlertCircle, AlertTriangle, ArrowRight, Sparkles, ExternalLink, Loader2, PauseCircle,
 } from 'lucide-react';
 import StreakCounter from '@/components/dashboard/StreakCounter';
 import BookmarkButton from '@/components/dashboard/BookmarkButton';
 import { nextSend } from '@/components/dashboard/briefingSchedule';
 import { decodeHtml, safeUrl } from '@/components/utils/htmlUtils';
 import { cn } from '@/lib/utils';
+import { MicroLabel, SignalPill } from '@/components/brand/Brand';
 
-const FOCUS = 'outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0805]';
+const FOCUS = 'outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-background';
 
 function stripHtml(s) {
   return decodeHtml(String(s || '').replace(/<[^>]*>/g, ' ')).replace(/\s+/g, ' ').trim();
@@ -107,7 +108,7 @@ export default function Dashboard() {
     if (pausedDigests.length) {
       out.push({
         key: 'paused-digests',
-        tone: 'muted',
+        tone: 'warn',
         icon: PauseCircle,
         text: pausedDigests.length === 1 ? `"${pausedDigests[0].name}" is paused.` : `${pausedDigests.length} briefings are paused.`,
         fix: 'Resume',
@@ -129,8 +130,8 @@ export default function Dashboard() {
     if (paused.length) {
       out.push({
         key: 'feed-paused',
-        tone: 'muted',
-        icon: PauseCircle,
+        tone: 'warn',
+        icon: AlertTriangle,
         text: `${paused.length} source${paused.length === 1 ? ' is' : 's are'} paused${paused.some(f => f.paused_by_system) ? ' after repeated errors' : ''}.`,
         fix: 'Review',
         href: createPageUrl('Feeds'),
@@ -155,82 +156,94 @@ export default function Dashboard() {
   })();
 
   const noFeeds = feedsFetched && feeds.length === 0;
+  const dateLabel = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto">
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-stone-100 mb-1">
+    <div className="p-6 lg:p-8 max-w-5xl mx-auto">
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h1 className="font-display text-[28px] font-semibold leading-tight tracking-tight text-stone-100">
             {greeting}{user?.full_name ? `, ${user.full_name.split(' ')[0]}` : ''}
           </h1>
-          <p className="text-stone-500 text-sm">
-            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-          </p>
+          <p className="mt-1 text-[15px] text-stone-400">{dateLabel}</p>
         </div>
         <StreakCounter user={user} />
       </div>
 
       {/* Status strip */}
       {!noFeeds && (
-        <section aria-label="Briefing status" className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-          <div className="border border-stone-800 bg-stone-900/60 rounded-md p-4 flex items-start gap-3">
-            <Clock className="w-4 h-4 mt-0.5 text-[hsl(var(--primary))] flex-shrink-0" aria-hidden="true" />
-            <div className="min-w-0">
-              <p className="text-xs uppercase tracking-wider text-stone-500 mb-0.5">Next briefing</p>
-              {next ? (
-                <>
-                  <p className="text-sm font-semibold text-stone-100">{next.n.label}</p>
-                  <p className="text-xs text-stone-500 truncate">{next.d.name}{next.d.delivery_email ? ' · email' : ''}{next.d.delivery_slack ? ' · Slack' : ''}</p>
-                </>
-              ) : (
-                <p className="text-sm text-stone-400">
-                  Nothing scheduled.{' '}
-                  <Link to={createPageUrl('Digests')} className={cn('text-[hsl(var(--primary))] hover:opacity-80 rounded-sm', FOCUS)}>Schedule one</Link>
+        <section aria-label="Briefing status" className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="panel-accent p-5">
+            <MicroLabel className="mb-2 text-[#C4A5FD]">Next briefing</MicroLabel>
+            {next ? (
+              <>
+                <p className="font-display text-xl font-semibold text-stone-100">{next.n.label}</p>
+                <p className="mt-1 truncate text-sm text-stone-400">
+                  {next.d.name}{next.d.delivery_email ? ' · email' : ''}{next.d.delivery_slack ? ' · Slack' : ''}
                 </p>
-              )}
-            </div>
+              </>
+            ) : (
+              <p className="text-sm text-stone-400">
+                Nothing scheduled.{' '}
+                <Link to={createPageUrl('Digests')} className={cn('text-[#C4A5FD] hover:text-stone-100 rounded-sm', FOCUS)}>Schedule one</Link>
+              </p>
+            )}
           </div>
-          <div className="border border-stone-800 bg-stone-900/60 rounded-md p-4 flex items-start gap-3">
-            <FileText className="w-4 h-4 mt-0.5 text-[hsl(var(--primary))] flex-shrink-0" aria-hidden="true" />
-            <div className="min-w-0 flex-1">
-              <p className="text-xs uppercase tracking-wider text-stone-500 mb-0.5">Last briefing</p>
-              {lastDelivery ? (
-                <Link
-                  to={`${createPageUrl('Inbox')}?delivery_id=${lastDelivery.id}`}
-                  className={cn('group block rounded-sm', FOCUS)}
-                >
-                  <span className="text-sm font-semibold text-stone-100 group-hover:text-[hsl(var(--primary))] truncate block">
-                    {lastDigestName || 'Your briefing'}
-                  </span>
-                  <span className="text-xs text-stone-500">
-                    {ago(lastDelivery.sent_at || lastDelivery.created_date)} · {lastDelivery.item_count || 0} stories{!lastDelivery.is_read ? ' · unread' : ''}
-                  </span>
-                </Link>
-              ) : (
-                <p className="text-sm text-stone-400">None yet.</p>
-              )}
-            </div>
+          <div className="panel p-5">
+            <MicroLabel className="mb-2">Last briefing</MicroLabel>
+            {lastDelivery ? (
+              <Link
+                to={`${createPageUrl('Inbox')}?delivery_id=${lastDelivery.id}`}
+                className={cn('group block rounded-sm', FOCUS)}
+              >
+                <span className="block truncate font-display text-xl font-semibold text-stone-100 group-hover:text-[#C4A5FD]">
+                  {lastDigestName || 'Your briefing'}
+                </span>
+                <span className="mt-1 block text-sm text-stone-400">
+                  {ago(lastDelivery.sent_at || lastDelivery.created_date)} · {lastDelivery.item_count || 0} stories{!lastDelivery.is_read ? ' · unread' : ''}
+                </span>
+              </Link>
+            ) : (
+              <p className="text-sm text-stone-400">None yet.</p>
+            )}
           </div>
         </section>
       )}
 
       {/* Problems with one-click fixes */}
       {problems.length > 0 && (
-        <section aria-label="Needs attention" className="mb-6 space-y-2">
+        <section aria-label="Needs attention" className="mb-8 space-y-2">
           {problems.map(p => (
             <div
               key={p.key}
               className={cn(
-                'flex flex-wrap sm:flex-nowrap items-center gap-3 px-3 py-2.5 border rounded-md text-sm',
-                p.tone === 'error' ? 'bg-red-950/20 border-red-900/40 text-red-300'
-                  : p.tone === 'warn' ? 'bg-amber-950/20 border-amber-900/40 text-amber-200'
-                  : 'bg-stone-900/60 border-stone-800 text-stone-300'
+                'flex flex-wrap items-center gap-3 rounded-2xl border px-4 py-3 text-sm sm:flex-nowrap',
+                p.tone === 'error' ? 'border-red-400/25 bg-red-400/10 text-red-300'
+                  : p.tone === 'warn' ? 'border-white/[0.07] bg-white/[0.025] text-stone-300'
+                  : 'border-white/[0.07] bg-white/[0.025] text-stone-300'
               )}
             >
-              <p.icon className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
-              <span className="flex-1 min-w-0">{p.text}</span>
-              <Link to={p.href} className={cn('inline-flex items-center gap-1 font-semibold whitespace-nowrap hover:opacity-80 rounded-sm', FOCUS)}>
-                {p.fix} <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+              <span
+                className={cn(
+                  'flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl border',
+                  p.tone === 'error' ? 'border-red-400/25 bg-red-400/10 text-red-300'
+                    : p.tone === 'warn' ? 'border-amber-400/25 bg-amber-400/10 text-amber-400'
+                    : 'border-white/10 bg-white/[0.03] text-stone-400'
+                )}
+                aria-hidden="true"
+              >
+                <p.icon className="h-4 w-4" />
+              </span>
+              <span className="min-w-0 flex-1">{p.text}</span>
+              <Link
+                to={p.href}
+                className={cn(
+                  'inline-flex items-center gap-1 whitespace-nowrap rounded-sm font-medium',
+                  p.tone === 'error' ? 'text-red-300 hover:text-red-200' : 'text-[#C4A5FD] hover:text-stone-100',
+                  FOCUS
+                )}
+              >
+                {p.fix} <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
               </Link>
             </div>
           ))}
@@ -239,19 +252,16 @@ export default function Dashboard() {
 
       {/* Empty state */}
       {noFeeds && (
-        <section className="border border-stone-700 bg-stone-900/60 rounded-md p-6 sm:p-8 text-center">
-          <div className="w-12 h-12 bg-stone-800 flex items-center justify-center mx-auto mb-4 rounded" aria-hidden="true">
-            <Rss className="w-6 h-6 text-[hsl(var(--primary))]" />
+        <section className="panel p-6 text-center sm:p-10">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-[hsl(var(--brand)/0.3)] bg-[hsl(var(--brand)/0.14)]" aria-hidden="true">
+            <Rss className="h-6 w-6 text-[#C4A5FD]" />
           </div>
-          <h2 className="text-lg font-semibold text-stone-100 mb-2">Get your first briefing</h2>
-          <p className="text-stone-500 mb-6 max-w-sm mx-auto text-sm">
+          <h2 className="mb-2 font-display text-lg font-semibold text-stone-100">Get your first briefing</h2>
+          <p className="mx-auto mb-6 max-w-sm text-sm text-stone-400">
             Pick your field, keep the starter sources, and we'll email you a ranked briefing in about a minute.
           </p>
-          <Link
-            to={createPageUrl('Welcome')}
-            className={cn('inline-flex items-center h-10 px-5 rounded-md bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 text-sm font-bold', FOCUS)}
-          >
-            <Sparkles className="w-4 h-4 mr-2" aria-hidden="true" />
+          <Link to={createPageUrl('Welcome')} className={cn('btn-brand h-10 px-5', FOCUS)}>
+            <Sparkles className="h-4 w-4" aria-hidden="true" />
             Build my briefing
           </Link>
         </section>
@@ -260,60 +270,75 @@ export default function Dashboard() {
       {/* Most important today */}
       {!noFeeds && (
         <section aria-labelledby="top-heading">
-          <div className="flex items-baseline justify-between mb-3">
-            <h2 id="top-heading" className="text-lg font-bold text-stone-100">
+          <div className="mb-1 flex items-baseline justify-between gap-3">
+            <h2 id="top-heading" className="font-display text-lg font-semibold text-stone-100">
               {ranked.mode === 'latest' ? 'Latest from your sources' : 'Most important today'}
             </h2>
-            <Link to={createPageUrl('ArticleSearch')} className={cn('text-xs text-stone-500 hover:text-stone-300 rounded-sm', FOCUS)}>
+            <Link to={createPageUrl('ArticleSearch')} className={cn('whitespace-nowrap rounded-sm text-sm text-stone-400 hover:text-stone-100', FOCUS)}>
               Search all stories
             </Link>
           </div>
-          {ranked.mode === 'ranked' && (
-            <p className="text-xs text-stone-600 mb-3 -mt-1">
+          {ranked.mode === 'ranked' ? (
+            <p className="mb-4 text-sm text-stone-400">
               Ranked for {user?.interest_field || 'you'}{user?.interest_profile ? '' : '. '}
               {!user?.interest_profile && (
-                <Link to={createPageUrl('Settings')} className={cn('text-[hsl(var(--primary))] hover:opacity-80 rounded-sm', FOCUS)}>
+                <Link to={createPageUrl('Settings')} className={cn('rounded-sm text-[#C4A5FD] hover:text-stone-100', FOCUS)}>
                   Tell us what matters to sharpen this
                 </Link>
               )}
             </p>
+          ) : (
+            <div className="mb-4" />
           )}
 
           {articlesLoading || !feedsFetched ? (
-            <div className="flex items-center gap-2 py-10 justify-center text-stone-500 text-sm" role="status">
-              <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> Loading stories
+            <div className="flex items-center justify-center gap-2 py-10 text-sm text-stone-500" role="status">
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> Loading stories
             </div>
           ) : ranked.items.length === 0 ? (
-            <div className="border border-stone-800 rounded-md p-6 text-center text-sm text-stone-500">
+            <div className="panel p-6 text-center text-sm text-stone-400">
               No stories from the last two days yet. New sources can take a few minutes to fill in.
             </div>
           ) : (
-            <ol className="border border-stone-800 rounded-md divide-y divide-stone-800 overflow-hidden">
+            <ol className="space-y-2">
               {ranked.items.map((item, idx) => {
                 const summary = stripHtml(item.ai_summary || item.description);
                 const score = typeof item.importance_score === 'number' ? Math.round(item.importance_score) : null;
+                const showScore = score != null && ranked.mode === 'ranked';
+                const level = score >= 80 ? 'high' : score >= 50 ? 'med' : 'low';
                 return (
-                  <li key={item.id} className="flex items-start gap-3 px-3 sm:px-4 py-3.5 bg-stone-900/40 hover:bg-stone-900/80">
-                    <span className="w-6 flex-shrink-0 text-right text-sm font-bold text-stone-600 tabular-nums mt-0.5" aria-hidden="true">{idx + 1}</span>
-                    <div className="flex-1 min-w-0">
+                  <li key={item.id} className="panel panel-hover flex items-start gap-4 px-4 py-4 sm:px-5">
+                    <span
+                      className={cn(
+                        'w-8 flex-shrink-0 text-right font-display text-[28px] font-semibold leading-none tabular-nums',
+                        idx === 0 ? 'text-[hsl(var(--primary))]' : 'text-stone-500'
+                      )}
+                      aria-hidden="true"
+                    >
+                      {idx + 1}
+                    </span>
+                    <div className="min-w-0 flex-1">
                       <a
                         href={safeUrl(item.url)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={cn('text-sm sm:text-[15px] font-semibold text-stone-100 hover:text-[hsl(var(--primary))] leading-snug rounded-sm', FOCUS)}
+                        className={cn('rounded-sm text-[15px] font-semibold leading-snug text-stone-100 hover:text-[#C4A5FD]', FOCUS)}
                       >
                         {decodeHtml(item.title)}
-                        <ExternalLink className="inline w-3 h-3 ml-1 text-stone-600 align-baseline" aria-hidden="true" />
+                        <ExternalLink className="ml-1 inline h-3 w-3 align-baseline text-stone-600" aria-hidden="true" />
                         <span className="sr-only"> (opens in a new tab)</span>
                       </a>
-                      {summary && <p className="text-xs sm:text-sm text-stone-400 mt-1 line-clamp-2 leading-relaxed">{summary}</p>}
-                      <p className="text-xs text-stone-600 mt-1.5">
+                      {summary && <p className="mt-1 line-clamp-1 text-sm leading-relaxed text-stone-400">{summary}</p>}
+                      <p className="meta mt-2">
                         {feedName[item.feed_id] || 'Source'}
                         {item.published_date ? ` · ${ago(item.published_date)}` : ''}
-                        {score != null && ranked.mode === 'ranked' ? ` · importance ${score}` : ''}
+                        {showScore ? ` · importance ${score}` : ''}
                       </p>
                     </div>
-                    <BookmarkButton item={item} className="flex-shrink-0" />
+                    <div className="flex flex-shrink-0 flex-col items-end gap-2">
+                      <BookmarkButton item={item} />
+                      {showScore && <SignalPill level={level} />}
+                    </div>
                   </li>
                 );
               })}
