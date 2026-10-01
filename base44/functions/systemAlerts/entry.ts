@@ -164,6 +164,29 @@ function severity(value, warn, critical) {
     return 'ok';
 }
 
+// Admin health alert email in brand v3: critical = red, warning = amber (warnings only).
+function renderAlertEmail(subject, alerts) {
+    const cards = alerts.map(a => {
+        const crit = a.severity === 'critical';
+        const fg = crit ? BRAND.red : BRAND.amber;
+        const bg = crit ? BRAND.redBg : BRAND.amberBg;
+        const detail = String(a.detail || '').split('\n').filter(Boolean)
+            .map(l => `<div style="font:400 13px/1.6 ${BRAND.sans};color:${BRAND.body};">${brandEsc(l)}</div>`).join('');
+        return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate;margin:0 0 12px;background:${BRAND.raised};border:1px solid ${BRAND.hairline};border-radius:12px;"><tr><td style="padding:14px 16px;">
+<span style="display:inline-block;background:${bg};color:${fg};font:600 10px/1 ${BRAND.mono};letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:6px;">${crit ? 'Critical' : 'Warning'}</span>
+<div style="margin:8px 0 6px;font:600 15px/1.4 ${BRAND.display};color:${BRAND.text};">${brandEsc(a.title)}</div>
+${detail}
+<div style="margin:8px 0 0;font:500 11px/1.5 ${BRAND.mono};color:${BRAND.muted};">Action: ${brandEsc(a.action)}</div>
+</td></tr></table>`;
+    }).join('');
+    const inner = `<p style="margin:0 0 10px;">${emailMicro('System health', BRAND.violet)}</p>
+<h1 class="h1" style="margin:0 0 6px;font:600 22px/1.3 ${BRAND.display};color:${BRAND.text};">${brandEsc(subject)}</h1>
+<p style="margin:0 0 18px;font:500 11px/1.5 ${BRAND.mono};letter-spacing:0.06em;text-transform:uppercase;color:${BRAND.meta};">Automated health check · ${brandEsc(new Date().toUTCString())}</p>
+${cards}
+<div style="margin-top:18px;">${emailButton(`${BRAND.site}/AdminHealth`, 'Open AdminHealth')}</div>`;
+    return emailShell({ preheader: subject, title: subject, bodyHtml: emailPanel(inner), footerNote: 'Sent to MergeRSS admins by the scheduled health check.' });
+}
+
 Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
@@ -203,9 +226,9 @@ Deno.serve(async (req) => {
         alerts.push({
             id: 'error-feeds',
             severity: errorSev,
-            title: `${errorFeeds.length} feed(s) in error state`,
+            title: `${errorFeeds.length} source(s) in error state`,
             detail: errorFeeds.slice(0, 5).map(f => `• ${f.name}: ${f.fetch_error || 'unknown error'}`).join('\n'),
-            action: 'Review and fix feeds in AdminHealth → Feed Status',
+            action: 'Review and fix sources in AdminHealth → Source status',
         });
     }
 
@@ -217,8 +240,8 @@ Deno.serve(async (req) => {
         alerts.push({
             id: 'platform-feed-errors',
             severity: 'critical',
-            title: `Platform-wide fetch failure: ${userErrorCount}/${userLive.length} user feeds erroring (${userErrorPct}%)`,
-            detail: 'Error rate across user feeds is high enough to suggest a fetcher or network problem rather than individual bad sources.',
+            title: `Platform-wide fetch failure: ${userErrorCount}/${userLive.length} user sources erroring (${userErrorPct}%)`,
+            detail: 'Error rate across user sources is high enough to suggest a fetcher or network problem rather than individual bad sources.',
             action: 'Check fetchFeeds logs and recent deploys.',
         });
     }
@@ -235,7 +258,7 @@ Deno.serve(async (req) => {
             id: 'stuck-clustering',
             severity: 'warning',
             title: `${stuckClustering.length} story-grouping job(s) stuck`,
-            detail: `Oldest started ${stuckClustering[stuckClustering.length - 1].started_at}. Feed fetching is NOT blocked; these are reclaimed automatically after 15 min.`,
+            detail: `Oldest started ${stuckClustering[stuckClustering.length - 1].started_at}. Source fetching is NOT blocked; these are reclaimed automatically after 15 min.`,
             action: 'No action unless this repeats daily.',
         });
     }
@@ -250,7 +273,7 @@ Deno.serve(async (req) => {
         alerts.push({
             id: 'zombie-lock',
             severity: 'critical',
-            title: `Zombie job lock — feed fetching is blocked`,
+            title: `Zombie job lock: source fetching is blocked`,
             detail: `A "running" SystemHealth job has been active for ${ageMin} minutes. This blocks all subsequent fetchFeeds runs via the overlap lock.\nJob started: ${zombieJobs[0].started_at}`,
             action: 'Manually update the SystemHealth record status to "failed" to release the lock, or run deduplicateFeedItems to force a cleanup.',
         });
@@ -267,8 +290,8 @@ Deno.serve(async (req) => {
         alerts.push({
             id: 'feed-lag',
             severity: lagSev,
-            title: `Feed lag: max ${maxLagMin}min — ${overdueCount}/${totalFeeds} feeds overdue`,
-            detail: `p50: ${lastFetch?.metadata?.p50_lag_min ?? '?'}min  p95: ${lastFetch?.metadata?.p95_lag_min ?? '?'}min  max: ${maxLagMin}min\nFeeds not being fetched fast enough relative to the run interval.`,
+            title: `Source lag: max ${maxLagMin}min, ${overdueCount}/${totalFeeds} sources overdue`,
+            detail: `p50: ${lastFetch?.metadata?.p50_lag_min ?? '?'}min  p95: ${lastFetch?.metadata?.p95_lag_min ?? '?'}min  max: ${maxLagMin}min\nSources are not being fetched fast enough relative to the run interval.`,
             action: 'Check fetchFeeds run frequency and cap. Consider reducing batch size or increasing run interval.',
         });
     }
@@ -283,7 +306,7 @@ Deno.serve(async (req) => {
         alerts.push({
             id: 'failed-deliveries',
             severity: failedDeliverySev,
-            title: `${deliveries.length} failed digest delivery(ies) in last 24h`,
+            title: `${deliveries.length} failed briefing delivery(ies) in last 24h`,
             detail: Object.entries(byChannel).map(([ch, n]) => `• ${ch}: ${n} failure(s)`).join('\n'),
             action: 'Check webhook URLs and channel integrations in Settings → Integrations.',
         });
@@ -304,8 +327,8 @@ Deno.serve(async (req) => {
         alerts.push({
             id: 'platform-digest-errors',
             severity: 'warning',
-            title: `${userDigestErrorCount} user digest(s) errored in last generation run`,
-            detail: 'Multiple user digests failing together usually means an LLM quota or platform issue.',
+            title: `${userDigestErrorCount} user briefing(s) errored in last generation run`,
+            detail: 'Multiple user briefings failing together usually means an LLM quota or platform issue.',
             action: 'Check generateDigests logs and LLM quota.',
         });
     }
@@ -313,7 +336,7 @@ Deno.serve(async (req) => {
         alerts.push({
             id: 'platform-delivery-failures',
             severity: 'warning',
-            title: `${userDeliveryFailures} user digest deliveries failed in last 24h`,
+            title: `${userDeliveryFailures} user briefing deliveries failed in last 24h`,
             detail: 'Counts only; user delivery details are not included. Occasional individual failures stay below this threshold.',
             action: 'Check delivery integrations if this keeps climbing.',
         });
@@ -323,9 +346,9 @@ Deno.serve(async (req) => {
         alerts.push({
             id: 'digest-errors',
             severity: digestErrSev,
-            title: `${digestErrors.length} digest(s) errored in last generation run`,
+            title: `${digestErrors.length} briefing(s) errored in last generation run`,
             detail: digestErrors.map(r => `• ${r.digest}: ${r.error}`).join('\n'),
-            action: 'Review digest configurations. Check LLM quota and feed availability.',
+            action: 'Review briefing configurations. Check LLM quota and source availability.',
         });
     }
 
@@ -335,9 +358,9 @@ Deno.serve(async (req) => {
         alerts.push({
             id: 'paused-feeds',
             severity: 'warning',
-            title: `${pausedWithErrors.length} feed(s) auto-paused after repeated failures`,
+            title: `${pausedWithErrors.length} source(s) auto-paused after repeated failures`,
             detail: pausedWithErrors.slice(0, 5).map(f => `• ${f.name}: ${(f.fetch_error || '').slice(0, 80)}`).join('\n'),
-            action: 'Review and re-activate feeds in Feeds page, or remove dead feeds.',
+            action: 'Review and re-activate sources on the Sources page, or remove dead sources.',
         });
     }
 
@@ -360,20 +383,9 @@ Deno.serve(async (req) => {
 
         for (const email of adminEmails) {
             const subject = criticalAlerts.length > 0
-                ? `🚨 MergeRSS Critical Alert — ${criticalAlerts.length} issue(s) require attention`
-                : `⚠️ MergeRSS Warning — ${warningAlerts.length} issue(s) detected`;
-
-            const alertLines = alerts.map(a => {
-                const icon = a.severity === 'critical' ? '🔴' : '🟡';
-                return `${icon} ${a.title}\n${a.detail}\n→ ${a.action}`;
-            }).join('\n\n─────────────────────\n\n');
-
-            const body = `<h2>${subject}</h2>
-<p>Automated health check at ${new Date().toUTCString()}</p>
-<hr/>
-<pre style="font-family:monospace;font-size:13px;line-height:1.6;white-space:pre-wrap">${alertLines}</pre>
-<hr/>
-<p style="font-size:12px;color:#666">View full details at <a href="https://mergerss.com/AdminHealth">AdminHealth Dashboard</a></p>`;
+                ? `MergeRSS critical alert: ${criticalAlerts.length} issue(s) need attention`
+                : `MergeRSS warning: ${warningAlerts.length} issue(s) detected`;
+            const body = renderAlertEmail(subject, alerts);
 
             await base44.asServiceRole.integrations.Core.SendEmail({
                 to: email,
