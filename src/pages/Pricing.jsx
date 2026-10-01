@@ -2,19 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { Check, Loader2, ArrowRight } from 'lucide-react';
-import * as planLimits from '@/lib/planLimits';
 import { cn } from '@/lib/utils';
 import Reveal from '@/components/landing/Reveal';
 import SiteFooter from '@/components/landing/SiteFooter';
-
-// Read limits defensively: planLimits may gain keys or change shape.
-const LIMITS = planLimits?.PLAN_LIMITS || {};
-const TEAM = planLimits?.TEAM_PLAN || {};
-const FREE_SOURCES = Number.isFinite(LIMITS?.free?.feeds) ? LIMITS.free.feeds : 50;
-const FREE_BRIEFINGS = Number.isFinite(LIMITS?.free?.digests) ? LIMITS.free.digests : 5;
-const TEAM_MEMBERS = Number.isFinite(TEAM?.seats) ? TEAM.seats : 5;
-const TEAM_TRIAL_SEATS = Number.isFinite(TEAM?.trialSeats) ? TEAM.trialSeats : 2;
-const TEAM_PRICE = Number.isFinite(TEAM?.priceMonthly) ? TEAM.priceMonthly : 20;
+import Seo from '@/components/landing/Seo';
+import {
+  PREMIUM_PRICE, FREE_SOURCES, FREE_BRIEFINGS, TEAM_MEMBERS, TEAM_TRIAL_SEATS, TEAM_PRICE,
+} from '@/components/landing/pricingFacts';
 
 const FOCUS = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0910]';
 
@@ -37,7 +31,7 @@ const plans = [
   {
     id: 'premium',
     name: 'Premium',
-    price: 5,
+    price: PREMIUM_PRICE,
     unit: '/month',
     description: 'For people who live in their briefing',
     features: [
@@ -164,6 +158,11 @@ export default function Pricing() {
 
   return (
     <div className="overflow-x-clip">
+      <Seo
+        title="Pricing · MergeRSS"
+        description={`MergeRSS is free for up to ${FREE_SOURCES} sources and ${FREE_BRIEFINGS} briefings. Premium is $${PREMIUM_PRICE} a month for unlimited sources and Slack, Discord and Teams delivery. Team is $${TEAM_PRICE} a month for ${TEAM_MEMBERS} people.`}
+        path="/Pricing"
+      />
       <div className="mx-auto max-w-6xl px-4 pt-12 sm:px-6 sm:pt-16">
         <header className="mx-auto mb-12 max-w-2xl text-center">
           <p className="eyebrow mb-4 animate-fade-up">Pricing</p>
