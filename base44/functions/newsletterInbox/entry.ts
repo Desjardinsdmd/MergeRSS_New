@@ -395,7 +395,9 @@ Deno.serve(async (req) => {
           const ev = await mailgunFetch(cfg, `/v3/${cfg.domain}/events?${q.toString()}`);
           const hit = (ev.items || []).find(e => e.storage?.url);
           if (!hit) throw new Error('no stored message found');
-          const msg = await mailgunFetch(cfg, hit.storage.url.replace(/^https:\/\/[^/]+/, ''), { headers: { Accept: 'application/json' } });
+          const sres = await fetch(hit.storage.url, { headers: { Authorization: `Basic ${btoa(`api:${cfg.apiKey}`)}`, Accept: 'application/json' }, signal: AbortSignal.timeout(20000) });
+          if (!sres.ok) throw new Error(`storage ${sres.status}`);
+          const msg = await sres.json();
           const signingKey = Deno.env.get('MAILGUN_WEBHOOK_SIGNING_KEY') || cfg.apiKey;
           const token = crypto.randomUUID().replace(/-/g, '');
           const ts = String(Math.floor(Date.now() / 1000));
