@@ -52,6 +52,18 @@
     "voter_email"
   ],
   "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.voter_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
     "create": {
       "data.voter_email": "{{user.email}}"
     },
