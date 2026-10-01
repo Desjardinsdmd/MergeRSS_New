@@ -73,12 +73,12 @@ export default function FeedEngineStatus({ onRefresh }) {
   return (
     <Card className="mb-6">
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <CardTitle className="flex items-center gap-2 font-display text-lg font-semibold text-stone-100">
             <Activity className="w-4 h-4 text-[#C4A5FD]" />
             Source engine status
           </CardTitle>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button variant="ghost" size="sm" onClick={() => { refetch(); onRefresh?.(); }} className="rounded-xl text-stone-400 hover:bg-white/[0.05] hover:text-stone-100">
               <RefreshCw className="w-3.5 h-3.5 mr-1.5" /> Refresh
             </Button>

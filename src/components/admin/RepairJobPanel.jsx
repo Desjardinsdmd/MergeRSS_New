@@ -251,7 +251,7 @@ export default function RepairJobPanel({ errorFeedCount }) {
               <Badge className="rounded-md border px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wider shadow-none hover:bg-inherit border-red-400/25 bg-red-400/10 text-red-300 ml-1">{errorFeedCount} in error</Badge>
             )}
           </CardTitle>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button variant="ghost" size="sm" onClick={handleRefresh} aria-label="Refresh repair job" className="rounded-xl text-stone-500 hover:bg-white/[0.05] hover:text-stone-200">
               <RefreshCw className="w-3.5 h-3.5" />
             </Button>
