@@ -175,7 +175,7 @@ export default function RssFeedGenerator() {
                             <Button
                                 type="submit"
                                 disabled={loading || !url.trim()}
-                                className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold gap-2 w-full sm:w-auto flex-shrink-0"
+                                className="btn-brand font-semibold gap-2 w-full sm:w-auto flex-shrink-0"
                             >
                                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
                                 {loading ? 'Generating…' : 'Generate Feed'}
@@ -239,7 +239,7 @@ export default function RssFeedGenerator() {
                                          <Button
                                              size="sm"
                                              onClick={() => handleGenerate()}
-                                             className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-medium text-xs gap-1.5"
+                                             className="btn-brand font-medium text-xs gap-1.5"
                                          >
                                              <RefreshCw className="w-3 h-3" />
                                              Retry

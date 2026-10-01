@@ -71,7 +71,7 @@ export default function RecommendedFeeds() {
         <p className="text-stone-500 text-sm max-w-xs mx-auto mb-6">
           AI will analyze your current subscriptions and suggest feeds you'd likely enjoy.
         </p>
-        <Button onClick={load} className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900">
+        <Button onClick={load} className="btn-brand">
           {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Sparkles className="w-4 h-4 mr-2" />}
           Get Recommendations
         </Button>
@@ -126,7 +126,7 @@ export default function RecommendedFeeds() {
                 variant={added.has(feed.id) ? 'outline' : 'default'}
                 onClick={() => !added.has(feed.id) && handleAdd(feed)}
                 disabled={adding === feed.id || added.has(feed.id)}
-                className={`flex-shrink-0 rounded-lg text-xs ${added.has(feed.id) ? 'border-emerald-700 text-emerald-400' : 'bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900'}`}
+                className={`flex-shrink-0 rounded-lg text-xs ${added.has(feed.id) ? 'border-emerald-700 text-emerald-400' : 'btn-brand'}`}
               >
                 {adding === feed.id ? (
                   <Loader2 className="w-3 h-3 animate-spin" />

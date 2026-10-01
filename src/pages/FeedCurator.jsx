@@ -226,7 +226,7 @@ export default function FeedCurator() {
               <Button
                 onClick={() => handleSearch()}
                 disabled={!query.trim() || loading}
-                className="h-11 px-5 bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 rounded-xl font-medium"
+                className="h-11 px-5 btn-brand rounded-xl font-medium"
               >
                 {loading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -298,7 +298,7 @@ export default function FeedCurator() {
                     <RefreshCw className="w-3 h-3" /> Refresh
                   </Button>
                   {suggestions.some(f => !addedFeeds.has(f.url)) && (
-                    <Button size="sm" onClick={handleAddAll} className="text-xs rounded-lg bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 gap-1.5 font-semibold">
+                    <Button size="sm" onClick={handleAddAll} className="text-xs rounded-lg btn-brand gap-1.5 font-semibold">
                       <Rss className="w-3 h-3" />
                       Add All ({suggestions.filter(f => !addedFeeds.has(f.url)).length})
                     </Button>

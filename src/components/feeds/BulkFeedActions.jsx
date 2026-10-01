@@ -172,7 +172,7 @@ export default function BulkFeedActions({ selectedIds, feeds, action: externalAc
               handleCopyToDirectory
             }
             disabled={loading}
-            className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900"
+            className="btn-brand"
           >
             {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
             {action === 'tag' && 'Add Tag'}

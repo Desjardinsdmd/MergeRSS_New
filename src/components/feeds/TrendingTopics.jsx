@@ -45,7 +45,7 @@ export default function TrendingTopics() {
         <p className="text-stone-500 text-sm max-w-xs mx-auto mb-6">
           AI will analyze the last 48 hours of your feeds and surface what's trending right now.
         </p>
-        <Button onClick={load} className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold">
+        <Button onClick={load} className="btn-brand font-semibold">
           {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <TrendingUp className="w-4 h-4 mr-2" />}
           Analyze Trending Topics
         </Button>

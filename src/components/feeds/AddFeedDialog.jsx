@@ -465,7 +465,7 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
             <Button
               type="submit"
               disabled={loading || validatingRss || (deadEndWarning && !deadEndWarning.acknowledged)}
-              className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 rounded-sm"
+              className="btn-brand"
             >
               {(loading || validatingRss) && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               {validatingRss ? 'Checking feed…' : editFeed ? 'Save Changes' : deadEndWarning?.acknowledged ? 'Add Anyway' : 'Add Feed'}

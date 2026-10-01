@@ -187,7 +187,7 @@ export default function BulkImportDialog({ open, onOpenChange, onSuccess, curren
               </div>
             )}
 
-            <Button onClick={() => handleClose(false)} className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 w-full">
+            <Button onClick={() => handleClose(false)} className="btn-brand w-full">
               Done
             </Button>
           </div>
@@ -335,7 +335,7 @@ export default function BulkImportDialog({ open, onOpenChange, onSuccess, curren
             <Button
               onClick={handleImport}
               disabled={loading}
-              className="w-full bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900"
+              className="w-full btn-brand"
             >
               {loading ? (
                 <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Importing…</>

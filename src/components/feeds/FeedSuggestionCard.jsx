@@ -54,7 +54,7 @@ export default function FeedSuggestionCard({ feed, onAdd, added, adding }) {
             "flex-shrink-0 h-8 px-3 rounded-lg text-xs font-medium transition",
             added
               ? "bg-emerald-950 text-emerald-400 hover:bg-emerald-950 border border-emerald-700"
-              : "bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900"
+              : "btn-brand"
           )}
         >
           {added ? (

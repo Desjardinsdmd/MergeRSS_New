@@ -1,113 +1,96 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import {
-  Rss, ArrowRight, CheckCircle, TrendingUp,
-  Users, Flame, Radio, X, Mail, Send
+  ArrowRight, CheckCircle, MailPlus, SlidersHorizontal, Send, FileText, Users, TrendingUp,
+  Mail, Inbox, Hash, MessagesSquare, LayoutGrid,
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import ProductPreview from '@/components/landing/ProductPreview';
+import Reveal, { useInView, useCountUp } from '@/components/landing/Reveal';
+import SiteFooter from '@/components/landing/SiteFooter';
 
-function useFadeIn() {
-  const ref = useRef(null);
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) { setVisible(true); obs.disconnect(); }
-    }, { threshold: 0.12 });
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
-  return [ref, visible];
-}
+const FOCUS = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0910]';
 
-function FadeIn({ children, delay = 0, className = '' }) {
-  const [ref, visible] = useFadeIn();
+const STEPS = [
+  {
+    title: 'Add sources',
+    desc: 'Paste any site or RSS feed, import an OPML file, or forward newsletters to your private @mergerss.com address.',
+  },
+  {
+    title: 'Set your lens',
+    desc: 'Describe your work in a sentence. Every story is scored against it, so the deal that affects you sits above the headline that does not.',
+  },
+  {
+    title: 'Get the briefing',
+    desc: 'On the schedule you choose, by email and in your inbox. Premium adds Slack, Discord and Microsoft Teams.',
+  },
+];
+
+const FEATURES = [
+  {
+    icon: MailPlus,
+    title: 'Newsletter inbox',
+    desc: 'Forward the newsletters you already get to a private @mergerss.com address. They are read and ranked with your other sources, and your own inbox stays clear.',
+  },
+  {
+    icon: SlidersHorizontal,
+    title: 'Lenses and ranking',
+    desc: 'A lens tells MergeRSS what matters to you. Stories close to your lens and covered by several of your sources rise to the top.',
+  },
+  {
+    icon: Send,
+    title: 'Delivery channels',
+    desc: 'Email and the in-app inbox on every plan. Slack, Discord and Microsoft Teams on Premium and Team.',
+  },
+  {
+    icon: FileText,
+    title: 'Reports with PDF export',
+    desc: 'Pick a date range and MergeRSS turns those briefings into an intelligence report. Export the PDF for a meeting or a committee pack.',
+  },
+  {
+    icon: Users,
+    title: 'Team sharing',
+    desc: 'Share sources and briefings across a workspace. Everyone reads the same ranked view, and shared briefings can post to your team channel.',
+  },
+  {
+    icon: TrendingUp,
+    title: 'Change over time',
+    desc: 'Stories are tracked across days. Rising and falling topics are flagged, so a quiet issue that starts to build gets noticed early.',
+  },
+];
+
+const CHANNELS = [
+  { icon: Mail, name: 'Email' },
+  { icon: Inbox, name: 'In-app inbox' },
+  { icon: Hash, name: 'Slack' },
+  { icon: MessagesSquare, name: 'Discord' },
+  { icon: LayoutGrid, name: 'Microsoft Teams' },
+];
+
+function Stat({ value, label, delay }) {
+  const [ref, inView] = useInView();
+  const n = useCountUp(value, inView);
   return (
     <div
       ref={ref}
-      className={className}
-      style={{
-        opacity: visible ? 1 : 0,
-        transform: visible ? 'translateY(0)' : 'translateY(20px)',
-        transition: `opacity 0.55s ease ${delay}ms, transform 0.55s ease ${delay}ms`,
-      }}
+      className={cn('min-w-0 px-4 py-5 text-center sm:px-6', inView ? 'animate-fade-up' : 'opacity-0')}
+      style={inView ? { animationDelay: `${delay}ms` } : undefined}
     >
-      {children}
+      <p className="font-display text-3xl font-semibold tabular-nums tracking-tight text-stone-100 sm:text-4xl">{n.toLocaleString()}</p>
+      <p className="micro-label mt-2">{label}</p>
     </div>
   );
 }
 
-function AnimatedStat({ value, label, delay = 0 }) {
-  const [ref, visible] = useFadeIn();
-  const [count, setCount] = useState(0);
-  useEffect(() => {
-    if (!visible) return;
-    let start = 0;
-    const step = Math.ceil(value / 40);
-    const timer = setInterval(() => {
-      start += step;
-      if (start >= value) { setCount(value); clearInterval(timer); }
-      else setCount(start);
-    }, 30);
-    return () => clearInterval(timer);
-  }, [visible, value]);
+function SectionHeader({ eyebrow, title, sub, center = false }) {
   return (
-    <div ref={ref} style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(20px)', transition: `all 0.55s ease ${delay}ms` }} className="text-center">
-      <p className="text-4xl font-black text-[hsl(var(--primary))] tabular-nums">{count.toLocaleString()}+</p>
-      <p className="text-sm text-stone-500 mt-1">{label}</p>
-    </div>
-  );
-}
-
-// Styled mock of the Intelligence Briefing card
-function BriefingMockup() {
-  return (
-    <div className="border-2 border-[hsl(var(--primary))]/50 bg-[hsl(var(--primary))]/[0.03] shadow-[0_0_60px_-10px_hsl(var(--primary)/0.25)] w-full max-w-lg mx-auto">
-      {/* Header */}
-      <div className="flex items-center gap-2.5 px-5 py-3 border-b border-[hsl(var(--primary))]/25 bg-[hsl(var(--primary))]/[0.07]">
-        <Radio className="w-3.5 h-3.5 text-[hsl(var(--primary))]" />
-        <span className="text-sm font-bold text-[hsl(var(--primary))] uppercase tracking-widest">Intelligence Briefing</span>
-        <span className="text-xs text-stone-500 ml-auto">Today</span>
-      </div>
-      {/* Key Signal */}
-      <div className="px-5 py-4 border-b border-[hsl(var(--primary))]/20 bg-[hsl(var(--primary))]/[0.04]">
-        <div className="text-[10px] font-black text-[hsl(var(--primary))]/70 uppercase tracking-[0.2em] mb-1.5">Today's Key Signal</div>
-        <p className="text-[0.9rem] font-bold text-stone-100 leading-snug">Fed signals hold — borrowing costs are forcing capital deployment to the sidelines</p>
-      </div>
-      {/* Story #1 — READ FIRST */}
-      <div className="px-5 py-4 border-b border-stone-800 border-l-[4px] border-l-[hsl(var(--primary))] bg-[hsl(var(--primary))]/[0.04]">
-        <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-          <span className="inline-flex items-center gap-1 text-[10px] font-black text-stone-900 bg-[hsl(var(--primary))] px-2 py-0.5 tracking-wider uppercase">
-            <Flame className="w-2.5 h-2.5" /> Read First
-          </span>
-          <span className="text-[10px] font-bold px-1.5 py-0.5 text-red-400 border border-red-800/50 bg-red-950/30">Escalating</span>
-        </div>
-        <h3 className="text-[0.95rem] font-black text-white leading-snug mb-1.5">Fed holds rates — third consecutive meeting, signaling extended higher-for-longer stance</h3>
-        <p className="text-[11px] text-stone-300 mb-1.5 border-l-2 border-[hsl(var(--primary))]/60 pl-2.5 leading-snug">
-          <span className="text-[hsl(var(--primary))]/70 font-bold text-[10px] uppercase tracking-wider">Why this matters · </span>
-          Rate moves now determine capital access — positioning this week sets Q-end outcomes
-        </p>
-        <p className="text-[11px] font-black text-[hsl(var(--primary))]/80 uppercase tracking-wide">Bottom line: Rate risk is now a capital access problem, not just a policy debate</p>
-        <p className="text-[10px] text-stone-600 mt-1.5">Bloomberg · 2 hours ago</p>
-      </div>
-      {/* Story #2 */}
-      <div className="px-5 py-3.5 border-b border-stone-800/60 border-l-[2px] border-l-stone-600 opacity-85">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-[10px] font-bold px-2 py-0.5 border text-sky-400 border-sky-800/50">Supporting</span>
-        </div>
-        <h3 className="text-[0.875rem] font-bold text-stone-100 leading-snug mb-1">Treasury yields surge on jobs data beat — 10-year hits 4.8%</h3>
-        <p className="text-[11px] text-stone-500">→ Equity repricing likely within the week — watch rate-sensitive sectors first</p>
-        <p className="text-[10px] text-stone-700 mt-1">Reuters · 4 hours ago</p>
-      </div>
-      {/* Story #3 — SKIM */}
-      <div className="px-5 py-3 opacity-55">
-        <span className="text-[10px] font-semibold text-stone-700 border border-stone-800 px-1.5 py-0.5 uppercase tracking-wider">Skim</span>
-        <h3 className="text-sm font-medium text-stone-400 leading-snug mt-1.5">FDIC flags three regional banks for enhanced monitoring</h3>
-        <p className="text-[10px] text-stone-700 mt-0.5">WSJ · 6 hours ago</p>
-      </div>
-    </div>
+    <Reveal className={cn('mb-10 max-w-2xl', center && 'mx-auto text-center')}>
+      <p className="eyebrow mb-3">{eyebrow}</p>
+      <h2 className="font-display text-3xl font-semibold leading-tight tracking-[-0.025em] text-stone-100 sm:text-4xl">{title}</h2>
+      {sub && <p className="mt-3 text-[15px] leading-relaxed text-stone-400">{sub}</p>}
+    </Reveal>
   );
 }
 
@@ -135,281 +118,165 @@ export default function Landing() {
     else base44.auth.redirectToLogin(createPageUrl('Dashboard'));
   };
 
+  // Only show stats with a real, non-zero value.
+  const statItems = stats
+    ? [
+        { key: 'users', value: stats.users, label: 'Users' },
+        { key: 'feeds', value: stats.feeds, label: 'Sources tracked' },
+        { key: 'digests', value: stats.digests, label: 'Briefings delivered' },
+      ].filter(s => s.value > 0)
+    : [];
+
   return (
-    <div className="min-h-screen bg-[#0a0805]" style={{ colorScheme: 'dark' }}>
+    <div className="overflow-x-clip" style={{ colorScheme: 'dark' }}>
 
-      {/* ── HERO ───────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden pt-32 pb-20">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,hsl(var(--primary))/0.10,transparent)]" />
+      {/* Hero */}
+      <section className="relative pb-16 pt-10 sm:pt-16 lg:pb-24">
+        <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-10">
+          <div className="min-w-0">
+            <p className="eyebrow mb-5 inline-flex animate-fade-up items-center gap-2">
+              <span className="relative flex h-1.5 w-1.5" aria-hidden="true">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[hsl(var(--brand))] opacity-60" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[hsl(var(--brand))]" />
+              </span>
+              Briefing studio
+            </p>
+            <h1 className="animate-fade-up font-display text-[40px] font-semibold leading-[1.02] tracking-[-0.035em] text-stone-100 [animation-delay:60ms] sm:text-5xl lg:text-[60px]">
+              Every source you follow, ranked into one{' '}
+              <span className="bg-gradient-to-br from-[#C4A5FD] via-[#9B5CF6] to-[#7C3AED] bg-clip-text text-transparent">briefing</span>.
+            </h1>
+            <p className="mt-6 max-w-lg animate-fade-up text-base leading-relaxed text-stone-400 [animation-delay:120ms] sm:text-[17px]">
+              MergeRSS reads your sites, RSS feeds and newsletters, ranks what changed against the work you care about, and delivers a short briefing on your schedule.
+            </p>
 
-        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left — copy */}
-            <div>
-              <div
-                className="inline-flex items-center gap-2 px-3 py-1.5 border border-[hsl(var(--primary))]/40 text-xs font-semibold text-[hsl(var(--primary))]/80 mb-8"
-                style={{ animation: 'fadeSlideDown 0.5s ease both' }}
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--primary))] animate-pulse" aria-hidden="true" />
-                Free to start
-              </div>
+            <div className="mt-8 flex animate-fade-up flex-wrap items-center gap-3 [animation-delay:180ms]">
+              <button type="button" onClick={() => handleCTA('hero')} className={cn('btn-brand group h-11 px-5 text-[15px]', FOCUS)}>
+                Get started free
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+              </button>
+              <Link to={createPageUrl('Pricing')} className={cn('btn-ghost h-11 px-5 text-[15px]', FOCUS)}>
+                See pricing
+              </Link>
+            </div>
 
-              <h1
-                className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-[0.98] mb-5"
-                style={{ animation: 'fadeSlideDown 0.6s ease 0.1s both' }}
-              >
-                <span className="text-stone-100">An AI briefing on your field,</span>
-                <br />
-                <span className="bg-gradient-to-r from-[hsl(var(--primary))] via-[hsl(var(--primary))]/80 to-[hsl(var(--primary))]/60 bg-clip-text text-transparent">in your inbox every morning.</span>
-              </h1>
+            <p className="meta mt-5 animate-fade-up [animation-delay:240ms]">
+              First briefing in about two minutes · No credit card
+            </p>
 
-              <p
-                className="text-lg text-stone-400 mb-8 max-w-lg leading-relaxed"
-                style={{ animation: 'fadeSlideDown 0.6s ease 0.2s both' }}
-              >
-                Tell us what you follow and what matters to your work. MergeRSS reads the sources you choose, newsletters included, ranks every story by what you told us matters, and emails you a short briefing before your day starts.
-              </p>
-
-              <div
-                className="flex flex-col sm:flex-row items-start gap-3 mb-4"
-                style={{ animation: 'fadeSlideDown 0.6s ease 0.3s both' }}
-              >
+            {userLoaded && user && (
+              <div className="panel-raised mt-6 inline-flex max-w-full flex-wrap items-center gap-2 px-3 py-2 text-xs text-stone-300">
+                <CheckCircle className="h-3.5 w-3.5 flex-shrink-0 text-brand-light" aria-hidden="true" />
+                <span className="min-w-0 truncate">Signed in as {user.full_name || user.email}</span>
                 <button
-                  onClick={() => handleCTA('hero')}
-                  className="inline-flex items-center gap-2 bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-black px-8 py-4 text-base transition-all duration-200 hover:shadow-[0_0_40px_hsl(var(--primary))/0.4] group"
+                  type="button"
+                  onClick={() => handleCTA('hero-logged-in')}
+                  className={cn('rounded-sm font-semibold text-brand-light underline underline-offset-2 hover:text-stone-100', FOCUS)}
                 >
-                  Get your first briefing
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
+                  Open Today
                 </button>
-                <a
-                  href="#how-it-works"
-                  className="inline-flex items-center gap-1.5 text-stone-400 hover:text-stone-200 font-medium px-2 py-4 text-sm border-b border-stone-800 hover:border-stone-500 transition-colors"
-                >
-                  See how it works
-                </a>
               </div>
-
-              <p style={{ animation: 'fadeSlideDown 0.6s ease 0.4s both' }} className="text-xs text-stone-600">
-                Your first briefing lands in about two minutes. No credit card.
-              </p>
-
-              {userLoaded && user && (
-                <div className="mt-5 inline-flex items-center gap-2 text-xs text-[hsl(var(--primary))]/80 border border-[hsl(var(--primary))]/20 bg-[hsl(var(--primary))]/5 px-3 py-2">
-                  <CheckCircle className="w-3 h-3 flex-shrink-0" />
-                  Signed in as {user.full_name || user.email} —{' '}
-                  <button onClick={() => handleCTA('hero-logged-in')} className="font-semibold underline underline-offset-2 hover:opacity-80">
-                    Go to Dashboard
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Right — briefing mockup */}
-            <div style={{ animation: 'fadeSlideUp 0.7s ease 0.25s both' }}>
-              <BriefingMockup />
-              <p className="text-center text-xs text-stone-600 mt-3">Example briefing</p>
-            </div>
+            )}
           </div>
+
+          {/* Product preview */}
+          <figure className="relative min-w-0 animate-fade-up [animation-delay:200ms]">
+            <div
+              className="pointer-events-none absolute -inset-6 animate-glow-pulse rounded-[40px] bg-[radial-gradient(closest-side,hsl(var(--brand)/0.45),transparent)] blur-2xl sm:-inset-10"
+              aria-hidden="true"
+            />
+            <ProductPreview className="relative shadow-[0_40px_80px_-30px_rgb(0_0_0/0.9)]" />
+            <figcaption className="meta mt-3 text-center">Example · the Today view</figcaption>
+          </figure>
         </div>
       </section>
 
-      {/* ── STATS STRIP ────────────────────────────────────────── */}
-      {stats && (stats.users > 0 || stats.feeds > 0 || stats.digests > 0) && (
-        <section className="border-y border-stone-800 py-8 bg-[#0d0a06]">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-10 sm:gap-16 text-center">
-              <AnimatedStat value={stats.users} label="Users" delay={0} />
-              <span className="hidden sm:block w-px h-10 bg-stone-800" aria-hidden="true" />
-              <AnimatedStat value={stats.feeds} label="Sources tracked" delay={80} />
-              <span className="hidden sm:block w-px h-10 bg-stone-800" aria-hidden="true" />
-              <AnimatedStat value={stats.digests} label="Briefings delivered" delay={160} />
-            </div>
+      {/* Live stats */}
+      {statItems.length > 0 && (
+        <section aria-label="MergeRSS in numbers" className="mx-auto max-w-4xl px-4 sm:px-6">
+          <div className={cn('panel grid divide-white/[0.06]', statItems.length === 1 ? 'grid-cols-1' : statItems.length === 2 ? 'grid-cols-2 divide-x' : 'grid-cols-1 divide-y sm:grid-cols-3 sm:divide-x sm:divide-y-0')}>
+            {statItems.map((s, i) => <Stat key={s.key} value={s.value} label={s.label} delay={i * 80} />)}
           </div>
         </section>
       )}
 
-      {/* ── PAIN SECTION ───────────────────────────────────────── */}
-      <section className="py-24 bg-[#0a0805]">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <FadeIn>
-            <h2 className="text-4xl md:text-5xl font-black tracking-tight text-stone-100 mb-10">Your morning is broken.</h2>
-            <div className="grid sm:grid-cols-2 gap-4 mb-10">
-              {[
-                'Too many sources',
-                'Too much noise',
-                'No clear signal',
-                'Time wasted piecing it together',
-              ].map((p, i) => (
-                <div key={i} className="flex items-center gap-3 px-5 py-4 bg-stone-900/60 border border-stone-800">
-                  <X className="w-4 h-4 text-red-500 flex-shrink-0" />
-                  <span className="text-stone-300 font-medium">{p}</span>
-                </div>
-              ))}
-            </div>
-            <div className="border-l-4 border-[hsl(var(--primary))] pl-5">
-              <p className="text-xl font-black text-[hsl(var(--primary))]">MergeRSS fixes this.</p>
-            </div>
-          </FadeIn>
+      {/* How it works */}
+      <section id="how-it-works" className="mx-auto max-w-6xl scroll-mt-24 px-4 pt-24 sm:px-6">
+        <SectionHeader eyebrow="How it works" title="Three steps to a ranked morning." sub="Set it up once. MergeRSS does the reading from then on." />
+        <ol className="grid gap-4 md:grid-cols-3">
+          {STEPS.map((s, i) => (
+            <Reveal as="li" key={s.title} delay={i * 90} className="panel panel-hover card-hover relative overflow-hidden p-6">
+              <span className={cn('font-display text-5xl font-semibold leading-none tabular-nums', i === 0 ? 'text-[hsl(var(--brand))]' : 'text-stone-600')} aria-hidden="true">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <h3 className="mt-5 font-display text-lg font-semibold tracking-tight text-stone-100">{s.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-stone-400">{s.desc}</p>
+            </Reveal>
+          ))}
+        </ol>
+      </section>
+
+      {/* Features */}
+      <section className="mx-auto max-w-6xl px-4 pt-24 sm:px-6">
+        <SectionHeader
+          eyebrow="Inside the studio"
+          title="Built for people who brief others."
+          sub="Each piece answers one question: what changed, and does it matter to you."
+        />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {FEATURES.map(({ icon: Icon, title, desc }, i) => (
+            <Reveal key={title} delay={(i % 3) * 80} className="group panel panel-hover card-hover p-6">
+              <span className="mb-5 flex h-10 w-10 items-center justify-center rounded-xl border border-[hsl(var(--brand)/0.3)] bg-[hsl(var(--brand)/0.14)] transition group-hover:bg-[hsl(var(--brand)/0.22)]" aria-hidden="true">
+                <Icon className="h-[18px] w-[18px] text-brand-light" />
+              </span>
+              <h3 className="font-display text-base font-semibold tracking-tight text-stone-100">{title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-stone-400">{desc}</p>
+            </Reveal>
+          ))}
         </div>
       </section>
 
-      {/* ── HOW IT WORKS ───────────────────────────────────────── */}
-      <section id="how-it-works" className="py-24 bg-[#0d0a06] border-t border-stone-800">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <FadeIn className="mb-12">
-            <h2 className="text-4xl md:text-5xl font-black tracking-tight text-stone-100">How it works</h2>
-          </FadeIn>
-          <div className="space-y-px bg-stone-800/40">
-            {[
-              { n: '01', title: 'Pick your field', desc: 'Choose a starter pack or describe your work. Keep the suggested sources, add any site, or import an OPML file.' },
-              { n: '02', title: 'AI ranks what matters to you', desc: 'Every story is scored against what you told us matters, across your sources and the newsletters you forward in.' },
-              { n: '03', title: 'A short briefing lands every morning', desc: 'By email on the free plan. Slack and Discord on Premium. One shared briefing for your team on the Team plan.' },
-            ].map(({ n, title, desc }, i) => (
-              <FadeIn key={n} delay={i * 80}>
-                <div className="bg-[#0d0a06] hover:bg-stone-900/50 transition-colors px-8 py-6 flex items-center gap-6 group">
-                  <span className="text-5xl font-black text-stone-800 group-hover:text-stone-700 transition-colors select-none w-12 flex-shrink-0">{n}</span>
-                  <div>
-                    <h3 className="text-lg font-bold text-stone-100 mb-0.5">{title}</h3>
-                    <p className="text-sm text-stone-500">{desc}</p>
-                  </div>
-                </div>
-              </FadeIn>
-            ))}
+      {/* Channel strip */}
+      <section aria-labelledby="channels-heading" className="mx-auto max-w-6xl px-4 pt-20 sm:px-6">
+        <Reveal className="panel flex flex-col gap-5 p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="min-w-0">
+            <p className="micro-label mb-1.5">Delivery</p>
+            <h2 id="channels-heading" className="font-display text-lg font-semibold tracking-tight text-stone-100">One briefing, wherever you read.</h2>
           </div>
-        </div>
-      </section>
-
-      {/* ── WHAT YOU ACTUALLY GET ──────────────────────────────── */}
-      <section className="py-24 bg-[#0a0805] border-t border-stone-800">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <FadeIn className="mb-12 text-center">
-            <h2 className="text-4xl md:text-5xl font-black tracking-tight text-stone-100 mb-3">What you actually get</h2>
-            <p className="text-stone-500">Not a news dump. A briefing.</p>
-          </FadeIn>
-          <FadeIn delay={100}>
-            <BriefingMockup />
-          </FadeIn>
-          <FadeIn delay={200}>
-            <div className="flex flex-wrap justify-center gap-4 mt-8">
-              {[
-                { label: 'READ FIRST', desc: 'The one story that actually matters today' },
-                { label: 'WHY THIS MATTERS', desc: 'Direct consequence, not background noise' },
-                { label: 'BOTTOM LINE', desc: 'The takeaway in 12 words or less' },
-              ].map(({ label, desc }) => (
-                <div key={label} className="flex flex-col items-center gap-1 px-5 py-3 bg-stone-900/60 border border-stone-800 text-center max-w-[180px]">
-                  <span className="text-[10px] font-black text-[hsl(var(--primary))] uppercase tracking-wider">{label}</span>
-                  <span className="text-xs text-stone-500">{desc}</span>
-                </div>
-              ))}
-            </div>
-          </FadeIn>
-        </div>
-      </section>
-
-      {/* ── WHO IT'S FOR ───────────────────────────────────────── */}
-      <section className="py-24 bg-[#0d0a06] border-t border-stone-800">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <FadeIn className="mb-12">
-            <h2 className="text-4xl md:text-5xl font-black tracking-tight text-stone-100 mb-3">Built for people who make decisions.</h2>
-            <p className="text-stone-500 text-base">If you're responsible for making decisions, this is your morning briefing.</p>
-          </FadeIn>
-          <FadeIn delay={80}>
-            <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-px bg-stone-800/40">
-              {['Investors', 'Operators', 'Founders', 'Analysts'].map((role) => (
-                <div key={role} className="bg-[#0d0a06] hover:bg-stone-900/50 transition-colors px-8 py-8 group">
-                  <div className="w-8 h-8 border border-[hsl(var(--primary))]/30 group-hover:border-[hsl(var(--primary))]/70 flex items-center justify-center mb-5 transition-colors">
-                    <Users className="w-4 h-4 text-[hsl(var(--primary))]" />
-                  </div>
-                  <h3 className="text-lg font-bold text-stone-100">{role}</h3>
-                </div>
-              ))}
-            </div>
-          </FadeIn>
-        </div>
-      </section>
-
-      {/* ── CORE FEATURES ─────────────────────────────────────── */}
-      <section className="py-24 bg-[#0a0805] border-t border-stone-800">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <FadeIn className="mb-12">
-            <h2 className="text-4xl md:text-5xl font-black tracking-tight text-stone-100 mb-3">What you get</h2>
-          </FadeIn>
-          <div className="grid md:grid-cols-3 gap-px bg-stone-800/40">
-            {[
-              { icon: Mail, title: 'Your sources, newsletters included', desc: 'Any site or RSS feed, plus a private address for forwarding the newsletters you already get.' },
-              { icon: Send, title: 'Delivered where you work', desc: 'Email and web inbox on every plan. Slack, Discord and Teams on Premium. Shared briefings on Team.' },
-              { icon: TrendingUp, title: 'Ranked for you', desc: 'Stories are ordered by importance to the work you described, and by how many of your sources cover them.' },
-            ].map(({ icon: Icon, title, desc }, i) => (
-              <FadeIn key={title} delay={i * 70}>
-                <div className="bg-[#0a0805] hover:bg-stone-900/50 transition-colors p-8 h-full group">
-                  <div className="w-10 h-10 border border-[hsl(var(--primary))]/40 group-hover:border-[hsl(var(--primary))]/70 flex items-center justify-center mb-6 transition-colors">
-                    <Icon className="w-5 h-5 text-[hsl(var(--primary))]" />
-                  </div>
-                  <h3 className="text-base font-bold text-stone-200 mb-2">{title}</h3>
-                  <p className="text-sm text-stone-500 leading-relaxed">{desc}</p>
-                </div>
-              </FadeIn>
+          <ul className="flex flex-wrap gap-2">
+            {CHANNELS.map(({ icon: Icon, name }) => (
+              <li key={name} className="panel-raised inline-flex items-center gap-2 px-3 py-2 text-sm text-stone-300 transition hover:border-[hsl(var(--brand)/0.35)] hover:text-stone-100">
+                <Icon className="h-4 w-4 text-brand-light" aria-hidden="true" />
+                {name}
+              </li>
             ))}
-          </div>
-        </div>
+          </ul>
+        </Reveal>
       </section>
 
-      {/* ── FINAL CTA ─────────────────────────────────────────── */}
-      <section className="py-28 border-t border-stone-800 bg-[#0a0805] relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_50%_100%,hsl(var(--primary))/0.08,transparent)]" />
-        <div className="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <FadeIn>
-            <h2 className="text-5xl md:text-6xl font-black tracking-tight leading-[0.93] mb-4">
-              <span className="text-stone-100">Know what matters</span>
-              <br />
-              <span className="bg-gradient-to-r from-[hsl(var(--primary))] via-[hsl(var(--primary))]/80 to-[hsl(var(--primary))]/50 bg-clip-text text-transparent">before your day starts.</span>
-            </h2>
-            <p className="text-stone-400 text-lg mb-8 max-w-md mx-auto">
-              Start your daily briefing in minutes.
-            </p>
-            <button
-              onClick={() => handleCTA('bottom')}
-              className="inline-flex items-center gap-2 bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-black px-10 py-4 text-base transition-all duration-200 hover:shadow-[0_0_50px_hsl(var(--primary))/0.45] group"
-            >
-              Get started
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+      {/* Closing CTA */}
+      <section className="mx-auto max-w-6xl px-4 pt-20 sm:px-6">
+        <Reveal className="panel-accent relative overflow-hidden px-6 py-12 text-center sm:px-10 sm:py-16">
+          <div className="pointer-events-none absolute left-1/2 top-0 h-48 w-[36rem] max-w-full -translate-x-1/2 -translate-y-1/2 animate-glow-pulse rounded-full bg-[hsl(var(--brand)/0.35)] blur-3xl" aria-hidden="true" />
+          <p className="eyebrow relative mb-4">Start today</p>
+          <h2 className="relative mx-auto max-w-2xl font-display text-3xl font-semibold leading-tight tracking-[-0.03em] text-stone-100 sm:text-[44px]">
+            Know what changed before your first meeting.
+          </h2>
+          <p className="relative mx-auto mt-4 max-w-md text-[15px] text-stone-300">
+            Free for up to 50 sources and 5 briefings. Your first briefing lands in about two minutes.
+          </p>
+          <div className="relative mt-8 flex flex-wrap items-center justify-center gap-3">
+            <button type="button" onClick={() => handleCTA('bottom')} className={cn('btn-brand group h-11 px-5 text-[15px]', FOCUS)}>
+              Get started free
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
             </button>
-            <p className="mt-4 text-xs text-stone-700">No credit card required · Takes 2 minutes</p>
-          </FadeIn>
-        </div>
+            <Link to={createPageUrl('Pricing')} className={cn('btn-ghost h-11 px-5 text-[15px]', FOCUS)}>
+              See pricing
+            </Link>
+          </div>
+        </Reveal>
       </section>
 
-      {/* ── FOOTER ────────────────────────────────────────────── */}
-      <footer className="py-10 border-t border-stone-800 bg-[#0a0805]">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 bg-[hsl(var(--primary))] flex items-center justify-center">
-                <Rss className="w-3.5 h-3.5 text-stone-900" />
-              </div>
-              <span className="font-bold text-stone-200 tracking-tight">MergeRSS</span>
-            </div>
-            <div className="flex items-center gap-6 text-sm text-stone-600">
-              <Link to={createPageUrl('Pricing')} className="hover:text-stone-300 transition">Pricing</Link>
-              <Link to={createPageUrl('Privacy')} className="hover:text-stone-300 transition">Privacy</Link>
-              <Link to={createPageUrl('Terms')} className="hover:text-stone-300 transition">Terms</Link>
-              <a href="mailto:support@mergerss.com" className="hover:text-stone-300 transition">Support</a>
-            </div>
-            <p className="text-sm text-stone-700">© {new Date().getFullYear()} MergeRSS</p>
-          </div>
-        </div>
-      </footer>
-
-      <style>{`
-        @keyframes fadeSlideDown {
-          from { opacity: 0; transform: translateY(-14px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes fadeSlideUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
+      <SiteFooter />
     </div>
   );
 }

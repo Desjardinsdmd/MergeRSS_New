@@ -137,7 +137,7 @@ function DirectoryCard({ item, itemType, user, onVote, votingKey, onAdd, addedIt
               size="sm"
               onClick={handleAddClick}
               disabled={!user || adding}
-              className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold rounded-lg text-xs h-7 px-2.5 flex-shrink-0"
+              className="btn-brand font-semibold rounded-lg text-xs h-7 px-2.5 flex-shrink-0"
               title={user ? undefined : 'Sign in to add'}
               aria-label={`Add ${item.name} to your ${itemType === 'feed' ? 'sources' : 'digests'}`}
             >
@@ -540,7 +540,7 @@ export default function Directory() {
                 size="sm"
                 onClick={handleBulkAdd}
                 disabled={bulkAdding}
-                className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold text-xs"
+                className="btn-brand font-semibold text-xs"
               >
                 {bulkAdding ? (
                   <>
