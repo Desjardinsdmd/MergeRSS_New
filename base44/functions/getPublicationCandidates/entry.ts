@@ -63,9 +63,12 @@ Deno.serve(async (req) => {
     const WINDOW_HOURS = body.window_hours || 72;
     const windowCutoff = new Date(Date.now() - WINDOW_HOURS * 3600 * 1000).toISOString();
 
-    // Load user's own feed IDs to restrict pipeline to their sources only
+    // Restrict the pipeline to the publication owner's feeds. Keyed on the publication's
+    // creator (not the caller) so scheduler runs, which call this under the service role,
+    // see the same candidates the owner sees in the review screen.
+    const ownerEmail = pub.created_by || user.email;
     const userFeedsRaw = extractItems(await base44.asServiceRole.entities.Feed.filter(
-        { created_by: user.email }, '-created_date', 500
+        { created_by: ownerEmail }, '-created_date', 500
     ));
     const userFeedIds = new Set(userFeedsRaw.map(f => f.id));
 
