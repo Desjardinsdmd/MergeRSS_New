@@ -32,13 +32,13 @@ export default function NarrativeGrouping({ items = [], feeds = [] }) {
     if (!narratives.length) return null;
 
     return (
-        <div className="bg-stone-900 border border-stone-800">
-            <div className="flex items-center gap-2 px-5 py-3.5 border-b border-stone-800">
-                <BookOpen className="w-3.5 h-3.5 text-stone-400" />
-                <h2 className="text-sm font-semibold text-stone-300 uppercase tracking-wider">Key Narratives</h2>
-                <span className="text-xs text-stone-600 ml-auto">{narratives.length} active theme{narratives.length > 1 ? 's' : ''}</span>
+        <div className="panel overflow-hidden">
+            <div className="flex items-center gap-2 border-b border-white/[0.07] px-5 py-3.5">
+                <BookOpen className="w-3.5 h-3.5 text-stone-400" aria-hidden="true" />
+                <h2 className="font-display text-lg font-semibold text-stone-100">Key narratives</h2>
+                <span className="meta ml-auto">{narratives.length} active theme{narratives.length > 1 ? 's' : ''}</span>
             </div>
-            <div className="divide-y divide-stone-800/60">
+            <div className="divide-y divide-white/[0.05]">
                 {narratives.map(({ label, stories, count }) => {
                     const isOpen = expanded === label;
                     const summary = NARRATIVE_SUMMARIES[label] || `${label} is emerging as a cross-source signal worth monitoring closely.`;
@@ -47,26 +47,27 @@ export default function NarrativeGrouping({ items = [], feeds = [] }) {
                         <div key={label}>
                             <button
                                 onClick={() => setExpanded(isOpen ? null : label)}
-                                className="w-full px-5 py-4 flex items-start gap-3 hover:bg-stone-800/30 transition-colors text-left"
+                                aria-expanded={isOpen}
+                                className="flex w-full items-start gap-3 px-5 py-4 text-left transition-colors hover:bg-white/[0.03]"
                             >
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 mb-1.5">
-                                        <span className="text-sm font-bold text-stone-100">{label}</span>
-                                        <span className="text-[10px] text-stone-500 bg-stone-800 border border-stone-700 px-1.5 py-0.5 flex-shrink-0">
+                                        <span className="text-[15px] font-semibold text-stone-100">{label}</span>
+                                        <span className="chip-neutral flex-shrink-0">
                                             {count} {count === 1 ? 'story' : 'stories'}
                                         </span>
                                     </div>
                                     {/* Narrative-level insight summary */}
-                                    <p className="text-xs text-stone-400 leading-relaxed line-clamp-2">{summary}</p>
+                                    <p className="line-clamp-2 text-[13px] leading-relaxed text-stone-400">{summary}</p>
                                 </div>
-                                <span className="text-stone-600 flex-shrink-0 mt-1">
+                                <span className="mt-1 flex-shrink-0 text-stone-500">
                                     {isOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                                 </span>
                             </button>
 
                             {isOpen && (
-                                <div className="px-5 pb-4 pt-1 space-y-2 bg-stone-950/40 border-t border-stone-800/50">
-                                    <p className="text-xs text-stone-600 uppercase tracking-wider mb-2">Contributing stories</p>
+                                <div className="space-y-2 border-t border-white/[0.05] bg-white/[0.015] px-5 pb-4 pt-3">
+                                    <p className="micro-label mb-2">Contributing stories</p>
                                     {stories.map(cluster => (
                                         <a
                                             key={cluster.primary.id}
@@ -75,14 +76,14 @@ export default function NarrativeGrouping({ items = [], feeds = [] }) {
                                             rel="noopener noreferrer"
                                             className="flex items-start gap-2 group"
                                         >
-                                            <span className="w-1 h-1 rounded-full bg-stone-600 flex-shrink-0 mt-1.5" />
-                                            <span className="text-xs text-stone-400 group-hover:text-stone-200 transition line-clamp-1 flex-1">
+                                            <span className="mt-1.5 h-1 w-1 flex-shrink-0 rounded-full bg-[hsl(var(--primary))]" />
+                                            <span className="line-clamp-1 flex-1 text-xs text-stone-300 transition group-hover:text-[#C4A5FD]">
                                                 {decodeHtml(cluster.primary.title)}
                                                 {cluster.clusterSize > 1 && (
-                                                    <span className="text-stone-600 ml-1">· {cluster.clusterSize} sources</span>
+                                                    <span className="ml-1 font-mono text-[11px] text-stone-500">· {cluster.clusterSize} sources</span>
                                                 )}
                                             </span>
-                                            <ExternalLink className="w-2.5 h-2.5 text-stone-700 flex-shrink-0 opacity-0 group-hover:opacity-100 transition" />
+                                            <ExternalLink className="w-2.5 h-2.5 text-stone-500 flex-shrink-0 opacity-0 group-hover:opacity-100 transition" />
                                         </a>
                                     ))}
                                 </div>
