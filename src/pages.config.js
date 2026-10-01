@@ -56,7 +56,6 @@ import Bookmarks from './pages/Bookmarks';
 import Dashboard from './pages/Dashboard';
 import Digests from './pages/Digests';
 import Directory from './pages/Directory';
-import EmailFeeds from './pages/EmailFeeds';
 import FeedCurator from './pages/FeedCurator';
 import Feeds from './pages/Feeds';
 import Inbox from './pages/Inbox';
@@ -83,7 +82,6 @@ export const PAGES = {
     "Dashboard": Dashboard,
     "Digests": Digests,
     "Directory": Directory,
-    "EmailFeeds": EmailFeeds,
     "FeedCurator": FeedCurator,
     "Feeds": Feeds,
     "Inbox": Inbox,
