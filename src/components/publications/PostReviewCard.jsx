@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   Check, X, Clock, Send, ChevronDown, ChevronUp,
-  MessageSquare, Eye, Heart, Repeat2, Bookmark, Loader2, RotateCcw, Copy,
+  Loader2, RotateCcw, Copy,
   Pencil, Sparkles, Save
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -36,7 +36,6 @@ export default function PostReviewCard({ post, onUpdate }) {
   const [revising, setRevising] = useState(false);
 
   const variants = post.draft_variants || [];
-  const metrics = post.engagement_metrics;
 
   const handleApprove = async () => {
     setActing(true);
@@ -257,27 +256,6 @@ export default function PostReviewCard({ post, onUpdate }) {
               placeholder="Optional notes..." className="bg-stone-800 border-stone-700 text-stone-100 text-sm" />
           </div>
 
-          {/* Engagement metrics for posted items */}
-          {post.status === 'posted' && metrics && (
-            <div className="flex flex-wrap gap-4 pt-2">
-              <div className="flex items-center gap-1.5 text-sm text-stone-400">
-                <Eye className="w-4 h-4" /> {metrics.impressions?.toLocaleString() || 0}
-              </div>
-              <div className="flex items-center gap-1.5 text-sm text-stone-400">
-                <Heart className="w-4 h-4" /> {metrics.likes || 0}
-              </div>
-              <div className="flex items-center gap-1.5 text-sm text-stone-400">
-                <Repeat2 className="w-4 h-4" /> {metrics.reposts || 0}
-              </div>
-              <div className="flex items-center gap-1.5 text-sm text-stone-400">
-                <MessageSquare className="w-4 h-4" /> {metrics.replies || 0}
-              </div>
-              <div className="flex items-center gap-1.5 text-sm text-stone-400">
-                <Bookmark className="w-4 h-4" /> {metrics.bookmarks || 0}
-              </div>
-            </div>
-          )}
-
           {/* Error */}
           {post.status === 'failed' && post.error_message && (
             <p className="text-sm text-red-400 bg-red-900/20 p-2 rounded">{post.error_message}</p>
@@ -341,7 +319,7 @@ export default function PostReviewCard({ post, onUpdate }) {
               }} disabled={acting}
                 className="bg-[hsl(var(--primary))] text-stone-900 font-semibold">
                 {acting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <RotateCcw className="w-4 h-4 mr-1" />}
-                Retry Post
+                Send to Drafts
               </Button>
             </div>
           )}
