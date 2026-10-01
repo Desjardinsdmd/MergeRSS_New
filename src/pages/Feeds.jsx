@@ -35,6 +35,8 @@ import BulkImportDialog from '@/components/feeds/BulkImportDialog';
 import BulkFeedActions from '@/components/feeds/BulkFeedActions';
 import SharedSourcesSection from '@/components/feeds/SharedSourcesSection';
 import { useWorkspace, workspaceCall } from '@/components/feeds/workspaceApi';
+import { PageHeader } from '@/components/brand/Brand';
+import { cn } from '@/lib/utils';
 
 const DEFAULT_CATEGORIES = ['CRE', 'Markets', 'Tech', 'News', 'Finance', 'Crypto', 'AI', 'Other'];
 
@@ -156,7 +158,7 @@ export default function Feeds() {
     if (deleteConfirm) {
       // Prevent deletion of directory feeds
       if (deleteConfirm.is_public) {
-        toast.error('Cannot delete feeds in the directory. Make them private first.');
+        toast.error('Cannot delete sources in the directory. Make them private first.');
         setDeleteConfirm(null);
         return;
       }
@@ -164,7 +166,7 @@ export default function Feeds() {
       queryClient.invalidateQueries({ queryKey: ['feeds'] });
       setDeleteConfirm(null);
       setSelectedFeeds([]);
-      toast.success('Feed deleted');
+      toast.success('Source deleted');
     }
   };
 
@@ -172,7 +174,7 @@ export default function Feeds() {
     // Check if any selected feeds are in the directory
     const publicFeeds = feeds.filter(f => selectedFeeds.includes(f.id) && f.is_public);
     if (publicFeeds.length > 0) {
-      toast.error(`Cannot delete ${publicFeeds.length} feed(s) in the directory. Make them private first.`);
+      toast.error(`Cannot delete ${publicFeeds.length} source(s) in the directory. Make them private first.`);
       setDeleteConfirm(null);
       return;
     }
@@ -181,9 +183,9 @@ export default function Feeds() {
       await Promise.all(selectedFeeds.map(id => base44.entities.Feed.delete(id)));
       queryClient.invalidateQueries({ queryKey: ['feeds'] });
       setSelectedFeeds([]);
-      toast.success(`${selectedFeeds.length} feed(s) deleted`);
+      toast.success(`${selectedFeeds.length} source(s) deleted`);
     } catch (err) {
-      toast.error('Failed to delete feeds: ' + err.message);
+      toast.error('Failed to delete sources: ' + err.message);
     } finally {
       setDeletingBulk(false);
       setDeleteConfirm(null);
@@ -194,7 +196,7 @@ export default function Feeds() {
     const newStatus = feed.status === 'active' ? 'paused' : 'active';
     await base44.entities.Feed.update(feed.id, { status: newStatus });
     queryClient.invalidateQueries({ queryKey: ['feeds'] });
-    toast.success(`Feed ${newStatus === 'active' ? 'activated' : 'paused'}`);
+    toast.success(`Source ${newStatus === 'active' ? 'activated' : 'paused'}`);
   };
 
   // Team sharing: only owners/editors can share their own sources (server re-checks).
@@ -225,7 +227,7 @@ export default function Feeds() {
       const d = response?.data || {};
       if (d.error) throw new Error(d.error);
       const newItems = d.new_items || 0;
-      const parts = [`${d.refreshed || 0} source${d.refreshed === 1 ? '' : 's'} refreshed`, `${newItems} new item${newItems === 1 ? '' : 's'}`];
+      const parts = [`${d.refreshed || 0} source${d.refreshed === 1 ? '' : 's'} refreshed`, `${newItems} new stor${newItems === 1 ? 'y' : 'ies'}`];
       if (d.failed) parts.push(`${d.failed} failed`);
       if (d.remaining) parts.push(`${d.remaining} more will refresh on schedule`);
       if (d.failed && !d.refreshed) toast.error(`Refresh failed for ${d.failed} source${d.failed === 1 ? '' : 's'}`);
@@ -259,67 +261,59 @@ export default function Feeds() {
       />
 
       {/* Summary Control Panel */}
-      <div className="mb-8">
+      <div className="mb-8 order-last">
         <SourcesControl feeds={feeds} />
       </div>
 
       {/* Header */}
-      <div className="mb-8 flex flex-col sm:flex-row sm:items-start justify-between gap-6">
-        <div>
-          <h1 className="text-3xl font-bold text-stone-100 mb-1">Sources</h1>
-          <p className="text-stone-500 text-sm">
-            Manage your RSS feeds and sources
+      <PageHeader
+        title="Sources"
+        subtitle={
+          <>
+            Websites and RSS feeds that feed your briefings
             {!isPremium && (
-              <span className="text-xs text-stone-600 ml-2">
-                ({feeds.length}/{maxFeeds} used)
+              <span className="ml-2 font-mono text-xs text-stone-500">
+                {feeds.length}/{maxFeeds} used
               </span>
             )}
-          </p>
-        </div>
-        <div className="flex gap-2 flex-wrap">
-          <Button
-            variant="outline"
-            onClick={handleFetchFeeds}
-            disabled={fetching}
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${fetching ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
-          <Link to={createPageUrl('FeedCurator')}>
-            <Button variant="outline">
-              <Sparkles className="w-4 h-4 mr-2" />
+          </>
+        }
+        actions={
+          <div className="flex flex-wrap gap-2">
+            <button type="button" className="btn-ghost" onClick={handleFetchFeeds} disabled={fetching}>
+              <RefreshCw className={cn('h-4 w-4', fetching && 'animate-spin')} />
+              Refresh
+            </button>
+            <Link to={createPageUrl('FeedCurator')} className="btn-ghost">
+              <Sparkles className="h-4 w-4" />
               Suggest sources
-            </Button>
-          </Link>
-          <Button
-            variant="outline"
-            onClick={() => setShowBulkImport(true)}
-          >
-            <Upload className="w-4 h-4 mr-2" />
-            Bulk Import
-          </Button>
-          <Button 
-            onClick={() => canAddMore ? setShowAddDialog(true) : null}
-            disabled={!canAddMore}
-            title={!canAddMore ? 'Upgrade to Premium to add more sources' : ''}
-            className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 rounded-lg disabled:opacity-60 font-bold"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Source
-          </Button>
-        </div>
-      </div>
+            </Link>
+            <button type="button" className="btn-ghost" onClick={() => setShowBulkImport(true)}>
+              <Upload className="h-4 w-4" />
+              Bulk import
+            </button>
+            <button
+              type="button"
+              onClick={() => canAddMore ? setShowAddDialog(true) : null}
+              disabled={!canAddMore}
+              title={!canAddMore ? 'Upgrade to Premium to add more sources' : ''}
+              className="btn-brand disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Plus className="h-4 w-4" />
+              Add source
+            </button>
+          </div>
+        }
+      />
 
       {/* Free plan limit banner */}
       {!isPremium && feeds.length >= maxFeeds && (
-        <div className="mb-6 flex items-center justify-between gap-4 bg-stone-900/60 border border-stone-700 rounded-lg px-4 py-3">
-          <p className="text-sm text-stone-400 font-medium">
+        <div className="mb-6 flex items-center justify-between gap-4 rounded-xl border border-amber-400/25 bg-amber-400/10 px-4 py-3">
+          <p className="text-sm font-medium text-amber-300">
             You've reached the {maxFeeds}-source limit on the Free plan. Upgrade to Premium for unlimited sources.
           </p>
-          <Link to={createPageUrl('Pricing')}>
-            <Button size="sm" className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 whitespace-nowrap font-bold">
-              Upgrade
-            </Button>
+          <Link to={createPageUrl('Pricing')} className="btn-soft whitespace-nowrap">
+            Upgrade
           </Link>
         </div>
       )}
@@ -329,10 +323,11 @@ export default function Feeds() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-600" />
           <Input
-            placeholder="Search feeds..."
+            placeholder="Search sources..."
+            aria-label="Search sources"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 bg-stone-900 border-stone-800 text-stone-200 placeholder-stone-600"
+            className="rounded-xl border-white/[0.07] bg-white/[0.03] pl-9 text-stone-200 placeholder:text-stone-500"
           />
         </div>
         <Select value={healthFilter} onValueChange={setHealthFilter}>
@@ -367,11 +362,11 @@ export default function Feeds() {
             <SelectItem value="name-desc">Name Z–A</SelectItem>
             <SelectItem value="newest">Newest first</SelectItem>
             <SelectItem value="oldest">Oldest first</SelectItem>
-            <SelectItem value="items">Most items</SelectItem>
+            <SelectItem value="items">Most stories</SelectItem>
             <SelectItem value="last-fetched">Recently fetched</SelectItem>
           </SelectContent>
         </Select>
-        <div className="flex gap-1 border border-stone-800 rounded-lg p-1 bg-stone-900">
+        <div className="flex gap-1 rounded-xl border border-white/[0.07] bg-white/[0.025] p-1">
           <Button
             variant={viewMode === 'grid' ? 'default' : 'ghost'}
             size="sm"
@@ -411,34 +406,34 @@ export default function Feeds() {
       {/* Feed List */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-6 h-6 animate-spin text-amber-400" />
+          <Loader2 className="w-6 h-6 animate-spin text-[hsl(var(--primary))]" />
         </div>
       ) : filteredFeeds.length === 0 ? (
-       <div className="border border-stone-700 bg-stone-900/60 p-8 text-center">
-         <div className="w-12 h-12 bg-stone-800 flex items-center justify-center mx-auto mb-4">
+       <div className="panel p-8 text-center">
+         <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[hsl(var(--primary)/0.14)]">
            <Rss className="w-6 h-6 text-[hsl(var(--primary))]" />
          </div>
-         <h3 className="text-lg font-semibold text-stone-100 mb-2">
+         <h3 className="mb-2 font-display text-lg font-semibold text-stone-100">
            {feeds.length === 0 ? 'No sources yet' : 'No sources match your filters'}
          </h3>
-         <p className="text-stone-500 mb-6 max-w-sm mx-auto text-sm">
+         <p className="mx-auto mb-6 max-w-sm text-sm text-stone-400">
            {feeds.length === 0 
-             ? 'Add your first RSS feed or website to get started'
+             ? 'Add a website or RSS feed to get started'
              : 'Try adjusting your search or filters'
            }
          </p>
          {feeds.length === 0 && (
-           <Button onClick={() => setShowAddDialog(true)} className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-bold">
-             <Plus className="w-4 h-4 mr-2" />
-             Add Source
-           </Button>
+           <button type="button" onClick={() => setShowAddDialog(true)} className="btn-brand">
+             <Plus className="h-4 w-4" />
+             Add source
+           </button>
          )}
        </div>
       ) : (
         <>
           {selectedFeeds.length > 0 && (
-            <div className="mb-6 flex items-center justify-between gap-4 bg-stone-900 border border-stone-800 rounded-lg px-4 py-3">
-              <span className="text-sm font-medium text-stone-300">{selectedFeeds.length} feed(s) selected</span>
+            <div className="panel mb-6 flex flex-wrap items-center justify-between gap-4 px-4 py-3">
+              <span className="text-sm font-medium text-stone-300"><span className="font-mono">{selectedFeeds.length}</span> source(s) selected</span>
               <div className="flex gap-2 flex-wrap">
                 <Button
                   size="sm"
@@ -464,7 +459,7 @@ export default function Feeds() {
                 <Button
                   size="sm"
                   onClick={() => setDeleteConfirm({ id: 'bulk', name: '' })}
-                  className="bg-red-600 hover:bg-red-700"
+                  className="rounded-xl border border-red-400/30 bg-red-400/10 text-red-300 hover:bg-red-400/20"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
                   Delete Selected
@@ -560,12 +555,12 @@ export default function Feeds() {
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>
-                {deleteConfirm.id === 'bulk' ? 'Delete Feeds' : 'Delete Feed'}
+                {deleteConfirm.id === 'bulk' ? 'Delete sources' : 'Delete source'}
               </AlertDialogTitle>
               <AlertDialogDescription>
                 {deleteConfirm.id === 'bulk'
-                  ? `Are you sure you want to delete ${selectedFeeds.length} feed(s)? This will also remove all associated items.`
-                  : `Are you sure you want to delete "${deleteConfirm.name}"? This will also remove all associated items.`
+                  ? `Are you sure you want to delete ${selectedFeeds.length} source(s)? This will also remove all associated stories.`
+                  : `Are you sure you want to delete "${deleteConfirm.name}"? This will also remove all associated stories.`
                 }
               </AlertDialogDescription>
             </AlertDialogHeader>
@@ -574,7 +569,7 @@ export default function Feeds() {
               <AlertDialogAction
                 onClick={deleteConfirm.id === 'bulk' ? handleBulkDelete : handleDelete}
                 disabled={deletingBulk}
-                className="bg-red-600 hover:bg-red-700"
+                className="rounded-xl bg-red-500 text-white hover:bg-red-600"
               >
                 {deletingBulk ? 'Deleting...' : 'Delete'}
               </AlertDialogAction>

@@ -1,7 +1,6 @@
 import React from 'react';
 import { Bell } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 
 // Keys are read by the backend (generateDigests, fetchFeeds, notifyUser).
@@ -21,7 +20,7 @@ function SwitchRow({ label, description, checked, onChange, disabled }) {
       <div className="flex items-center gap-2 flex-shrink-0">
         <span
           aria-hidden="true"
-          className={`text-xs font-semibold min-w-[22px] text-right transition-colors ${checked && !disabled ? 'text-emerald-400' : 'text-stone-600'}`}
+          className={`meta min-w-[22px] text-right transition-colors ${checked && !disabled ? 'text-emerald-400' : 'text-stone-600'}`}
         >
           {checked && !disabled ? 'On' : 'Off'}
         </span>
@@ -43,37 +42,35 @@ export default function NotificationPreferences({ prefs, onChange }) {
   const masterOn = get('emailNotifications');
 
   return (
-    <Card className="border-stone-800 bg-stone-900">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg text-stone-200">
-          <Bell className="w-5 h-5 text-[hsl(var(--primary))]" />
-          Notification Preferences
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <section className="panel p-6" aria-labelledby="notifications-heading">
+      <div className="mb-5 flex items-center gap-2">
+        <Bell className="h-4 w-4 text-[hsl(var(--primary))]" aria-hidden="true" />
+        <h2 id="notifications-heading" className="font-display text-lg font-semibold text-stone-100">Notifications</h2>
+      </div>
+      <div className="space-y-4">
         <SwitchRow
           label="Email alerts"
-          description="Service emails about problems with your digests and feeds. Digest emails themselves are set per digest."
+          description="Service emails about problems with your briefings and sources. Briefing emails themselves are set per briefing."
           checked={masterOn}
           onChange={v => set('emailNotifications', v)}
         />
-        <Separator />
+        <Separator className="bg-white/[0.06]" />
         <SwitchRow
-          label="Digest problem alerts"
-          description="Email me when a digest is skipped two scheduled times in a row, with the reason and how to fix it"
+          label="Briefing problem alerts"
+          description="Email me when a briefing is skipped two scheduled times in a row, with the reason and how to fix it"
           checked={get('digestReminders')}
           disabled={!masterOn}
           onChange={v => set('digestReminders', v)}
         />
-        <Separator />
+        <Separator className="bg-white/[0.06]" />
         <SwitchRow
-          label="Feed paused alerts"
-          description="Email me when one of my feeds keeps failing and is paused automatically"
+          label="Source paused alerts"
+          description="Email me when one of my sources keeps failing and is paused automatically"
           checked={get('feedErrors')}
           disabled={!masterOn}
           onChange={v => set('feedErrors', v)}
         />
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 }

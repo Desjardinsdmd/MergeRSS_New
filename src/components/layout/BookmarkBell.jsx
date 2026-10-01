@@ -19,11 +19,12 @@ export default function BookmarkBell({ user }) {
   return (
     <Link
       to={createPageUrl('Bookmarks')}
-      className="relative flex items-center justify-center w-9 h-9 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 transition"
+      className="relative flex h-9 w-9 items-center justify-center rounded-lg text-stone-500 transition hover:bg-white/[0.05] hover:text-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))]"
+      aria-label={unread > 0 ? `Saved stories, ${unread} unread` : 'Saved stories'}
     >
-      <Bookmark className="w-5 h-5" />
+      <Bookmark className="h-[18px] w-[18px]" aria-hidden="true" />
       {unread > 0 && (
-        <span className="absolute -top-0.5 -right-0.5 min-w-[17px] h-[17px] bg-[hsl(var(--primary))] text-stone-900 text-[10px] font-bold rounded-full flex items-center justify-center px-0.5 leading-none">
+        <span className="absolute -right-0.5 -top-0.5 flex h-[17px] min-w-[17px] items-center justify-center rounded-full bg-emerald-400 px-1 font-mono text-[10px] font-semibold leading-none text-stone-950">
           {unread > 99 ? '99+' : unread}
         </span>
       )}
