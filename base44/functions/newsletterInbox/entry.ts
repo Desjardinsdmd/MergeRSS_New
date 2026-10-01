@@ -373,8 +373,10 @@ Deno.serve(async (req) => {
           .map(r => ({ id: r.id, priority: r.priority, description: r.description, expression: r.expression, actions: r.actions }));
       } catch (e) { out.routes_error = e?.message; }
       try {
-        const begin = Math.floor((Date.now() - (Number(body.hours) || 6) * 3600 * 1000) / 1000);
-        const q = new URLSearchParams({ begin: String(begin), ascending: 'no', limit: '50' });
+        // Newest first: Mailgun searches backwards from `begin` to `end` when ascending=no.
+        const nowS = Math.floor(Date.now() / 1000);
+        const endS = nowS - (Number(body.hours) || 6) * 3600;
+        const q = new URLSearchParams({ begin: String(nowS), end: String(endS), ascending: 'no', limit: '50' });
         if (body.recipient) q.set('recipient', String(body.recipient));
         const ev = await mailgunFetch(cfg, `/v3/${cfg.domain}/events?${q.toString()}`);
         out.events = (ev.items || []).map(e => ({
