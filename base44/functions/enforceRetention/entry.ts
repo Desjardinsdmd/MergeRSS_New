@@ -80,8 +80,8 @@ Deno.serve(async (req) => {
     console.log('[enforceRetention]', JSON.stringify(out));
     if (!dryRun) {
         await svc.SystemHealth.create({
-            job_name: 'retention', status: 'completed', started_at: new Date().toISOString(),
-            completed_at: new Date().toISOString(), details: JSON.stringify(out).slice(0, 4000),
+            job_type: 'retention', status: 'completed', started_at: new Date().toISOString(),
+            completed_at: new Date().toISOString(), metadata: out,
         }).catch(() => {});
     }
     return Response.json(out);
