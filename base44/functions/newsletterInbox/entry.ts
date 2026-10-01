@@ -480,11 +480,20 @@ Deno.serve(async (req) => {
     if (action === 'get_email') {
       const e = body.email_id ? await svc.NewsletterEmail.get(String(body.email_id)).catch(() => null) : null;
       if (!e || e.owner_email !== user.email) return Response.json({ error: 'Not found' }, { status: 404 });
+      // Large newsletters keep their HTML in private storage.
+      let html = e.html_content || '';
+      if (!html && e.html_file_uri) {
+        try {
+          const s = await base44.asServiceRole.integrations.Core.CreateFileSignedUrl({ file_uri: e.html_file_uri, expires_in: 120 });
+          const r = s?.signed_url ? await fetch(s.signed_url, { signal: AbortSignal.timeout(15000) }) : null;
+          if (r?.ok) html = await r.text();
+        } catch (err) { console.warn('[newsletterInbox] html fetch failed:', err?.message); }
+      }
       return Response.json({
         success: true,
         email: {
           id: e.id, subject: e.subject, from_name: e.from_name, from_email: e.from_email,
-          received_at: e.received_at, html_content: e.html_content || '', text_content: e.text_content || '',
+          received_at: e.received_at, html_content: html, text_content: e.text_content || '',
           view_url: e.view_url || null, confirm_url: e.confirm_url || null, is_confirmation: !!e.is_confirmation,
         },
       });
