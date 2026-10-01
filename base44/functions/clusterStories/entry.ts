@@ -56,6 +56,10 @@ const ITEM_WRITE_BATCH_SIZE      = 10;
 const ITEM_WRITE_BATCH_PAUSE_MS  = 200;
 const LOCK_WINDOW_MS             = 10 * 60 * 1000;
 const ZOMBIE_TTL_MS              = 15 * 60 * 1000;
+// Stop starting new cluster writes after this long so the run always reaches its
+// own completion write. Runs killed by the platform mid-write were the source of
+// the "Zombie reclaimed" rows (2026-10-01). Unwritten clusters are picked up next run.
+const RUN_BUDGET_MS              = 140 * 1000;
 
 const STOP_WORDS = new Set([
     'that','this','with','from','have','will','been','says','said',
@@ -125,7 +129,7 @@ function computeBlendedImportance(primaryItem, allItems, sourceDomains) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-Deno.serve(async (req) => {
+async function handler(req, ctx) {
     let base44;
     try {
         base44 = createClientFromRequest(req);
@@ -181,6 +185,7 @@ Deno.serve(async (req) => {
     let heartbeatTimer = null;
     if (!dryRun) {
         try {
+            ctx.client = base44;
             lockRecord = await base44.asServiceRole.entities.SystemHealth.create({
                 job_type: 'clustering', status: 'running',
                 started_at: new Date().toISOString(),
@@ -204,7 +209,8 @@ Deno.serve(async (req) => {
                 }).catch(() => {});
                 return Response.json({ skipped: true, reason: 'Another clustering run won the lock' });
             }
-            heartbeatTimer = setInterval(() => {
+            ctx.lock = lockRecord;
+            heartbeatTimer = ctx.timer = setInterval(() => {
                 base44.asServiceRole.entities.SystemHealth.update(lockRecord.id, {
                     metadata: { instance_id: instanceId, last_heartbeat_at: new Date().toISOString() },
                 }).catch(() => {});
@@ -335,8 +341,10 @@ Deno.serve(async (req) => {
 
     // ── 5. Persist clusters ───────────────────────────────────────────────────
     let created = 0, updated = 0, reactivated = 0, itemsAnnotated = 0, reassigned = 0;
+    let budgetStopped = false, clustersDeferred = 0;
 
     for (const { pivot, members } of rawClusters) {
+        if (Date.now() - runStartMs > RUN_BUDGET_MS) { budgetStopped = true; clustersDeferred++; continue; }
         // Skip singleton clusters during writes when skip_singletons is enabled
         // This dramatically reduces write volume for backfill runs
         if (skipSingletons && members.length === 1) continue;
@@ -494,6 +502,7 @@ Deno.serve(async (req) => {
 
     // ── 5b. Compute custom_lens_aggregates for clusters with scored articles ─
     try {
+        if (budgetStopped) throw new Error('run budget reached; lens aggregates deferred to next run');
         const allLenses = extractItems(await base44.asServiceRole.entities.CustomLens.filter({ is_active: true }, '-created_date', 100));
         if (allLenses.length > 0) {
             // Build lookup of item custom_lens_scores
@@ -562,7 +571,7 @@ Deno.serve(async (req) => {
         { status: 'active', last_updated_at: { $lt: staleThreshold } },
         '-last_updated_at', 200
     );
-    for (const s of toStale) {
+    for (const s of (budgetStopped ? [] : toStale)) {
         await base44.asServiceRole.entities.StoryCluster.update(s.id, { status: 'stale' }).catch(() => {});
         markedStale++;
         await sleep(50);
@@ -589,6 +598,7 @@ Deno.serve(async (req) => {
         items_annotated: itemsAnnotated,
         items_reassigned: reassigned,
         run_duration_ms: Date.now() - runStartMs,
+        ...(budgetStopped ? { budget_stopped: true, clusters_deferred: clustersDeferred } : {}),
         window_hours: windowHours,
         pipeline_health: pipelineHealth,
         ...(pipelineNote ? { pipeline_note: pipelineNote } : {}),
@@ -606,4 +616,23 @@ Deno.serve(async (req) => {
     }
 
     return Response.json({ success: true, ...summary });
+}
+
+// Any exception after the lock is taken marks the run failed with its error,
+// instead of leaving a "running" row for the next run to reclaim as a zombie.
+Deno.serve(async (req) => {
+    const ctx = { lock: null, timer: null, client: null };
+    try {
+        return await handler(req, ctx);
+    } catch (e) {
+        if (ctx.timer) clearInterval(ctx.timer);
+        console.error('[clusterStories] run failed:', e?.message || e);
+        if (ctx.lock?.id && ctx.client) {
+            await ctx.client.asServiceRole.entities.SystemHealth.update(ctx.lock.id, {
+                status: 'failed', completed_at: new Date().toISOString(),
+                error_message: String(e?.message || e).slice(0, 500),
+            }).catch(() => {});
+        }
+        return Response.json({ error: String(e?.message || e) }, { status: 500 });
+    }
 });
