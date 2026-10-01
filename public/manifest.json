@@ -1,0 +1,12 @@
+{
+  "name": "MergeRSS",
+  "short_name": "MergeRSS",
+  "description": "The briefing studio: ranked briefings from the sources you follow.",
+  "start_url": "/Dashboard",
+  "display": "standalone",
+  "background_color": "#0A0910",
+  "theme_color": "#0A0910",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
