@@ -82,5 +82,17 @@ const sections = [
 ];
 
 export default function Privacy() {
-  return <LegalDoc eyebrow="Legal" title="Privacy Policy" updated="March 1, 2026" sections={sections} />;
+  return (
+    <LegalDoc
+      eyebrow="Legal"
+      title="Privacy Policy"
+      updated="March 1, 2026"
+      sections={sections}
+      seo={{
+        title: 'Privacy Policy · MergeRSS',
+        description: 'What MergeRSS collects, how it is used, which processors handle it, how long it is kept, and how to request deletion.',
+        path: '/Privacy',
+      }}
+    />
+  );
 }
