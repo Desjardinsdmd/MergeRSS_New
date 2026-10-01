@@ -31,8 +31,8 @@ export default function SourceHealthDashboard() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-stone-500 uppercase tracking-wider">Total Sources</p>
-                <p className="text-2xl font-bold text-stone-100 mt-1">{stats.total}</p>
+                <p className="micro-label">Total sources</p>
+                <p className="font-display text-3xl font-semibold tabular-nums text-stone-100 mt-1">{stats.total}</p>
               </div>
               <TrendingUp className="w-8 h-8 text-stone-600" />
             </div>
@@ -43,10 +43,10 @@ export default function SourceHealthDashboard() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-stone-500 uppercase tracking-wider">Healthy</p>
-                <p className="text-2xl font-bold text-green-400 mt-1">{stats.healthy}</p>
+                <p className="micro-label">Healthy</p>
+                <p className="font-display text-3xl font-semibold tabular-nums text-emerald-300 mt-1">{stats.healthy}</p>
               </div>
-              <CheckCircle2 className="w-8 h-8 text-green-500" />
+              <CheckCircle2 className="w-8 h-8 text-emerald-400/70" />
             </div>
           </CardContent>
         </Card>
@@ -55,10 +55,10 @@ export default function SourceHealthDashboard() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-stone-500 uppercase tracking-wider">Degrading</p>
-                <p className="text-2xl font-bold text-amber-400 mt-1">{stats.degrading}</p>
+                <p className="micro-label">Degrading</p>
+                <p className="font-display text-3xl font-semibold tabular-nums text-amber-300 mt-1">{stats.degrading}</p>
               </div>
-              <AlertTriangle className="w-8 h-8 text-amber-500" />
+              <AlertTriangle className="w-8 h-8 text-amber-400/70" />
             </div>
           </CardContent>
         </Card>
@@ -67,10 +67,10 @@ export default function SourceHealthDashboard() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-stone-500 uppercase tracking-wider">Failing</p>
-                <p className="text-2xl font-bold text-red-400 mt-1">{stats.failing}</p>
+                <p className="micro-label">Failing</p>
+                <p className="font-display text-3xl font-semibold tabular-nums text-red-300 mt-1">{stats.failing}</p>
               </div>
-              <AlertCircle className="w-8 h-8 text-red-500" />
+              <AlertCircle className="w-8 h-8 text-red-400/70" />
             </div>
           </CardContent>
         </Card>
@@ -78,26 +78,26 @@ export default function SourceHealthDashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Health Metrics</CardTitle>
+          <CardTitle className="font-display text-base font-semibold text-stone-100">Health metrics</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-stone-400">Average Health Score</span>
-            <span className="text-lg font-semibold text-stone-100">{stats.avgScore}%</span>
+            <span className="text-sm text-stone-400">Average health score</span>
+            <span className="font-mono text-lg font-semibold text-stone-100">{stats.avgScore}%</span>
           </div>
           <div className="w-full bg-stone-800 rounded-full h-2">
             <div
               className={`h-2 rounded-full transition-all ${
-                stats.avgScore >= 80 ? 'bg-green-500' : stats.avgScore >= 50 ? 'bg-amber-500' : 'bg-red-500'
+                stats.avgScore >= 80 ? 'bg-emerald-400' : stats.avgScore >= 50 ? 'bg-amber-400' : 'bg-red-400'
               }`}
               style={{ width: `${stats.avgScore}%` }}
             />
           </div>
 
-          <div className="pt-3 border-t border-stone-800">
+          <div className="pt-3 border-t border-white/[0.07]">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-stone-400">Total Issues Detected</span>
-              <span className="text-lg font-semibold text-stone-100">{stats.totalIssues}</span>
+              <span className="text-sm text-stone-400">Total issues detected</span>
+              <span className="font-mono text-lg font-semibold text-stone-100">{stats.totalIssues}</span>
             </div>
           </div>
         </CardContent>

@@ -190,18 +190,18 @@ function esc(s) {
     return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 function inviteEmailHtml({ inviter, workspaceName, role }) {
-    const f = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif";
-    return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#0d0a06;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0d0a06;"><tr><td align="center" style="padding:24px 12px 40px;">
-<table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="width:560px;max-width:100%;">
-<tr><td style="padding:0 0 16px;font:700 18px/1 ${f};color:#f5f5f4;">MergeRSS</td></tr>
-<tr><td style="background:#0c0a09;border:1px solid #292524;padding:24px;">
-<h1 style="margin:0 0 14px;font:700 19px/1.35 ${f};color:#f5f5f4;">You're invited to ${esc(workspaceName)}</h1>
-<p style="margin:0 0 12px;font:400 14px/1.7 ${f};color:#d6d3d1;">${esc(inviter)} invited you to join their MergeRSS team workspace as ${role === 'editor' ? 'an editor' : 'a viewer'}. Team members share sources and receive the team's briefings.</p>
-<p style="margin:0 0 12px;font:400 14px/1.7 ${f};color:#d6d3d1;">Sign in with this email address, then accept the invite on the Team page.</p>
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:8px;"><tr><td style="background:#9463e3;"><a href="${TEAM_URL}" style="display:inline-block;padding:11px 18px;font:600 14px/1 ${f};color:#1c1917;text-decoration:none;">Open the Team page</a></td></tr></table>
-</td></tr></table></td></tr></table></body></html>`;
+    const p = (t) => `<p style="margin:0 0 12px;font:400 15px/1.7 ${BRAND.sans};color:${BRAND.body};">${t}</p>`;
+    const inner = `<p style="margin:0 0 10px;">${emailMicro('Team invite', BRAND.violet)}</p>
+<h1 class="h1" style="margin:0 0 16px;font:600 22px/1.3 ${BRAND.display};color:${BRAND.text};">You're invited to ${esc(workspaceName)}</h1>
+${p(`${esc(inviter)} invited you to join their MergeRSS team workspace as ${role === 'editor' ? 'an editor' : 'a viewer'}. Team members share sources and receive the team's briefings.`)}
+${p('Sign in with this email address, then accept the invite on the Team page.')}
+<div style="margin-top:20px;">${emailButton(TEAM_URL, 'Open the Team page')}</div>`;
+    return emailShell({
+        preheader: `${inviter} invited you to ${workspaceName} on MergeRSS.`,
+        title: `Invite to ${workspaceName}`,
+        bodyHtml: emailPanel(inner),
+        footerNote: 'If you were not expecting this invite, you can ignore this email.',
+    });
 }
 
 class HttpError extends Error {
@@ -465,8 +465,21 @@ Deno.serve(async (req) => {
                 const ch = String(body.channel || '');
                 const url = ws[`${ch}_webhook_url`];
                 if (!url || !webhookOk(ch, url)) fail(400, 'No valid webhook saved for this channel');
-                const text = `MergeRSS test: shared briefings for ${ws.name} will post here.`;
-                const payload = ch === 'discord' ? { content: text } : { text };
+                // Brand v3: same violet accent and attribution as real briefing posts.
+                const text = `Test post: shared briefings for ${ws.name} will post here.`;
+                const payload = ch === 'discord'
+                    ? { username: 'MergeRSS', embeds: [{ color: BRAND.violetInt, author: { name: BRAND.attribution, url: BRAND.site }, title: 'Connection test', description: text }] }
+                    : ch === 'teams'
+                        ? { type: 'message', attachments: [{ contentType: 'application/vnd.microsoft.card.adaptive', content: {
+                            type: 'AdaptiveCard', $schema: 'http://adaptivecards.io/schemas/adaptive-card.json', version: '1.4',
+                            body: [
+                                { type: 'TextBlock', text: BRAND.attribution.toUpperCase(), weight: 'Bolder', size: 'Small', color: 'Accent' },
+                                { type: 'TextBlock', text, wrap: true },
+                            ] } }] }
+                        : { text: `${BRAND.attribution}: ${text}`, attachments: [{ color: BRAND.violet, blocks: [
+                            { type: 'context', elements: [{ type: 'mrkdwn', text: `*${BRAND.attribution}*` }] },
+                            { type: 'section', text: { type: 'mrkdwn', text } },
+                        ] }] };
                 const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                 const ok = res.ok || res.status === 202 || res.status === 204;
                 return Response.json({ success: ok, status: res.status }, { status: ok ? 200 : 502 });

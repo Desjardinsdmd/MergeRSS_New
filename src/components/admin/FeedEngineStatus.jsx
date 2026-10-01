@@ -11,12 +11,13 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { MicroLabel } from '@/components/brand/Brand';
 
 function LaneBadge({ status }) {
-  if (status === 'running') return <Badge className="bg-blue-900/30 text-blue-400 border-blue-700">Running</Badge>;
-  if (status === 'completed') return <Badge className="bg-green-900/30 text-green-400 border-green-700">Completed</Badge>;
-  if (status === 'failed') return <Badge className="bg-red-900/30 text-red-400 border-red-700">Failed</Badge>;
-  return <Badge className="bg-stone-800 text-stone-400">Idle</Badge>;
+  if (status === 'running') return <Badge className="rounded-md border px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wider shadow-none hover:bg-inherit border-sky-400/25 bg-sky-400/10 text-sky-300">Running</Badge>;
+  if (status === 'completed') return <Badge className="rounded-md border px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wider shadow-none hover:bg-inherit border-emerald-400/25 bg-emerald-400/10 text-emerald-300">Completed</Badge>;
+  if (status === 'failed') return <Badge className="rounded-md border px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wider shadow-none hover:bg-inherit border-red-400/25 bg-red-400/10 text-red-300">Failed</Badge>;
+  return <Badge className="rounded-md border px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wider shadow-none hover:bg-inherit border-white/10 bg-white/[0.03] text-stone-400">Idle</Badge>;
 }
 
 export default function FeedEngineStatus({ onRefresh }) {
@@ -70,26 +71,26 @@ export default function FeedEngineStatus({ onRefresh }) {
   };
 
   return (
-    <Card className="border-stone-800 bg-stone-900 mb-6">
+    <Card className="mb-6">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2 text-stone-200">
-            <Activity className="w-4 h-4 text-amber-400" />
-            Feed Engine Status
+          <CardTitle className="flex items-center gap-2 font-display text-lg font-semibold text-stone-100">
+            <Activity className="w-4 h-4 text-[#C4A5FD]" />
+            Source engine status
           </CardTitle>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => { refetch(); onRefresh?.(); }} className="text-stone-400">
+            <Button variant="ghost" size="sm" onClick={() => { refetch(); onRefresh?.(); }} className="rounded-xl text-stone-400 hover:bg-white/[0.05] hover:text-stone-100">
               <RefreshCw className="w-3.5 h-3.5 mr-1.5" /> Refresh
             </Button>
-            <Button
-              variant="outline" size="sm"
+            <button
+              type="button"
               onClick={handleTriggerRecovery}
               disabled={triggeringRecovery || !!activeLock}
-              className="text-stone-300"
+              className="btn-soft disabled:opacity-50"
             >
-              {triggeringRecovery ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5 mr-1.5" />}
-              Run Recovery
-            </Button>
+              {triggeringRecovery ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />}
+              Run recovery
+            </button>
           </div>
         </div>
       </CardHeader>
@@ -97,13 +98,13 @@ export default function FeedEngineStatus({ onRefresh }) {
 
         {/* Active Lock Banner */}
         {activeLock && (
-          <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-blue-950/40 border border-blue-800">
-            <Lock className="w-4 h-4 text-blue-400 flex-shrink-0" />
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-sky-400/10 border border-blue-800">
+            <Lock className="w-4 h-4 text-sky-400 flex-shrink-0" />
             <div className="min-w-0 flex-1">
-              <p className="text-blue-300 text-sm font-semibold">
+              <p className="text-sky-300 text-sm font-semibold">
                 {activeLock.job_type === 'feed_fetch' ? 'Main fetch' : 'Recovery'} run in progress
               </p>
-              <p className="text-blue-400/70 text-xs mt-0.5">
+              <p className="text-sky-400/70 text-xs mt-0.5">
                 Owner: <code className="font-mono">{activeLock.metadata?.instance_id || activeLock.id}</code>
                 {' · '}Started {formatDistanceToNow(new Date(activeLock.started_at), { addSuffix: true })}
                 {activeLock.metadata?.last_heartbeat_at && (
@@ -118,16 +119,16 @@ export default function FeedEngineStatus({ onRefresh }) {
         <div className="grid sm:grid-cols-2 gap-4">
 
           {/* Main Fetch Lane */}
-          <div className="rounded-lg border border-stone-800 bg-stone-950/40 p-4">
+          <div className="panel-raised p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <Rss className="w-4 h-4 text-amber-400" />
-                <span className="text-sm font-semibold text-stone-300">Main Fetch</span>
+                <Rss className="w-4 h-4 text-[#C4A5FD]" />
+                <span className="text-sm font-semibold text-stone-200">Main fetch</span>
               </div>
               <LaneBadge status={latestMainRun?.status} />
             </div>
             {latestMainRun ? (
-              <div className="space-y-1.5 text-xs text-stone-500">
+              <div className="space-y-1.5 font-mono text-[11px] text-stone-500">
                 <p>Started: <span className="text-stone-400">{format(new Date(latestMainRun.started_at), 'MMM d, h:mm:ss a')}</span></p>
                 {latestMainRun.completed_at && (
                   <p>Finished: <span className="text-stone-400">{format(new Date(latestMainRun.completed_at), 'h:mm:ss a')}</span>
@@ -137,16 +138,16 @@ export default function FeedEngineStatus({ onRefresh }) {
                 {latestMainRun.metadata && (
                   <div className="mt-2 grid grid-cols-3 gap-1.5">
                     {[
-                      { label: 'OK', val: latestMainRun.metadata.feeds_ok, color: 'text-green-400' },
+                      { label: 'OK', val: latestMainRun.metadata.feeds_ok, color: 'text-emerald-400' },
                       { label: 'Err', val: latestMainRun.metadata.feeds_error, color: 'text-red-400' },
                       { label: 'Paused', val: latestMainRun.metadata.feeds_auto_paused, color: 'text-stone-400' },
-                      { label: 'New Items', val: latestMainRun.metadata.new_items_total, color: 'text-amber-400' },
+                      { label: 'New stories', val: latestMainRun.metadata.new_items_total, color: 'text-[#C4A5FD]' },
                       { label: 'p50 lag', val: latestMainRun.metadata.p50_lag_min != null ? `${latestMainRun.metadata.p50_lag_min}m` : null, color: 'text-stone-400' },
                       { label: 'Instance', val: latestMainRun.metadata.instance_id?.slice(0, 12), color: 'text-stone-600' },
                     ].filter(i => i.val != null).map(item => (
-                      <div key={item.label} className="bg-stone-900 rounded px-2 py-1">
-                        <p className="text-[10px] text-stone-600">{item.label}</p>
-                        <p className={cn('font-semibold text-xs', item.color)}>{item.val}</p>
+                      <div key={item.label} className="rounded-lg bg-white/[0.03] px-2 py-1">
+                        <p className="font-mono text-[9.5px] uppercase tracking-wider text-stone-500">{item.label}</p>
+                        <p className={cn('font-mono font-semibold text-xs', item.color)}>{item.val}</p>
                       </div>
                     ))}
                   </div>
@@ -156,21 +157,21 @@ export default function FeedEngineStatus({ onRefresh }) {
                 )}
               </div>
             ) : (
-              <p className="text-xs text-stone-600">No runs recorded yet</p>
+              <p className="text-xs text-stone-500">No runs recorded yet</p>
             )}
           </div>
 
           {/* Recovery Lane */}
-          <div className="rounded-lg border border-stone-800 bg-stone-950/40 p-4">
+          <div className="panel-raised p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <RotateCcw className="w-4 h-4 text-blue-400" />
-                <span className="text-sm font-semibold text-stone-300">Recovery</span>
+                <RotateCcw className="w-4 h-4 text-sky-400" />
+                <span className="text-sm font-semibold text-stone-200">Recovery</span>
               </div>
               <LaneBadge status={latestRecoveryRun?.status} />
             </div>
             {latestRecoveryRun ? (
-              <div className="space-y-1.5 text-xs text-stone-500">
+              <div className="space-y-1.5 font-mono text-[11px] text-stone-500">
                 <p>Started: <span className="text-stone-400">{format(new Date(latestRecoveryRun.started_at), 'MMM d, h:mm:ss a')}</span></p>
                 {latestRecoveryRun.completed_at && (
                   <p>Finished: <span className="text-stone-400">{format(new Date(latestRecoveryRun.completed_at), 'h:mm:ss a')}</span></p>
@@ -178,14 +179,14 @@ export default function FeedEngineStatus({ onRefresh }) {
                 {latestRecoveryRun.metadata && (
                   <div className="mt-2 grid grid-cols-3 gap-1.5">
                     {[
-                      { label: 'Recovered', val: latestRecoveryRun.metadata.recovered, color: 'text-green-400' },
-                      { label: 'Re-paused', val: latestRecoveryRun.metadata.re_paused, color: 'text-amber-400' },
+                      { label: 'Recovered', val: latestRecoveryRun.metadata.recovered, color: 'text-emerald-400' },
+                      { label: 'Re-paused', val: latestRecoveryRun.metadata.re_paused, color: 'text-amber-300' },
                       { label: 'Escalated', val: latestRecoveryRun.metadata.escalated, color: 'text-red-400' },
                       { label: 'Eligible', val: latestRecoveryRun.metadata.total_paused_eligible, color: 'text-stone-400' },
                     ].filter(i => i.val != null).map(item => (
-                      <div key={item.label} className="bg-stone-900 rounded px-2 py-1">
-                        <p className="text-[10px] text-stone-600">{item.label}</p>
-                        <p className={cn('font-semibold text-xs', item.color)}>{item.val}</p>
+                      <div key={item.label} className="rounded-lg bg-white/[0.03] px-2 py-1">
+                        <p className="font-mono text-[9.5px] uppercase tracking-wider text-stone-500">{item.label}</p>
+                        <p className={cn('font-mono font-semibold text-xs', item.color)}>{item.val}</p>
                       </div>
                     ))}
                   </div>
@@ -195,7 +196,7 @@ export default function FeedEngineStatus({ onRefresh }) {
                 )}
               </div>
             ) : (
-              <p className="text-xs text-stone-600">No recovery runs yet</p>
+              <p className="text-xs text-stone-500">No recovery runs yet</p>
             )}
           </div>
         </div>
@@ -205,68 +206,68 @@ export default function FeedEngineStatus({ onRefresh }) {
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <PauseCircle className="w-4 h-4 text-stone-500" />
-              <span className="text-sm font-semibold text-stone-400">System-Paused Feeds ({pausedFeeds.length})</span>
+              <MicroLabel as="span">System-paused sources <span className="text-stone-300">({pausedFeeds.length})</span></MicroLabel>
             </div>
 
             {/* Escalated — needs human attention */}
             {escalatedFeeds.length > 0 && (
-              <div className="rounded-lg border border-red-800 bg-red-950/20 p-3 space-y-2">
-                <p className="text-xs font-semibold text-red-400 flex items-center gap-1.5">
+              <div className="rounded-xl border border-red-400/25 bg-red-400/10 p-3 space-y-2">
+                <p className="text-xs font-semibold text-red-300 flex items-center gap-1.5">
                   <AlertTriangle className="w-3.5 h-3.5" />
-                  {escalatedFeeds.length} escalated — recovery exhausted, needs manual review
+                  <span className="font-mono">{escalatedFeeds.length}</span> escalated. Recovery exhausted, needs manual review
                 </p>
                 {escalatedFeeds.slice(0, 5).map(f => (
                   <div key={f.id} className="flex items-start justify-between gap-2 text-xs">
                     <span className="text-stone-300 font-medium truncate">{f.name}</span>
-                    <span className="text-red-400/70 flex-shrink-0 text-[11px] truncate max-w-[200px]">{f.escalation_reason?.slice(0, 60)}</span>
+                    <span className="font-mono text-red-300/70 flex-shrink-0 text-[11px] truncate max-w-[200px]">{f.escalation_reason?.slice(0, 60)}</span>
                   </div>
                 ))}
-                {escalatedFeeds.length > 5 && <p className="text-xs text-stone-600">+{escalatedFeeds.length - 5} more</p>}
+                {escalatedFeeds.length > 5 && <p className="text-xs text-stone-500">+{escalatedFeeds.length - 5} more</p>}
               </div>
             )}
 
             {/* Retryable now */}
             {retryableFeeds.length > 0 && (
-              <div className="rounded-lg border border-amber-800/50 bg-amber-950/10 p-3 space-y-1.5">
-                <p className="text-xs font-semibold text-amber-400 flex items-center gap-1.5">
+              <div className="rounded-xl border border-amber-400/25 bg-amber-400/10 p-3 space-y-1.5">
+                <p className="text-xs font-semibold text-amber-300 flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5" />
-                  {retryableFeeds.length} past cooldown — eligible for next recovery run
+                  <span className="font-mono">{retryableFeeds.length}</span> past cooldown, eligible for the next recovery run
                 </p>
                 {retryableFeeds.slice(0, 4).map(f => (
                   <div key={f.id} className="flex items-center justify-between gap-2 text-xs">
                     <span className="text-stone-300 truncate">{f.name}</span>
-                    <span className="text-stone-600 flex-shrink-0">{f.consecutive_errors || 0} failures</span>
+                    <span className="font-mono text-[11px] text-stone-500 flex-shrink-0">{f.consecutive_errors || 0} failures</span>
                   </div>
                 ))}
-                {retryableFeeds.length > 4 && <p className="text-xs text-stone-600">+{retryableFeeds.length - 4} more</p>}
+                {retryableFeeds.length > 4 && <p className="text-xs text-stone-500">+{retryableFeeds.length - 4} more</p>}
               </div>
             )}
 
             {/* In cooldown */}
             {cooldownFeeds.length > 0 && (
-              <div className="rounded-lg border border-stone-800 bg-stone-950/30 p-3 space-y-1.5">
+              <div className="panel-raised p-3 space-y-1.5">
                 <p className="text-xs font-semibold text-stone-500 flex items-center gap-1.5">
                   <ShieldCheck className="w-3.5 h-3.5" />
-                  {cooldownFeeds.length} in cooldown
+                  <span className="font-mono">{cooldownFeeds.length}</span> in cooldown
                 </p>
                 {cooldownFeeds.slice(0, 4).map(f => (
                   <div key={f.id} className="flex items-center justify-between gap-2 text-xs">
                     <span className="text-stone-400 truncate">{f.name}</span>
-                    <span className="text-stone-600 flex-shrink-0">
+                    <span className="font-mono text-[11px] text-stone-500 flex-shrink-0">
                       retry {f.retry_after_at ? formatDistanceToNow(new Date(f.retry_after_at), { addSuffix: true }) : '—'}
                     </span>
                   </div>
                 ))}
-                {cooldownFeeds.length > 4 && <p className="text-xs text-stone-600">+{cooldownFeeds.length - 4} more</p>}
+                {cooldownFeeds.length > 4 && <p className="text-xs text-stone-500">+{cooldownFeeds.length - 4} more</p>}
               </div>
             )}
           </div>
         )}
 
         {pausedFeeds.length === 0 && (
-          <div className="flex items-center gap-2 text-xs text-green-400">
+          <div className="flex items-center gap-2 text-xs text-emerald-400">
             <CheckCircle2 className="w-3.5 h-3.5" />
-            No system-paused feeds — all sources healthy
+            No system-paused sources. All sources healthy
           </div>
         )}
       </CardContent>
