@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Loader2, Search, CheckCircle2, XCircle, Plus, Sparkles } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
@@ -45,9 +44,9 @@ export default function RssCrawler() {
       });
       setResults(res.data);
       if (!dryRun && res.data?.added > 0) {
-        toast.success(`Added ${res.data.added} new feeds to the directory!`);
+        toast.success(`Added ${res.data.added} new sources to the directory`);
       } else if (dryRun) {
-        toast.success(`Found ${res.data?.validated || 0} valid feeds — toggle off dry run to save them`);
+        toast.success(`Found ${res.data?.validated || 0} valid sources. Turn off dry run to save them`);
       }
     } catch (e) {
       toast.error('Discovery failed: ' + e.message);
@@ -57,20 +56,20 @@ export default function RssCrawler() {
   };
 
   return (
-    <Card className="border-[hsl(var(--primary))]/30 bg-gradient-to-br from-[hsl(var(--primary))]/10 to-stone-900">
+    <Card className="panel-accent">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center gap-2 text-stone-200">
-          <Sparkles className="w-4 h-4 text-[hsl(var(--primary))]" />
-          AI-Powered RSS Discovery
+        <CardTitle className="flex items-center gap-2 font-display text-base font-semibold text-stone-100">
+          <Sparkles className="w-4 h-4 text-[#C4A5FD]" />
+          AI source discovery
         </CardTitle>
         <CardDescription className="text-xs text-stone-500">
-          Search the internet for popular RSS feeds on any topic and add them to the directory automatically
+          Search the web for popular RSS feeds on any topic and add them to the source directory.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Quick queries */}
          <div>
-           <p className="text-xs font-medium text-stone-500 mb-2">Quick searches:</p>
+           <p className="micro-label mb-2">Quick searches</p>
            <div className="flex flex-wrap gap-2">
              {QUICK_QUERIES.map(q => (
                <button
@@ -79,7 +78,7 @@ export default function RssCrawler() {
                    setQuery(q.query);
                    setCategory(q.category);
                  }}
-                 className="px-2.5 py-1 rounded-full border border-[hsl(var(--primary))]/30 text-xs text-[hsl(var(--primary))] bg-stone-800 hover:bg-stone-700 transition"
+                 className="chip-brand border border-[hsl(var(--brand)/0.3)] px-2 py-1 transition hover:bg-[hsl(var(--brand)/0.24)]"
                >
                 {q.label}
               </button>
@@ -90,19 +89,19 @@ export default function RssCrawler() {
         {/* Input row */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="sm:col-span-2">
-            <Label className="text-xs text-stone-300">Search Topic</Label>
+            <Label className="block font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-stone-500">Search topic</Label>
             <Input
               placeholder='e.g. "climate change science" or "day trading stocks"'
               value={query}
               onChange={e => setQuery(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && runSearch()}
-              className="mt-1 text-sm rounded-lg bg-stone-800 border-stone-700 text-stone-100 placeholder-stone-600"
+              className="mt-1.5 text-sm rounded-xl border-white/10 bg-stone-800 text-stone-100"
             />
           </div>
           <div>
-            <Label className="text-xs text-stone-300">Category</Label>
+            <Label className="block font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-stone-500">Category</Label>
             <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger className="mt-1 text-sm h-9 rounded-lg bg-stone-800 border-stone-700 text-stone-100">
+              <SelectTrigger className="mt-1.5 text-sm h-10 rounded-xl border-white/10 bg-stone-800 text-stone-100">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -123,45 +122,46 @@ export default function RssCrawler() {
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Switch checked={dryRun} onCheckedChange={setDryRun} />
-            <span className="text-xs text-stone-500">
+            <span className="font-mono text-[11px] text-stone-500">
               {dryRun ? 'Dry run (preview only)' : 'Live (saves to directory)'}
             </span>
           </div>
-          <Button
+          <button
+            type="button"
             onClick={() => runSearch()}
             disabled={loading || !query.trim()}
-            className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold"
+            className="btn-brand disabled:opacity-50"
           >
             {loading
-              ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Searching...</>
-              : <><Search className="w-4 h-4 mr-2" />Discover Feeds</>
+              ? <><Loader2 className="w-4 h-4 animate-spin" />Searching...</>
+              : <><Search className="w-4 h-4" />Discover sources</>
             }
-          </Button>
+          </button>
         </div>
 
         {/* Results */}
         {results && (
-          <div className="border-t border-stone-800 pt-4 space-y-3">
+          <div className="border-t border-white/[0.07] pt-4 space-y-3">
             {/* Summary */}
             <div className="flex flex-wrap gap-2 text-xs">
-              <Badge className="bg-[hsl(var(--primary))]/20 text-[hsl(var(--primary))]">
+              <Badge className="rounded-md border px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wider shadow-none hover:bg-inherit border-[hsl(var(--brand)/0.3)] bg-[hsl(var(--brand)/0.14)] text-[#C4A5FD]">
                 {results.discovered} discovered
               </Badge>
-              <Badge className="bg-green-900/30 text-green-400">
+              <Badge className="rounded-md border px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wider shadow-none hover:bg-inherit border-emerald-400/25 bg-emerald-400/10 text-emerald-300">
                 {results.validated} valid
               </Badge>
               {!dryRun && results.added > 0 && (
-                <Badge className="bg-emerald-900/30 text-emerald-400">
+                <Badge className="rounded-md border px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wider shadow-none hover:bg-inherit border-emerald-400/25 bg-emerald-400/10 text-emerald-300">
                   {results.added} added to directory
                 </Badge>
               )}
               {results.skipped > 0 && (
-                <Badge variant="outline" className="border-stone-700 text-stone-400">
+                <Badge variant="outline" className="rounded-md border px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wider shadow-none hover:bg-inherit border-white/10 bg-white/[0.03] text-stone-400">
                   {results.skipped} duplicates skipped
                 </Badge>
               )}
               {results.failed > 0 && (
-                <Badge className="bg-red-900/30 text-red-400">
+                <Badge className="rounded-md border px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wider shadow-none hover:bg-inherit border-red-400/25 bg-red-400/10 text-red-300">
                   {results.failed} unreachable
                 </Badge>
               )}
@@ -170,35 +170,35 @@ export default function RssCrawler() {
             {/* Validated feeds */}
             {results.validated_feeds?.length > 0 && (
               <div>
-                <p className="text-xs font-semibold text-green-400 mb-2 flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> Valid feeds {dryRun ? '(not saved yet)' : '(saved!)'}
+                <p className="text-xs font-semibold text-emerald-300 mb-2 flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Valid sources {dryRun ? '(not saved yet)' : '(saved)'}
                 </p>
                 <div className="space-y-1.5 max-h-60 overflow-y-auto pr-1">
                   {results.validated_feeds.map((f, i) => (
-                    <div key={i} className="flex items-start justify-between px-3 py-2 bg-green-900/20 rounded-lg gap-2">
+                    <div key={i} className="flex items-start justify-between px-3 py-2 rounded-xl border border-emerald-400/15 bg-emerald-400/[0.06] gap-2">
                       <div className="min-w-0 flex-1">
                         <p className="text-xs font-medium text-stone-200">{f.name}</p>
-                        <p className="text-[10px] text-stone-500 truncate">{f.url}</p>
-                        {f.description && <p className="text-[10px] text-stone-600 mt-0.5 line-clamp-1">{f.description}</p>}
+                        <p className="font-mono text-[10px] text-stone-500 truncate">{f.url}</p>
+                        {f.description && <p className="text-[10px] text-stone-500 mt-0.5 line-clamp-1">{f.description}</p>}
                       </div>
                       <div className="flex flex-wrap gap-1 flex-shrink-0">
                         {f.tags?.slice(0, 2).map(t => (
-                          <Badge key={t} variant="outline" className="text-[9px] py-0">{t}</Badge>
+                          <span key={t} className="chip-neutral text-[9px]">{t}</span>
                         ))}
                       </div>
                     </div>
                   ))}
                 </div>
                 {dryRun && results.validated_feeds.length > 0 && (
-                  <Button
+                  <button
+                    type="button"
                     onClick={() => runSearch(query, category)}
-                    size="sm"
-                    className="mt-2 w-full text-xs bg-green-900/20 border border-green-700 text-green-400 hover:bg-green-900/30"
+                    className="btn-soft mt-2 w-full text-xs disabled:opacity-50"
                     disabled={loading}
                   >
-                    <Plus className="w-3.5 h-3.5 mr-1" />
-                    Save {results.validated_feeds.length} feeds to directory (turn off dry run)
-                  </Button>
+                    <Plus className="w-3.5 h-3.5" />
+                    Save {results.validated_feeds.length} sources to directory (turn off dry run)
+                  </button>
                 )}
               </div>
             )}
@@ -206,14 +206,14 @@ export default function RssCrawler() {
             {/* Failed feeds */}
             {results.failed_feeds?.length > 0 && (
               <div>
-                <p className="text-xs font-semibold text-red-400 mb-2 flex items-center gap-1">
+                <p className="text-xs font-semibold text-red-300 mb-2 flex items-center gap-1">
                   <XCircle className="w-3.5 h-3.5" /> Unreachable (not added)
                 </p>
                 <div className="space-y-1 max-h-32 overflow-y-auto pr-1">
                   {results.failed_feeds.map((f, i) => (
-                    <div key={i} className="flex items-center justify-between px-3 py-1.5 bg-red-900/20 rounded-lg gap-2">
+                    <div key={i} className="flex items-center justify-between px-3 py-1.5 rounded-xl border border-red-400/15 bg-red-400/[0.06] gap-2">
                       <p className="text-xs text-stone-500 truncate">{f.name}</p>
-                      <span className="text-[10px] text-red-400 flex-shrink-0">{f.reason}</span>
+                      <span className="font-mono text-[10px] text-red-300 flex-shrink-0">{f.reason}</span>
                     </div>
                   ))}
                 </div>

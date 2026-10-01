@@ -12,7 +12,7 @@ import { updateAndGetEvolution, recordInteraction, getInteractionScore } from '.
 import { queryArticles } from '@/api/articles';
 
 const TAG_CONFIG = {
-    Trending:    { textClass: 'text-blue-400',    icon: TrendingUp },
+    Trending:    { textClass: 'text-sky-400',     icon: TrendingUp },
     Risk:        { textClass: 'text-red-400',     icon: AlertTriangle },
     Opportunity: { textClass: 'text-emerald-400', icon: Lightbulb },
     Neutral:     { textClass: 'text-stone-500',   icon: Minus },
@@ -190,61 +190,55 @@ function BriefingCard({ item, idx, feedMap, expanded, onToggle, totalCount }) {
             onClick={() => onToggle(item.id)}
             className={[
                 'cursor-pointer transition-colors',
-                isReadFirst ? 'px-5 py-5' : isSkim ? 'px-5 py-3 opacity-60' : 'px-5 py-4 opacity-90',
+                isReadFirst ? 'px-5 py-5' : isSkim ? 'px-5 py-3 opacity-70' : 'px-5 py-4',
                 isReadFirst
-                    ? 'border-l-[4px] border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/[0.06] hover:bg-[hsl(var(--primary))]/[0.09]'
-                    : idx === 1
-                    ? 'border-l-[2px] border-stone-600 hover:bg-stone-800/40'
-                    : idx === 2
-                    ? 'border-l border-stone-700/50 hover:bg-stone-800/30'
-                    : 'hover:bg-stone-800/20',
+                    ? 'bg-[hsl(var(--primary)/0.06)] hover:bg-[hsl(var(--primary)/0.09)]'
+                    : 'hover:bg-white/[0.03]',
             ].join(' ')}
         >
             <div className="flex items-start gap-3">
                 {/* Index number — dominance decreases by position */}
                 <span className={[
-                    'flex-shrink-0 leading-none mt-0.5 tabular-nums',
-                    isReadFirst ? 'text-2xl font-black w-7' : idx === 1 ? 'text-lg font-black w-6' : 'text-base font-bold w-6',
-                    idx === 0 ? 'text-[hsl(var(--primary))]' : idx === 1 ? 'text-stone-500' : 'text-stone-700',
-                ].join(' ')}>{idx + 1}</span>
+                    'mt-0.5 w-8 flex-shrink-0 font-display text-[28px] font-semibold leading-none tabular-nums',
+                    idx === 0 ? 'text-[hsl(var(--primary))]' : 'text-stone-500',
+                ].join(' ')} aria-hidden="true">{String(idx + 1).padStart(2, '0')}</span>
 
                 <div className="flex-1 min-w-0">
                     {/* Badge row */}
                     <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
                         {isReadFirst && (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-black text-stone-900 bg-[hsl(var(--primary))] px-2 py-0.5 tracking-wider uppercase">
-                                <Flame className="w-2.5 h-2.5" /> Read First
+                            <span className="inline-flex items-center gap-1 rounded-md bg-[hsl(var(--primary))] px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-white">
+                                <Flame className="w-2.5 h-2.5" aria-hidden="true" /> Read first
                             </span>
                         )}
                         {isSkim && (
-                            <span className="text-[10px] font-semibold text-stone-700 border border-stone-800 px-1.5 py-0.5 uppercase tracking-wider">
+                            <span className="chip-neutral uppercase tracking-wider">
                                 Skim
                             </span>
                         )}
                         {!isReadFirst && !isSkim && (
-                            <span className={`text-[10px] font-bold px-2 py-0.5 border ${decision.style}`}>
+                            <span className={`text-[10px] font-semibold px-2 py-0.5 border ${decision.style}`}>
                                 {decision.label}
                             </span>
                         )}
                         {urgency && (
-                            <span className={`text-[10px] font-bold px-1.5 py-0.5 ${
-                                urgency === 'Now Confirmed' ? 'text-emerald-400 border border-emerald-800/50 bg-emerald-950/30' :
-                                urgency === 'Escalating'   ? 'text-red-400 border border-red-800/50 bg-red-950/30' :
-                                                             'text-amber-400 border border-amber-800/50 bg-amber-950/30'
+                            <span className={`rounded-md border px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider ${
+                                urgency === 'Now Confirmed' ? 'border-emerald-400/25 bg-emerald-400/10 text-emerald-300' :
+                                urgency === 'Escalating'   ? 'border-red-400/25 bg-red-400/10 text-red-300' :
+                                                             'border-sky-400/25 bg-sky-400/10 text-sky-300'
                             }`}>{urgency}</span>
                         )}
-                        <div className="ml-auto flex items-center gap-1.5 opacity-25">
-                            {evolution.lifecycle && <span className="text-[9px] text-stone-600">{evolution.lifecycle}</span>}
+                        <div className="ml-auto flex items-center gap-1.5">
+                            {evolution.lifecycle && <span className="meta text-stone-600">{evolution.lifecycle}</span>}
                         </div>
                     </div>
 
                     {/* Headline — weight drops with position */}
                     <h3 className={[
-                        'leading-snug mb-1.5',
-                        isReadFirst ? 'text-[1rem] font-black text-white' :
-                        idx === 1   ? 'text-[0.9rem] font-bold text-stone-100' :
-                        idx === 2   ? 'text-sm font-semibold text-stone-200' :
-                                      'text-sm font-medium text-stone-400',
+                        'mb-1.5 font-sans font-semibold leading-snug tracking-normal',
+                        isReadFirst ? 'text-[17px] text-stone-100' :
+                        isSkim      ? 'text-sm text-stone-300' :
+                                      'text-[15px] text-stone-100',
                     ].join(' ')}>{decodeHtml(item.title)}</h3>
 
                     {/* Decisive insight */}
@@ -254,61 +248,63 @@ function BriefingCard({ item, idx, feedMap, expanded, onToggle, totalCount }) {
 
                     {/* Why this matters — #1 only, short and direct */}
                     {whyItMatters && (
-                        <p className="text-[11px] text-stone-300 mb-2 border-l-2 border-[hsl(var(--primary))]/60 pl-2.5 leading-snug">
-                            <span className="text-[hsl(var(--primary))]/70 font-bold text-[10px] uppercase tracking-wider">Why this matters · </span>
+                        <p className="mb-2 text-[13px] leading-snug text-stone-300">
+                            <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[#C4A5FD]">Why this matters · </span>
                             {whyItMatters}
                         </p>
                     )}
 
                     {/* Forward implication — top 2–3 items */}
                     {forwardImplication && (
-                        <p className="text-[11px] text-stone-500 mb-2 leading-snug line-clamp-1">
+                        <p className="mb-2 line-clamp-1 text-[13px] leading-snug text-stone-400">
                             → {forwardImplication}
                         </p>
                     )}
 
                     {/* Bottom line — #1 only, bold summary */}
                     {bottomLine && (
-                        <p className="text-[11px] font-black text-[hsl(var(--primary))]/80 mb-2 uppercase tracking-wide">
+                        <p className="mb-2 font-mono text-[11px] font-semibold uppercase tracking-wide text-[#C4A5FD]">
                             Bottom line: {bottomLine}
                         </p>
                     )}
 
                     {/* Meta row */}
                     <div className="flex items-center gap-2 flex-wrap">
-                        <span className={`inline-flex items-center gap-1 text-[10px] ${confidence.class}`}>
+                        <span className={`inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider ${confidence.class}`}>
                             <span className={`w-1.5 h-1.5 rounded-full inline-block ${confidence.dot}`} />
                             {confidence.label}
                         </span>
                         {clusterSize > 1 && (
-                            <span className="text-[10px] text-emerald-400 font-semibold">↑ {clusterSize} sources</span>
+                            <span className="font-mono text-[10px] font-semibold text-emerald-400">↑ {clusterSize} sources</span>
                         )}
-                        <span className="text-xs text-stone-600 ml-auto truncate">
+                        <span className="meta ml-auto truncate">
                             {source?.name}{item.published_date && <> · {formatDistanceToNow(new Date(item.published_date), { addSuffix: true })}</>}
                         </span>
                     </div>
 
                     {/* Expanded */}
                     {isOpen && (
-                        <div className="mt-3 pt-3 border-t border-stone-800">
+                        <div className="mt-3 border-t border-white/[0.07] pt-3">
                             <a
                                 href={safeUrl(item.url)}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 onClick={e => { e.stopPropagation(); recordInteraction(item.title, 'click'); }}
-                                className="inline-flex items-center gap-1 text-xs text-[hsl(var(--primary))] hover:opacity-80 transition font-medium"
+                                className="inline-flex items-center gap-1 text-xs font-medium text-[#C4A5FD] transition hover:opacity-80"
                             >
-                                Read full article <ExternalLink className="w-3 h-3" />
+                                Read full story <ExternalLink className="w-3 h-3" />
                             </a>
                             {clusterSize > 1 && (
-                                <span className="text-xs text-stone-600 ml-3">{clusterSize} sources covering this</span>
+                                <span className="meta ml-3">{clusterSize} sources covering this</span>
                             )}
                         </div>
                     )}
                 </div>
 
                 <button
-                    className="text-stone-700 hover:text-stone-400 transition flex-shrink-0 mt-1"
+                    className="mt-1 flex-shrink-0 rounded-lg text-stone-500 transition hover:text-stone-300"
+                    aria-label={isOpen ? 'Collapse story' : 'Expand story'}
+                    aria-expanded={isOpen}
                     onClick={e => { e.stopPropagation(); onToggle(item.id); }}
                 >
                     {isOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -382,12 +378,12 @@ export default function TopFiveToday({ feedIds, feeds, onItemsLoaded }) {
     });
 
     if (isLoading) return (
-        <div className="bg-stone-900 border border-stone-800 p-5">
-            <div className="flex items-center gap-2 mb-4">
-                <Zap className="w-4 h-4 text-[hsl(var(--primary))]" />
-                <span className="text-sm font-semibold text-stone-300 uppercase tracking-wider">Today's Briefing</span>
+        <div className="panel p-5">
+            <div className="mb-4 flex items-center gap-2">
+                <Zap className="w-4 h-4 text-[hsl(var(--primary))]" aria-hidden="true" />
+                <span className="font-display text-lg font-semibold text-stone-100">Today's briefing</span>
             </div>
-            <div className="flex items-center gap-2 text-stone-600 text-sm py-4">
+            <div className="flex items-center gap-2 py-4 text-sm text-stone-500">
                 <Loader2 className="w-4 h-4 animate-spin" /> Ranking intelligence…
             </div>
         </div>
@@ -396,13 +392,13 @@ export default function TopFiveToday({ feedIds, feeds, onItemsLoaded }) {
     if (!items.length) return null;
 
     return (
-        <div className="bg-stone-900 border border-stone-800">
-            <div className="flex items-center gap-2 px-5 py-4 border-b border-stone-800">
-                <Zap className="w-4 h-4 text-[hsl(var(--primary))]" />
-                <h2 className="text-sm font-semibold text-stone-300 uppercase tracking-wider">Today's Briefing</h2>
-                <span className="text-xs text-stone-600 ml-auto">{items.length} high-signal {items.length === 1 ? 'story' : 'stories'}</span>
+        <div className="panel overflow-hidden">
+            <div className="flex items-center gap-2 border-b border-white/[0.07] px-5 py-4">
+                <Zap className="w-4 h-4 text-[hsl(var(--primary))]" aria-hidden="true" />
+                <h2 className="font-display text-lg font-semibold text-stone-100">Today's briefing</h2>
+                <span className="meta ml-auto">{items.length} high-signal {items.length === 1 ? 'story' : 'stories'}</span>
             </div>
-            <div className="divide-y divide-stone-800/80">
+            <div className="divide-y divide-white/[0.05]">
                 {items.map((item, idx) => (
                     <BriefingCard
                         key={item.id}
