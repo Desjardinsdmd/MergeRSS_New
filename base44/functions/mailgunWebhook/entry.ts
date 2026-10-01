@@ -64,7 +64,9 @@ async function relayAdminMail(formData, headers, adminAddress, domain) {
   form.append('subject', `[${adminAddress.split('@')[0]}@] ${subject}`);
   if (fromRaw) form.append('h:Reply-To', fromRaw);
   form.append('text', `${note}\n\n${text}`);
-  if (html) form.append('html', `<p style="font-family:sans-serif;font-size:12px;color:#666">${note.replace(/</g, '&lt;')}</p><hr>${html}`);
+  // Brand v3 relay banner (palette from lib/brand.ts); the original HTML follows untouched.
+  const noteEsc = note.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  if (html) form.append('html', `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#17151F" style="background:#17151F;border-left:3px solid #9B5CF6;"><tr><td style="padding:10px 14px;font:500 11px/1.5 'JetBrains Mono','SFMono-Regular',Consolas,monospace;color:#C9C5D4;"><span style="color:#9B5CF6;letter-spacing:0.12em;text-transform:uppercase;">MergeRSS relay</span>&nbsp;&nbsp;${noteEsc}</td></tr></table>${html}`);
 
   const res = await fetch(`${apiBase}/v3/${domain}/messages`, {
     method: 'POST',
