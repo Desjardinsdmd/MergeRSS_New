@@ -13,7 +13,6 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import PremiumGate from '@/components/publications/PremiumGate';
 import PublicationForm from '@/components/publications/PublicationForm';
 import CandidatePipeline from '@/components/publications/CandidatePipeline';
 
