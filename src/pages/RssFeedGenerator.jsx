@@ -7,8 +7,7 @@ import {
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { PageHeader } from '@/components/brand/Brand';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -102,7 +101,7 @@ export default function RssFeedGenerator() {
     const handleDelete = async (feedId) => {
         await base44.entities.GeneratedFeed.delete(feedId);
         refetchMyFeeds();
-        toast.success('Feed removed');
+        toast.success('RSS feed removed');
         setDeletingFeedId(null);
     };
 
@@ -130,28 +129,23 @@ export default function RssFeedGenerator() {
     return (
         <div className="p-6 lg:p-8 max-w-3xl mx-auto">
             {/* Header */}
-            <div className="mb-8">
-                <div className="flex items-center gap-3 mb-2">
-                    <div className="w-9 h-9 bg-[hsl(var(--primary))] rounded-lg flex items-center justify-center flex-shrink-0">
-                        <Rss className="w-5 h-5 text-stone-900" />
-                    </div>
-                    <h1 className="text-2xl font-bold text-stone-100">RSS Feed Generator</h1>
-                </div>
-                <p className="text-stone-500 text-sm leading-relaxed">
-                    Paste any public website URL and we'll discover or generate an RSS feed. Supports auto-detection of existing feeds, scraping for sites without one, and social platform guidance.
-                </p>
-            </div>
+            <PageHeader
+                eyebrow={<span className="inline-flex items-center gap-1.5"><Rss className="h-3 w-3" aria-hidden="true" />Tools</span>}
+                title="RSS feed generator"
+                subtitle="Paste any public website URL and we'll discover or generate an RSS feed. Existing RSS feeds are auto-detected, sites without one are scraped, and social platforms get guidance."
+            />
 
             {/* URL Input Form */}
-            <Card className="border-stone-800 bg-stone-900 mb-5">
-                <CardContent className="pt-5">
+            <div className="panel mb-5">
+                <div className="p-5">
                     <form onSubmit={handleGenerate} className="space-y-3">
                         <div className="flex gap-2">
                             <div className="relative flex-1">
-                                <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-600" />
+                                <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500" aria-hidden="true" />
                                 <Input
-                                    className="pl-9 text-sm bg-stone-800 border-stone-700 text-stone-100 placeholder-stone-600"
+                                    className="rounded-xl pl-9 font-mono text-[13px]"
                                     placeholder="https://example.com/blog"
+                                    aria-label="Website URL"
                                     value={url}
                                     onChange={e => setUrl(e.target.value)}
                                     required
@@ -160,13 +154,13 @@ export default function RssFeedGenerator() {
                         </div>
                         <div className="flex flex-col sm:flex-row gap-2">
                             <Select value={feedType} onValueChange={setFeedType}>
-                                <SelectTrigger className="text-sm w-full sm:flex-1">
-                                    <SelectValue placeholder="Feed type" />
+                                <SelectTrigger className="w-full rounded-xl text-sm sm:flex-1">
+                                    <SelectValue placeholder="Source type" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="auto">🔍 Auto-detect (recommended)</SelectItem>
                                     <SelectItem value="page">📄 Website page → RSS</SelectItem>
-                                    <SelectItem value="domain">🌐 Website domain → find existing feed</SelectItem>
+                                        <SelectItem value="domain">🌐 Website domain → find existing RSS feed</SelectItem>
                                     <SelectItem value="social_profile">👤 Social profile</SelectItem>
                                     <SelectItem value="social_page">📣 Social page / group</SelectItem>
                                     <SelectItem value="social_post">🧵 Social post / thread</SelectItem>
@@ -175,33 +169,31 @@ export default function RssFeedGenerator() {
                             <Button
                                 type="submit"
                                 disabled={loading || !url.trim()}
-                                className="btn-brand font-semibold gap-2 w-full sm:w-auto flex-shrink-0"
+                                className="btn-brand w-full flex-shrink-0 gap-2 sm:w-auto"
                             >
                                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
-                                {loading ? 'Generating…' : 'Generate Feed'}
+                                {loading ? 'Generating…' : 'Generate RSS feed'}
                             </Button>
                         </div>
 
                         <AdvancedOptions options={options} onChange={setOptions} />
 
                         <div className="flex items-start gap-2 text-xs text-stone-500">
-                            <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+                            <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" aria-hidden="true" />
                             <span>
-                                We first check for a native RSS/Atom feed. If none exists, we extract article links as a static snapshot.
+                                We first check for a native RSS/Atom feed. If none exists, we extract story links as a static snapshot.
                                 Social platforms (Twitter, Instagram, LinkedIn) require API access.
                             </span>
                         </div>
                     </form>
-                </CardContent>
-            </Card>
+                </div>
+            </div>
 
             {/* Progress Steps */}
             {loading && (
-                <Card className="border-stone-800 bg-stone-900 mb-5">
-                    <CardContent className="pt-5">
-                        <GenerateProgress step={progressStep} />
-                    </CardContent>
-                </Card>
+                <div className="panel mb-5 p-5">
+                    <GenerateProgress step={progressStep} />
+                </div>
             )}
 
             {/* Error State */}
@@ -214,18 +206,18 @@ export default function RssFeedGenerator() {
                              platform={error.social_platform}
                          />
                      ) : (
-                         <div className="p-4 bg-red-900/20 border border-red-700 rounded-xl">
+                         <div className="rounded-xl border border-red-400/25 bg-red-400/10 p-4" role="alert">
                              <div className="flex items-start gap-3">
-                                 <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                                 <AlertCircle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" aria-hidden="true" />
                                  <div className="space-y-3 flex-1">
                                      <div>
-                                         <p className="text-sm font-medium text-red-400">{error.message}</p>
-                                         <p className="text-xs text-red-300 mt-1">This generation does not count toward your quota.</p>
+                                         <p className="text-sm font-medium text-red-300">{error.message}</p>
+                                         <p className="text-xs text-red-300/80 mt-1">This generation does not count toward your quota.</p>
                                      </div>
                                      {error.suggestions?.length > 0 && (
                                          <div>
-                                             <p className="text-xs text-red-300 font-medium mb-1">Suggestions:</p>
-                                             <ul className="text-xs text-red-400 space-y-1">
+                                             <p className="micro-label mb-1 text-red-300/80">Suggestions</p>
+                                             <ul className="text-xs text-red-300 space-y-1">
                                                  {error.suggestions.map((s, i) => (
                                                      <li key={i} className="flex items-start gap-1.5">
                                                          <span className="text-red-400 flex-shrink-0">→</span>
@@ -239,7 +231,7 @@ export default function RssFeedGenerator() {
                                          <Button
                                              size="sm"
                                              onClick={() => handleGenerate()}
-                                             className="btn-brand font-medium text-xs gap-1.5"
+                                             className="btn-soft h-auto gap-1.5 text-xs"
                                          >
                                              <RefreshCw className="w-3 h-3" />
                                              Retry
@@ -247,7 +239,7 @@ export default function RssFeedGenerator() {
                                          <Button
                                              size="sm"
                                              variant="outline"
-                                             className="text-xs"
+                                             className="btn-ghost h-auto text-xs"
                                              onClick={() => setError(null)}
                                          >
                                              Dismiss
@@ -276,9 +268,9 @@ export default function RssFeedGenerator() {
             {/* My Generated Feeds */}
              {myFeeds.length > 0 && (
                  <div className="mt-8">
-                     <h2 className="text-base font-semibold text-stone-200 mb-3">
-                         Your Generated Feeds
-                         <span className="ml-2 text-xs text-stone-500 font-normal">
+                     <h2 className="mb-3 font-display text-lg font-semibold text-stone-100">
+                         Your generated RSS feeds
+                         <span className="ml-2 font-mono text-xs font-normal text-stone-500">
                              {myFeeds.filter(f => !f.last_error).length} active / {myFeeds.length} total
                          </span>
                      </h2>
@@ -286,31 +278,31 @@ export default function RssFeedGenerator() {
                          {myFeeds.map(feed => {
                              const hasFailed = feed.last_error || feed.is_disabled;
                              return (
-                             <Card key={feed.id} className={cn(
-                                 "border-stone-800 bg-stone-900 transition-opacity",
-                                 hasFailed && "border-red-900/50 bg-red-950/30"
+                             <div key={feed.id} className={cn(
+                                 "panel transition-opacity",
+                                 hasFailed && "border-red-400/25 bg-red-400/[0.05]"
                              )}>
-                                 <CardContent className="p-4">
+                                 <div className="p-4">
                                      <div className="flex items-start justify-between gap-3">
                                          <div className="flex-1 min-w-0">
                                              <div className="flex flex-wrap items-center gap-2 mb-1">
-                                                 <p className={cn("text-sm font-medium truncate", hasFailed ? "text-red-400" : "text-stone-200")}>
+                                                 <p className={cn("truncate text-sm font-semibold", hasFailed ? "text-red-300" : "text-stone-100")}>
                                                      {feed.title || feed.source_url}
                                                  </p>
                                                  {feed.is_native_feed
-                                                     ? <Badge className="bg-green-900/30 text-green-400 border-0 text-xs">Live RSS</Badge>
-                                                     : <Badge className="bg-amber-900/30 text-amber-400 border-0 text-xs">Scraped</Badge>
+                                                     ? <span className="chip border border-emerald-400/25 bg-emerald-400/10 text-emerald-300">Live RSS</span>
+                                                     : <span className="chip-neutral">Scraped</span>
                                                  }
-                                                 {feed.last_error && <Badge className="bg-red-900/30 text-red-400 border-0 text-xs">Error</Badge>}
-                                                 {feed.is_disabled && <Badge className="bg-stone-800 text-stone-500 border-0 text-xs">Disabled</Badge>}
+                                                 {feed.last_error && <span className="chip border border-red-400/25 bg-red-400/10 text-red-300">Error</span>}
+                                                 {feed.is_disabled && <span className="chip border border-amber-400/25 bg-amber-400/10 text-amber-300">Disabled</span>}
                                              </div>
-                                             <p className="text-xs text-stone-600 truncate">{feed.source_url}</p>
+                                             <p className="truncate font-mono text-[11px] text-stone-500">{feed.source_url}</p>
                                              {feed.last_error ? (
-                                                 <p className="text-xs text-red-400 mt-1.5 leading-relaxed">
+                                                 <p className="text-xs text-red-300 mt-1.5 leading-relaxed">
                                                      <strong>Error:</strong> {feed.last_error}
                                                  </p>
                                              ) : feed.last_success ? (
-                                                 <p className="text-xs text-stone-600 mt-0.5">
+                                                 <p className="meta mt-0.5">
                                                      Last success: {format(new Date(feed.last_success), 'MMM d, h:mm a')}
                                                  </p>
                                              ) : null}
@@ -319,10 +311,10 @@ export default function RssFeedGenerator() {
                                              {hasFailed && (
                                                  <Button
                                                      variant="ghost" size="icon"
-                                                     className="h-8 w-8 text-orange-600 hover:text-orange-400"
+                                                     className="h-8 w-8 rounded-lg text-[#C4A5FD] hover:text-[#D9C7FE]"
                                                      title="Retry generation"
                                                      onClick={() => handleRetry(feed)}
-                                                     aria-label="Retry feed generation"
+                                                     aria-label="Retry RSS feed generation"
                                                  >
                                                      <RefreshCw className="w-3.5 h-3.5" />
                                                  </Button>
@@ -330,30 +322,30 @@ export default function RssFeedGenerator() {
                                              <Button
                                                  variant="ghost" size="icon"
                                                  className={cn(
-                                                     "h-8 w-8",
-                                                     hasFailed ? "text-red-600 hover:text-red-400" : "text-stone-600 hover:text-red-400"
+                                                     "h-8 w-8 rounded-lg",
+                                                     hasFailed ? "text-red-400 hover:text-red-300" : "text-stone-500 hover:text-red-400"
                                                  )}
-                                                 title={hasFailed ? "Remove error feed" : "Delete"}
+                                                 title={hasFailed ? "Remove failed RSS feed" : "Delete"}
                                                  onClick={() => setDeletingFeedId(feed.id)}
-                                                 aria-label={hasFailed ? "Remove error feed" : "Delete feed"}
+                                                 aria-label={hasFailed ? "Remove failed RSS feed" : "Delete RSS feed"}
                                              >
                                                  <Trash2 className="w-3.5 h-3.5" />
                                              </Button>
                                              {!hasFailed && (
                                                  <Button
                                                      variant="ghost" size="icon"
-                                                     className="h-8 w-8 text-stone-600 hover:text-[hsl(var(--primary))]"
+                                                     className="h-8 w-8 rounded-lg text-stone-500 hover:text-[#C4A5FD]"
                                                      title="Regenerate"
                                                      onClick={() => handleRegenerate(feed)}
-                                                     aria-label="Regenerate feed"
+                                                     aria-label="Regenerate RSS feed"
                                                  >
                                                      <RefreshCw className="w-3.5 h-3.5" />
                                                  </Button>
                                              )}
                                          </div>
                                      </div>
-                                 </CardContent>
-                             </Card>
+                                 </div>
+                             </div>
                          );
                          })}
                      </div>
@@ -365,7 +357,7 @@ export default function RssFeedGenerator() {
                 open={addFeedOpen}
                 onOpenChange={setAddFeedOpen}
                 onSuccess={() => {
-                    toast.success('Feed added to My Feeds!');
+                    toast.success('Added to your sources');
                     queryClient.invalidateQueries({ queryKey: ['feeds'] });
                 }}
                 editFeed={null}
@@ -375,18 +367,18 @@ export default function RssFeedGenerator() {
 
             {/* Delete Confirmation */}
             <AlertDialog open={!!deletingFeedId} onOpenChange={(open) => !open && setDeletingFeedId(null)}>
-                <AlertDialogContent className="bg-stone-900 border-stone-800">
+                <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle className="text-stone-100">Delete Feed</AlertDialogTitle>
+                        <AlertDialogTitle className="text-stone-100">Delete RSS feed</AlertDialogTitle>
                         <AlertDialogDescription className="text-stone-400">
-                            This will permanently remove this feed from your generated feeds. This action cannot be undone.
+                            This will permanently remove this RSS feed from your generated RSS feeds. This action cannot be undone.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <div className="flex gap-3 justify-end">
-                        <AlertDialogCancel className="border-stone-700 text-stone-200 hover:bg-stone-800">Cancel</AlertDialogCancel>
+                        <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={() => deletingFeedId && handleDelete(deletingFeedId)}
-                            className="bg-red-900 hover:bg-red-800 text-red-100"
+                            className="rounded-xl bg-red-500 text-white hover:bg-red-600"
                         >
                             Delete
                         </AlertDialogAction>
