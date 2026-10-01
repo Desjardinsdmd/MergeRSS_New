@@ -70,7 +70,7 @@ const testFeedUrl = async (url) => {
         'User-Agent': 'Mozilla/5.0 (compatible; MergeRSS/1.0)',
         'Accept': 'application/rss+xml, application/atom+xml, application/xml'
       },
-      redirect: 'follow'
+      signal: AbortSignal.timeout(10000),
     });
     if (!res.ok) return false;
     const content = await res.text();
