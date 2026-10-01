@@ -42,7 +42,7 @@ export default function SharedSourcesSection({ workspace, canManage }) {
   };
 
   return (
-    <section aria-labelledby="shared-sources-heading" className="mb-6 border border-stone-800 rounded-xl bg-stone-900">
+    <section aria-labelledby="shared-sources-heading" className="panel mb-6">
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
@@ -52,15 +52,15 @@ export default function SharedSourcesSection({ workspace, canManage }) {
       >
         <span className="flex items-center gap-2 min-w-0">
           <Users className="w-4 h-4 text-[hsl(var(--primary))] flex-shrink-0" aria-hidden="true" />
-          <span id="shared-sources-heading" className="font-semibold text-stone-200 text-sm truncate">
+          <span id="shared-sources-heading" className="truncate font-display text-[15px] font-semibold text-stone-100">
             Shared with {workspace.name}
           </span>
-          <span className="text-xs text-stone-500">{isLoading ? '' : feeds.length}</span>
+          <span className="font-mono text-xs text-stone-500">{isLoading ? '' : feeds.length}</span>
         </span>
         {open ? <ChevronUp className="w-4 h-4 text-stone-500" aria-hidden="true" /> : <ChevronDown className="w-4 h-4 text-stone-500" aria-hidden="true" />}
       </button>
       {open && (
-        <div id="shared-sources-list" className="border-t border-stone-800">
+        <div id="shared-sources-list" className="border-t border-white/[0.07]">
           {isLoading ? (
             <div className="flex justify-center py-6" role="status" aria-label="Loading shared sources">
               <Loader2 className="w-4 h-4 animate-spin text-stone-500" />
@@ -72,14 +72,16 @@ export default function SharedSourcesSection({ workspace, canManage }) {
                 : 'No shared sources yet. Editors can share sources with the team.'}
             </p>
           ) : (
-            <ul className="divide-y divide-stone-800" aria-label="Shared sources">
+            <ul className="divide-y divide-white/[0.05]" aria-label="Shared sources">
               {feeds.map(f => (
                 <li key={f.id} className="flex items-center justify-between gap-3 px-4 py-2.5">
                   <div className="flex items-center gap-3 min-w-0">
-                    <Rss className="w-4 h-4 text-stone-600 flex-shrink-0" aria-hidden="true" />
+                    <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--primary)/0.14)]">
+                      <Rss className="w-3.5 h-3.5 text-[hsl(var(--primary))]" aria-hidden="true" />
+                    </span>
                     <div className="min-w-0">
-                      <p className="text-sm text-stone-200 truncate">{f.name}</p>
-                      <p className="text-xs text-stone-500 truncate">
+                      <p className="truncate text-sm font-semibold text-stone-100">{f.name}</p>
+                      <p className="meta truncate">
                         {f.category}{f.is_mine ? ' · yours' : ` · ${f.created_by}`}
                         {f.status && f.status !== 'active' ? ` · ${f.status}` : ''}
                       </p>
@@ -90,7 +92,7 @@ export default function SharedSourcesSection({ workspace, canManage }) {
                       href={safeUrl(f.url)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hidden sm:inline text-xs text-stone-500 hover:text-[hsl(var(--primary))] px-2"
+                      className="hidden px-2 text-xs text-stone-500 hover:text-[#C4A5FD] sm:inline"
                       aria-label={`Open ${f.name} in a new tab`}
                     >
                       Open
@@ -101,7 +103,7 @@ export default function SharedSourcesSection({ workspace, canManage }) {
                         variant="ghost"
                         onClick={() => unshare(f)}
                         disabled={busyId === f.id}
-                        className="h-8 text-stone-500 hover:text-red-400"
+                        className="h-8 rounded-lg text-stone-500 hover:text-red-400"
                         aria-label={`Stop sharing ${f.name}`}
                       >
                         {busyId === f.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />}
@@ -113,9 +115,9 @@ export default function SharedSourcesSection({ workspace, canManage }) {
               ))}
             </ul>
           )}
-          <p className="px-4 py-2 text-xs text-stone-600 border-t border-stone-800">
-            Articles from shared sources appear in search and Today for everyone on the team.{' '}
-            <Link to={createPageUrl('Team')} className="text-stone-400 hover:text-[hsl(var(--primary))]">Manage team</Link>
+          <p className="border-t border-white/[0.07] px-4 py-2 text-xs text-stone-500">
+            Stories from shared sources appear in search and Today for everyone on the team.{' '}
+            <Link to={createPageUrl('Team')} className="text-[#C4A5FD] hover:opacity-80">Manage team</Link>
           </p>
         </div>
       )}
