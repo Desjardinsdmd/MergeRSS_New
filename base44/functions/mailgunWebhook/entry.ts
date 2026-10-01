@@ -396,7 +396,9 @@ async function handle(req, base44, svc) {
     if (!text && rawText) text = String(rawText).trim();
 
     // Manually forwarded by the user: attribute to the original sender.
-    if (from.email && from.email === String(ownerEmail).toLowerCase()) {
+    // Also covers forwards from the owner's other addresses (e.g. a work account): any "Fwd:"
+    // message whose body carries a forwarded-message header block.
+    if (from.email && (from.email === String(ownerEmail).toLowerCase() || /^\s*(fwd?|fw)\s*:/i.test(subject))) {
       const orig = originalSenderFromForward(rawText || text);
       if (orig) from = orig;
     }
