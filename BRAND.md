@@ -1,104 +1,102 @@
 # MergeRSS Brand Guidelines
 
-Version 2.0, September 26, 2026. Built from a full audit of the MergeRSS source: 189 files, every Tailwind colour class, hex literal and token reference counted. Where this spec and the code disagree, the code usage below is the ground truth and the spec wins going forward. The reference implementation is `src/components/reports/ReportViewer.jsx`.
+Version 3.0, October 1, 2026. Direction: "briefing studio". Replaces v2 (square stone panels, amber era). Every surface the product touches follows this file: the app, the marketing site, PDFs, email, Slack, Discord, Teams, RSS output and error pages.
 
-## How the palette is built
+Implementation: tokens in `src/globals.css`, Tailwind theme in `tailwind.config.js`, React primitives in `src/components/brand/Brand.jsx`. Backend and email copies of the palette live in `base44/functions/lib/brand.ts`.
 
-MergeRSS runs on two systems. Neutrals come from the Tailwind stone scale, used directly in components (2,512 class uses). The accent comes from one token, `--primary`, referenced about 470 times as `hsl(var(--primary))`. Everything else is semantic colour with a fixed meaning.
+## Look and feel
 
-## Accent
+Dark, calm, studio-like. A violet-tinted near-black page with a soft violet glow in the top-left corner. Content sits on rounded glass panels with hairline white borders. One accent, violet. Type pairs a geometric display face for headings with Inter for reading and a monospace for labels and metadata.
 
-| Role | Value | Notes |
+## Colour
+
+| Token | Hex | Use |
 |---|---|---|
-| Primary | #9463E3 | Violet Pulse, `263 70% 64%`, the default `--primary` |
-| Primary, light mode | #733BCE | `263 60% 52%` |
-| Text on primary | stone-900 #1C1917 | Always dark text on violet, never white |
+| Ink (page) | #0A0910 | Page background, PDF and email background |
+| Panel | #17151F (stone-900) | Cards, sections; in the app rendered as white 2.5% over the page |
+| Panel raised | #25222F (stone-800) | Inputs, raised fills, borders on solid surfaces |
+| Hairline | white at 7% | Panel borders (`border-white/[0.07]`) |
+| Line | #363244 (stone-700) | Dividers on solid surfaces |
+| Text strong | #F3F1F7 (stone-100) | Titles |
+| Text body | #C9C5D4 (stone-300) | Reading copy |
+| Text muted | #A29DB1 (stone-400) | Supporting copy |
+| Text meta | #7C778B (stone-500) | Metadata, labels |
+| Text faint | #5C576B (stone-600) | Row numbers, disabled |
+| Violet | #9B5CF6 | Brand, primary buttons, active states, links |
+| Violet deep | #7C3AED | Gradient end, pressed |
+| Violet light | #C4A5FD | Chip text, link text on dark |
 
-Primary appears as solid fills (buttons, the 01 section band, the logo square), text (micro labels, links, dates in timelines), and rules (4px left border on key takeaways). Tints in use: /5, /10 and /20 for fills, /30 to /50 for borders, /70 and /80 for softened labels.
+The Tailwind `stone` scale is remapped to these neutrals. Use `stone-*` for neutrals; never hardcode the old warm hexes (#0d0a06, #0a0805, #1c1917, #292524).
 
-## Neutrals
+Brand gradient (logo, primary buttons, emphasis): `linear-gradient(135deg, #B57BFF, #9B5CF6 45%, #7C3AED)`.
 
-| Stone shade | Hex | Use in the code |
+### Semantic colour
+
+Each colour means one thing and renders as the -300/-400 text on a 10% fill of the same hue.
+
+| Meaning | Colour |
+|---|---|
+| Rising, opportunity, success, high importance, unread count | emerald-400 #34D399 |
+| Falling, risk, errors, destructive | red-400 #F87171 |
+| Trending, informational | sky-400 #38BDF8 |
+| Warnings only (paused, skipped, needs attention) | amber-400 #FBBF24 on amber-400/10 with amber-400/25 border |
+
+Amber is never a brand accent. Category chips, unread dots, stars, highlights and CTAs use violet.
+
+## Type
+
+| Role | Face | Classes |
 |---|---|---|
-| App shell | #0D0A06 | `bg-[#0d0a06]`, signed-in page background |
-| Public shell | #0A0805 | `bg-[#0a0805]`, landing, pricing, legal pages |
-| stone-950 | #0C0A09 | Report section bodies, deepest panels |
-| stone-900 | #1C1917 | Cards, section bands, callout fills (129 uses) |
-| stone-800 | #292524 | Inputs, raised fills and the main border (266 bg, 196 border) |
-| stone-700 | #44403C | Secondary border, band dividers (177 border) |
-| stone-600 | #57534E | Faint text, row numbers (260 text) |
-| stone-500 | #78716C | Metadata, dates, subtitles (384 text, the most used) |
-| stone-400 | #A8A29E | Secondary copy, band labels (247 text) |
-| stone-300 | #D6D3D1 | Body copy on dark (162 text) |
-| stone-200 | #E7E5E4 | Emphasised body, takeaway text (151 text) |
-| stone-100 | #F5F5F4 | Headlines and titles (191 text) |
+| Display (page titles, section titles, big numbers, wordmark) | Space Grotesk 500-700 | `font-display` |
+| Body and UI | Inter 400-600 | `font-sans` (default) |
+| Labels, metadata, chips, timestamps, counts | JetBrains Mono 400-600 | `font-mono` |
 
-Text hierarchy runs stone-100 for titles, stone-300 for reading copy, stone-400 for supporting copy, stone-500 for metadata and stone-600 for anything that should recede.
+Page title: `font-display text-[28px] font-semibold`. Section title: `font-display text-lg font-semibold`. Body: `text-sm` to `text-[15px]` stone-300. Micro label: `.micro-label` (mono, 10px, uppercase, wide tracking, stone-500). Eyebrow: `.eyebrow` (mono, violet). Metadata line: `.meta` (mono, uppercase, stone-500, items separated by " · ").
 
-## Semantic colour
+## Shape and depth
 
-Each colour means one thing. They always render as the -400 shade on a 10% fill of the same hue, with no border.
+Radius scale: chips 6px (`rounded-md`), inputs and buttons 12px (`rounded-xl`), panels 20px (`rounded-2xl`), pills full. Nothing is square. Depth comes from translucent layers and hairline borders, with a violet glow reserved for the primary button and the brand mark.
 
-| Meaning | Colour | Where it appears |
-|---|---|---|
-| Rising, escalating, opportunity | emerald-400 #34D399 | Trajectory badges, trend columns, Opportunity tag |
-| Falling, risk, errors | red-400 #F87171 | Falling badge, Risk tag, destructive states |
-| De-escalating, resolving, trending | blue-400 #60A5FA | Trend columns, Trending tag |
-| Volatile, warnings | amber-400 #FBBF24 | Volatile badge, warning banners (`amber-950/20` fill, `amber-900/40` border, `amber-300` text) |
-| Peaked | orange-400 | Trajectory badge only |
-| Supporting | sky-400 | Landing briefing mock |
+## Components
 
-Slack aubergine, Discord blurple and Teams indigo appear only on their own integration buttons.
-
-## Typography
-
-The font stack is Inter, then the system sans (Segoe UI on Windows, San Francisco on Apple). Inter is declared but never loaded as a webfont, so most people see their system face. Semibold (243 uses) and medium (191) carry the interface, bold (159) carries titles and labels, and black (30) is kept for landing headlines and big stat numbers.
-
-| Style | Classes | Use |
-|---|---|---|
-| Page title | `text-2xl` to `text-4xl font-bold` | Page and report titles |
-| Section title | `text-sm font-semibold text-stone-100` | Theme rows, list items |
-| Body | `text-sm text-stone-300 leading-[1.8]` | Report and summary copy |
-| Meta | `text-xs` or `text-sm text-stone-500` | Dates, counts, sources |
-| Micro label | `text-[10px] font-bold uppercase tracking-widest` | Section names, "Key takeaway", timeline dates |
-| Eyebrow | `text-[10px] font-bold tracking-[0.2em] uppercase` in primary | "Intelligence Report" over a title |
-
-## Shape
-
-The general interface uses a small radius. `rounded-lg` (6px) is the most common value at 156 uses, followed by plain `rounded` and `rounded-md`, on inputs, cards and dialogs. Intelligence surfaces are square: the report viewer, its section bands, trajectory badges, the Export PDF button, the landing briefing card and the logo mark all have no radius. `rounded-full` is reserved for count badges, timeline dots and spinners.
-
-Structure comes from 1px stone-800 borders and stacked panels with `border-t-0`. Shadows are rare and only used for hover lift.
-
-## Signature components
-
-**Numbered section band.** A full-width strip, `px-6 py-3`, holding a two-digit number, a 1px by 12px divider and a micro label. Section 01 is solid primary with stone-900 text. Later sections are stone-900 with a stone-500 number, a stone-700 divider and a stone-400 label, sitting on a stone-800 bottom border.
-
-**Key takeaway.** `border-l-4` in primary on a stone-900 fill, `px-5 py-4`, with a primary micro label above stone-200 or stone-100 text.
-
-**Theme row.** A stone-600 number in a fixed 24px column, a stone-100 semibold title, a trajectory badge on the right, and stone-400 description copy indented under the title. Rows are divided by stone-800 at 60%.
-
-**Trajectory badge.** `text-[10px] px-2 py-0.5 font-semibold` with a -400 text colour on a /10 fill. Sentence case labels such as "Rising ↑" and "Stable →".
-
-**Timeline.** A 1px stone-800 spine, 14px primary dots with a stone-950 ring, primary date labels, stone-100 event titles and stone-400 significance copy.
-
-**Primary button.** Primary fill, stone-900 text, `font-semibold`, square in intelligence surfaces and `rounded-lg` in general UI.
+- **Panel** `.panel`: `rounded-2xl border-white/[0.07] bg-white/[0.025] backdrop-blur`. Accent panel `.panel-accent` adds a violet gradient wash for the single most important card on a page (for example "Next briefing").
+- **Primary button** `.btn-brand`: violet gradient, white text, `rounded-xl`, glow shadow. One per view.
+- **Soft button** `.btn-soft`: violet 14% fill, violet 30% border, light-violet text. Secondary actions such as "Run now".
+- **Ghost button** `.btn-ghost`: hairline border, stone-300 text.
+- **Sidebar item** `.nav-item`, active `.nav-item-active` (violet 16% fill, violet 30% border, white text).
+- **Chip** `.chip-brand` (mono, violet tint) for categories and tags; `.chip-neutral` for neutral tags.
+- **Signal pill** `SignalPill`: HIGH emerald outline, MED neutral outline, LOW faint.
+- **Ranked story row**: large display numeral (first in violet, others stone-500), title stone-100 semibold, summary stone-400, mono meta line, bookmark icon top-right.
+- **Warning card**: amber tint panel with alert icon, `rounded-xl`.
+- **Tabs**: text tabs with a 2px violet underline on the active tab.
 
 ## Logo
 
-A primary-coloured square containing the Lucide RSS icon in stone-900, followed by "MergeRSS" in bold stone-100 with tight tracking. It sits in the header at 28px. Email uses a plain primary square because mail clients strip SVG.
+`LogoMark`: violet gradient rounded square (12px radius at 36px) with the Lucide RSS glyph in white. Lockup: mark + "MergeRSS" in Space Grotesk semibold + "briefing studio" in mono stone-500 underneath. The logo always uses the fixed brand violet, even when a user picks another accent colour. Favicon: `public/favicon.svg`.
+
+## Vocabulary
+
+One name per thing, everywhere:
+
+| Use | Not |
+|---|---|
+| Briefing (a scheduled summary a user configures) | Digest |
+| Report (a long-form analysis over a date range, PDF export) | Digest report |
+| Source | Feed (except "RSS feed" when talking about the URL format) |
+| Story | Article, item, post |
+| Inbox (delivered briefings + saved stories) | |
+| Newsletter inbox (the user's @mergerss.com address) | Email feed |
+| Today (home) | Dashboard |
+
+Entity names in code (Digest, Feed, FeedItem) stay as they are; only user-facing copy changes.
 
 ## Voice
 
-Copy reads like an analyst briefing a principal: consequence first, short sentences, real numbers. Labels are plain nouns such as "Key takeaway" or "Inflection points". Hype words and exclamation marks are out.
+An analyst briefing a principal: consequence first, short sentences, real numbers. Plain nouns for labels. No hype words, no exclamation marks.
 
-## Email
+## Output surfaces
 
-The digest email is a direct translation of the report viewer: a report header, then numbered bands (01 Key signal in primary, 02 Read first, then one band per topic), theme-style story rows and trajectory-style tag chips. Every Tailwind alpha value is pre-blended to solid hex so Outlook renders it, and the font stack matches the app with no webfont call.
-
-## Known drift
-
-1. **PDF export palette.** `src/lib/generatePremiumPdf.js` uses its own light palette with a print amber (170, 110, 0) and a navy purple (55, 35, 115), neither of which matches the product. Exported reports look like a different company made them.
-2. **Hardcoded amber.** About 250 `amber-*` classes across 56 files. Warning banners and Volatile badges are correct. Leftover brand accents from the amber era should move to `hsl(var(--primary))`.
-3. **Accent picker.** Users can switch primary to coral, cyan, emerald, magenta or amber. That recolours the logo and buttons with it. The logo should stay violet.
-4. **Two page backgrounds.** #0D0A06 inside the app and #0A0805 on public pages. The difference is invisible; picking one would simplify things.
-5. **Stale accent value.** One user record holds "indigo", which the picker no longer offers.
+- **PDF report**: ink background pages, violet section bands, mono labels, display headings, same footer on every page. Markdown from the AI is rendered, never shown raw.
+- **Email**: ink background, panel cards, violet header mark, same vocabulary. Fonts fall back to system stacks; colours are solid hex (no alpha) for Outlook.
+- **Slack / Discord / Teams**: violet #9B5CF6 accent bar, "MergeRSS briefing" attribution, same section names as email.
+- **RSS output**: channel title and description use the product vocabulary; generator "MergeRSS".
