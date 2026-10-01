@@ -1,5 +1,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+// ─── CANONICAL COPY: brand v3 chat tokens (source of truth: functions/lib/brand.ts) ──
+// Slack / Discord / Teams: violet accent, "MergeRSS briefing" attribution, no amber, no emoji.
+const BRAND_CHAT = { violet: '#9B5CF6', violetInt: 10181878, attribution: 'MergeRSS briefing', site: 'https://mergerss.com' };
+// ─── end CANONICAL COPY ──────────────────────────────────────────────────────
+
 
 // Strict webhook host check: parse the URL, https only, exact host or subdomain.
 // (A substring check let "https://attacker.example/?hooks.slack.com" through.)
@@ -27,13 +32,13 @@ Deno.serve(async (req) => {
             // when multiple users share the same digest name
             const digests = await base44.entities.Digest.filter({ name: digest_name, created_by: user.email });
             if (!digests || digests.length === 0) {
-                return Response.json({ error: `Digest "${digest_name}" not found` }, { status: 404 });
+                return Response.json({ error: `Briefing "${digest_name}" not found` }, { status: 404 });
             }
             digest = digests[0];
             if (!url) {
                 url = digest.discord_webhook_url;
                 if (!url) {
-                    return Response.json({ error: `Digest "${digest_name}" has no Discord webhook configured` }, { status: 400 });
+                    return Response.json({ error: `Briefing "${digest_name}" has no Discord webhook configured` }, { status: 400 });
                 }
             }
         }
@@ -43,7 +48,8 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Invalid Discord webhook URL' }, { status: 400 });
         }
 
-        let content = `✅ **MergeRSS Test Message**\nYour Discord integration is working correctly! Digests will be delivered here.`;
+        let title = 'Connection test';
+        let content = 'Your Discord connection works. Briefings will be delivered here.';
 
         // Only include article content from feed items the authenticated user owns
         if (digest) {
@@ -75,18 +81,30 @@ Deno.serve(async (req) => {
             if (recentItems.length > 0) {
                 let itemList = '';
                 for (const item of recentItems) {
-                    const itemText = `• **${item.title}**\n${item.url || ''}`;
-                    if ((itemList + itemText).length > 1800) break;
+                    const t = String(item.title || 'Untitled story').replace(/[[\]]/g, '');
+                    const itemText = item.url ? `**[${t}](${item.url})**` : `**${t}**`;
+                    if ((itemList + itemText).length > 3800) break;
                     itemList += (itemList ? '\n\n' : '') + itemText;
                 }
-                content = `📰 **${digest.name} - Test Digest**\n\n${itemList}`.substring(0, 2000);
+                title = `${digest.name}: test briefing`.slice(0, 250);
+                content = `**Latest stories from your sources**\n\n${itemList}`.substring(0, 4000);
             }
         }
 
         const res = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ content }),
+            // Brand v3: violet embed with the briefing attribution.
+            body: JSON.stringify({
+                username: 'MergeRSS',
+                embeds: [{
+                    color: BRAND_CHAT.violetInt,
+                    author: { name: BRAND_CHAT.attribution, url: BRAND_CHAT.site },
+                    title,
+                    description: content,
+                    footer: { text: 'Test post from MergeRSS' },
+                }],
+            }),
         });
 
         if (!res.ok) {

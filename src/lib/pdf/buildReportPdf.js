@@ -634,6 +634,9 @@ function endMark(flow) {
 
 // ─── Main ───────────────────────────────────────────────────────────────────
 
+/** True when markdown has something beyond headings (a lone "# Daily briefing" is not a summary). */
+const hasProse = (v) => parseMarkdown(String(v || '')).some(b => b.type !== 'heading' && b.type !== 'rule');
+
 const nonEmpty = (v) => (Array.isArray(v) ? v.some(x => (typeof x === 'string' ? x.trim() : x)) : !!String(v || '').trim());
 
 /**
@@ -711,7 +714,7 @@ export function buildReportPdf(savedReport = {}, opts = {}) {
   ].filter(c => c && String(c.value || '').trim());
 
   const sections = [
-    { label: 'Executive summary', has: nonEmpty(r.executive_summary), render: () => executiveSummary(flow, r) },
+    { label: 'Executive summary', has: hasProse(r.executive_summary), render: () => executiveSummary(flow, r) },
     { label: 'Key themes and evolution', has: themes.length > 0, render: () => keyThemes(flow, themes) },
     { label: 'Trend trajectories', has: nonEmpty(r.escalating_topics) || nonEmpty(r.deescalating_topics) || nonEmpty(r.cyclical_topics), render: () => trajectories(flow, r) },
     { label: 'Inflection points', has: points.length > 0, render: () => timeline(flow, points) },

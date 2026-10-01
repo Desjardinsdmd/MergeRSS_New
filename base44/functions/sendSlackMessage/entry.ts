@@ -1,5 +1,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+// ─── CANONICAL COPY: brand v3 chat tokens (source of truth: functions/lib/brand.ts) ──
+// Slack / Discord / Teams: violet accent, "MergeRSS briefing" attribution, no amber, no emoji.
+const BRAND_CHAT = { violet: '#9B5CF6', violetInt: 10181878, attribution: 'MergeRSS briefing', site: 'https://mergerss.com' };
+// ─── end CANONICAL COPY ──────────────────────────────────────────────────────
+
 
 // Strict webhook host check: parse the URL, https only, exact host or subdomain.
 // (A substring check let "https://attacker.example/?hooks.slack.com" through.)
@@ -26,7 +31,17 @@ Deno.serve(async (req) => {
         const res = await fetch(webhook_url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text }),
+            // Brand v3: violet accent bar + attribution; plain text kept as the notification fallback.
+            body: JSON.stringify({
+                text: String(text ?? ''),
+                attachments: [{
+                    color: BRAND_CHAT.violet,
+                    blocks: [
+                        { type: 'context', elements: [{ type: 'mrkdwn', text: `*${BRAND_CHAT.attribution}*` }] },
+                        { type: 'section', text: { type: 'mrkdwn', text: String(text ?? '').slice(0, 2900) || ' ' } },
+                    ],
+                }],
+            }),
         });
 
         if (!res.ok) {
