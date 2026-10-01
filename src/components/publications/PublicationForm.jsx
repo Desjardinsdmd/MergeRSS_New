@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
@@ -169,7 +168,7 @@ export default function PublicationForm({ publication, onSave, onCancel }) {
 
       <div>
         <Label className="text-stone-400">Schedule Times (select multiple)</Label>
-        <p className="text-xs text-stone-600 mb-2">Each selected slot generates a fresh draft run per day.</p>
+        <p className="text-xs text-stone-600 mb-2">At each selected time, suggested posts are drafted into the inbox for review. Approved posts go to X Drafts, where you post them to X manually.</p>
         <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
           {SCHEDULE_SLOTS.map(slot => {
             const isChecked = form.schedule_crons.includes(slot.cron);
@@ -232,15 +231,7 @@ export default function PublicationForm({ publication, onSave, onCancel }) {
               <SelectItem value="take">Take (single post, opinionated)</SelectItem>
             </SelectContent>
           </Select>
-          <p className="text-xs text-stone-600 mt-1">Default variant for auto-post and manual review.</p>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-3">
-        <Switch checked={form.auto_post} onCheckedChange={v => setForm({ ...form, auto_post: v })} />
-        <div>
-          <Label className="text-stone-300">Auto-post without review</Label>
-          <p className="text-xs text-stone-600">Not recommended. Drafts will post automatically after generation.</p>
+          <p className="text-xs text-stone-600 mt-1">Variant selected by default when you review drafts.</p>
         </div>
       </div>
 
