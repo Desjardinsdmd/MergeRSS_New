@@ -47,12 +47,12 @@ export default function SourceCleanupDialog({ feed, health, open, onOpenChange, 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Manage Source</DialogTitle>
+          <DialogTitle className="font-display text-lg font-semibold text-stone-100">Manage source</DialogTitle>
           <DialogDescription>{feed?.name}</DialogDescription>
         </DialogHeader>
 
         {error && (
-          <div className="p-3 bg-red-500/10 border border-red-500/30 text-red-300 text-sm rounded-md">
+          <div className="rounded-xl border border-red-400/25 bg-red-400/10 p-3 text-sm text-red-300">
             {error}
           </div>
         )}
@@ -61,47 +61,47 @@ export default function SourceCleanupDialog({ feed, health, open, onOpenChange, 
           {feed?.status !== 'paused' && (
             <Button
               variant="outline"
-              className="w-full justify-start"
+              className="w-full justify-start rounded-xl"
               onClick={() => handleAction('pause')}
               disabled={loading}
             >
               {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Pause Source
+              Pause source
             </Button>
           )}
 
           {feed?.status === 'paused' && (
             <Button
               variant="outline"
-              className="w-full justify-start"
+              className="w-full justify-start rounded-xl"
               onClick={() => handleAction('resume')}
               disabled={loading}
             >
               {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Resume Source
+              Resume source
             </Button>
           )}
 
           {health?.issues?.some(i => i.type === 'high_failure_rate') && (
             <Button
               variant="outline"
-              className="w-full justify-start"
+              className="w-full justify-start rounded-xl"
               onClick={() => handleAction('reset')}
               disabled={loading}
             >
               {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Reset & Retry
+              Reset and retry
             </Button>
           )}
 
           <Button
             variant="destructive"
-            className="w-full justify-start"
+            className="w-full justify-start rounded-xl"
             onClick={() => handleAction('delete')}
             disabled={loading}
           >
             {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            Delete Source
+            Delete source
           </Button>
         </div>
       </DialogContent>
