@@ -10,10 +10,11 @@ export default function InboxToolbar({ selectedIds, allIds, onSelectAll, onDesel
   const someSelected = selectedIds.length > 0;
 
   return (
-    <div className="flex items-center gap-2 py-2 px-1 border-b border-stone-800 bg-stone-900 sticky top-0 z-10 flex-wrap">
+    <div className="flex items-center gap-2 py-2 px-3 border-b border-white/[0.06] bg-white/[0.02] sticky top-0 z-10 flex-wrap">
       <button
         onClick={allSelected ? onDeselectAll : onSelectAll}
-        className="text-stone-400 hover:text-stone-200 transition p-1"
+        className="rounded-lg text-stone-400 hover:text-stone-100 hover:bg-white/[0.05] transition p-1"
+        aria-label={allSelected ? 'Deselect all' : 'Select all'}
         title={allSelected ? 'Deselect all' : 'Select all'}
       >
         {allSelected ? <CheckSquare className="w-4 h-4 text-[hsl(var(--primary))]" /> : <Square className="w-4 h-4" />}
@@ -21,13 +22,13 @@ export default function InboxToolbar({ selectedIds, allIds, onSelectAll, onDesel
 
       {someSelected && (
         <>
-          <span className="text-xs text-stone-400 font-medium whitespace-nowrap">{selectedIds.length} selected</span>
+          <span className="font-mono text-[11px] text-stone-400 whitespace-nowrap">{selectedIds.length} selected</span>
 
           {/* Mobile: collapse all actions into one dropdown */}
           <div className="flex sm:hidden ml-1">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="sm" variant="ghost" className="h-7 text-xs gap-1">
+                <Button size="sm" variant="ghost" className="h-7 rounded-lg text-xs gap-1 text-stone-300 hover:text-stone-100">
                   Actions <ChevronDown className="w-3 h-3" />
                 </Button>
               </DropdownMenuTrigger>
@@ -72,21 +73,21 @@ export default function InboxToolbar({ selectedIds, allIds, onSelectAll, onDesel
 
           {/* Desktop: show all buttons inline */}
           <div className="hidden sm:flex items-center gap-1 ml-1">
-            <Button size="sm" variant="ghost" className="h-7 text-xs gap-1" onClick={onMarkRead}>
+            <Button size="sm" variant="ghost" className="h-7 rounded-lg text-xs gap-1 text-stone-300 hover:text-stone-100" onClick={onMarkRead}>
               <MailOpen className="w-3.5 h-3.5" /> Mark read
             </Button>
-            <Button size="sm" variant="ghost" className="h-7 text-xs gap-1" onClick={onMarkUnread}>
+            <Button size="sm" variant="ghost" className="h-7 rounded-lg text-xs gap-1 text-stone-300 hover:text-stone-100" onClick={onMarkUnread}>
               <Mail className="w-3.5 h-3.5" /> Mark unread
             </Button>
-            <Button size="sm" variant="ghost" className="h-7 text-xs gap-1" onClick={onFavorite}>
+            <Button size="sm" variant="ghost" className="h-7 rounded-lg text-xs gap-1 text-stone-300 hover:text-stone-100" onClick={onFavorite}>
               <Star className="w-3.5 h-3.5" /> Star
             </Button>
-            <Button size="sm" variant="ghost" className="h-7 text-xs gap-1" onClick={onUnfavorite}>
+            <Button size="sm" variant="ghost" className="h-7 rounded-lg text-xs gap-1 text-stone-300 hover:text-stone-100" onClick={onUnfavorite}>
               <StarOff className="w-3.5 h-3.5" /> Unstar
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="sm" variant="ghost" className="h-7 text-xs gap-1">
+                <Button size="sm" variant="ghost" className="h-7 rounded-lg text-xs gap-1 text-stone-300 hover:text-stone-100">
                   <FolderInput className="w-3.5 h-3.5" /> Move <ChevronDown className="w-3 h-3" />
                 </Button>
               </DropdownMenuTrigger>
@@ -101,7 +102,7 @@ export default function InboxToolbar({ selectedIds, allIds, onSelectAll, onDesel
             {tags.length > 0 && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button size="sm" variant="ghost" className="h-7 text-xs gap-1">
+                  <Button size="sm" variant="ghost" className="h-7 rounded-lg text-xs gap-1 text-stone-300 hover:text-stone-100">
                     <Tag className="w-3.5 h-3.5" /> Tag <ChevronDown className="w-3 h-3" />
                   </Button>
                 </DropdownMenuTrigger>
