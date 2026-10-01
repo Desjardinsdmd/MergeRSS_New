@@ -304,18 +304,38 @@ function field(formData, ...names) {
   return '';
 }
 
+// Decision trace (temporary, 2026-10-01): one SyncState row per inbound request recording which
+// branch it took, so silent 200 "ignored" outcomes can be diagnosed. No message content stored.
+async function trace(svc, data) {
+  try {
+    await svc.SyncState.create({ key: 'mailgun_trace', history_id: JSON.stringify({ at: new Date().toISOString(), ...data }).slice(0, 3000), enabled: false });
+  } catch { /* best effort */ }
+}
+
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return Response.json({ error: 'Method not allowed' }, { status: 405 });
 
-  try {
-    const base44 = createClientFromRequest(req);
-    const svc = base44.asServiceRole.entities;
+  const base44 = createClientFromRequest(req);
+  const svc = base44.asServiceRole.entities;
+  const res = await handle(req, base44, svc).catch(async (error) => {
+    console.error('[mailgunWebhook] error:', error);
+    await trace(svc, { outcome: 'exception', error: String(error?.message || error).slice(0, 500) });
+    return Response.json({ error: error?.message || 'Server error' }, { status: 500 });
+  });
+  return res;
+});
+
+async function handle(req, base44, svc) {
+  const T = { outcome: '' };
+  const done = async (body, status = 200) => { T.outcome = body?.ignored || body?.reason || (body?.duplicate ? 'duplicate' : body?.ingested ? 'ingested' : body?.confirmation ? 'confirmation' : body?.relayed ? 'relayed' : (body?.error || 'ok')); T.status = status; await trace(svc, T); return Response.json(body, { status }); };
+  {
 
     let formData;
     try { formData = await req.formData(); } catch { return Response.json({ error: 'Expected form data' }, { status: 400 }); }
 
     const ok = await verifyMailgunSignature(field(formData, 'token'), field(formData, 'timestamp'), field(formData, 'signature'));
     if (!ok) return Response.json({ error: 'Invalid signature' }, { status: 401 });
+    T.recipient_field = field(formData, 'recipient');
 
     const headers = headerMap(formData);
     const domain = (Deno.env.get('MAILGUN_DOMAIN') || '').toLowerCase();
@@ -324,6 +344,7 @@ Deno.serve(async (req) => {
     const recipientCandidates = [field(formData, 'recipient'), field(formData, 'To', 'to'), headers['to'] || '', headers['delivered-to'] || '', headers['x-forwarded-to'] || '']
       .join(',').split(/[,;]/).map(s => parseAddress(s).email).filter(Boolean)
       .filter(e => !domain || e.endsWith('@' + domain));
+    T.domain = domain; T.candidates = [...new Set(recipientCandidates)];
     // ── Admin role addresses (support@, postmaster@, abuse@) -> relay to the admin inbox ──
     const adminAddress = [...new Set(recipientCandidates)].find(e => ADMIN_LOCAL_PARTS.has(e.split('@')[0]));
     if (adminAddress) {
@@ -355,8 +376,9 @@ Deno.serve(async (req) => {
     }
     if (!emailFeed || emailFeed.is_active === false) {
       // 200 so Mailgun does not retry mail for unknown / retired addresses.
-      return Response.json({ success: true, ignored: 'unknown recipient' });
+      return done({ success: true, ignored: emailFeed ? 'inactive inbox' : 'unknown recipient' });
     }
+    T.email_feed = emailFeed.id;
     const ownerEmail = emailFeed.user_email;
 
     // ── Parse message ──
@@ -378,7 +400,8 @@ Deno.serve(async (req) => {
       const orig = originalSenderFromForward(rawText || text);
       if (orig) from = orig;
     }
-    if (!from.email) return Response.json({ success: true, ignored: 'no sender' });
+    T.from = from.email;
+    if (!from.email) return done({ success: true, ignored: 'no sender' });
 
     const viewUrl = findViewUrl(links, rawText || text);
     const cleanText = stripFooter(stripHeaderNoise(text)).slice(0, MAX_TEXT);
@@ -390,7 +413,7 @@ Deno.serve(async (req) => {
 
     // ── Dedupe on Message-Id per owner ──
     const dup = extractItems(await svc.NewsletterEmail.filter({ owner_email: ownerEmail, message_id: messageId }, '-created_date', 1));
-    if (dup.length) return Response.json({ success: true, duplicate: true });
+    if (dup.length) return done({ success: true, duplicate: true });
 
     await svc.EmailFeed.update(emailFeed.id, { total_received: (emailFeed.total_received || 0) + 1, last_email_date: now }).catch(() => {});
 
@@ -416,13 +439,13 @@ Deno.serve(async (req) => {
     const conf = detectConfirmation(subject, text, links, from.email);
     if (conf.is_confirmation) {
       await svc.NewsletterEmail.create({ ...baseEmail, is_confirmation: true, confirm_url: conf.confirm_url || '', confirmation_status: 'pending', ingest_status: 'confirmation' });
-      return Response.json({ success: true, confirmation: true });
+      return done({ success: true, confirmation: true });
     }
 
     // ── Sender subscription ──
     const senderDomain = from.email.split('@')[1] || '';
     let sub = extractItems(await svc.NewsletterSubscription.filter({ owner_email: ownerEmail, from_email: from.email }, '-created_date', 1))[0] || null;
-    if (sub?.status === 'removed') return Response.json({ success: true, ignored: 'sender removed' });
+    if (sub?.status === 'removed') return done({ success: true, ignored: 'sender removed' });
 
     if (!sub) {
       sub = await svc.NewsletterSubscription.create({
@@ -475,7 +498,7 @@ Deno.serve(async (req) => {
     const stored = await svc.NewsletterEmail.create({ ...baseEmail, subscription_id: sub.id, feed_id: feed?.id || '', ingest_status: ingestStatus, is_confirmation: false });
 
     if (ingestStatus !== 'ingested') {
-      return Response.json({ success: true, stored: true, ingested: false, reason: ingestStatus });
+      return done({ success: true, stored: true, ingested: false, reason: ingestStatus });
     }
 
     // ── FeedItem (dedupe on guid within the feed) ──
@@ -483,7 +506,7 @@ Deno.serve(async (req) => {
     const existing = extractItems(await svc.FeedItem.filter({ feed_id: feed.id, guid: item.guid }, '-created_date', 1));
     if (existing.length) {
       await svc.NewsletterEmail.update(stored.id, { feed_item_id: existing[0].id, ingest_status: 'duplicate' }).catch(() => {});
-      return Response.json({ success: true, duplicate: true });
+      return done({ success: true, duplicate: true });
     }
     const created = await svc.FeedItem.create(item);
     await svc.NewsletterEmail.update(stored.id, { feed_item_id: created.id }).catch(() => {});
@@ -496,9 +519,6 @@ Deno.serve(async (req) => {
     }).catch(() => {});
     triggerEnrichment(base44, [created.id]);
 
-    return Response.json({ success: true, ingested: true, feed_item_id: created.id });
-  } catch (error) {
-    console.error('[mailgunWebhook] error:', error);
-    return Response.json({ error: error?.message || 'Server error' }, { status: 500 });
+    return done({ success: true, ingested: true, feed_item_id: created.id });
   }
-});
+}
