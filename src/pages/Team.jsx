@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   Users, Loader2, Mail, Eye, Edit3, Crown, Check, X, Trash2, LogOut,
-  Sparkles, Send, Webhook, UserPlus, AlertTriangle,
+  Sparkles, Send, Webhook, UserPlus, AlertTriangle, CreditCard,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -151,6 +151,26 @@ export default function Team() {
       }
     } catch (err) {
       toast.error(err?.response?.data?.error || err?.message || 'Could not start checkout');
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const handleManageBilling = async () => {
+    setBusy('billing');
+    try {
+      const res = await base44.functions.invoke('createPortalSession', {
+        workspace_id: workspace.id,
+        return_url: window.location.href,
+      });
+      if (res?.data?.url) {
+        // Same-tab redirect: a window.open after an await gets popup-blocked.
+        window.location.href = res.data.url;
+      } else {
+        toast.error(res?.data?.error || 'Could not open billing');
+      }
+    } catch (err) {
+      toast.error(err?.response?.data?.error || err?.message || 'Could not open billing');
     } finally {
       setBusy(null);
     }
@@ -317,6 +337,18 @@ export default function Team() {
                 >
                   {busy === 'upgrade' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" aria-hidden="true" />}
                   Upgrade to Team · ${TEAM_PLAN.priceMonthly}/mo
+                </Button>
+              )}
+              {isOwner && isTeamPlan && (
+                <Button
+                  variant="outline"
+                  onClick={handleManageBilling}
+                  disabled={busy === 'billing'}
+                  className="border-stone-700 text-stone-300 hover:bg-stone-800 flex-shrink-0"
+                  aria-label="Manage Team billing"
+                >
+                  {busy === 'billing' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <CreditCard className="w-4 h-4 mr-2" aria-hidden="true" />}
+                  Manage billing
                 </Button>
               )}
             </CardContent>
