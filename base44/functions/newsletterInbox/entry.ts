@@ -17,6 +17,8 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
  *   restore          { subscription_id }  undo remove (same as unpause)
  *   dismiss_confirmation { email_id, done? }
  *   get_email        { email_id }  one stored email for the in-app reader
+ *   set_alias        { alias }  pick a custom local part (<alias>@MAILGUN_DOMAIN); the old address
+ *                    stops receiving. Max 3 changes per user per 24h. Returns the same state as get_or_create.
  *   ensure_route     (admin) create/update the Mailgun catch-all route now
  *
  * When MAILGUN_API_KEY / MAILGUN_DOMAIN are missing every action returns configured:false with
@@ -69,6 +71,41 @@ function nameSlug(user) {
   const slug = first.normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 12);
   return slug || 'inbox';
 }
+// ── Custom alias (set_alias) ─────────────────────────────────────────────────────
+const ALIAS_MIN = 3;
+const ALIAS_MAX = 30;
+const ALIAS_RE = /^[a-z0-9]+(?:[._-][a-z0-9]+)*$/;
+const RESERVED_ALIASES = new Set([
+  'support', 'postmaster', 'abuse', 'admin', 'administrator', 'root', 'hostmaster', 'webmaster',
+  'security', 'info', 'hello', 'contact', 'billing', 'noreply', 'no-reply', 'mailer-daemon', 'relay',
+  'inbox-test', 'pipeline-test', 'team', 'help', 'sales', 'privacy', 'legal',
+]);
+const ALIAS_CHANGE_LIMIT = 3;
+const ALIAS_WINDOW_MS = 24 * 3600 * 1000;
+
+// Returns an error string, or null when the (already lowercased) alias is acceptable.
+export function validateAlias(alias) {
+  if (typeof alias !== 'string' || !alias) return 'Enter an address.';
+  if (alias !== alias.toLowerCase()) return 'Use lowercase letters only.';
+  if (alias.length < ALIAS_MIN || alias.length > ALIAS_MAX) return `Use ${ALIAS_MIN} to ${ALIAS_MAX} characters.`;
+  if (!ALIAS_RE.test(alias)) return 'Use letters and numbers, with single dots, hyphens or underscores between them.';
+  if (RESERVED_ALIASES.has(alias)) return 'That address is reserved.';
+  // isLegacyAddress() treats newsletter-* as a guessable v1 address and would replace it.
+  if (alias.startsWith('newsletter-')) return 'That address is reserved.';
+  return null;
+}
+
+async function aliasChangeState(svc, email) {
+  const key = `alias_changes:${email}`;
+  const rows = extractItems(await svc.SyncState.filter({ key }, '-created_date', 1).catch(() => []));
+  const row = rows.find(r => r.key === key) || null;
+  let stamps = [];
+  try { stamps = JSON.parse(row?.history_id || '[]'); } catch { stamps = []; }
+  const cutoff = Date.now() - ALIAS_WINDOW_MS;
+  stamps = (Array.isArray(stamps) ? stamps : []).filter(t => typeof t === 'number' && t > cutoff);
+  return { key, row, stamps };
+}
+
 function isLegacyAddress(addr, domain) {
   if (!addr) return true;
   const a = String(addr).toLowerCase();
@@ -171,6 +208,7 @@ async function buildState(svc, user, cfg, emailFeed) {
     success: true,
     configured: cfg.configured,
     reason: cfg.configured ? null : NOT_CONFIGURED,
+    domain: cfg.domain || null,
     address: emailFeed?.is_active !== false && emailFeed && !isLegacyAddress(emailFeed.unique_email, cfg.domain || '') ? emailFeed.unique_email : null,
     total_received: emailFeed?.total_received || 0,
     last_email_date: emailFeed?.last_email_date || null,
@@ -352,6 +390,51 @@ Deno.serve(async (req) => {
 
       const state = await buildState(svc, user, cfg, ef);
       return Response.json({ ...state, route_error: user.role === 'admin' ? routeError : (routeError ? 'Inbox routing is not set up yet; emails may not arrive.' : null) });
+    }
+
+    if (action === 'set_alias') {
+      if (!cfg.configured) return Response.json({ success: false, configured: false, error: NOT_CONFIGURED }, { status: 400 });
+      const alias = String(body.alias ?? '').trim().toLowerCase();
+      const invalid = validateAlias(alias);
+      if (invalid) return Response.json({ success: false, error: invalid }, { status: 400 });
+      const address = `${alias}@${cfg.domain}`;
+
+      let ef = await getEmailFeed(svc, user.email);
+      if (ef && ef.unique_email === address && ef.is_active !== false) {
+        return Response.json(await buildState(svc, user, cfg, ef));
+      }
+
+      const rate = await aliasChangeState(svc, user.email);
+      if (rate.stamps.length >= ALIAS_CHANGE_LIMIT) {
+        return Response.json({ success: false, error: `You can change your address up to ${ALIAS_CHANGE_LIMIT} times a day. Try again later.` }, { status: 429 });
+      }
+
+      const taken = extractItems(await svc.EmailFeed.filter({ unique_email: address }, '-created_date', 5))
+        .some(r => r.unique_email === address && r.user_email !== user.email);
+      if (taken) return Response.json({ success: false, error: 'That address is already taken.' }, { status: 409 });
+
+      const previous = ef?.unique_email || null;
+      if (ef) ef = await svc.EmailFeed.update(ef.id, { unique_email: address, is_active: true, user_id: user.id });
+      else ef = await svc.EmailFeed.create({ user_email: user.email, user_id: user.id, unique_email: address, is_active: true, total_received: 0 });
+      ef = { ...ef, unique_email: address, is_active: true };
+
+      // Lost a race with another user claiming the same alias: put the old address back.
+      const owners = extractItems(await svc.EmailFeed.filter({ unique_email: address }, 'created_date', 5))
+        .filter(r => r.unique_email === address);
+      if (owners.length > 1 && owners[0].user_email !== user.email) {
+        if (previous) await svc.EmailFeed.update(ef.id, { unique_email: previous }).catch(() => {});
+        else await svc.EmailFeed.delete(ef.id).catch(() => {});
+        return Response.json({ success: false, error: 'That address is already taken.' }, { status: 409 });
+      }
+
+      const stamps = [...rate.stamps, Date.now()];
+      if (rate.row) await svc.SyncState.update(rate.row.id, { history_id: JSON.stringify(stamps), enabled: false }).catch(e => console.warn('[newsletterInbox] alias rate write failed:', e?.message));
+      else await svc.SyncState.create({ key: rate.key, history_id: JSON.stringify(stamps), enabled: false }).catch(e => console.warn('[newsletterInbox] alias rate write failed:', e?.message));
+
+      await svc.User.update(user.id, { newsletter_address: address }).catch(e => console.warn('[newsletterInbox] User.newsletter_address write failed:', e?.message));
+
+      const state = await buildState(svc, user, cfg, ef);
+      return Response.json({ ...state, previous_address: previous, alias_changes_left: Math.max(0, ALIAS_CHANGE_LIMIT - stamps.length) });
     }
 
     if (action === 'ensure_route') {
