@@ -20,7 +20,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 import { Loader2, Crown, Globe, Users } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
@@ -209,7 +208,7 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
           tags: data.tags || []
         });
         if (!moderationResult.data.is_safe) {
-          alert(`This digest cannot be published to the directory: ${moderationResult.data.reason}`);
+          alert(`This briefing cannot be published to the directory: ${moderationResult.data.reason}`);
           setLoading(false);
           return;
         }
@@ -231,7 +230,7 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
       eventName: editDigest ? 'digest_edited' : 'digest_created',
       properties: { frequency: data.frequency, delivery_slack: data.delivery_slack, delivery_discord: data.delivery_discord, delivery_email: data.delivery_email },
     });
-    toast.success(editDigest ? 'Digest updated' : 'Digest created');
+    toast.success(editDigest ? 'Briefing updated' : 'Briefing created');
 
     setLoading(false);
     onSuccess();
@@ -256,14 +255,14 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{editDigest ? (shareWithTeam ? 'Edit Shared Briefing' : 'Edit Digest') : (shareWithTeam ? 'Create Shared Briefing' : 'Create Digest')}</DialogTitle>
+          <DialogTitle className="font-display">{editDigest ? (shareWithTeam ? 'Edit shared briefing' : 'Edit briefing') : (shareWithTeam ? 'New shared briefing' : 'New briefing')}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Info */}
           <div className="space-y-4">
             <div>
-              <Label htmlFor="name">Digest Name</Label>
+              <Label htmlFor="name">Briefing name</Label>
               <Input
                 id="name"
                 value={formData.name}
@@ -278,19 +277,19 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
                 id="description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Brief description of this digest"
+                placeholder="A short description of this briefing"
                 rows={2}
               />
             </div>
           </div>
 
           {team && (
-            <div className="border border-slate-100 rounded-xl p-4 bg-slate-50 flex items-center justify-between gap-3">
+            <div className="panel-raised p-4 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 min-w-0">
-                <Users className="w-4 h-4 text-indigo-500 flex-shrink-0" aria-hidden="true" />
+                <Users className="w-4 h-4 text-[hsl(var(--primary))] flex-shrink-0" aria-hidden="true" />
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-slate-900">Share with {team.name}</p>
-                  <p className="text-xs text-slate-500">Uses shared sources and goes to every team member</p>
+                  <p className="text-sm font-medium text-stone-100">Share with {team.name}</p>
+                  <p className="text-xs text-stone-500">Uses shared sources and goes to every team member</p>
                 </div>
               </div>
               <Switch
@@ -304,47 +303,46 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
           {/* Content Selection */}
           <div className="space-y-4">
             <div>
-              <Label className="mb-2 block">Categories to Include</Label>
+              <Label className="micro-label mb-2 block">Categories to include</Label>
               <div className="flex flex-wrap gap-2">
                 {CATEGORIES.map((cat) => (
-                  <Badge
+                  <button
+                    type="button"
                     key={cat}
-                    variant={formData.categories.includes(cat) ? 'default' : 'outline'}
+                    aria-pressed={formData.categories.includes(cat)}
                     className={cn(
-                      "cursor-pointer transition",
-                      formData.categories.includes(cat) 
-                        ? "bg-[#171a20] hover:bg-black" 
-                        : "hover:bg-slate-100"
+                      "rounded-md border px-2 py-1 font-mono text-[11px] font-medium transition",
+                      formData.categories.includes(cat)
+                        ? "border-[hsl(var(--brand)/0.35)] bg-[hsl(var(--brand)/0.16)] text-[#C4A5FD]"
+                        : "border-white/10 text-stone-400 hover:bg-white/[0.04] hover:text-stone-200"
                     )}
                     onClick={() => toggleCategory(cat)}
                   >
                     {cat}
-                  </Badge>
+                  </button>
                 ))}
               </div>
             </div>
 
             <div>
-              <Label className="mb-2 block">{shareWithTeam ? 'Shared sources (optional)' : 'Specific Feeds (optional)'}</Label>
-              <div className="max-h-32 overflow-y-auto border rounded-lg p-2 space-y-1">
+              <Label className="micro-label mb-2 block">{shareWithTeam ? 'Shared sources (optional)' : 'Specific sources (optional)'}</Label>
+              <div className="max-h-32 overflow-y-auto rounded-xl border border-white/[0.07] bg-white/[0.02] p-2 space-y-1">
                 {pickableFeeds.map((feed) => (
                   <label
                     key={feed.id}
-                    className="flex items-center gap-2 p-1 rounded hover:bg-slate-50 cursor-pointer"
+                    className="flex items-center gap-2 p-1.5 mb-0 rounded-lg hover:bg-white/[0.04] cursor-pointer"
                   >
                     <Checkbox
                       checked={formData.feed_ids.includes(feed.id)}
                       onCheckedChange={() => toggleFeed(feed.id)}
                     />
-                    <span className="text-sm">{feed.name}</span>
-                    <Badge variant="secondary" className="text-xs ml-auto">
-                      {feed.category}
-                    </Badge>
+                    <span className="text-sm text-stone-200">{feed.name}</span>
+                    {feed.category && <span className="chip-brand ml-auto">{feed.category}</span>}
                   </label>
                 ))}
                 {pickableFeeds.length === 0 && (
-                  <p className="text-sm text-slate-500 p-2">
-                    {shareWithTeam ? 'No sources are shared with the team yet. Share one from the Sources page.' : 'No feeds available'}
+                  <p className="text-sm text-stone-500 p-2">
+                    {shareWithTeam ? 'No sources are shared with the team yet. Share one from the Sources page.' : 'No sources available'}
                   </p>
                 )}
               </div>
@@ -354,7 +352,7 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
           {/* Schedule */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label>Frequency</Label>
+              <Label className="micro-label">Frequency</Label>
               <Select
                 value={formData.frequency}
                 onValueChange={(v) => setFormData({ ...formData, frequency: v })}
@@ -370,7 +368,7 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
               </Select>
             </div>
             <div>
-              <Label>Time</Label>
+              <Label className="micro-label">Time</Label>
               <Input
                 type="time"
                 value={formData.schedule_time}
@@ -380,7 +378,7 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
 
             {formData.frequency === 'weekly' && (
               <div className="col-span-2">
-                <Label>Day of Week</Label>
+                <Label className="micro-label">Day of week</Label>
                 <Select
                   value={String(formData.schedule_day_of_week)}
                   onValueChange={(v) => setFormData({ ...formData, schedule_day_of_week: Number(v) })}
@@ -399,7 +397,7 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
 
             {formData.frequency === 'monthly' && (
               <div className="col-span-2">
-                <Label>Day of Month</Label>
+                <Label className="micro-label">Day of month</Label>
                 <Select
                   value={String(formData.schedule_day_of_month)}
                   onValueChange={(v) => setFormData({ ...formData, schedule_day_of_month: Number(v) })}
@@ -417,7 +415,7 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
             )}
 
             <div>
-              <Label>Timezone</Label>
+              <Label className="micro-label">Timezone</Label>
               <Select
                 value={formData.timezone}
                 onValueChange={(v) => setFormData({ ...formData, timezone: v })}
@@ -433,7 +431,7 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
               </Select>
             </div>
             <div>
-              <Label>Output Length</Label>
+              <Label className="micro-label">Output length</Label>
               <Select
                 value={formData.output_length}
                 onValueChange={(v) => setFormData({ ...formData, output_length: v })}
@@ -452,8 +450,8 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
 
           {/* Delivery Options */}
           {shareWithTeam ? (
-            <div className="border rounded-lg p-3 text-sm text-slate-600">
-              <Label className="mb-1 block">Delivery</Label>
+            <div className="panel-raised p-3 text-sm text-stone-400">
+              <Label className="micro-label mb-1 block">Delivery</Label>
               Every team member gets this briefing in their inbox and by email (unless they turned email off).
               {team?.plan === 'team'
                 ? ' It also posts once to the team channel set on the Team page.'
@@ -461,33 +459,33 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
             </div>
           ) : (
           <div>
-            <Label className="mb-3 block">Delivery Channels</Label>
+            <Label className="micro-label mb-3 block">Delivery channels</Label>
             <div className="space-y-3">
-              <label className="flex items-center gap-3 p-3 border rounded-lg hover:bg-slate-50 cursor-pointer">
+              <label className="flex items-center gap-3 p-3 mb-0 rounded-xl border border-white/[0.07] hover:bg-white/[0.03] cursor-pointer">
                 <Checkbox
                   checked={formData.delivery_web}
                   onCheckedChange={(checked) => setFormData({ ...formData, delivery_web: checked })}
                 />
                 <div>
-                  <p className="font-medium text-sm">Web Inbox</p>
-                  <p className="text-xs text-slate-500">View digests in the app</p>
+                  <p className="font-medium text-sm text-stone-100">Inbox</p>
+                  <p className="text-xs text-stone-500">Read briefings in the app</p>
                 </div>
               </label>
 
-              <label className="flex items-center gap-3 p-3 border rounded-lg hover:bg-slate-50 cursor-pointer">
+              <label className="flex items-center gap-3 p-3 mb-0 rounded-xl border border-white/[0.07] hover:bg-white/[0.03] cursor-pointer">
                 <Checkbox
                   checked={formData.delivery_email}
                   onCheckedChange={(checked) => setFormData({ ...formData, delivery_email: checked })}
                 />
                 <div>
-                  <p className="font-medium text-sm">Email</p>
-                  <p className="text-xs text-slate-500">Send to your account email address</p>
+                  <p className="font-medium text-sm text-stone-100">Email</p>
+                  <p className="text-xs text-stone-500">Send to your account email address</p>
                 </div>
               </label>
 
               <label className={cn(
-                "flex items-center gap-3 p-3 border rounded-lg",
-                isPremium ? "hover:bg-slate-50 cursor-pointer" : "opacity-60 cursor-not-allowed"
+                "flex items-center gap-3 p-3 mb-0 rounded-xl border border-white/[0.07]",
+                isPremium ? "hover:bg-white/[0.03] cursor-pointer" : "opacity-60 cursor-not-allowed"
               )}>
                 <Checkbox
                   checked={formData.delivery_slack}
@@ -496,22 +494,22 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
                 />
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="font-medium text-sm">Slack</p>
+                    <p className="font-medium text-sm text-stone-100">Slack</p>
                     {!isPremium && (
-                      <Badge variant="secondary" className="text-xs gap-1">
-                        <Crown className="w-3 h-3" /> Premium
-                      </Badge>
+                      <span className="chip-brand gap-1">
+                        <Crown className="w-3 h-3" aria-hidden="true" /> Premium
+                      </span>
                     )}
                   </div>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-stone-500">
                     {slackIntegration ? 'Connected' : 'Not connected'}
                   </p>
                 </div>
               </label>
 
               <label className={cn(
-                "flex items-center gap-3 p-3 border rounded-lg",
-                isPremium ? "hover:bg-slate-50 cursor-pointer" : "opacity-60 cursor-not-allowed"
+                "flex items-center gap-3 p-3 mb-0 rounded-xl border border-white/[0.07]",
+                isPremium ? "hover:bg-white/[0.03] cursor-pointer" : "opacity-60 cursor-not-allowed"
               )}>
                 <Checkbox
                   checked={formData.delivery_discord}
@@ -520,20 +518,20 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
                 />
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="font-medium text-sm">Discord</p>
+                    <p className="font-medium text-sm text-stone-100">Discord</p>
                     {!isPremium && (
-                      <Badge variant="secondary" className="text-xs gap-1">
-                        <Crown className="w-3 h-3" /> Premium
-                      </Badge>
+                      <span className="chip-brand gap-1">
+                        <Crown className="w-3 h-3" aria-hidden="true" /> Premium
+                      </span>
                     )}
                   </div>
-                  <p className="text-xs text-slate-500">Post to Discord channel</p>
+                  <p className="text-xs text-stone-500">Post to Discord channel</p>
                 </div>
               </label>
 
               <label className={cn(
-                "flex items-center gap-3 p-3 border rounded-lg",
-                isPremium ? "hover:bg-slate-50 cursor-pointer" : "opacity-60 cursor-not-allowed"
+                "flex items-center gap-3 p-3 mb-0 rounded-xl border border-white/[0.07]",
+                isPremium ? "hover:bg-white/[0.03] cursor-pointer" : "opacity-60 cursor-not-allowed"
               )}>
                 <Checkbox
                   checked={formData.delivery_teams}
@@ -542,49 +540,49 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
                 />
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="font-medium text-sm">Microsoft Teams</p>
+                    <p className="font-medium text-sm text-stone-100">Microsoft Teams</p>
                     {!isPremium && (
-                      <Badge variant="secondary" className="text-xs gap-1">
-                        <Crown className="w-3 h-3" /> Premium
-                      </Badge>
+                      <span className="chip-brand gap-1">
+                        <Crown className="w-3 h-3" aria-hidden="true" /> Premium
+                      </span>
                     )}
                   </div>
-                  <p className="text-xs text-slate-500">Post to Teams channel via webhook</p>
+                  <p className="text-xs text-stone-500">Post to Teams channel via webhook</p>
                 </div>
               </label>
               {formData.delivery_discord && isPremium && (
                 <div className="ml-8 -mt-1 mb-3 space-y-2">
                   {discordIntegration && (
-                    <label className="flex items-center gap-3 p-2.5 bg-indigo-50 border border-indigo-100 rounded-lg cursor-pointer">
+                    <label className="flex items-center gap-3 p-2.5 mb-0 rounded-xl border border-[hsl(var(--brand)/0.3)] bg-[hsl(var(--brand)/0.10)] cursor-pointer">
                       <input
                         type="radio"
                         name="discord_source"
                         checked={formData.discord_webhook_url === discordIntegration.webhook_url}
                         onChange={() => setFormData({ ...formData, discord_webhook_url: discordIntegration.webhook_url })}
-                        className="accent-indigo-600"
+                        className="accent-[#9B5CF6]"
                       />
                       <div>
-                        <p className="text-xs font-medium text-indigo-800">Use connected integration</p>
-                        <p className="text-xs text-indigo-600 truncate max-w-xs">{discordIntegration.webhook_url?.slice(0, 50)}…</p>
+                        <p className="text-xs font-medium text-stone-100">Use connected integration</p>
+                        <p className="font-mono text-[11px] text-[#C4A5FD] truncate max-w-xs">{discordIntegration.webhook_url?.slice(0, 50)}…</p>
                       </div>
                     </label>
                   )}
-                  <label className="flex items-center gap-3 p-2.5 border border-slate-200 rounded-lg cursor-pointer">
+                  <label className="flex items-center gap-3 p-2.5 mb-0 rounded-xl border border-white/[0.07] cursor-pointer">
                     <input
                       type="radio"
                       name="discord_source"
                       checked={!discordIntegration || formData.discord_webhook_url !== discordIntegration?.webhook_url}
                       onChange={() => setFormData({ ...formData, discord_webhook_url: '' })}
-                      className="accent-indigo-600"
+                      className="accent-[#9B5CF6]"
                     />
-                    <p className="text-xs font-medium text-slate-700">Use a custom webhook URL</p>
+                    <p className="text-xs font-medium text-stone-300">Use a custom webhook URL</p>
                   </label>
                   {(!discordIntegration || formData.discord_webhook_url !== discordIntegration?.webhook_url) && (
                     <Input
                       placeholder="Paste your Discord webhook URL"
                       value={formData.discord_webhook_url}
                       onChange={(e) => setFormData({ ...formData, discord_webhook_url: e.target.value })}
-                      className="text-sm"
+                      className="text-sm font-mono rounded-xl"
                     />
                   )}
                 </div>
@@ -595,18 +593,19 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
 
           {/* Share to Directory */}
           {!shareWithTeam && (
-          <div className="border border-slate-100 rounded-xl p-4 space-y-3 bg-slate-50">
+          <div className="panel-raised p-4 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Globe className="w-4 h-4 text-indigo-500" />
+                <Globe className="w-4 h-4 text-[hsl(var(--primary))]" aria-hidden="true" />
                 <div>
-                  <p className="text-sm font-medium text-slate-900">Share to Public Directory</p>
-                  <p className="text-xs text-slate-500">Let others discover and add this digest</p>
+                  <p className="text-sm font-medium text-stone-100">Share to public directory</p>
+                  <p className="text-xs text-stone-500">Let others discover and add this briefing</p>
                 </div>
               </div>
               <Switch
                 checked={formData.is_public}
                 onCheckedChange={(v) => setFormData({ ...formData, is_public: v })}
+                aria-label="Share to public directory"
               />
             </div>
             {formData.is_public && (
@@ -615,8 +614,8 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
                 <Input
                   value={formData.public_description}
                   onChange={(e) => setFormData({ ...formData, public_description: e.target.value })}
-                  placeholder="What makes this digest valuable?"
-                  className="mt-1 text-sm"
+                  placeholder="What makes this briefing valuable?"
+                  className="mt-1 text-sm rounded-xl"
                 />
               </div>
             )}
@@ -624,13 +623,13 @@ export default function DigestDialog({ open, onOpenChange, onSuccess, editDigest
           )}
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <button type="button" className="btn-ghost" onClick={() => onOpenChange(false)}>
               Cancel
-            </Button>
-            <Button type="submit" disabled={loading} className="bg-[#171a20] hover:bg-black rounded-sm">
-              {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {editDigest ? 'Save Changes' : 'Create Digest'}
-            </Button>
+            </button>
+            <button type="submit" disabled={loading} className="btn-brand disabled:opacity-60">
+              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+              {editDigest ? 'Save changes' : 'Create briefing'}
+            </button>
           </DialogFooter>
         </form>
       </DialogContent>
