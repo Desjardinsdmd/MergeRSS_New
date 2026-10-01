@@ -84,7 +84,7 @@ const ALIAS_CHANGE_LIMIT = 3;
 const ALIAS_WINDOW_MS = 24 * 3600 * 1000;
 
 // Returns an error string, or null when the (already lowercased) alias is acceptable.
-export function validateAlias(alias) {
+function validateAlias(alias) {
   if (typeof alias !== 'string' || !alias) return 'Enter an address.';
   if (alias !== alias.toLowerCase()) return 'Use lowercase letters only.';
   if (alias.length < ALIAS_MIN || alias.length > ALIAS_MAX) return `Use ${ALIAS_MIN} to ${ALIAS_MAX} characters.`;
