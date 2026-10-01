@@ -7,7 +7,7 @@ import { inferTag, whatHappened, generateInsight, signalLevelStyle, decisionStat
 import { queryArticles } from '@/api/articles';
 
 const TAG_CONFIG = {
-    Trending:    { textClass: 'text-blue-400',    icon: TrendingUp },
+    Trending:    { textClass: 'text-sky-400',     icon: TrendingUp },
     Risk:        { textClass: 'text-red-400',     icon: AlertTriangle },
     Opportunity: { textClass: 'text-emerald-400', icon: Lightbulb },
     Neutral:     { textClass: 'text-stone-500',   icon: Minus },
@@ -57,16 +57,16 @@ export default function EmergingSignals({ feedIds = [], feeds = [], top5Ids = ne
     if (!emerging.length) return null;
 
     return (
-        <div className="bg-stone-900 border border-amber-900/40">
-            <div className="flex items-center gap-2 px-5 py-3.5 border-b border-amber-900/40">
-                <Zap className="w-3.5 h-3.5 text-amber-400" />
-                <h2 className="text-sm font-semibold text-stone-300 uppercase tracking-wider">Early Trends</h2>
-                <span className="text-xs text-stone-600 ml-1">worth watching early</span>
-                <span className="text-[10px] text-amber-600 bg-amber-950/50 border border-amber-900/50 px-1.5 py-0.5 ml-auto">
+        <div className="panel overflow-hidden">
+            <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.07] px-5 py-3.5">
+                <Zap className="w-3.5 h-3.5 text-[hsl(var(--primary))]" aria-hidden="true" />
+                <h2 className="font-display text-lg font-semibold text-stone-100">Early trends</h2>
+                <span className="meta ml-1">worth watching early</span>
+                <span className="chip-brand ml-auto">
                     low confirmation · high potential
                 </span>
             </div>
-            <div className="divide-y divide-stone-800/60">
+            <div className="divide-y divide-white/[0.05]">
                 {emerging.map((item) => {
                     const tag = item.intelligence_tag || inferTag((item.title || '') + ' ' + (item.description || '')) || 'Neutral';
                     const tagCfg = TAG_CONFIG[tag] || TAG_CONFIG.Neutral;
@@ -79,28 +79,28 @@ export default function EmergingSignals({ feedIds = [], feeds = [], top5Ids = ne
                     const decision = decisionState(item, clusterSize);
 
                     return (
-                        <div key={item.id} className="px-5 py-3.5 hover:bg-stone-800/30 transition-colors">
+                        <div key={item.id} className="px-5 py-3.5 transition-colors hover:bg-white/[0.03]">
                             {/* Decision state */}
                             <div className="flex items-center gap-2 mb-1.5">
                                 <span className={`text-[10px] font-bold px-1.5 py-0.5 border ${decision.style}`}>
                                     {decision.label}
                                 </span>
-                                <span className="inline-flex items-center gap-0.5 text-[10px] text-stone-600">
+                                <span className="meta inline-flex items-center gap-0.5">
                                     <Icon className="w-2.5 h-2.5" />{tag}
                                 </span>
-                                <span className="text-[10px] text-amber-600 ml-auto">Early · {clusterSize === 1 ? '1 source' : `${clusterSize} sources`}</span>
+                                <span className="meta ml-auto text-[#C4A5FD]">Early · {clusterSize === 1 ? '1 source' : `${clusterSize} sources`}</span>
                             </div>
 
                             {/* Headline */}
                             <a href={safeUrl(item.url)} target="_blank" rel="noopener noreferrer" className="group block mb-1">
-                                <h3 className="text-sm font-semibold text-stone-200 leading-snug line-clamp-1 group-hover:text-[hsl(var(--primary))] transition-colors">
+                                <h3 className="line-clamp-1 font-sans text-[15px] font-semibold leading-snug tracking-normal text-stone-100 transition-colors group-hover:text-[#C4A5FD]">
                                     {decodeHtml(item.title)}
                                 </h3>
                             </a>
 
                             {/* What happened */}
                             {happened && (
-                                <p className="text-xs text-stone-500 leading-snug mb-1 line-clamp-1">{happened}</p>
+                                <p className="mb-1 line-clamp-1 text-[13px] leading-snug text-stone-400">{happened}</p>
                             )}
 
                             {/* Insight */}
@@ -117,8 +117,8 @@ export default function EmergingSignals({ feedIds = [], feeds = [], top5Ids = ne
                                         {signal.label}
                                     </span>
                                 )}
-                                {source && <span className="text-xs text-stone-600">{source.name}</span>}
-                                <span className="text-xs text-stone-700 ml-auto">
+                                {source && <span className="meta">{source.name}</span>}
+                                <span className="meta ml-auto">
                                     {item.published_date && formatDistanceToNow(new Date(item.published_date), { addSuffix: true })}
                                 </span>
                             </div>
