@@ -17,22 +17,23 @@ export default function SourceIssueIndicator({ issues = [] }) {
   const maxSeverity = Math.max(...issues.map(i => severities[i.severity] || 0));
   
   let IconComponent = Info;
-  let color = 'text-blue-500';
+  let color = 'text-sky-400';
   
   if (maxSeverity === 3) {
     IconComponent = AlertCircle;
-    color = 'text-red-500';
+    color = 'text-red-400';
   } else if (maxSeverity === 2) {
     IconComponent = AlertTriangle;
-    color = 'text-amber-500';
+    color = 'text-amber-400';
   }
 
   return (
     <>
       <button
         onClick={() => setOpen(true)}
-        className={`p-1 ${color} hover:opacity-70 transition`}
+        className={`rounded-lg p-1 ${color} transition hover:bg-white/[0.05]`}
         title={`${issues.length} issue${issues.length !== 1 ? 's' : ''}`}
+        aria-label={`${issues.length} issue${issues.length !== 1 ? 's' : ''}`}
       >
         <IconComponent className="w-4 h-4" />
       </button>
@@ -40,21 +41,21 @@ export default function SourceIssueIndicator({ issues = [] }) {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Source Issues ({issues.length})</DialogTitle>
+            <DialogTitle>Source issues <span className="font-mono text-stone-500">{issues.length}</span></DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             {issues.map((issue, idx) => (
               <div
                 key={idx}
-                className={`p-3 rounded-md border text-sm ${
+                className={`rounded-xl border p-3 text-sm ${
                   issue.severity === 'critical'
-                    ? 'bg-red-500/10 border-red-500/30 text-red-300'
+                    ? 'border-red-400/25 bg-red-400/10 text-red-300'
                     : issue.severity === 'warning'
-                    ? 'bg-amber-500/10 border-amber-500/30 text-amber-300'
-                    : 'bg-blue-500/10 border-blue-500/30 text-blue-300'
+                    ? 'border-amber-400/25 bg-amber-400/10 text-amber-300'
+                    : 'border-sky-400/25 bg-sky-400/10 text-sky-300'
                 }`}
               >
-                <div className="font-semibold mb-1 capitalize">{issue.type.replace(/_/g, ' ')}</div>
+                <div className="mb-1 font-mono text-[11px] font-semibold uppercase tracking-wider">{issue.type.replace(/_/g, ' ')}</div>
                 <div>{issue.message}</div>
               </div>
             ))}
