@@ -728,6 +728,28 @@ Deno.serve(async (req) => {
         return Response.json({ success: false, error: `Feed load failed: ${feedErr.message}`, feeds_processed: 0 }, { status: 500 });
     }
 
+    // ── Plan limit (server-side) ───────────────────────────────────────────────
+    // Feeds can be created outside addSource (direct SDK create), so the free-plan source
+    // limit is enforced here too: a free owner's feeds beyond the limit (newest first) are
+    // simply not fetched. Mirrors addSource (premium or admin = unlimited).
+    try {
+        const FREE_FEED_LIMIT = 50;
+        const byOwner = {};
+        for (const f of allFeeds) (byOwner[f.created_by || ''] ||= []).push(f);
+        const overLimitOwners = Object.keys(byOwner).filter(o => o && byOwner[o].length > FREE_FEED_LIMIT);
+        const skipIds = new Set();
+        for (const owner of overLimitOwners) {
+            const u = extractItems(await base44.asServiceRole.entities.User.filter({ email: owner }, '-created_date', 1))[0];
+            if (u && (u.plan === 'premium' || u.role === 'admin')) continue;
+            const sorted = [...byOwner[owner]].sort((a, b) => String(a.created_date || '').localeCompare(String(b.created_date || '')));
+            for (const f of sorted.slice(FREE_FEED_LIMIT)) skipIds.add(f.id);
+            console.warn(`[fetchFeeds][${instanceId}] ${owner} is over the free limit: skipping ${sorted.length - FREE_FEED_LIMIT} feed(s)`);
+        }
+        if (skipIds.size) allFeeds = allFeeds.filter(f => !skipIds.has(f.id));
+    } catch (limitErr) {
+        console.warn(`[fetchFeeds][${instanceId}] plan-limit check skipped: ${limitErr.message}`);
+    }
+
     // ── Telemetry ──────────────────────────────────────────────────────────────
     const feedAgesMs = allFeeds.map(f => f.last_fetched ? Date.now() - new Date(f.last_fetched).getTime() : Infinity);
     const finiteAges = feedAgesMs.filter(isFinite).sort((a, b) => a - b);
