@@ -341,9 +341,34 @@ export function parseMarkdown(src) {
   return blocks;
 }
 
-/** First sentence of a block of prose (used for the key takeaway). */
-export function splitFirstSentence(text) {
-  const m = text.match(/^([\s\S]*?[.!?])(\s+)(?=[A-Z0-9"'(])/);
-  if (!m || m[1].length < 20) return { first: text.trim(), rest: '' };
-  return { first: m[1].trim(), rest: text.slice(m[0].length).trim() };
+/**
+ * Split a run list after its first sentence (used for the key takeaway).
+ * Returns { first, rest } as run lists; sentence ends need a following
+ * capital, digit or quote so "U.S. rates" style abbreviations survive.
+ */
+export function splitRunsAtFirstSentence(runs) {
+  const plain = runs.map(r => r.text).join('');
+  const re = /[.!?](?=["')\]]?\s+[A-Z0-9"'(])/g;
+  let cut = -1;
+  let m;
+  while ((m = re.exec(plain))) {
+    if (m.index >= 24) { cut = m.index + 1; break; }
+  }
+  if (cut < 0) return { first: runs, rest: [] };
+  while (cut < plain.length && /["')\]]/.test(plain[cut])) cut++;
+  const first = [];
+  const rest = [];
+  let pos = 0;
+  for (const r of runs) {
+    const end = pos + r.text.length;
+    if (end <= cut) first.push(r);
+    else if (pos >= cut) rest.push(r);
+    else {
+      first.push({ ...r, text: r.text.slice(0, cut - pos) });
+      rest.push({ ...r, text: r.text.slice(cut - pos) });
+    }
+    pos = end;
+  }
+  if (rest.length) rest[0] = { ...rest[0], text: rest[0].text.replace(/^\s+/, '') };
+  return { first, rest: rest.filter(r => r.text) };
 }

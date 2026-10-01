@@ -14,8 +14,6 @@ import {
   Trash2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -40,6 +38,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { PageHeader, MicroLabel } from '@/components/brand/Brand';
 
 export default function Integrations() {
   const [user, setUser] = useState(null);
@@ -223,101 +222,90 @@ export default function Integrations() {
 
   return (
     <div className="p-6 lg:p-8 max-w-4xl mx-auto">
-      {/* Header */}
-       <div className="mb-8">
-         <h1 className="text-2xl font-bold text-stone-100">Integrations</h1>
-         <p className="text-stone-500">
-           Connect your favorite apps to deliver digests to Slack, Discord, and Microsoft Teams
-         </p>
-       </div>
+      <PageHeader
+        title="Integrations"
+        subtitle="Deliver briefings to Slack, Discord and Microsoft Teams"
+      />
 
       {/* Premium Notice */}
       {!isPremium && (
-        <div className="mb-6 p-4 rounded-xl bg-[hsl(var(--primary))]/10 border border-[hsl(var(--primary))]/40 flex items-center gap-4">
-          <div className="w-10 h-10 bg-[hsl(var(--primary))] rounded-lg flex items-center justify-center flex-shrink-0">
-            <Crown className="w-5 h-5 text-stone-900" />
+        <div className="panel-accent mb-6 flex flex-wrap items-center gap-4 p-5">
+          <div className="logo-mark h-10 w-10 flex-shrink-0 rounded-lg">
+            <Crown className="h-5 w-5 text-white" aria-hidden="true" />
           </div>
-          <div className="flex-1">
-            <p className="font-semibold text-stone-200">Upgrade to Premium</p>
-            <p className="text-sm text-stone-500">Unlock Slack, Discord, and Microsoft Teams integrations</p>
+          <div className="min-w-0 flex-1">
+            <p className="font-display font-semibold text-stone-100">Upgrade to Premium</p>
+            <p className="text-sm text-stone-400">Unlock Slack, Discord and Microsoft Teams delivery</p>
           </div>
-          <Link to={createPageUrl('Pricing')}>
-            <Button className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold rounded-lg text-sm">
-              Upgrade
-            </Button>
+          <Link to={createPageUrl('Pricing')} className="btn-brand">
+            Upgrade
           </Link>
         </div>
       )}
 
-      {/* Integration Cards */}
+      {/* Integration cards */}
+      <MicroLabel className="mb-3">Delivery channels</MicroLabel>
       <div className="space-y-4">
         {/* Microsoft Teams */}
-        <Card className="border-stone-800 bg-stone-900">
-          <CardContent className="p-6">
+        <section className="panel p-6">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-[#6264A7] rounded-xl flex items-center justify-center">
-                <MessageCircle className="w-6 h-6 text-white" />
+              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04]">
+                <MessageCircle className="h-6 w-6 text-stone-200" aria-hidden="true" />
               </div>
-              <div className="flex-1">
+              <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className="font-semibold text-stone-200">Microsoft Teams</h3>
+                  <h3 className="font-display text-base font-semibold text-stone-100">Microsoft Teams</h3>
                   {!isPremium && (
-                    <Badge variant="secondary" className="text-xs gap-1 bg-stone-800 text-amber-400">
-                      <Crown className="w-3 h-3" /> Premium
-                    </Badge>
+                    <span className="chip-brand gap-1"><Crown className="h-3 w-3" aria-hidden="true" /> Premium</span>
                   )}
                 </div>
-                <p className="text-sm text-stone-400 mb-4">Post digests to your Microsoft Teams channels</p>
+                <p className="text-sm text-stone-400 mb-4">Post briefings to your Microsoft Teams channels</p>
                 {teamsIntegration?.status === 'connected' ? (
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
-                      <Badge className="bg-green-900/30 text-green-400"><Check className="w-3 h-3 mr-1" /> Connected</Badge>
-                      <span className="text-sm text-stone-500">Webhook configured</span>
+                      <span className="chip gap-1 border border-emerald-400/25 bg-emerald-400/10 text-emerald-300"><Check className="h-3 w-3" aria-hidden="true" /> Connected</span>
+                      <span className="meta">Webhook configured</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <Button variant="outline" size="sm" onClick={() => handleSendTestMessage('Teams')} disabled={loading}>Send Test</Button>
-                      <Button variant="ghost" size="sm" onClick={() => setDisconnectConfirm(teamsIntegration)} className="text-red-400 hover:text-red-300 hover:bg-red-900/20">
-                        <Trash2 className="w-4 h-4" />
+                      <Button variant="outline" size="sm" onClick={() => handleSendTestMessage('Teams')} disabled={loading}>Send test</Button>
+                      <Button variant="ghost" size="sm" onClick={() => setDisconnectConfirm(teamsIntegration)} className="text-red-400 hover:bg-red-400/10 hover:text-red-300"
+                        aria-label="Disconnect"
+                      >
+                        <Trash2 className="h-4 w-4" aria-hidden="true" />
                       </Button>
                     </div>
                   </div>
                 ) : (
-                  <Button onClick={() => { if (checkIntegrationLimit()) setShowTeamsDialog(true); }} disabled={!isPremium} className={cn(isPremium ? "bg-[#6264A7] hover:bg-[#4f5196]" : "")}>
-                    <Plus className="w-4 h-4 mr-2" /> Connect Teams
+                  <Button onClick={() => { if (checkIntegrationLimit()) setShowTeamsDialog(true); }} disabled={!isPremium} className={cn(isPremium && "bg-none bg-[#6264A7] shadow-none hover:bg-[#4f5196]")}>
+                    <Plus className="h-4 w-4" aria-hidden="true" /> Connect Teams
                   </Button>
                 )}
               </div>
             </div>
-          </CardContent>
-        </Card>
+        </section>
         {/* Slack */}
-        <Card className="border-stone-800 bg-stone-900">
-          <CardContent className="p-6">
+        <section className="panel p-6">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-[#4A154B] rounded-xl flex items-center justify-center">
-                <Slack className="w-6 h-6 text-white" />
+              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04]">
+                <Slack className="h-6 w-6 text-stone-200" aria-hidden="true" />
               </div>
               
-              <div className="flex-1">
+              <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold text-stone-200">Slack</h3>
+                    <h3 className="font-display text-base font-semibold text-stone-100">Slack</h3>
                     {!isPremium && (
-                      <Badge variant="secondary" className="text-xs gap-1 bg-stone-800 text-amber-400">
-                        <Crown className="w-3 h-3" /> Premium
-                      </Badge>
+                      <span className="chip-brand gap-1"><Crown className="h-3 w-3" aria-hidden="true" /> Premium</span>
                     )}
                   </div>
                   <p className="text-sm text-stone-400 mb-4">
-                  Post digests directly to your Slack channels
+                  Post briefings directly to your Slack channels
                 </p>
 
                 {slackIntegration?.status === 'connected' ? (
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
-                      <Badge className="bg-green-900/30 text-green-400">
-                        <Check className="w-3 h-3 mr-1" /> Connected
-                      </Badge>
-                      <span className="text-sm text-stone-500">Webhook configured</span>
+                      <span className="chip gap-1 border border-emerald-400/25 bg-emerald-400/10 text-emerald-300"><Check className="h-3 w-3" aria-hidden="true" /> Connected</span>
+                      <span className="meta">Webhook configured</span>
                     </div>
                     
                     <div className="flex items-center gap-3">
@@ -327,16 +315,17 @@ export default function Integrations() {
                         onClick={() => handleSendTestMessage('Slack')}
                         disabled={loading}
                       >
-                        Send Test
+                        Send test
                       </Button>
                       
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => setDisconnectConfirm(slackIntegration)}
-                        className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                        className="text-red-400 hover:bg-red-400/10 hover:text-red-300"
+                        aria-label="Disconnect"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="h-4 w-4" aria-hidden="true" />
                       </Button>
                     </div>
                   </div>
@@ -345,48 +334,40 @@ export default function Integrations() {
                     onClick={() => setShowSlackDialog(true)}
                     disabled={!isPremium}
                     className={cn(
-                      isPremium ? "bg-[#4A154B] hover:bg-[#3e1140]" : ""
+                      isPremium && "bg-none bg-[#4A154B] shadow-none hover:bg-[#3e1140]"
                     )}
                   >
-                    <Plus className="w-4 h-4 mr-2" />
+                    <Plus className="h-4 w-4" aria-hidden="true" />
                     Connect Slack
                   </Button>
                 )}
               </div>
             </div>
-          </CardContent>
-        </Card>
+        </section>
 
         {/* Discord */}
-        <Card className="border-stone-800 bg-stone-900">
-          <CardContent className="p-6">
+        <section className="panel p-6">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-[#5865F2] rounded-xl flex items-center justify-center">
-                <MessageCircle className="w-6 h-6 text-white" />
+              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04]">
+                <MessageCircle className="h-6 w-6 text-stone-200" aria-hidden="true" />
               </div>
               
-              <div className="flex-1">
+              <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold text-stone-200">Discord</h3>
+                    <h3 className="font-display text-base font-semibold text-stone-100">Discord</h3>
                     {!isPremium && (
-                      <Badge variant="secondary" className="text-xs gap-1 bg-stone-800 text-amber-400">
-                        <Crown className="w-3 h-3" /> Premium
-                      </Badge>
+                      <span className="chip-brand gap-1"><Crown className="h-3 w-3" aria-hidden="true" /> Premium</span>
                     )}
                   </div>
                   <p className="text-sm text-stone-400 mb-4">
-                  Send digests to your Discord server via webhook
+                  Send briefings to your Discord server via webhook
                 </p>
 
                 {discordIntegration?.status === 'connected' ? (
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
-                      <Badge className="bg-green-900/30 text-green-400">
-                        <Check className="w-3 h-3 mr-1" /> Connected
-                      </Badge>
-                      <span className="text-sm text-stone-500">
-                        Webhook configured
-                      </span>
+                      <span className="chip gap-1 border border-emerald-400/25 bg-emerald-400/10 text-emerald-300"><Check className="h-3 w-3" aria-hidden="true" /> Connected</span>
+                      <span className="meta">Webhook configured</span>
                     </div>
                     
                     <div className="flex items-center gap-3">
@@ -396,16 +377,17 @@ export default function Integrations() {
                         onClick={() => handleSendTestMessage('Discord')}
                         disabled={loading}
                       >
-                        Send Test
+                        Send test
                       </Button>
                       
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => setDisconnectConfirm(discordIntegration)}
-                        className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                        className="text-red-400 hover:bg-red-400/10 hover:text-red-300"
+                        aria-label="Disconnect"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="h-4 w-4" aria-hidden="true" />
                       </Button>
                     </div>
                   </div>
@@ -414,17 +396,16 @@ export default function Integrations() {
                     onClick={() => setShowDiscordDialog(true)}
                     disabled={!isPremium}
                     className={cn(
-                      isPremium ? "bg-[#5865F2] hover:bg-[#4752c4]" : ""
+                      isPremium && "bg-none bg-[#5865F2] shadow-none hover:bg-[#4752c4]"
                     )}
                   >
-                    <Plus className="w-4 h-4 mr-2" />
+                    <Plus className="h-4 w-4" aria-hidden="true" />
                     Connect Discord
                   </Button>
                 )}
               </div>
             </div>
-          </CardContent>
-        </Card>
+        </section>
       </div>
 
       {/* Teams Dialog */}
@@ -432,28 +413,28 @@ export default function Integrations() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <MessageCircle className="w-5 h-5 text-[#6264A7]" />
+              <MessageCircle className="h-5 w-5 text-[#8B8DD6]" aria-hidden="true" />
               Connect Microsoft Teams
             </DialogTitle>
-            <DialogDescription>Add an incoming webhook to post digests to a Teams channel</DialogDescription>
+            <DialogDescription>Add an incoming webhook to post briefings to a Teams channel</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="teamsWebhook" className="text-stone-300">Incoming Webhook URL <span className="text-[hsl(var(--primary))]">*</span></Label>
+              <Label htmlFor="teamsWebhook" className="micro-label mb-1.5 block">Incoming webhook URL <span className="text-[hsl(var(--primary))]">*</span></Label>
               <Input
                 id="teamsWebhook"
                 value={teamsWebhook}
                 onChange={(e) => { setTeamsWebhook(e.target.value); setTeamsError(''); }}
                 placeholder="https://xxx.webhook.office.com/webhookb2/..."
-                className={cn("mt-1 bg-stone-800 border-stone-700 text-stone-100 placeholder-stone-600", teamsError && 'border-red-500')}
+                className={cn(teamsError && 'border-red-400/60')}
               />
               {teamsError
                 ? <p className="mt-1 text-xs text-red-400 flex items-center gap-1"><AlertCircle className="w-3 h-3" />{teamsError}</p>
                 : <p className="mt-1 text-xs text-stone-500">Paste the webhook URL from your Teams channel connector settings</p>
               }
             </div>
-            <div className="bg-stone-800 rounded-lg p-4 text-sm text-stone-400">
-              <p className="font-medium text-stone-300 mb-2">How to get a webhook:</p>
+            <div className="rounded-xl border border-white/[0.07] bg-white/[0.03] p-4 text-sm text-stone-400">
+              <MicroLabel className="mb-2">How to get a webhook</MicroLabel>
               <ol className="space-y-1 list-decimal list-inside">
                 <li>Open the Teams channel → click "…" → Connectors</li>
                 <li>Search for "Incoming Webhook" → Configure</li>
@@ -464,8 +445,8 @@ export default function Integrations() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowTeamsDialog(false)}>Cancel</Button>
-            <Button onClick={handleConnectTeams} disabled={loading || !teamsWebhook} className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold">
-              {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            <Button onClick={handleConnectTeams} disabled={loading || !teamsWebhook}>
+              {loading && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
               Connect Teams
             </Button>
           </DialogFooter>
@@ -477,17 +458,17 @@ export default function Integrations() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Slack className="w-5 h-5 text-[#4A154B]" />
+              <Slack className="h-5 w-5 text-[#E01E5A]" aria-hidden="true" />
               Connect Slack
             </DialogTitle>
             <DialogDescription>
-              Connect your Slack workspace to receive digests in your channels
+              Connect your Slack workspace to receive briefings in your channels
             </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="slackWebhook" className="text-stone-300">Incoming Webhook URL <span className="text-[hsl(var(--primary))]" aria-hidden="true">*</span></Label>
+              <Label htmlFor="slackWebhook" className="micro-label mb-1.5 block">Incoming webhook URL <span className="text-[hsl(var(--primary))]" aria-hidden="true">*</span></Label>
               <Input
                 id="slackWebhook"
                 value={slackWebhook}
@@ -495,17 +476,17 @@ export default function Integrations() {
                 placeholder="https://hooks.slack.com/services/T.../B.../..."
                 aria-invalid={!!slackError}
                 aria-describedby={slackError ? 'slack-error' : 'slack-hint'}
-                className={cn("mt-1 bg-stone-800 border-stone-700 text-stone-100 placeholder-stone-600", slackError && 'border-red-500')}
+                className={cn(slackError && 'border-red-400/60')}
               />
               {slackError
                 ? <p id="slack-error" role="alert" className="mt-1 text-xs text-red-400 flex items-center gap-1"><AlertCircle className="w-3 h-3" aria-hidden="true" />{slackError}</p>
                 : <p id="slack-hint" className="mt-1 text-xs text-stone-500">Paste the full webhook URL from your Slack app settings</p>
               }
             </div>
-            <div className="bg-stone-800 rounded-lg p-4 text-sm text-stone-400">
-              <p className="font-medium text-stone-300 mb-2">How to get a webhook:</p>
+            <div className="rounded-xl border border-white/[0.07] bg-white/[0.03] p-4 text-sm text-stone-400">
+              <MicroLabel className="mb-2">How to get a webhook</MicroLabel>
               <ol className="space-y-1 list-decimal list-inside">
-                <li>Go to <a href="https://api.slack.com/apps" target="_blank" rel="noreferrer" className="text-[hsl(var(--primary))] underline">api.slack.com/apps</a></li>
+                <li>Go to <a href="https://api.slack.com/apps" target="_blank" rel="noreferrer" className="text-[#C4A5FD] underline underline-offset-2">api.slack.com/apps</a></li>
                 <li>Create an app → Incoming Webhooks</li>
                 <li>Enable and add a new webhook to your channel</li>
                 <li>Copy the webhook URL and paste it above</li>
@@ -520,9 +501,9 @@ export default function Integrations() {
             <Button
               onClick={handleConnectSlack}
               disabled={loading || !slackWebhook}
-              className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold"
+             
             >
-              {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {loading && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
               Connect Slack
             </Button>
           </DialogFooter>
@@ -534,17 +515,17 @@ export default function Integrations() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <MessageCircle className="w-5 h-5 text-[#5865F2]" />
+              <MessageCircle className="h-5 w-5 text-[#5865F2]" aria-hidden="true" />
               Connect Discord
             </DialogTitle>
             <DialogDescription>
-              Add a Discord webhook to receive digests in your server
+              Add a Discord webhook to receive briefings in your server
             </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="webhook" className="text-stone-300">Webhook URL <span className="text-[hsl(var(--primary))]" aria-hidden="true">*</span></Label>
+              <Label htmlFor="webhook" className="micro-label mb-1.5 block">Webhook URL <span className="text-[hsl(var(--primary))]" aria-hidden="true">*</span></Label>
               <Input
                 id="webhook"
                 value={discordWebhook}
@@ -552,7 +533,7 @@ export default function Integrations() {
                 placeholder="https://discord.com/api/webhooks/123456789/..."
                 aria-invalid={!!discordError}
                 aria-describedby={discordError ? 'discord-error' : 'discord-hint'}
-                className={cn("bg-stone-800 border-stone-700 text-stone-100 placeholder-stone-600", discordError && 'border-red-500')}
+                className={cn(discordError && 'border-red-400/60')}
               />
               {discordError
                 ? <p id="discord-error" role="alert" className="mt-1 text-xs text-red-400 flex items-center gap-1"><AlertCircle className="w-3 h-3" aria-hidden="true" />{discordError}</p>
@@ -560,8 +541,8 @@ export default function Integrations() {
               }
             </div>
 
-            <div className="bg-stone-800 rounded-lg p-4 text-sm text-stone-400">
-              <p className="font-medium text-stone-300 mb-2">How to get a webhook:</p>
+            <div className="rounded-xl border border-white/[0.07] bg-white/[0.03] p-4 text-sm text-stone-400">
+              <MicroLabel className="mb-2">How to get a webhook</MicroLabel>
               <ol className="space-y-1 list-decimal list-inside">
                 <li>Open Discord server settings</li>
                 <li>Go to Integrations → Webhooks</li>
@@ -577,9 +558,9 @@ export default function Integrations() {
             <Button
               onClick={handleConnectDiscord}
               disabled={loading || !discordWebhook}
-              className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold"
+             
             >
-              {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {loading && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
               Connect Discord
             </Button>
           </DialogFooter>
@@ -590,14 +571,14 @@ export default function Integrations() {
       <AlertDialog open={!!disconnectConfirm} onOpenChange={() => setDisconnectConfirm(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Disconnect Integration</AlertDialogTitle>
+            <AlertDialogTitle>Disconnect integration</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to disconnect this integration? Digests will no longer be delivered to this channel.
+              Are you sure you want to disconnect this integration? Briefings will no longer be delivered to this channel.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDisconnect} className="bg-red-600 hover:bg-red-700">
+            <AlertDialogAction onClick={handleDisconnect} className="bg-none bg-red-500 text-white shadow-none hover:bg-red-600">
               Disconnect
             </AlertDialogAction>
           </AlertDialogFooter>
