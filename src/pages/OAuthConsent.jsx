@@ -137,7 +137,7 @@ export default function OAuthConsent() {
   if (checking) {
     return (
       <AuthLayout icon={ShieldCheck} title="Authorize access">
-        <div className="flex items-center justify-center py-6 text-muted-foreground">
+        <div className="flex items-center justify-center py-6 text-stone-400">
           <Loader2 className="w-5 h-5 mr-2 animate-spin" aria-hidden="true" />
           Loading…
         </div>
@@ -164,7 +164,7 @@ export default function OAuthConsent() {
   if (reconnect) {
     return (
       <AuthLayout icon={ShieldCheck} title="Reconnect required">
-        <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+        <div className="rounded-xl border border-red-400/25 bg-red-400/10 p-3 text-sm text-red-300">
           {reconnect}
         </div>
       </AuthLayout>
@@ -177,7 +177,7 @@ export default function OAuthConsent() {
   if (error && !info) {
     return (
       <AuthLayout icon={ShieldCheck} title="Authorize access">
-        <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+        <div className="rounded-xl border border-red-400/25 bg-red-400/10 p-3 text-sm text-red-300">
           {error}
         </div>
       </AuthLayout>
@@ -193,23 +193,23 @@ export default function OAuthConsent() {
       subtitle={`${client} wants to access ${appName} on your behalf`}
     >
       {error && (
-        <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+        <div className="mb-4 rounded-xl border border-red-400/25 bg-red-400/10 p-3 text-sm text-red-300">
           {error}
         </div>
       )}
 
-      <p className="text-sm font-medium text-foreground mb-2">
+      <p className="micro-label mb-3">
         {tools.length ? `It will be able to use these tools in ${appName}:` : "No tools requested"}
       </p>
       {tools.length > 0 && (
-        <ul className="space-y-2 text-sm mb-6">
+        <ul className="mb-6 space-y-2 text-sm">
           {tools.map((tool) => (
-            <li key={tool.name} className="flex flex-col">
-              <span className="text-foreground font-medium">
+            <li key={tool.name} className="flex flex-col rounded-xl border border-white/[0.07] bg-white/[0.03] px-3 py-2.5">
+              <span className="font-medium text-stone-100">
                 {tool.title || tool.name}
               </span>
               {tool.description && (
-                <span className="text-muted-foreground">{tool.description}</span>
+                <span className="text-stone-400">{tool.description}</span>
               )}
             </li>
           ))}
@@ -219,18 +219,18 @@ export default function OAuthConsent() {
       <div className="flex gap-3">
         <Button
           variant="outline"
-          className="flex-1 h-12 font-medium"
+          className="h-12 flex-1"
           disabled={submitting}
           onClick={() => respond("deny")}
         >
           Deny
         </Button>
         <Button
-          className="flex-1 h-12 font-medium"
+          className="h-12 flex-1"
           disabled={submitting}
           onClick={() => respond("approve")}
         >
-          {submitting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+          {submitting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}
           Approve
         </Button>
       </div>
