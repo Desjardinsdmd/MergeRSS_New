@@ -7,7 +7,6 @@ import {
   Users, Globe, Plus, Loader2, CheckCircle2, Circle
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
@@ -16,19 +15,12 @@ import {
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { addSourceViaApi, saveDigestViaApi } from '@/components/feeds/sourceApi';
+import { PageHeader } from '@/components/brand/Brand';
 
 const CATEGORIES = ['All', 'CRE', 'Markets', 'Tech', 'News', 'Finance', 'Crypto', 'AI', 'Other'];
 
-const categoryColors = {
-  CRE: 'bg-stone-800 text-[hsl(var(--primary))]',
-  Markets: 'bg-stone-800 text-[hsl(var(--primary))]',
-  Tech: 'bg-stone-800 text-[hsl(var(--primary))]',
-  News: 'bg-stone-800 text-[hsl(var(--primary))]',
-  Finance: 'bg-stone-800 text-[hsl(var(--primary))]',
-  Crypto: 'bg-stone-800 text-[hsl(var(--primary))]',
-  AI: 'bg-stone-800 text-[hsl(var(--primary))]',
-  Other: 'bg-stone-800 text-stone-400',
-};
+// User-facing nouns for the two directory item types (entity names stay feed/digest in code).
+const TYPE_LABEL = { feed: 'source', digest: 'briefing' };
 
 function VoteButtons({ item, itemType, user, onVote, voting }) {
   const myVote = item.my_vote || null;
@@ -43,10 +35,10 @@ function VoteButtons({ item, itemType, user, onVote, voting }) {
         aria-label={myVote === 'up' ? `Remove upvote for ${item.name}` : `Upvote ${item.name}`}
         aria-pressed={myVote === 'up'}
         className={cn(
-          'p-1 rounded transition',
+          'rounded-lg p-1 transition',
           myVote === 'up'
-            ? 'text-[hsl(var(--primary))]'
-            : 'text-stone-400 hover:text-[hsl(var(--primary))]',
+            ? 'bg-[hsl(var(--primary)/0.16)] text-[#C4A5FD]'
+            : 'text-stone-500 hover:bg-white/[0.05] hover:text-[#C4A5FD]',
           !user && 'opacity-40 cursor-not-allowed'
         )}
         title={user ? 'Upvote' : 'Sign in to vote'}
@@ -54,8 +46,8 @@ function VoteButtons({ item, itemType, user, onVote, voting }) {
         <ArrowUp className="w-4 h-4" />
       </button>
       <span aria-label={`Score ${score}`} className={cn(
-        'text-xs font-bold leading-none',
-        score > 0 ? 'text-[hsl(var(--primary))]' : score < 0 ? 'text-red-500' : 'text-stone-400'
+        'font-mono text-xs font-semibold leading-none tabular-nums',
+        score > 0 ? 'text-[#C4A5FD]' : score < 0 ? 'text-red-400' : 'text-stone-500'
       )}>
         {score}
       </span>
@@ -66,10 +58,10 @@ function VoteButtons({ item, itemType, user, onVote, voting }) {
         aria-label={myVote === 'down' ? `Remove downvote for ${item.name}` : `Downvote ${item.name}`}
         aria-pressed={myVote === 'down'}
         className={cn(
-          'p-1 rounded transition',
+          'rounded-lg p-1 transition',
           myVote === 'down'
-            ? 'text-red-500'
-            : 'text-stone-400 hover:text-red-400',
+            ? 'bg-red-400/10 text-red-400'
+            : 'text-stone-500 hover:bg-white/[0.05] hover:text-red-400',
           !user && 'opacity-40 cursor-not-allowed'
         )}
         title={user ? 'Downvote' : 'Sign in to vote'}
@@ -96,50 +88,53 @@ function DirectoryCard({ item, itemType, user, onVote, votingKey, onAdd, addedIt
   };
   
   return (
-     <div className={cn("bg-stone-900 border rounded-xl p-4 flex gap-4 hover:shadow-sm transition", isSelected ? "border-amber-400 bg-stone-800" : "border-stone-800")}>
+     <div className={cn("panel panel-hover flex gap-4 p-4", isSelected && "border-[hsl(var(--primary)/0.45)] bg-[hsl(var(--primary)/0.06)]")}>
        <button
          type="button"
          onClick={() => onToggleSelect && onToggleSelect(item.id, itemType)}
-         className="flex-shrink-0 mt-0.5 text-stone-600 hover:text-amber-400 transition"
+         className="mt-0.5 flex-shrink-0 rounded-full text-stone-500 transition hover:text-[#C4A5FD]"
          title={isSelected ? 'Deselect' : 'Select'}
          aria-label={`${isSelected ? 'Deselect' : 'Select'} ${item.name}`}
          aria-pressed={!!isSelected}
        >
-         {isSelected ? <CheckCircle2 className="w-5 h-5 text-amber-400" /> : <Circle className="w-5 h-5" />}
+         {isSelected ? <CheckCircle2 className="w-5 h-5 text-[hsl(var(--primary))]" /> : <Circle className="w-5 h-5" />}
        </button>
        <VoteButtons item={item} itemType={itemType} user={user} onVote={onVote} voting={votingKey === `${itemType}-${item.id}`} />
 
        <div className="flex-1 min-w-0">
          <div className="flex items-start justify-between gap-2">
            <div className="flex items-center gap-2 min-w-0">
-             <div className="w-8 h-8 bg-stone-800 rounded-lg flex items-center justify-center flex-shrink-0">
-               <Icon className="w-4 h-4 text-amber-400" />
+             <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--primary)/0.14)]">
+               <Icon className="w-4 h-4 text-[hsl(var(--primary))]" aria-hidden="true" />
              </div>
              <div className="min-w-0">
-               <h3 className="font-semibold text-stone-100 text-sm leading-tight truncate">{item.name}</h3>
-              {item.category && (
-                <Badge className={cn('text-[10px] mt-0.5', categoryColors[item.category] || categoryColors.Other)}>
-                  {item.category}
-                </Badge>
-              )}
+               <h3 className="truncate text-[15px] font-semibold leading-tight text-stone-100">{item.name}</h3>
+              <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                <span className="chip-neutral">{TYPE_LABEL[itemType] || itemType}</span>
+                {item.category && (
+                  <span className="chip-brand">
+                    {item.category}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
           {isCreator ? (
-            <Badge variant="outline" className="text-xs h-7 px-2.5 flex-shrink-0 border-stone-700 text-stone-400">
-              Your {itemType}
-            </Badge>
+            <span className="chip-neutral h-7 flex-shrink-0 px-2.5">
+              Your {TYPE_LABEL[itemType] || itemType}
+            </span>
           ) : isAdded ? (
-            <Badge variant="outline" className="text-xs h-7 px-2.5 flex-shrink-0 bg-emerald-900/30 text-emerald-400 border-emerald-700">
+            <span className="chip h-7 flex-shrink-0 border border-emerald-400/25 bg-emerald-400/10 px-2.5 text-emerald-300">
               ✓ Added
-            </Badge>
+            </span>
           ) : (
             <Button
               size="sm"
               onClick={handleAddClick}
               disabled={!user || adding}
-              className="btn-brand font-semibold rounded-lg text-xs h-7 px-2.5 flex-shrink-0"
+              className="btn-brand h-7 flex-shrink-0 px-2.5 text-xs"
               title={user ? undefined : 'Sign in to add'}
-              aria-label={`Add ${item.name} to your ${itemType === 'feed' ? 'sources' : 'digests'}`}
+              aria-label={`Add ${item.name} to your ${itemType === 'feed' ? 'sources' : 'briefings'}`}
             >
               {adding ? (
                 <>
@@ -157,19 +152,19 @@ function DirectoryCard({ item, itemType, user, onVote, votingKey, onAdd, addedIt
         </div>
 
         {(item.public_description || item.description) && (
-          <p className="text-xs text-stone-500 mt-2 line-clamp-2 leading-relaxed">
+          <p className="mt-2 line-clamp-2 text-[13px] leading-relaxed text-stone-400">
             {item.public_description || item.description}
           </p>
         )}
 
-        <div className="flex items-center gap-3 mt-2 text-[10px] text-stone-600">
+        <div className="meta mt-2 flex flex-wrap items-center gap-2">
           {item.frequency && (
-            <span className="capitalize">{item.frequency}</span>
+            <span>{item.frequency}</span>
           )}
           {item.tags?.length > 0 && item.tags.slice(0, 3).map(tag => (
-            <span key={tag} className="bg-stone-800 px-1.5 py-0.5 rounded text-stone-500">#{tag}</span>
+            <span key={tag} className="chip-neutral normal-case tracking-normal">#{tag}</span>
           ))}
-          <span className="flex items-center gap-1 ml-auto">
+          <span className="ml-auto flex items-center gap-1">
             <Users className="w-3 h-3" />
             {item.added_count || 0} added
           </span>
@@ -327,7 +322,7 @@ export default function Directory() {
     await recordAdd(item, 'digest');
     queryClient.invalidateQueries({ queryKey: ['digests'] });
     refreshDirectory();
-    toast.success(`"${item.name}" added to your digests`);
+    toast.success(`"${item.name}" added to your briefings`);
   };
 
   const filteredFeeds = filterAndSort(directoryFeeds);
@@ -405,7 +400,7 @@ export default function Directory() {
       // The digest must point at the caller's own feeds, so add (or find) them first.
       const { ids } = await addSelectedFeeds();
       if (ids.length === 0) {
-        toast.error('None of the selected feeds could be added, so no digest was created.');
+        toast.error('None of the selected sources could be added, so no briefing was created.');
         return;
       }
       const result = await saveDigestViaApi({
@@ -429,67 +424,59 @@ export default function Directory() {
       queryClient.invalidateQueries({ queryKey: ['feeds'] });
       queryClient.invalidateQueries({ queryKey: ['digests'] });
       refreshDirectory();
-      toast.success(`Digest created from ${ids.length} feed${ids.length > 1 ? 's' : ''}`);
+      toast.success(`Briefing created from ${ids.length} source${ids.length > 1 ? 's' : ''}`);
     } finally {
       setDigestCreating(false);
     }
   };
 
   return (
-     <div className="min-h-screen bg-[#0a0805]">
-       {/* Hero */}
-       <div className="bg-[#0d0a06] border-b border-stone-800">
-         <div className="max-w-4xl mx-auto px-4 py-12 text-center">
-           <div className="inline-flex items-center gap-2 px-3 py-1 bg-[hsl(var(--primary))]/20 rounded-full text-xs text-[hsl(var(--primary))] font-medium mb-4">
-             <Globe className="w-3.5 h-3.5" />
-             Public Directory
-           </div>
-           <h1 className="text-3xl font-bold text-stone-100 mb-3">
-             Discover Feeds & Digests
-           </h1>
-           <p className="text-stone-500 max-w-xl mx-auto mb-8">
-             Browse community-shared RSS feeds and curated digests. Vote on your favorites and add them to your library in one click.
-           </p>
+     <div className="mx-auto max-w-4xl p-6 lg:p-8">
+       {/* Header */}
+       <PageHeader
+         eyebrow={<span className="inline-flex items-center gap-1.5"><Globe className="h-3 w-3" aria-hidden="true" />Public directory</span>}
+         title="Discover sources and briefings"
+         subtitle="Browse community-shared sources and curated briefings. Vote on your favorites and add them in one click."
+       />
 
-           {/* Search */}
-           <div className="relative max-w-lg mx-auto">
-             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-600" />
-             <Input
-               placeholder="Search feeds and digests..."
-               aria-label="Search feeds and digests"
-               value={search}
-               onChange={(e) => setSearch(e.target.value)}
-               className="pl-10 h-11 rounded-xl border-stone-800 bg-stone-900 text-stone-100 placeholder-stone-600 shadow-sm"
-             />
-           </div>
-
-           {!authLoading && !user && (
-             <p className="text-xs text-stone-500 mt-3">
-               <button
-                 onClick={() => base44.auth.redirectToLogin(createPageUrl('Directory'))}
-                 className="text-amber-400 hover:underline"
-               >
-                 Sign in
-               </button>
-               {' '}to vote and add feeds/digests to your library
-             </p>
-           )}
-         </div>
+       {/* Search */}
+       <div className="relative mb-2">
+         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500" aria-hidden="true" />
+         <Input
+           placeholder="Search sources and briefings..."
+           aria-label="Search sources and briefings"
+           value={search}
+           onChange={(e) => setSearch(e.target.value)}
+           className="h-11 rounded-xl pl-10"
+         />
        </div>
 
+       {!authLoading && !user && (
+         <p className="mt-2 text-xs text-stone-500">
+           <button
+             onClick={() => base44.auth.redirectToLogin(createPageUrl('Directory'))}
+             className="text-[#C4A5FD] hover:underline"
+           >
+             Sign in
+           </button>
+           {' '}to vote and add sources and briefings
+         </p>
+       )}
+
       {/* Filters */}
-      <div className="max-w-4xl mx-auto px-4 py-4 flex flex-wrap gap-3 items-center">
+      <div className="flex flex-wrap items-center gap-3 py-4">
         <div className="flex gap-1 flex-wrap">
           {CATEGORIES.map(cat => (
             <button
               key={cat}
               onClick={() => setCategory(cat)}
               className={cn(
-                'px-3 py-1 rounded-full text-xs font-medium transition',
+                'rounded-full border px-3 py-1 font-mono text-[11px] font-medium transition',
                 category === cat
-                  ? 'bg-[hsl(var(--primary))] text-stone-900'
-                  : 'bg-stone-900 border border-stone-800 text-stone-400 hover:border-stone-700 hover:text-stone-300'
+                  ? 'border-[hsl(var(--primary)/0.4)] bg-[hsl(var(--primary)/0.18)] text-stone-100'
+                  : 'border-white/[0.07] text-stone-400 hover:border-white/[0.14] hover:text-stone-200'
               )}
+              aria-pressed={category === cat}
             >
               {cat}
             </button>
@@ -501,27 +488,27 @@ export default function Directory() {
               size="sm"
               variant="outline"
               onClick={handleSelectAll}
-              className="text-xs h-8"
+              className="btn-ghost h-8 text-xs"
             >
-              Select All
+              Select all
             </Button>
           ) : (
             <Button
               size="sm"
               variant="outline"
               onClick={handleDeselectAll}
-              className="text-xs h-8 text-stone-400"
+              className="btn-ghost h-8 text-xs"
             >
-              Deselect All
+              Deselect all
             </Button>
           )}
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="h-8 text-xs w-32 rounded-lg" aria-label="Sort directory">
+            <SelectTrigger className="h-8 w-32 rounded-xl text-xs" aria-label="Sort directory">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="top">Top Rated</SelectItem>
-              <SelectItem value="popular">Most Added</SelectItem>
+              <SelectItem value="top">Top rated</SelectItem>
+              <SelectItem value="popular">Most added</SelectItem>
               <SelectItem value="new">Newest</SelectItem>
             </SelectContent>
           </Select>
@@ -530,9 +517,9 @@ export default function Directory() {
 
       {/* Bulk Actions Bar */}
       {totalSelected > 0 && (
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3 bg-stone-800 border-b border-stone-700">
+        <div className="panel mb-4 flex flex-wrap items-center gap-3 px-4 py-3">
           <span className="text-sm font-medium text-stone-300">
-            {totalSelected} item{totalSelected > 1 ? 's' : ''} selected
+            <span className="font-mono">{totalSelected}</span> selected
           </span>
           {selectedFeeds.length > 0 && (
             <>
@@ -540,7 +527,7 @@ export default function Directory() {
                 size="sm"
                 onClick={handleBulkAdd}
                 disabled={bulkAdding}
-                className="btn-brand font-semibold text-xs"
+                className="btn-brand h-8 text-xs"
               >
                 {bulkAdding ? (
                   <>
@@ -550,7 +537,7 @@ export default function Directory() {
                 ) : (
                   <>
                     <Plus className="w-3 h-3 mr-1" />
-                    Add {selectedFeeds.length} Feed{selectedFeeds.length > 1 ? 's' : ''}
+                    Add {selectedFeeds.length} source{selectedFeeds.length > 1 ? 's' : ''}
                   </>
                 )}
               </Button>
@@ -558,7 +545,7 @@ export default function Directory() {
                 size="sm"
                 onClick={handleCreateDigestFromFeeds}
                 disabled={digestCreating}
-                className="bg-emerald-600 hover:bg-emerald-700 text-xs"
+                className="btn-soft h-8 text-xs"
               >
                 {digestCreating ? (
                   <>
@@ -568,7 +555,7 @@ export default function Directory() {
                 ) : (
                   <>
                     <FileText className="w-3 h-3 mr-1" />
-                    Create Digest
+                    Create briefing
                   </>
                 )}
               </Button>
@@ -578,7 +565,7 @@ export default function Directory() {
             size="sm"
             variant="ghost"
             onClick={handleDeselectAll}
-            className="ml-auto text-xs"
+            className="ml-auto rounded-xl text-xs"
           >
             Clear
           </Button>
@@ -586,12 +573,12 @@ export default function Directory() {
       )}
 
       {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 pb-12">
+      <div className="pb-4">
         <Tabs defaultValue="all">
           <TabsList className="mb-4">
-            <TabsTrigger value="all">All ({filteredFeeds.length + filteredDigests.length})</TabsTrigger>
-            <TabsTrigger value="feeds">Feeds ({filteredFeeds.length})</TabsTrigger>
-            <TabsTrigger value="digests">Digests ({filteredDigests.length})</TabsTrigger>
+            <TabsTrigger value="all">All <span className="ml-1.5 font-mono text-[11px] text-stone-500">{filteredFeeds.length + filteredDigests.length}</span></TabsTrigger>
+            <TabsTrigger value="feeds">Sources <span className="ml-1.5 font-mono text-[11px] text-stone-500">{filteredFeeds.length}</span></TabsTrigger>
+            <TabsTrigger value="digests">Briefings <span className="ml-1.5 font-mono text-[11px] text-stone-500">{filteredDigests.length}</span></TabsTrigger>
           </TabsList>
 
           <TabsContent value="all">
@@ -650,10 +637,10 @@ export default function Directory() {
 
 function EmptyState({ search }) {
    return (
-     <div className="text-center py-16">
-       <Globe className="w-10 h-10 text-stone-700 mx-auto mb-3" />
-       <p className="text-stone-500 text-sm">
-         {search ? `No results for "${search}"` : 'Nothing shared yet — be the first!'}
+     <div className="panel py-16 text-center">
+       <Globe className="mx-auto mb-3 h-10 w-10 text-stone-600" aria-hidden="true" />
+       <p className="text-sm text-stone-400">
+         {search ? `No results for "${search}"` : 'Nothing shared yet. Share a source to start the directory.'}
        </p>
      </div>
    );
