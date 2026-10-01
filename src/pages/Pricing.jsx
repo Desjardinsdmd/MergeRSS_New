@@ -81,7 +81,7 @@ const faqs = [
   },
   {
     q: 'Buying the Team plan',
-    a: 'The workspace owner. Start a team, invite your members, then upgrade the workspace from the Team page.',
+    a: 'Only the workspace owner can buy it. Start a team, invite your members, then upgrade the workspace from the Team page.',
   },
   {
     q: 'Cancelling',
