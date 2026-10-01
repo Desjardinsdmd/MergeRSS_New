@@ -20,6 +20,23 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 const FREE_FEED_LIMIT = 50; // sync with lib/planLimits.js PLAN_LIMITS.free.feeds
 const MAX_HTML = 150000;
+// Entity text fields have a size cap; larger HTML goes to private file storage (html_file_uri)
+// and newsletterInbox.get_email reads it back through a short-lived signed URL.
+const INLINE_HTML_MAX = 40000;
+
+async function storeHtml(base44, html) {
+  if (!html) return { html_content: '' };
+  let h = html.length > INLINE_HTML_MAX ? html.replace(/[ \t]{2,}/g, ' ').replace(/\n\s*\n+/g, '\n') : html;
+  if (h.length <= INLINE_HTML_MAX) return { html_content: h };
+  try {
+    const file = new File([h], 'newsletter.html', { type: 'text/html' });
+    const up = await base44.asServiceRole.integrations.Core.UploadPrivateFile({ file });
+    if (up?.file_uri) return { html_content: '', html_file_uri: up.file_uri };
+  } catch (e) {
+    console.error('[mailgunWebhook] private HTML upload failed:', e?.message);
+  }
+  return { html_content: '' }; // text_content still carries the newsletter
+}
 
 // Admin role addresses on MAILGUN_DOMAIN. The Mailgun plan allows one route (the catch-all), so
 // these are relayed from here instead of by separate routes. Destination: ADMIN_FORWARD_TO secret,
@@ -429,7 +446,7 @@ async function handle(req, base44, svc) {
       subject,
       received_at: now,
       text_content: cleanText,
-      html_content: rawHtml ? sanitizeHtml(rawHtml) : '',
+      ...(await storeHtml(base44, rawHtml ? sanitizeHtml(rawHtml) : '')),
       view_url: viewUrl || '',
       list_unsubscribe: listUnsub,
       links: links.slice(0, 60),
