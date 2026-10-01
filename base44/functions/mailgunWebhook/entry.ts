@@ -22,12 +22,14 @@ const FREE_FEED_LIMIT = 50; // sync with lib/planLimits.js PLAN_LIMITS.free.feed
 const MAX_HTML = 150000;
 // Entity text fields have a size cap; larger HTML goes to private file storage (html_file_uri)
 // and newsletterInbox.get_email reads it back through a short-lived signed URL.
-const INLINE_HTML_MAX = 40000;
+// Measured in UTF-8 bytes; the platform's per-field cap is lower than it looks for real newsletters.
+const INLINE_HTML_MAX = 8000;
+const byteLen = (s) => new TextEncoder().encode(s).length;
 
-async function storeHtml(base44, html) {
+async function storeHtml(base44, html, forceFile = false) {
   if (!html) return { html_content: '' };
-  let h = html.length > INLINE_HTML_MAX ? html.replace(/[ \t]{2,}/g, ' ').replace(/\n\s*\n+/g, '\n') : html;
-  if (h.length <= INLINE_HTML_MAX) return { html_content: h };
+  let h = byteLen(html) > INLINE_HTML_MAX ? html.replace(/[ \t]{2,}/g, ' ').replace(/\n\s*\n+/g, '\n') : html;
+  if (!forceFile && byteLen(h) <= INLINE_HTML_MAX) return { html_content: h };
   try {
     const file = new File([h], 'newsletter.html', { type: 'text/html' });
     const up = await base44.asServiceRole.integrations.Core.UploadPrivateFile({ file });
@@ -321,6 +323,20 @@ function field(formData, ...names) {
   return '';
 }
 
+// Create a NewsletterEmail; if a field is still over the platform size cap, move the HTML to
+// private storage and shorten the text, then retry once.
+async function createEmailRecord(base44, svc, data, rawHtml) {
+  try {
+    return await svc.NewsletterEmail.create(data);
+  } catch (e) {
+    if (!/exceeds the maximum allowed size/i.test(String(e?.message))) throw e;
+    const retry = { ...data, ...(await storeHtml(base44, rawHtml ? sanitizeHtml(rawHtml) : '', true)) };
+    retry.text_content = String(retry.text_content || '').slice(0, 6000);
+    retry.links = (retry.links || []).slice(0, 20);
+    return await svc.NewsletterEmail.create(retry);
+  }
+}
+
 // Decision trace (temporary, 2026-10-01): one SyncState row per inbound request recording which
 // branch it took, so silent 200 "ignored" outcomes can be diagnosed. No message content stored.
 async function trace(svc, data) {
@@ -457,7 +473,7 @@ async function handle(req, base44, svc) {
     // ── Confirmation emails: store + surface, never ingest, never auto-click ──
     const conf = detectConfirmation(subject, text, links, from.email);
     if (conf.is_confirmation) {
-      await svc.NewsletterEmail.create({ ...baseEmail, is_confirmation: true, confirm_url: conf.confirm_url || '', confirmation_status: 'pending', ingest_status: 'confirmation' });
+      await createEmailRecord(base44, svc, { ...baseEmail, is_confirmation: true, confirm_url: conf.confirm_url || '', confirmation_status: 'pending', ingest_status: 'confirmation' }, rawHtml);
       return done({ success: true, confirmation: true });
     }
 
@@ -514,7 +530,7 @@ async function handle(req, base44, svc) {
     if (feed && feed.status === 'paused') status = 'paused';
 
     const ingestStatus = feed && status === 'active' ? 'ingested' : (status === 'over_limit' ? 'over_limit' : 'sender_paused');
-    const stored = await svc.NewsletterEmail.create({ ...baseEmail, subscription_id: sub.id, feed_id: feed?.id || '', ingest_status: ingestStatus, is_confirmation: false });
+    const stored = await createEmailRecord(base44, svc, { ...baseEmail, subscription_id: sub.id, feed_id: feed?.id || '', ingest_status: ingestStatus, is_confirmation: false }, rawHtml);
 
     if (ingestStatus !== 'ingested') {
       return done({ success: true, stored: true, ingested: false, reason: ingestStatus });
