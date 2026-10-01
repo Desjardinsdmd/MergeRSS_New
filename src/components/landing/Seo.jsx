@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-export const SITE_ORIGIN = 'https://www.mergerss.com';
+export const SITE_ORIGIN = 'https://mergerss.com';
 export const OG_IMAGE = `${SITE_ORIGIN}/og-image.png`;
 
 function upsertMeta(attr, key, content) {
