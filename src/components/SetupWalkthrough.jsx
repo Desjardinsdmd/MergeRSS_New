@@ -11,64 +11,64 @@ import {
 const SITE_SECTIONS = [
   {
     icon: Rss,
-    iconBg: 'bg-violet-50',
-    iconColor: 'text-violet-600',
-    title: 'Feeds',
-    description: 'Add RSS/Atom feed URLs from any news site, blog, or industry source. MergeRSS fetches and stores all articles in one place so nothing slips through the cracks.',
+    iconBg: 'bg-[hsl(var(--brand)/0.14)] border border-[hsl(var(--brand)/0.3)]',
+    iconColor: 'text-[#C4A5FD]',
+    title: 'Sources',
+    description: 'Add RSS/Atom feed URLs from any news site, blog, or industry source. MergeRSS fetches and stores every story in one place so nothing slips through the cracks.',
     page: 'Feeds',
-    linkLabel: 'Go to Feeds',
+    linkLabel: 'Go to Sources',
   },
   {
     icon: FileText,
-    iconBg: 'bg-indigo-50',
-    iconColor: 'text-indigo-600',
-    title: 'Digests',
-    description: 'A Digest is your personalized AI newsletter. Choose feeds or categories, set a daily/weekly/monthly schedule, and MergeRSS automatically summarizes the best content and delivers it.',
+    iconBg: 'bg-[hsl(var(--brand)/0.14)] border border-[hsl(var(--brand)/0.3)]',
+    iconColor: 'text-[#C4A5FD]',
+    title: 'Briefings',
+    description: 'A briefing is your personalized AI newsletter. Choose sources or categories, set a daily/weekly/monthly schedule, and MergeRSS automatically summarizes the best content and delivers it.',
     page: 'Digests',
-    linkLabel: 'Go to Digests',
+    linkLabel: 'Go to Briefings',
   },
   {
     icon: Inbox,
-    iconBg: 'bg-emerald-50',
-    iconColor: 'text-emerald-600',
+    iconBg: 'bg-[hsl(var(--brand)/0.14)] border border-[hsl(var(--brand)/0.3)]',
+    iconColor: 'text-[#C4A5FD]',
     title: 'Inbox',
-    description: 'All your generated digests land here in a clean, readable view. Browse AI-curated summaries and click through to original articles whenever something catches your eye.',
+    description: 'All your briefings land here in a clean, readable view. Browse AI-curated summaries and click through to original stories whenever something catches your eye.',
     page: 'Inbox',
     linkLabel: 'Go to Inbox',
   },
   {
     icon: Zap,
-    iconBg: 'bg-amber-50',
-    iconColor: 'text-amber-600',
+    iconBg: 'bg-[hsl(var(--brand)/0.14)] border border-[hsl(var(--brand)/0.3)]',
+    iconColor: 'text-[#C4A5FD]',
     title: 'AI Curator',
-    description: 'Let AI scan your feeds and surface the most relevant content based on your interests. Get smart recommendations without manually browsing every article.',
+    description: 'Let AI scan your sources and surface the most relevant content based on your interests. Get smart recommendations without manually browsing every story.',
     page: 'FeedCurator',
     linkLabel: 'Try AI Curator',
   },
   {
     icon: Globe,
-    iconBg: 'bg-sky-50',
-    iconColor: 'text-sky-600',
+    iconBg: 'bg-[hsl(var(--brand)/0.14)] border border-[hsl(var(--brand)/0.3)]',
+    iconColor: 'text-[#C4A5FD]',
     title: 'Directory',
-    description: 'Browse and discover feeds and digests shared by the community. Add popular sources to your own setup in one click, or share yours publicly.',
+    description: 'Browse and discover sources and briefings shared by the community. Add popular sources to your own setup in one click, or share yours publicly.',
     page: 'Directory',
     linkLabel: 'Browse Directory',
   },
   {
     icon: Users,
-    iconBg: 'bg-pink-50',
-    iconColor: 'text-pink-600',
+    iconBg: 'bg-[hsl(var(--brand)/0.14)] border border-[hsl(var(--brand)/0.3)]',
+    iconColor: 'text-[#C4A5FD]',
     title: 'Team',
-    description: 'Invite colleagues to collaborate. Team members can share feeds and digests, making it easy to keep your whole team informed with the same curated content.',
+    description: 'Invite colleagues to collaborate. Team members can share sources and briefings, making it easy to keep your whole team informed with the same curated content.',
     page: 'Team',
     linkLabel: 'Manage Team',
   },
   {
     icon: Link2,
-    iconBg: 'bg-orange-50',
-    iconColor: 'text-orange-600',
+    iconBg: 'bg-[hsl(var(--brand)/0.14)] border border-[hsl(var(--brand)/0.3)]',
+    iconColor: 'text-[#C4A5FD]',
     title: 'Integrations',
-    description: 'Connect Slack or Discord to push digests directly to your channels. You can also enable email delivery on any digest so updates arrive right in your inbox.',
+    description: 'Connect Slack or Discord to push briefings directly to your channels. You can also enable email delivery on any briefing so updates arrive right in your inbox.',
     page: 'Integrations',
     linkLabel: 'Connect Apps',
   },
@@ -78,28 +78,28 @@ const DELIVERY_OPTIONS = [
   {
     id: 'slack',
     icon: Hash,
-    iconBg: 'bg-[#4A154B]/10',
-    iconColor: 'text-[#4A154B]',
+    iconBg: 'bg-[#4A154B]/40 border border-[#E01E5A]/30',
+    iconColor: 'text-[#E01E5A]',
     label: 'Slack',
-    description: 'Push digests to a Slack channel',
+    description: 'Push briefings to a Slack channel',
     page: 'Integrations',
   },
   {
     id: 'email',
     icon: Mail,
-    iconBg: 'bg-blue-50',
-    iconColor: 'text-blue-600',
+    iconBg: 'bg-sky-400/10 border border-sky-400/25',
+    iconColor: 'text-sky-300',
     label: 'Email',
-    description: 'Receive digests in your inbox',
+    description: 'Receive briefings by email',
     page: 'Digests',
   },
   {
     id: 'discord',
     icon: MessageSquare,
-    iconBg: 'bg-[#5865F2]/10',
+    iconBg: 'bg-[#5865F2]/15 border border-[#5865F2]/30',
     iconColor: 'text-[#5865F2]',
     label: 'Discord',
-    description: 'Send digests to a Discord server',
+    description: 'Send briefings to a Discord server',
     page: 'Integrations',
   },
 ];
@@ -151,12 +151,12 @@ export default function SetupWalkthrough({ onComplete }) {
   const Icon = section?.icon;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+      <div className="w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-stone-900 shadow-2xl">
         {/* Progress bar */}
-        <div className="h-1 bg-slate-100">
+        <div className="h-1 bg-white/[0.06]">
           <div
-            className="h-1 bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-500"
+            className="h-1 bg-[linear-gradient(90deg,#B57BFF,#7C3AED)] transition-all duration-500"
             style={{ width: `${((stepIndex + 1) / TOTAL_STEPS) * 100}%` }}
           />
         </div>
@@ -165,16 +165,17 @@ export default function SetupWalkthrough({ onComplete }) {
           {/* Header */}
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 bg-indigo-50 rounded-lg flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-indigo-600" />
+              <div className="logo-mark h-7 w-7 rounded-lg">
+                <Sparkles className="h-4 w-4 text-white" aria-hidden="true" />
               </div>
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+              <span className="micro-label">
                 {isDeliveryStep ? 'Setup' : `${stepIndex + 1} of ${TOTAL_STEPS}`}
               </span>
             </div>
             <button
               onClick={markDone}
-              className="p-1 text-slate-400 hover:text-slate-600 transition rounded-md hover:bg-slate-100"
+              className="rounded-lg p-1 text-stone-500 transition hover:bg-white/[0.06] hover:text-stone-100"
+              aria-label="Close"
             >
               <X className="w-4 h-4" />
             </button>
@@ -184,10 +185,10 @@ export default function SetupWalkthrough({ onComplete }) {
           {!isDeliveryStep && section && (
             <>
               <div className={`w-12 h-12 ${section.iconBg} rounded-xl flex items-center justify-center mb-4`}>
-                <Icon className={`w-6 h-6 ${section.iconColor}`} />
+                <Icon className={`w-6 h-6 ${section.iconColor}`} aria-hidden="true" />
               </div>
-              <h2 className="text-xl font-bold text-slate-900 mb-2">{section.title}</h2>
-              <p className="text-slate-600 leading-relaxed mb-6">{section.description}</p>
+              <h2 className="font-display text-xl font-semibold text-stone-100 mb-2">{section.title}</h2>
+              <p className="text-[15px] text-stone-400 leading-relaxed mb-6">{section.description}</p>
 
               {/* Step dots */}
               <div className="flex items-center gap-1.5 mb-6">
@@ -195,8 +196,9 @@ export default function SetupWalkthrough({ onComplete }) {
                   <button
                     key={i}
                     onClick={() => setStepIndex(i)}
+                aria-label={`Go to step ${i + 1}`}
                     className={`h-2 rounded-full transition-all duration-300 ${
-                      i === stepIndex ? 'w-6 bg-indigo-600' : 'w-2 bg-slate-200 hover:bg-slate-300'
+                      i === stepIndex ? 'w-6 bg-[hsl(var(--primary))]' : 'w-2 bg-white/15 hover:bg-white/25'
                     }`}
                   />
                 ))}
@@ -207,14 +209,14 @@ export default function SetupWalkthrough({ onComplete }) {
                   {section.linkLabel}
                   <ArrowRight className="w-4 h-4 ml-1" />
                 </Button>
-                <Button onClick={handleNext} className="flex-1 bg-indigo-600 hover:bg-indigo-700">
+                <Button onClick={handleNext} className="flex-1">
                   Next
                 </Button>
               </div>
 
               <button
                 onClick={markDone}
-                className="w-full text-center text-xs text-slate-400 hover:text-slate-600 mt-4 transition"
+                className="w-full text-center text-xs text-stone-500 hover:text-stone-200 mt-4 transition"
               >
                 Skip walkthrough
               </button>
@@ -224,11 +226,11 @@ export default function SetupWalkthrough({ onComplete }) {
           {/* Delivery setup step */}
           {isDeliveryStep && (
             <>
-              <h2 className="text-xl font-bold text-slate-900 mb-1">
-                How would you like to receive your digests?
+              <h2 className="font-display text-xl font-semibold text-stone-100 mb-1">
+                How would you like to receive your briefings?
               </h2>
-              <p className="text-slate-500 text-sm mb-5">
-                Select all that apply — you can change this anytime.
+              <p className="text-stone-400 text-sm mb-5">
+                Select all that apply. You can change this anytime.
               </p>
 
               <div className="space-y-3 mb-6">
@@ -239,21 +241,21 @@ export default function SetupWalkthrough({ onComplete }) {
                     <button
                       key={item.id}
                       onClick={() => toggle(item.id)}
-                      className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left ${
+                      className={`w-full flex items-center gap-4 p-4 rounded-xl border transition-all text-left ${
                         isSelected
-                          ? 'border-indigo-500 bg-indigo-50/50'
-                          : 'border-slate-100 hover:border-slate-200 hover:bg-slate-50'
+                          ? 'border-[hsl(var(--primary)/0.5)] bg-[hsl(var(--primary)/0.1)]'
+                          : 'border-white/10 hover:border-white/20 hover:bg-white/[0.03]'
                       }`}
                     >
                       <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${item.iconBg}`}>
                         <DIcon className={`w-5 h-5 ${item.iconColor}`} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-slate-900 text-sm">{item.label}</p>
-                        <p className="text-xs text-slate-500">{item.description}</p>
+                        <p className="font-semibold text-stone-100 text-sm">{item.label}</p>
+                        <p className="text-xs text-stone-500">{item.description}</p>
                       </div>
                       <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                        isSelected ? 'bg-indigo-600 border-indigo-600' : 'border-slate-300'
+                        isSelected ? 'bg-[hsl(var(--primary))] border-[hsl(var(--primary))]' : 'border-white/20'
                       }`}>
                         {isSelected && <Check className="w-3 h-3 text-white" />}
                       </div>
@@ -268,7 +270,7 @@ export default function SetupWalkthrough({ onComplete }) {
                 </Button>
                 <Button
                   onClick={selected.length > 0 ? handleDeliverySetup : markDone}
-                  className="flex-1 bg-indigo-600 hover:bg-indigo-700"
+                  className="flex-1"
                   disabled={selected.length === 0}
                 >
                   Set up now
@@ -277,7 +279,7 @@ export default function SetupWalkthrough({ onComplete }) {
               </div>
 
               {selected.length === 0 && (
-                <p className="text-center text-xs text-slate-400 mt-3">
+                <p className="text-center text-xs text-stone-500 mt-3">
                   Select an option or skip
                 </p>
               )}

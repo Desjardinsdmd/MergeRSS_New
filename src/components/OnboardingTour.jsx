@@ -8,42 +8,42 @@ import { X, Rss, FileText, Inbox, Link2, ArrowRight, CheckCircle } from 'lucide-
 const STEPS = [
   {
     icon: Rss,
-    iconBg: 'bg-indigo-50',
-    iconColor: 'text-indigo-600',
+    iconBg: 'bg-[hsl(var(--brand)/0.14)] border border-[hsl(var(--brand)/0.3)]',
+    iconColor: 'text-[#C4A5FD]',
     step: 1,
-    title: 'Add your RSS Feeds',
+    title: 'Add your sources',
     description:
       'Go to the Feeds page and click "Add Feed". Paste in any RSS or Atom feed URL from news sites, blogs, or industry sources. Free accounts can add up to 5 feeds.',
-    action: { label: 'Go to Feeds', page: 'Feeds' },
+    action: { label: 'Go to Sources', page: 'Feeds' },
   },
   {
     icon: FileText,
-    iconBg: 'bg-violet-50',
-    iconColor: 'text-violet-600',
+    iconBg: 'bg-[hsl(var(--brand)/0.14)] border border-[hsl(var(--brand)/0.3)]',
+    iconColor: 'text-[#C4A5FD]',
     step: 2,
-    title: 'Create a Digest',
+    title: 'Create a briefing',
     description:
-      'A Digest is your personalized newsletter. Choose which feeds or categories to include, set a daily or weekly schedule, and pick the delivery time. MergeRSS will automatically summarize the best content for you.',
-    action: { label: 'Go to Digests', page: 'Digests' },
+      'A briefing is your personalized newsletter. Choose which sources or categories to include, set a daily or weekly schedule, and pick the delivery time. MergeRSS will automatically summarize the best content for you.',
+    action: { label: 'Go to Briefings', page: 'Digests' },
   },
   {
     icon: Inbox,
-    iconBg: 'bg-emerald-50',
-    iconColor: 'text-emerald-600',
+    iconBg: 'bg-[hsl(var(--brand)/0.14)] border border-[hsl(var(--brand)/0.3)]',
+    iconColor: 'text-[#C4A5FD]',
     step: 3,
     title: 'Read in your Inbox',
     description:
-      'Your generated digests appear in the Inbox — a clean, readable view of AI-curated summaries. You can also send a test digest at any time from the Digests page.',
+      'Your briefings appear in the Inbox, a clean, readable view of AI-curated summaries. You can also send a test briefing at any time from Briefings.',
     action: { label: 'Go to Inbox', page: 'Inbox' },
   },
   {
     icon: Link2,
-    iconBg: 'bg-amber-50',
-    iconColor: 'text-amber-600',
+    iconBg: 'bg-[hsl(var(--brand)/0.14)] border border-[hsl(var(--brand)/0.3)]',
+    iconColor: 'text-[#C4A5FD]',
     step: 4,
     title: 'Connect Slack or Discord (Premium)',
     description:
-      'Upgrade to Premium to push your digests directly to a Slack channel or Discord server. Head to the Integrations page to connect your workspace.',
+      'Upgrade to Premium to push your briefings directly to a Slack channel or Discord server. Head to the Integrations page to connect your workspace.',
     action: { label: 'Go to Integrations', page: 'Integrations' },
   },
 ];
@@ -76,12 +76,12 @@ export default function OnboardingTour({ onComplete }) {
   const Icon = step.icon;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+      <div className="w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-stone-900 shadow-2xl">
         {/* Progress bar */}
-        <div className="h-1 bg-slate-100">
+        <div className="h-1 bg-white/[0.06]">
           <div
-            className="h-1 bg-indigo-600 transition-all duration-500"
+            className="h-1 bg-[hsl(var(--primary))] transition-all duration-500"
             style={{ width: `${((stepIndex + 1) / STEPS.length) * 100}%` }}
           />
         </div>
@@ -89,12 +89,13 @@ export default function OnboardingTour({ onComplete }) {
         <div className="p-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-5">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+            <span className="micro-label">
               Step {step.step} of {STEPS.length}
             </span>
             <button
               onClick={handleClose}
-              className="p-1 text-slate-400 hover:text-slate-600 transition rounded-md hover:bg-slate-100"
+              className="rounded-lg p-1 text-stone-500 transition hover:bg-white/[0.06] hover:text-stone-100"
+              aria-label="Close"
             >
               <X className="w-4 h-4" />
             </button>
@@ -102,12 +103,12 @@ export default function OnboardingTour({ onComplete }) {
 
           {/* Icon */}
           <div className={`w-12 h-12 ${step.iconBg} rounded-xl flex items-center justify-center mb-4`}>
-            <Icon className={`w-6 h-6 ${step.iconColor}`} />
+            <Icon className={`w-6 h-6 ${step.iconColor}`} aria-hidden="true" />
           </div>
 
           {/* Content */}
-          <h2 className="text-xl font-bold text-slate-900 mb-2">{step.title}</h2>
-          <p className="text-slate-600 leading-relaxed mb-6">{step.description}</p>
+          <h2 className="font-display text-xl font-semibold text-stone-100 mb-2">{step.title}</h2>
+          <p className="text-[15px] text-stone-400 leading-relaxed mb-6">{step.description}</p>
 
           {/* Step dots */}
           <div className="flex items-center gap-1.5 mb-6">
@@ -115,8 +116,9 @@ export default function OnboardingTour({ onComplete }) {
               <button
                 key={i}
                 onClick={() => setStepIndex(i)}
+                aria-label={`Go to step ${i + 1}`}
                 className={`h-2 rounded-full transition-all duration-300 ${
-                  i === stepIndex ? 'w-6 bg-indigo-600' : 'w-2 bg-slate-200 hover:bg-slate-300'
+                  i === stepIndex ? 'w-6 bg-[hsl(var(--primary))]' : 'w-2 bg-white/15 hover:bg-white/25'
                 }`}
               />
             ))}
@@ -134,7 +136,7 @@ export default function OnboardingTour({ onComplete }) {
             </Button>
             <Button
               onClick={handleNext}
-              className="flex-1 bg-indigo-600 hover:bg-indigo-700"
+              className="flex-1"
             >
               {isLast ? (
                 <>
@@ -150,7 +152,7 @@ export default function OnboardingTour({ onComplete }) {
           {/* Skip */}
           <button
             onClick={handleClose}
-            className="w-full text-center text-xs text-slate-400 hover:text-slate-600 mt-4 transition"
+            className="w-full text-center text-xs text-stone-500 hover:text-stone-200 mt-4 transition"
           >
             Skip tour
           </button>
