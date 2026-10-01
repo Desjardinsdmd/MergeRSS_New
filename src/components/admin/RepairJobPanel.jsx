@@ -12,16 +12,17 @@ import {
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
+const CHIP = 'rounded-md border px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wider shadow-none hover:bg-inherit';
 const STATUS_COLORS = {
-  idle: 'bg-stone-800 text-stone-400',
-  running: 'bg-blue-900/40 text-blue-300',
-  completed: 'bg-green-900/40 text-green-300',
-  failed: 'bg-red-900/40 text-red-300',
-  cancelled: 'bg-stone-800 text-stone-400',
+  idle: 'border-white/10 bg-white/[0.03] text-stone-400',
+  running: 'border-sky-400/25 bg-sky-400/10 text-sky-300',
+  completed: 'border-emerald-400/25 bg-emerald-400/10 text-emerald-300',
+  failed: 'border-red-400/25 bg-red-400/10 text-red-300',
+  cancelled: 'border-white/10 bg-white/[0.03] text-stone-400',
 };
 
 const ACTION_COLORS = {
-  repaired: 'text-green-400',
+  repaired: 'text-emerald-400',
   quarantined: 'text-amber-400',
   failed: 'text-red-400',
   skipped: 'text-stone-500',
@@ -46,9 +47,9 @@ function LogLine({ log }) {
   const hasDiag = log.diagnostics && Object.keys(log.diagnostics).length > 0;
 
   return (
-    <div className={cn('border-b border-stone-800/60 py-2 px-3 text-xs font-mono', expanded && 'bg-stone-900/60')}>
+    <div className={cn('border-b border-white/[0.05] py-2 px-3 text-xs font-mono last:border-b-0', expanded && 'bg-white/[0.03]')}>
       <div className="flex items-start gap-2">
-        <span className="text-stone-600 flex-shrink-0 w-[72px]">
+        <span className="text-stone-500 flex-shrink-0 w-[72px]">
           {log.created_date ? format(new Date(log.created_date), 'HH:mm:ss') : '—'}
         </span>
         <span className={cn('font-semibold flex-shrink-0 w-[90px]', ACTION_COLORS[log.action])}>
@@ -59,15 +60,15 @@ function LogLine({ log }) {
           {' · '}
           <span className="text-stone-500 break-all">{log.original_url}</span>
         </span>
-        <span className={cn('flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded',
-          log.action === 'repaired' ? 'bg-green-900/30 text-green-400' :
-          log.action === 'quarantined' ? 'bg-amber-900/30 text-amber-400' :
-          'bg-red-900/30 text-red-400'
+        <span className={cn('flex-shrink-0 rounded-md border px-1.5 py-0.5 text-[10px]',
+          log.action === 'repaired' ? 'border-emerald-400/25 bg-emerald-400/10 text-emerald-300' :
+          log.action === 'quarantined' ? 'border-amber-400/25 bg-amber-400/10 text-amber-300' :
+          'border-red-400/25 bg-red-400/10 text-red-300'
         )}>
           {CATEGORY_LABELS[log.failure_category] || log.failure_category}
         </span>
         {hasDiag && (
-          <button onClick={() => setExpanded(v => !v)} className="text-stone-600 hover:text-stone-400 flex-shrink-0 ml-1">
+          <button onClick={() => setExpanded(v => !v)} className="text-stone-500 hover:text-stone-300 flex-shrink-0 ml-1">
             {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
           </button>
         )}
@@ -76,10 +77,10 @@ function LogLine({ log }) {
         <div className="mt-0.5 ml-[166px] text-stone-500">{log.message}</div>
       )}
       {log.new_url && log.new_url !== log.original_url && (
-        <div className="mt-0.5 ml-[166px] text-green-500/70">→ {log.new_url}</div>
+        <div className="mt-0.5 ml-[166px] text-emerald-400/70">→ {log.new_url}</div>
       )}
       {expanded && hasDiag && (
-        <pre className="mt-2 ml-[166px] text-[10px] text-stone-500 bg-stone-950 rounded p-2 overflow-x-auto whitespace-pre-wrap">
+        <pre className="mt-2 ml-[166px] text-[10px] text-stone-500 bg-black/30 rounded-lg p-2 overflow-x-auto whitespace-pre-wrap">
           {JSON.stringify(log.diagnostics, null, 2)}
         </pre>
       )}
@@ -162,7 +163,7 @@ export default function RepairJobPanel({ errorFeedCount }) {
       if (res.data?.error) {
         toast.error(res.data.error);
       } else {
-        toast.success(`Repair job started — ${res.data.total_count} feeds queued`);
+        toast.success(`Repair job started. ${res.data.total_count} sources queued`);
         setLogs([]);
         await loadLatestJob();
       }
@@ -196,7 +197,7 @@ export default function RepairJobPanel({ errorFeedCount }) {
     const quarantined = logs.filter(l => l.action === 'quarantined');
     const text = quarantined.map(l => `${l.feed_name} | ${l.original_url} | ${CATEGORY_LABELS[l.failure_category]}`).join('\n');
     navigator.clipboard.writeText(text);
-    toast.success('Quarantined feeds list copied');
+    toast.success('Quarantined sources list copied');
   };
 
   const downloadReport = () => {
@@ -240,44 +241,43 @@ export default function RepairJobPanel({ errorFeedCount }) {
     : 0;
 
   return (
-    <Card className="border-stone-800 bg-stone-900 mb-6">
+    <Card className="mb-6">
       <CardHeader>
         <div className="flex items-center justify-between flex-wrap gap-3">
-          <CardTitle className="text-lg flex items-center gap-2 text-stone-200">
-            <Wrench className="w-4 h-4 text-amber-400" />
-            Repair Errored Feeds
+          <CardTitle className="flex items-center gap-2 font-display text-lg font-semibold text-stone-100">
+            <Wrench className="w-4 h-4 text-[#C4A5FD]" />
+            Repair errored sources
             {errorFeedCount > 0 && (
-              <Badge className="bg-red-900/40 text-red-300 ml-1">{errorFeedCount} in error</Badge>
+              <Badge className="rounded-md border px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wider shadow-none hover:bg-inherit border-red-400/25 bg-red-400/10 text-red-300 ml-1">{errorFeedCount} in error</Badge>
             )}
           </CardTitle>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={handleRefresh} className="text-stone-500 hover:text-stone-300">
+            <Button variant="ghost" size="sm" onClick={handleRefresh} aria-label="Refresh repair job" className="rounded-xl text-stone-500 hover:bg-white/[0.05] hover:text-stone-200">
               <RefreshCw className="w-3.5 h-3.5" />
             </Button>
             {isRunning && (
-              <Button
-                size="sm"
-                variant="outline"
+              <button
+                type="button"
                 onClick={handleCancel}
                 disabled={loadingCancel}
-                className="border-red-800 text-red-400 hover:bg-red-950"
+                className="btn-ghost border-red-400/25 text-red-300 hover:bg-red-400/10 hover:text-red-200 disabled:opacity-50"
               >
-                {loadingCancel ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <XCircle className="w-3.5 h-3.5 mr-1" />}
-                Cancel Job
-              </Button>
+                {loadingCancel ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <XCircle className="w-3.5 h-3.5" />}
+                Cancel job
+              </button>
             )}
-            <Button
-              size="sm"
+            <button
+              type="button"
               onClick={handleStart}
               disabled={isRunning || loadingStart || errorFeedCount === 0}
-              className="bg-amber-500 hover:bg-amber-400 text-stone-900 font-semibold"
+              className="btn-brand py-1.5 disabled:opacity-50"
             >
               {loadingStart
-                ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
-                : <PlayCircle className="w-3.5 h-3.5 mr-1" />
+                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                : <PlayCircle className="w-3.5 h-3.5" />
               }
-              {isRunning ? 'Running...' : 'Repair Errored Feeds'}
-            </Button>
+              {isRunning ? 'Running...' : 'Repair errored sources'}
+            </button>
           </div>
         </div>
       </CardHeader>
@@ -286,8 +286,8 @@ export default function RepairJobPanel({ errorFeedCount }) {
         <CardContent>
           <p className="text-stone-500 text-sm">
             {errorFeedCount > 0
-              ? `${errorFeedCount} feeds are in error state. Launch a repair job to attempt RSS discovery for each. Feeds that cannot be repaired will be quarantined for review rather than immediately deleted.`
-              : 'No errored feeds. System is clean.'}
+              ? `${errorFeedCount} sources are in error state. Launch a repair job to attempt RSS discovery for each. Sources that cannot be repaired are quarantined for review rather than deleted.`
+              : 'No errored sources. System is clean.'}
           </p>
         </CardContent>
       )}
@@ -296,18 +296,18 @@ export default function RepairJobPanel({ errorFeedCount }) {
         <CardContent className="space-y-4">
           {/* Status row */}
           <div className="flex flex-wrap items-center gap-3">
-            <Badge className={cn('text-sm', STATUS_COLORS[activeJob.status])}>
+            <Badge className={cn(CHIP, STATUS_COLORS[activeJob.status])}>
               {isRunning && <Activity className="w-3 h-3 mr-1 animate-pulse" />}
               {activeJob.status?.toUpperCase()}
             </Badge>
             {activeJob.started_at && (
-              <span className="text-xs text-stone-500 flex items-center gap-1">
+              <span className="font-mono text-[11px] text-stone-500 flex items-center gap-1">
                 <Clock className="w-3 h-3" />
                 Started {formatDistanceToNow(new Date(activeJob.started_at), { addSuffix: true })}
               </span>
             )}
             {activeJob.last_heartbeat_at && isRunning && (
-              <span className="text-xs text-stone-600">
+              <span className="font-mono text-[11px] text-stone-500">
                 Last heartbeat {formatDistanceToNow(new Date(activeJob.last_heartbeat_at), { addSuffix: true })}
               </span>
             )}
@@ -316,21 +316,21 @@ export default function RepairJobPanel({ errorFeedCount }) {
           {/* Progress bar */}
           {activeJob.total_count > 0 && (
             <div>
-              <div className="flex justify-between text-xs text-stone-500 mb-1">
+              <div className="flex justify-between font-mono text-[11px] text-stone-500 mb-1">
                 <span>{activeJob.processed_count || 0} / {activeJob.total_count} processed</span>
                 <span>{progress}%</span>
               </div>
-              <Progress value={progress} className="h-2 bg-stone-800" />
+              <Progress value={progress} className="h-2 bg-white/[0.06] [&>div]:bg-[hsl(var(--brand))]" />
               {isRunning && remaining > 0 && (
-                <p className="text-xs text-stone-600 mt-1">{remaining} remaining</p>
+                <p className="font-mono text-[11px] text-stone-500 mt-1">{remaining} remaining</p>
               )}
             </div>
           )}
 
           {/* Current feed */}
           {isRunning && activeJob.current_feed_name && (
-            <div className="flex items-center gap-2 text-sm text-stone-400 bg-stone-800/50 rounded px-3 py-2">
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400 flex-shrink-0" />
+            <div className="flex items-center gap-2 text-sm text-stone-400 panel-raised px-3 py-2">
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-[#C4A5FD] flex-shrink-0" />
               Processing: <span className="text-stone-200">{activeJob.current_feed_name}</span>
             </div>
           )}
@@ -339,37 +339,37 @@ export default function RepairJobPanel({ errorFeedCount }) {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
               { label: 'Total', value: activeJob.total_count || 0, color: 'text-stone-300' },
-              { label: 'Repaired', value: activeJob.repaired_count || 0, color: 'text-green-400', icon: CheckCircle2 },
-              { label: 'Quarantined', value: activeJob.quarantined_count || 0, color: 'text-amber-400', icon: AlertTriangle },
-              { label: 'Failed', value: activeJob.failed_count || 0, color: 'text-red-400', icon: XCircle },
+              { label: 'Repaired', value: activeJob.repaired_count || 0, color: 'text-emerald-300', icon: CheckCircle2 },
+              { label: 'Quarantined', value: activeJob.quarantined_count || 0, color: 'text-amber-300', icon: AlertTriangle },
+              { label: 'Failed', value: activeJob.failed_count || 0, color: 'text-red-300', icon: XCircle },
             ].map(stat => (
-              <div key={stat.label} className="bg-stone-800/50 rounded-lg p-3 text-center">
-                <div className={cn('text-2xl font-bold', stat.color)}>{stat.value}</div>
-                <div className="text-xs text-stone-500 mt-0.5">{stat.label}</div>
+              <div key={stat.label} className="panel-raised p-3 text-center">
+                <div className={cn('font-display text-2xl font-semibold tabular-nums', stat.color)}>{stat.value}</div>
+                <div className="micro-label mt-1">{stat.label}</div>
               </div>
             ))}
           </div>
 
           {/* Final summary */}
           {isDone && summary && (
-            <div className="bg-stone-800/40 rounded-lg p-4 space-y-3">
+            <div className="panel-raised p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold text-stone-200">Final Summary</p>
+                <p className="font-display text-sm font-semibold text-stone-100">Final summary</p>
                 <div className="flex gap-2">
-                  <Button variant="ghost" size="sm" onClick={copyDeletedList} className="text-stone-500 hover:text-stone-300 text-xs">
-                    <Copy className="w-3 h-3 mr-1" /> Copy Quarantined
+                  <Button variant="ghost" size="sm" onClick={copyDeletedList} className="rounded-xl text-stone-500 hover:bg-white/[0.05] hover:text-stone-200 text-xs">
+                    <Copy className="w-3 h-3 mr-1" /> Copy quarantined
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={downloadReport} className="text-stone-500 hover:text-stone-300 text-xs">
-                    <Download className="w-3 h-3 mr-1" /> Download Report
+                  <Button variant="ghost" size="sm" onClick={downloadReport} className="rounded-xl text-stone-500 hover:bg-white/[0.05] hover:text-stone-200 text-xs">
+                    <Download className="w-3 h-3 mr-1" /> Download report
                   </Button>
                 </div>
               </div>
               {summary.failure_by_category && Object.keys(summary.failure_by_category).length > 0 && (
                 <div>
-                  <p className="text-xs text-stone-500 mb-2">Failures by category:</p>
+                  <p className="micro-label mb-2">Failures by category</p>
                   <div className="flex flex-wrap gap-2">
                     {Object.entries(summary.failure_by_category).map(([cat, count]) => (
-                      <Badge key={cat} className="bg-stone-800 text-stone-400 text-xs">
+                      <Badge key={cat} className="rounded-md border px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wider shadow-none hover:bg-inherit normal-case border-white/10 bg-white/[0.03] text-stone-400">
                         {CATEGORY_LABELS[cat] || cat}: {count}
                       </Badge>
                     ))}
@@ -377,7 +377,7 @@ export default function RepairJobPanel({ errorFeedCount }) {
                 </div>
               )}
               {summary.duration_seconds && (
-                <p className="text-xs text-stone-600">Duration: {summary.duration_seconds}s</p>
+                <p className="font-mono text-[11px] text-stone-500">Duration: {summary.duration_seconds}s</p>
               )}
             </div>
           )}
@@ -390,10 +390,10 @@ export default function RepairJobPanel({ errorFeedCount }) {
                 onClick={() => setShowLogs(v => !v)}
               >
                 {showLogs ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                Activity Log ({logs.length} entries)
+                Activity log (<span className="font-mono">{logs.length}</span> entries)
               </button>
               {showLogs && (
-                <div className="bg-stone-950 rounded-lg border border-stone-800 overflow-y-auto max-h-80">
+                <div className="rounded-xl border border-white/[0.07] bg-black/30 overflow-y-auto max-h-80">
                   {logs.map((log, i) => <LogLine key={log.id || i} log={log} />)}
                   <div ref={logEndRef} />
                 </div>
@@ -405,7 +405,7 @@ export default function RepairJobPanel({ errorFeedCount }) {
           {jobHistory.length > 1 && (
             <div>
               <button
-                className="flex items-center gap-2 text-xs text-stone-600 hover:text-stone-400"
+                className="flex items-center gap-2 text-xs text-stone-500 hover:text-stone-300"
                 onClick={() => setShowHistory(v => !v)}
               >
                 {showHistory ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
@@ -414,13 +414,13 @@ export default function RepairJobPanel({ errorFeedCount }) {
               {showHistory && (
                 <div className="mt-2 space-y-1">
                   {jobHistory.slice(1).map(j => (
-                    <div key={j.id} className="flex items-center gap-3 text-xs text-stone-500 bg-stone-800/30 rounded px-3 py-2">
-                      <Badge className={cn('text-[10px]', STATUS_COLORS[j.status])}>{j.status}</Badge>
+                    <div key={j.id} className="flex items-center gap-3 font-mono text-[11px] text-stone-500 rounded-lg bg-white/[0.03] px-3 py-2">
+                      <Badge className={cn(CHIP, STATUS_COLORS[j.status])}>{j.status}</Badge>
                       <span>{j.started_at ? format(new Date(j.started_at), 'MMM d, h:mm a') : '—'}</span>
                       <span>✓ {j.repaired_count || 0} repaired</span>
                       <span>⚠ {j.quarantined_count || 0} quarantined</span>
                       <button
-                        className="ml-auto text-stone-600 hover:text-stone-400"
+                        className="ml-auto text-[#C4A5FD] hover:text-[#D9C7FE]"
                         onClick={async () => {
                           setActiveJob(j);
                           await loadLogsForJob(j.id);
