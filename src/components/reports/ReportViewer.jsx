@@ -1,31 +1,68 @@
 import React, { useState } from 'react';
 import {
   FileText, Download, RefreshCw, TrendingUp, TrendingDown,
-  AlertTriangle, BarChart2, ChevronDown, ChevronUp
+  AlertTriangle, BarChart2, ChevronDown, ChevronUp, Activity
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { generatePremiumPdf } from '@/lib/generatePremiumPdf';
+import { cn } from '@/lib/utils';
+import Markdown, { MarkdownInline, hasBlockMarkdown, stripMarkdown } from '@/components/reports/Markdown';
 
+// Semantic colours (BRAND.md): emerald rising, red falling, sky trending/informational, neutral otherwise.
 const TRAJECTORY_CONFIG = {
-  rising:    { icon: TrendingUp,    color: 'text-emerald-400', bg: 'bg-emerald-400/10', label: 'Rising ↑' },
-  falling:   { icon: TrendingDown,  color: 'text-red-400',     bg: 'bg-red-400/10',     label: 'Falling ↓' },
-  stable:    { icon: null,          color: 'text-stone-400',   bg: 'bg-stone-700/40',   label: 'Stable →' },
-  volatile:  { icon: AlertTriangle, color: 'text-amber-400',   bg: 'bg-amber-400/10',   label: 'Volatile' },
-  peaked:    { icon: TrendingUp,    color: 'text-orange-400',  bg: 'bg-orange-400/10',  label: 'Peaked' },
-  resolving: { icon: TrendingDown,  color: 'text-blue-400',    bg: 'bg-blue-400/10',    label: 'Resolving ↘' },
+  rising:    { cls: 'border-emerald-400/25 bg-emerald-400/10 text-emerald-300', label: 'Rising ↑' },
+  falling:   { cls: 'border-red-400/25 bg-red-400/10 text-red-300',             label: 'Falling ↓' },
+  stable:    { cls: 'border-white/10 bg-white/[0.03] text-stone-300',           label: 'Stable →' },
+  volatile:  { cls: 'border-sky-400/25 bg-sky-400/10 text-sky-300',             label: 'Volatile ↕' },
+  peaked:    { cls: 'border-sky-400/25 bg-sky-400/10 text-sky-300',             label: 'Peaked ⌃' },
+  resolving: { cls: 'border-white/10 bg-white/[0.03] text-stone-300',           label: 'Resolving ↘' },
 };
 
 function TrajectoryBadge({ trajectory }) {
   const cfg = TRAJECTORY_CONFIG[trajectory] || TRAJECTORY_CONFIG.stable;
   return (
-    <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 font-semibold ${cfg.bg} ${cfg.color} flex-shrink-0`}>
+    <span className={cn('inline-flex flex-shrink-0 items-center rounded-md border px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wider', cfg.cls)}>
       {cfg.label}
     </span>
   );
 }
 
+/** Numbered section band: two-digit mono number, hairline divider, mono micro label. */
+function SectionBand({ number, label, accent = false }) {
+  return (
+    <div className={cn(
+      'flex items-center gap-3 px-6 py-3',
+      accent ? 'panel-accent rounded-none border-x-0 border-t-0' : 'border-b border-white/[0.06] bg-white/[0.02]'
+    )}>
+      <span className={cn('font-mono text-[11px] font-semibold', accent ? 'text-[#C4A5FD]' : 'text-stone-500')}>{number}</span>
+      <span className={cn('h-3 w-px', accent ? 'bg-[hsl(var(--brand)/0.45)]' : 'bg-white/10')} aria-hidden="true" />
+      <h3 className={cn('micro-label m-0', accent && 'text-stone-100')}>{label}</h3>
+    </div>
+  );
+}
+
+function Section({ number, label, accent, children }) {
+  return (
+    <section className="panel overflow-hidden" aria-label={label}>
+      <SectionBand number={number} label={label} accent={accent} />
+      {children}
+    </section>
+  );
+}
+
+function safeFormat(value, fmt) {
+  if (!value) return '';
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? String(value) : format(d, fmt);
+}
+
+function firstSentence(text) {
+  const plain = stripMarkdown(text).replace(/\s+/g, ' ').trim();
+  return plain.split(/(?<=[.!?])\s+/)[0] || '';
+}
+
 /**
- * ReportViewer — renders a saved or freshly-generated report with the full premium UI.
+ * ReportViewer — renders a saved or freshly-generated report.
  *
  * Props:
  *   report        — the report data object (with executive_summary, key_themes, etc.)
@@ -74,138 +111,133 @@ export default function ReportViewer({
   const rangediffers = requestedStart && requestedEnd && actualStart && actualEnd &&
     (requestedStart !== actualStart || requestedEnd !== actualEnd);
 
-  return (
-    <div className="space-y-0">
+  // Section numbers follow the sections that are actually present.
+  let sectionNo = 0;
+  const nextNo = () => String(++sectionNo).padStart(2, '0');
 
-      {/* ── Report Header ── */}
-      <div className="bg-stone-950 border border-stone-800 border-b-0 p-6">
-        <div className="flex items-start justify-between gap-4 mb-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-[10px] font-bold tracking-[0.2em] text-[hsl(var(--primary))] uppercase">Intelligence Report</span>
-            </div>
-            <h2 className="text-2xl font-bold text-stone-100 leading-tight">{digestName}</h2>
-            <p className="text-sm text-stone-500 mt-1">
-              {displayStart && format(new Date(displayStart), 'MMMM d, yyyy')}
-              {displayEnd && ` – ${format(new Date(displayEnd), 'MMMM d, yyyy')}`}
+  const hasTrends = report.escalating_topics?.length > 0 || report.deescalating_topics?.length > 0 || report.cyclical_topics?.length > 0;
+  const takeaway = report.executive_summary ? firstSentence(report.executive_summary) : '';
+
+  const outlookIsStructured = report.outlook && hasBlockMarkdown(report.outlook);
+  const outlookSignals = report.outlook && !outlookIsStructured
+    ? report.outlook.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 8)
+    : [];
+
+  return (
+    <div className="space-y-4">
+
+      {/* Report header */}
+      <header className="panel p-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="eyebrow mb-2">Intelligence report</p>
+            <h2 className="font-display text-2xl font-semibold leading-tight tracking-tight text-stone-100">{digestName}</h2>
+            <p className="meta mt-2">
+              {displayStart && safeFormat(displayStart, 'MMM d, yyyy')}
+              {displayEnd && ` – ${safeFormat(displayEnd, 'MMM d, yyyy')}`}
               {deliveryCount > 0 && (
-                <><span className="mx-2 text-stone-700">·</span>{deliveryCount} issue{deliveryCount !== 1 ? 's' : ''} analyzed</>
+                <> · {deliveryCount} briefing{deliveryCount !== 1 ? 's' : ''} analyzed</>
               )}
             </p>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <button
-              onClick={handleExportPdf}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-[hsl(var(--primary))] text-stone-900 hover:opacity-90 transition"
-            >
-              <Download className="w-3.5 h-3.5" /> Export PDF
+          <div className="flex flex-shrink-0 items-center gap-2">
+            <button type="button" onClick={handleExportPdf} className="btn-soft">
+              <Download className="h-3.5 w-3.5" aria-hidden="true" /> Export PDF
             </button>
             {onRegenerate && (
-              <button onClick={onRegenerate} className="p-1.5 text-stone-600 hover:text-stone-300 transition border border-stone-800" title="Regenerate">
-                <RefreshCw className="w-4 h-4" />
+              <button
+                type="button"
+                onClick={onRegenerate}
+                className="btn-ghost px-2"
+                title="Regenerate"
+                aria-label="Regenerate report"
+              >
+                <RefreshCw className="h-4 w-4" aria-hidden="true" />
               </button>
             )}
           </div>
         </div>
 
         {rangediffers && (
-          <div className="flex items-start gap-2 p-3 bg-amber-950/20 border border-amber-900/40 text-xs">
-            <AlertTriangle className="w-3.5 h-3.5 text-amber-400 flex-shrink-0 mt-0.5" />
-            <span className="text-amber-300">
-              Data available {format(new Date(actualStart), 'MMM d, yyyy')} – {format(new Date(actualEnd), 'MMM d, yyyy')} only.
-              Report is based on available issues within the requested range.
+          <div className="mt-4 flex items-start gap-2 rounded-xl border border-amber-400/25 bg-amber-400/10 p-3 text-xs text-amber-400" role="status">
+            <AlertTriangle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
+            <span>
+              Data available <span className="font-mono">{safeFormat(actualStart, 'MMM d, yyyy')} – {safeFormat(actualEnd, 'MMM d, yyyy')}</span> only.
+              The report is based on the briefings available within the requested range.
             </span>
           </div>
         )}
-      </div>
+      </header>
 
-      {/* ── 01 Executive Summary ── */}
-      <div className="border border-stone-800 border-t-0">
-        <div className="flex items-center gap-3 px-6 py-3 bg-[hsl(var(--primary))]">
-          <span className="text-[10px] font-bold text-stone-900">01</span>
-          <div className="w-px h-3 bg-stone-900/30" />
-          <span className="text-[10px] font-bold text-stone-900 uppercase tracking-widest">Executive Summary</span>
-        </div>
-        <div className="p-6 bg-stone-950 space-y-5">
-          {report.executive_summary && (
-            <div className="border-l-4 border-[hsl(var(--primary))] bg-stone-900 px-5 py-4">
-              <p className="text-[10px] font-bold tracking-widest text-[hsl(var(--primary))] uppercase mb-2">Key Takeaway</p>
-              <p className="text-sm font-medium text-stone-200 leading-relaxed">
-                {report.executive_summary.split(/(?<=[.!?])\s+/)[0]}
-              </p>
+      {/* Executive summary */}
+      <Section number={nextNo()} label="Executive summary" accent>
+        <div className="space-y-5 p-6">
+          {takeaway && (
+            <div className="rounded-xl border-l-4 border-[hsl(var(--primary))] bg-white/[0.03] px-5 py-4">
+              <p className="micro-label mb-2 text-[#C4A5FD]">Key takeaway</p>
+              <p className="text-[15px] font-medium leading-relaxed text-stone-100">{takeaway}</p>
             </div>
           )}
-          <div className="space-y-3">
-            {(report.executive_summary || '').split(/\n+/).filter(p => p.trim()).map((para, i) => (
-              <p key={i} className="text-sm text-stone-300 leading-[1.8]">{para}</p>
-            ))}
-          </div>
+          <Markdown text={report.executive_summary || ''} />
         </div>
-      </div>
+      </Section>
 
-      {/* ── 02 Key Themes ── */}
+      {/* Key themes */}
       {report.key_themes?.length > 0 && (
-        <div className="border border-stone-800 border-t-0">
-          <div className="flex items-center gap-3 px-6 py-3 bg-stone-900 border-b border-stone-800">
-            <span className="text-[10px] font-bold text-stone-500">02</span>
-            <div className="w-px h-3 bg-stone-700" />
-            <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Key Themes & Evolution</span>
-          </div>
-          <div className="bg-stone-950 divide-y divide-stone-800/60">
-            {report.key_themes.map((theme, i) => (
-              <div key={i} className="p-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <span className="text-[10px] font-bold text-stone-600 flex-shrink-0 w-6">
+        <Section number={nextNo()} label="Key themes and evolution">
+          <ul className="divide-y divide-white/[0.06]">
+            {report.key_themes.map((theme, i) => {
+              const open = !!expandedThemes[i];
+              const toggle = () => setExpandedThemes(p => ({ ...p, [i]: !p[i] }));
+              return (
+                <li key={i} className="px-6 py-4">
+                  <button
+                    type="button"
+                    className="group flex w-full items-start gap-3 text-left"
+                    onClick={toggle}
+                    aria-expanded={open}
+                  >
+                    <span className="mt-0.5 w-6 flex-shrink-0 font-mono text-[11px] text-stone-600">
                       {String(i + 1).padStart(2, '0')}
                     </span>
-                    <button
-                      className="flex items-center gap-3 flex-1 text-left group"
-                      onClick={() => setExpandedThemes(p => ({ ...p, [i]: !p[i] }))}
-                    >
-                      <span className="text-sm font-semibold text-stone-100 group-hover:text-[hsl(var(--primary))] transition-colors">
-                        {theme.theme}
-                      </span>
+                    <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1.5">
+                      <MarkdownInline
+                        text={theme.theme}
+                        className="text-sm font-semibold text-stone-100 transition-colors group-hover:text-[#C4A5FD]"
+                      />
                       <TrajectoryBadge trajectory={theme.trajectory} />
-                    </button>
-                  </div>
-                  <button
-                    onClick={() => setExpandedThemes(p => ({ ...p, [i]: !p[i] }))}
-                    className="text-stone-600 hover:text-stone-400 flex-shrink-0 mt-0.5"
-                  >
-                    {expandedThemes[i] ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </span>
+                    <span className="mt-0.5 flex-shrink-0 text-stone-500 group-hover:text-stone-300" aria-hidden="true">
+                      {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    </span>
                   </button>
-                </div>
-                {expandedThemes[i] && (
-                  <div className="mt-4 ml-9">
-                    <p className="text-sm text-stone-400 leading-[1.8]">{theme.description}</p>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
+                  {open && theme.description && (
+                    <div className="mt-3 pl-9">
+                      <Markdown text={theme.description} className="text-stone-400" />
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </Section>
       )}
 
-      {/* ── 03 Trend Trajectories ── */}
-      {(report.escalating_topics?.length > 0 || report.deescalating_topics?.length > 0 || report.cyclical_topics?.length > 0) && (
-        <div className="border border-stone-800 border-t-0">
-          <div className="flex items-center gap-3 px-6 py-3 bg-stone-900 border-b border-stone-800">
-            <span className="text-[10px] font-bold text-stone-500">03</span>
-            <div className="w-px h-3 bg-stone-700" />
-            <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Trend Trajectories</span>
-          </div>
-          <div className="bg-stone-950 grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-stone-800">
+      {/* Trend trajectories */}
+      {hasTrends && (
+        <Section number={nextNo()} label="Trend trajectories">
+          <div className="grid grid-cols-1 divide-y divide-white/[0.06] md:grid-cols-3 md:divide-x md:divide-y-0">
             {report.escalating_topics?.length > 0 && (
               <div className="p-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="text-[10px] font-bold tracking-widest text-emerald-400 uppercase">Escalating</span>
+                <div className="mb-3 flex items-center gap-2">
+                  <TrendingUp className="h-3.5 w-3.5 text-emerald-400" aria-hidden="true" />
+                  <span className="micro-label text-emerald-300">Escalating</span>
                 </div>
                 <ul className="space-y-2">
                   {report.escalating_topics.map((t, i) => (
-                    <li key={i} className="text-xs text-stone-300 flex items-start gap-2">
-                      <span className="text-emerald-500 flex-shrink-0 mt-0.5">↑</span>{t}
+                    <li key={i} className="flex items-start gap-2 text-sm text-stone-300">
+                      <span className="mt-0.5 flex-shrink-0 font-mono text-xs text-emerald-400" aria-hidden="true">↑</span>
+                      <MarkdownInline text={t} />
                     </li>
                   ))}
                 </ul>
@@ -213,14 +245,15 @@ export default function ReportViewer({
             )}
             {report.deescalating_topics?.length > 0 && (
               <div className="p-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <TrendingDown className="w-3.5 h-3.5 text-blue-400" />
-                  <span className="text-[10px] font-bold tracking-widest text-blue-400 uppercase">De-escalating</span>
+                <div className="mb-3 flex items-center gap-2">
+                  <TrendingDown className="h-3.5 w-3.5 text-red-400" aria-hidden="true" />
+                  <span className="micro-label text-red-300">De-escalating</span>
                 </div>
                 <ul className="space-y-2">
                   {report.deescalating_topics.map((t, i) => (
-                    <li key={i} className="text-xs text-stone-300 flex items-start gap-2">
-                      <span className="text-blue-400 flex-shrink-0 mt-0.5">↓</span>{t}
+                    <li key={i} className="flex items-start gap-2 text-sm text-stone-300">
+                      <span className="mt-0.5 flex-shrink-0 font-mono text-xs text-red-400" aria-hidden="true">↓</span>
+                      <MarkdownInline text={t} />
                     </li>
                   ))}
                 </ul>
@@ -228,94 +261,93 @@ export default function ReportViewer({
             )}
             {report.cyclical_topics?.length > 0 && (
               <div className="p-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
-                  <span className="text-[10px] font-bold tracking-widest text-amber-400 uppercase">Cyclical / Volatile</span>
+                <div className="mb-3 flex items-center gap-2">
+                  <Activity className="h-3.5 w-3.5 text-sky-400" aria-hidden="true" />
+                  <span className="micro-label text-sky-300">Cyclical or volatile</span>
                 </div>
                 <ul className="space-y-2">
                   {report.cyclical_topics.map((t, i) => (
-                    <li key={i} className="text-xs text-stone-300 flex items-start gap-2">
-                      <span className="text-amber-400 flex-shrink-0 mt-0.5">⚡</span>{t}
+                    <li key={i} className="flex items-start gap-2 text-sm text-stone-300">
+                      <span className="mt-0.5 flex-shrink-0 font-mono text-xs text-sky-400" aria-hidden="true">↕</span>
+                      <MarkdownInline text={t} />
                     </li>
                   ))}
                 </ul>
               </div>
             )}
           </div>
-        </div>
+        </Section>
       )}
 
-      {/* ── 04 Inflection Points ── */}
+      {/* Inflection points */}
       {report.inflection_points?.length > 0 && (
-        <div className="border border-stone-800 border-t-0">
-          <div className="flex items-center gap-3 px-6 py-3 bg-stone-900 border-b border-stone-800">
-            <span className="text-[10px] font-bold text-stone-500">04</span>
-            <div className="w-px h-3 bg-stone-700" />
-            <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Inflection Points</span>
-          </div>
-          <div className="bg-stone-950 p-6">
-            <div className="relative">
-              <div className="absolute left-[7px] top-2 bottom-2 w-px bg-stone-800" />
-              <div className="space-y-6">
-                {report.inflection_points.map((pt, i) => (
-                  <div key={i} className="flex gap-5 relative">
-                    <div className="flex-shrink-0 mt-1">
-                      <div className="w-3.5 h-3.5 rounded-full bg-[hsl(var(--primary))] border-2 border-stone-950 relative z-10" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <span className="text-[10px] font-bold tracking-widest text-[hsl(var(--primary))] uppercase">{pt.date}</span>
-                      <h4 className="text-sm font-semibold text-stone-100 mt-1 mb-2 leading-snug">{pt.event}</h4>
-                      <p className="text-xs text-stone-400 leading-relaxed">{pt.significance}</p>
-                    </div>
+        <Section number={nextNo()} label="Inflection points">
+          <div className="p-6">
+            <ol className="relative space-y-6">
+              <span className="absolute bottom-2 left-[6px] top-2 w-px bg-white/[0.08]" aria-hidden="true" />
+              {report.inflection_points.map((pt, i) => (
+                <li key={i} className="relative flex gap-5">
+                  <span className="mt-1 flex-shrink-0" aria-hidden="true">
+                    <span className="relative z-10 block h-3.5 w-3.5 rounded-full border-2 border-stone-950 bg-[hsl(var(--primary))] shadow-[0_0_0_3px_hsl(var(--brand)/0.18)]" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-[#C4A5FD]">{pt.date}</span>
+                    <h4 className="mb-1.5 mt-1 text-sm font-semibold leading-snug text-stone-100">
+                      <MarkdownInline text={pt.event} />
+                    </h4>
+                    <Markdown text={pt.significance} className="text-stone-400" />
                   </div>
-                ))}
-              </div>
-            </div>
+                </li>
+              ))}
+            </ol>
           </div>
-        </div>
+        </Section>
       )}
 
-      {/* ── 05 Outlook ── */}
+      {/* Outlook */}
       {report.outlook && (
-        <div className="border border-stone-800 border-t-0">
-          <div className="flex items-center gap-3 px-6 py-3 bg-stone-900 border-b border-stone-800">
-            <span className="text-[10px] font-bold text-stone-500">05</span>
-            <div className="w-px h-3 bg-stone-700" />
-            <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Outlook & Forward Signals</span>
+        <Section number={nextNo()} label="Outlook and forward signals">
+          <div className="p-6">
+            {outlookIsStructured ? (
+              <Markdown text={report.outlook} />
+            ) : (
+              <ol className="space-y-3">
+                {outlookSignals.map((signal, i) => (
+                  <li key={i} className="flex items-start gap-4">
+                    <span className="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md border border-[hsl(var(--brand)/0.3)] bg-[hsl(var(--brand)/0.12)] font-mono text-[10px] font-semibold text-[#C4A5FD]">
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <MarkdownInline text={signal.trim()} className="text-sm leading-relaxed text-stone-300" />
+                  </li>
+                ))}
+              </ol>
+            )}
           </div>
-          <div className="bg-stone-950 p-6 space-y-3">
-            {report.outlook.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 8).map((signal, i) => (
-              <div key={i} className="flex gap-4 items-start">
-                <span className="flex-shrink-0 w-5 h-5 bg-stone-800 border border-stone-700 flex items-center justify-center text-[9px] font-bold text-[hsl(var(--primary))] mt-0.5">
-                  {i + 1}
-                </span>
-                <p className="text-sm text-stone-300 leading-relaxed">{signal.trim()}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+        </Section>
       )}
 
-      {/* ── Data Summary Footer ── */}
+      {/* Data summary footer */}
       {report.data_summary && (
-        <div className="border border-stone-800 border-t-0 bg-stone-900 px-6 py-4">
-          <div className="flex flex-wrap gap-6 text-xs text-stone-600">
+        <footer className="panel px-6 py-4">
+          <div className="meta flex flex-wrap gap-x-6 gap-y-2">
             <span className="flex items-center gap-1.5">
-              <BarChart2 className="w-3 h-3" />
-              {report.data_summary.digest_count} issues analyzed
+              <BarChart2 className="h-3 w-3" aria-hidden="true" />
+              {report.data_summary.digest_count} briefings analyzed
             </span>
-            <span className="flex items-center gap-1.5">
-              <FileText className="w-3 h-3" />
-              {report.data_summary.date_range}
-            </span>
+            {report.data_summary.date_range && (
+              <span className="flex items-center gap-1.5">
+                <FileText className="h-3 w-3" aria-hidden="true" />
+                {report.data_summary.date_range}
+              </span>
+            )}
             {report.data_summary.most_active_period && (
               <span className="flex items-center gap-1.5">
-                <TrendingUp className="w-3 h-3" />
+                <TrendingUp className="h-3 w-3" aria-hidden="true" />
                 Most active: {report.data_summary.most_active_period}
               </span>
             )}
           </div>
-        </div>
+        </footer>
       )}
     </div>
   );
