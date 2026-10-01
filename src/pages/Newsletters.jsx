@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
   Mail, Copy, Check, Pause, Play, Trash2, RotateCcw, ExternalLink, AlertTriangle,
-  Inbox, Loader2, X, MailCheck, Info, ChevronDown, ChevronRight,
+  Inbox, Loader2, X, MailCheck, Info, ChevronDown, ChevronRight, Pencil,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -50,6 +50,112 @@ async function callInbox(payload) {
     if (data) return { ...data, _failed: true };
     throw e;
   }
+}
+
+// Mirrors validateAlias() in base44/functions/newsletterInbox (the server is authoritative).
+const RESERVED_ALIASES = new Set([
+  'support', 'postmaster', 'abuse', 'admin', 'administrator', 'root', 'hostmaster', 'webmaster',
+  'security', 'info', 'hello', 'contact', 'billing', 'noreply', 'no-reply', 'mailer-daemon', 'relay',
+  'inbox-test', 'pipeline-test', 'team', 'help', 'sales', 'privacy', 'legal',
+]);
+function validateAlias(alias) {
+  if (!alias) return 'Enter an address.';
+  if (alias !== alias.toLowerCase()) return 'Use lowercase letters only.';
+  if (alias.length < 3 || alias.length > 30) return 'Use 3 to 30 characters.';
+  if (!/^[a-z0-9]+(?:[._-][a-z0-9]+)*$/.test(alias)) return 'Use letters and numbers, with single dots, hyphens or underscores between them.';
+  if (RESERVED_ALIASES.has(alias) || alias.startsWith('newsletter-')) return 'That address is reserved.';
+  return null;
+}
+
+function ChangeAddress({ address, domain, onSaved }) {
+  const current = address ? address.split('@')[0] : '';
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState(current);
+  const [serverError, setServerError] = useState(null);
+  const [saving, setSaving] = useState(false);
+
+  const alias = value.trim().toLowerCase();
+  const localError = alias === current ? null : validateAlias(alias);
+  const unchanged = alias === current;
+  const error = serverError || (value ? localError : null);
+
+  const start = () => { setValue(current); setServerError(null); setOpen(true); };
+  const save = async (e) => {
+    e.preventDefault();
+    if (unchanged || localError || saving) return;
+    setSaving(true);
+    setServerError(null);
+    try {
+      const res = await callInbox({ action: 'set_alias', alias });
+      if (res?.success === false || res?._failed || res?.error) {
+        setServerError(res?.error || 'Could not change your address.');
+      } else {
+        toast.success(`Your address is now ${res.address || `${alias}@${domain}`}`);
+        setOpen(false);
+        onSaved?.(res);
+      }
+    } catch (err) {
+      setServerError(err?.message || 'Could not change your address.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!domain) return null;
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={start}
+        className="mt-2 inline-flex items-center gap-1 text-xs text-stone-400 hover:text-amber-300"
+      >
+        <Pencil className="w-3 h-3" /> Change address
+      </button>
+    );
+  }
+
+  return (
+    <form onSubmit={save} className="mt-3 rounded-lg border border-stone-800 bg-stone-950/60 p-3">
+      <label htmlFor="newsletter-alias" className="block text-xs text-stone-400 mb-1.5">New address</label>
+      <div className="flex items-center rounded-lg bg-stone-950 border border-stone-800 focus-within:border-amber-600 overflow-hidden">
+        <input
+          id="newsletter-alias"
+          autoFocus
+          autoComplete="off"
+          spellCheck={false}
+          maxLength={30}
+          value={value}
+          onChange={(e) => { setValue(e.target.value.toLowerCase()); setServerError(null); }}
+          aria-invalid={!!error}
+          aria-describedby="newsletter-alias-help"
+          className="flex-1 min-w-0 bg-transparent px-3 py-2 text-sm text-amber-300 outline-none placeholder:text-stone-600"
+          placeholder="yourname.reads"
+        />
+        <span className="px-3 py-2 text-sm text-stone-500 border-l border-stone-800 flex-shrink-0">@{domain}</span>
+      </div>
+      <div id="newsletter-alias-help" className="mt-2 space-y-1">
+        {error ? (
+          <p className="text-xs text-red-400">{error}</p>
+        ) : (
+          <p className="text-xs text-stone-600">3 to 30 characters: letters, numbers, and single dots, hyphens or underscores.</p>
+        )}
+        <p className="text-xs text-amber-400/90 flex items-start gap-1.5">
+          <AlertTriangle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+          <span>{current ? <>Your current address <span className="text-amber-300">{address}</span> will stop receiving immediately.</> : 'Your previous address will stop receiving immediately.'} Update any newsletter subscriptions and forwarding rules. You can change it up to 3 times a day.</span>
+        </p>
+      </div>
+      <div className="flex items-center gap-2 mt-3">
+        <Button type="submit" size="sm" disabled={saving || unchanged || !!localError}
+          className="bg-amber-500 hover:bg-amber-400 text-stone-900 font-semibold">
+          {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : null} Save address
+        </Button>
+        <Button type="button" size="sm" variant="ghost" onClick={() => setOpen(false)} disabled={saving}
+          className="text-stone-400 hover:text-stone-200 hover:bg-stone-800">
+          Cancel
+        </Button>
+      </div>
+    </form>
+  );
 }
 
 const STATUS_LABEL = {
@@ -243,6 +349,17 @@ export default function Newsletters() {
                   </div>
                 ) : (
                   <p className="text-sm text-stone-400">We couldn't create your address right now. Refresh the page to try again.</p>
+                )}
+                {address && (
+                  <ChangeAddress
+                    key={address}
+                    address={address}
+                    domain={data?.domain || address.split('@')[1]}
+                    onSaved={(res) => {
+                      queryClient.setQueryData(['newsletter-inbox'], (old) => ({ ...(old || {}), ...res }));
+                      queryClient.invalidateQueries({ queryKey: ['newsletter-inbox'] });
+                    }}
+                  />
                 )}
                 <ul className="mt-4 space-y-1.5 text-sm text-stone-400 list-disc pl-5">
                   <li>Subscribe to newsletters with this address, or</li>
