@@ -68,7 +68,7 @@ const plans = [
 
 const faqs = [
   {
-    q: 'What counts toward the Free limits',
+    q: 'Free plan limits',
     a: `Free covers up to ${FREE_SOURCES} sources and ${FREE_BRIEFINGS} briefings. Premium removes both limits.`,
   },
   {
@@ -76,11 +76,11 @@ const faqs = [
     a: `Team is $${TEAM_PRICE} a month per workspace and covers up to ${TEAM_MEMBERS} members, owner included. Without it, a workspace runs as a trial with ${TEAM_TRIAL_SEATS} seats, the owner plus one invited member, and shared briefings deliver by web and email only. With Team, shared briefings also post to your team Slack, Discord or Teams channel.`,
   },
   {
-    q: 'Whether members need Premium',
-    a: 'No. Team is billed per workspace, and each member keeps their own personal plan.',
+    q: 'Members and personal plans',
+    a: 'Team is billed per workspace. Members do not need Premium, and each member keeps their own personal plan.',
   },
   {
-    q: 'Who buys the Team plan',
+    q: 'Buying the Team plan',
     a: 'The workspace owner. Start a team, invite your members, then upgrade the workspace from the Team page.',
   },
   {
