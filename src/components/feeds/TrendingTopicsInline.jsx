@@ -5,9 +5,9 @@ import { TrendingUp, ExternalLink, Loader2 } from 'lucide-react';
 import { decodeHtml, safeUrl } from '@/components/utils/htmlUtils';
 
 const BUCKET_COLORS = {
-    CRE: 'text-emerald-400 border-emerald-800/50 bg-emerald-950/30',
-    'AI/Tech': 'text-blue-400 border-blue-800/50 bg-blue-950/30',
-    Macro: 'text-amber-400 border-amber-800/50 bg-amber-950/30',
+    CRE: 'text-[#C4A5FD] border-[hsl(var(--primary)/0.3)] bg-[hsl(var(--primary)/0.14)]',
+    'AI/Tech': 'text-[#C4A5FD] border-[hsl(var(--primary)/0.3)] bg-[hsl(var(--primary)/0.14)]',
+    Macro: 'text-[#C4A5FD] border-[hsl(var(--primary)/0.3)] bg-[hsl(var(--primary)/0.14)]',
 };
 
 export default function TrendingTopicsInline({ feedIds }) {
@@ -21,12 +21,12 @@ export default function TrendingTopicsInline({ feedIds }) {
     });
 
     if (isLoading) return (
-        <div className="bg-stone-900 border border-stone-800 p-5">
-            <div className="flex items-center gap-2 mb-3">
-                <TrendingUp className="w-4 h-4 text-[hsl(var(--primary))]" />
-                <span className="text-sm font-semibold text-stone-300 uppercase tracking-wider">Rising Signals</span>
+        <div className="panel p-5">
+            <div className="mb-3 flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-[hsl(var(--primary))]" aria-hidden="true" />
+                <span className="font-display text-lg font-semibold text-stone-100">Rising signals</span>
             </div>
-            <div className="flex items-center gap-2 text-stone-600 text-sm">
+            <div className="flex items-center gap-2 text-sm text-stone-500">
                 <Loader2 className="w-4 h-4 animate-spin" /> Analyzing entity velocity…
             </div>
         </div>
@@ -38,20 +38,20 @@ export default function TrendingTopicsInline({ feedIds }) {
     if (!hasBuckets) return null;
 
     return (
-        <div className="bg-stone-900 border border-stone-800">
-            <div className="flex items-center gap-2 px-5 py-4 border-b border-stone-800">
-                <TrendingUp className="w-4 h-4 text-[hsl(var(--primary))]" />
-                <h2 className="text-sm font-semibold text-stone-300 uppercase tracking-wider">Rising Signals</h2>
-                <span className="text-xs text-stone-600 ml-auto">7d vs 4-week baseline · authority-weighted</span>
+        <div className="panel overflow-hidden">
+            <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.07] px-5 py-4">
+                <TrendingUp className="w-4 h-4 text-[hsl(var(--primary))]" aria-hidden="true" />
+                <h2 className="font-display text-lg font-semibold text-stone-100">Rising signals</h2>
+                <span className="meta ml-auto">7d vs 4-week baseline · authority-weighted</span>
             </div>
-            <div className="divide-y divide-stone-800/60">
+            <div className="divide-y divide-white/[0.05]">
                 {Object.entries(signals).map(([bucket, entities]) => {
                     const items = Array.isArray(entities) ? entities : [];
                     if (!items.length) return null;
                     return (
                     <div key={bucket} className="px-5 py-4">
                         <div className="flex items-center gap-2 mb-3">
-                            <span className={`text-[10px] font-bold px-2 py-0.5 border ${BUCKET_COLORS[bucket] || BUCKET_COLORS.Macro}`}>
+                            <span className={`rounded-md border px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider ${BUCKET_COLORS[bucket] || BUCKET_COLORS.Macro}`}>
                                 Rising in {bucket}
                             </span>
                         </div>
@@ -60,8 +60,8 @@ export default function TrendingTopicsInline({ feedIds }) {
                                 <div key={signal.entity}>
                                     <div className="flex items-center gap-2 mb-1">
                                         <span className="text-sm font-semibold text-stone-100">{signal.entity}</span>
-                                        <span className="text-xs text-emerald-400 font-bold">{signal.multiplier}x</span>
-                                        <span className="text-xs text-stone-600">
+                                        <span className="font-mono text-xs font-semibold text-emerald-400">{signal.multiplier}x</span>
+                                        <span className="font-mono text-[11px] text-stone-500">
                                             {signal.current_week_count} mentions (baseline: {signal.baseline_count})
                                         </span>
                                     </div>
@@ -73,9 +73,9 @@ export default function TrendingTopicsInline({ feedIds }) {
                                                     href={safeUrl(article.url)}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="flex items-center gap-1.5 text-xs text-stone-400 hover:text-[hsl(var(--primary))] transition group"
+                                                    className="group flex items-center gap-1.5 text-xs text-stone-400 transition hover:text-[#C4A5FD]"
                                                 >
-                                                    <ExternalLink className="w-2.5 h-2.5 flex-shrink-0 text-stone-600 group-hover:text-[hsl(var(--primary))]" />
+                                                    <ExternalLink className="w-2.5 h-2.5 flex-shrink-0 text-stone-500 group-hover:text-[#C4A5FD]" />
                                                     <span className="line-clamp-1">{decodeHtml(article.title)}</span>
                                                 </a>
                                             ))}
