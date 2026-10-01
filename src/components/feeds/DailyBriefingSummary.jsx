@@ -134,9 +134,9 @@ function generateBullets(clusters, narratives) {
 
 // Role labels shown inline before each bullet
 const ROLE_LABEL = {
-    macro:   { text: 'Driver',      cls: 'text-[hsl(var(--primary))] border-[hsl(var(--primary))]/40 bg-[hsl(var(--primary))]/10' },
-    support: { text: 'Signal',      cls: 'text-sky-400 border-sky-800/50 bg-sky-950/30' },
-    forward: { text: 'Implication', cls: 'text-stone-400 border-stone-700 bg-stone-800/50' },
+    macro:   { text: 'Driver',      cls: 'text-[#C4A5FD] border-[hsl(var(--primary)/0.4)] bg-[hsl(var(--primary)/0.14)]' },
+    support: { text: 'Signal',      cls: 'text-sky-300 border-sky-400/25 bg-sky-400/10' },
+    forward: { text: 'Implication', cls: 'text-stone-300 border-white/15 bg-white/[0.03]' },
 };
 
 export default function DailyBriefingSummary({ items = [], feeds = [] }) {
@@ -163,19 +163,19 @@ export default function DailyBriefingSummary({ items = [], feeds = [] }) {
     const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
     return (
-        <div className="border-2 border-[hsl(var(--primary))]/50 bg-[hsl(var(--primary))]/[0.03] shadow-[0_0_40px_-8px_hsl(var(--primary)/0.15)]">
+        <div className="panel-accent overflow-hidden">
             {/* Header */}
-            <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-[hsl(var(--primary))]/25 bg-[hsl(var(--primary))]/[0.07]">
-                <Radio className="w-3.5 h-3.5 text-[hsl(var(--primary))]" />
-                <span className="text-sm font-bold text-[hsl(var(--primary))] uppercase tracking-widest">Intelligence Briefing</span>
-                <span className="text-xs text-stone-500 ml-auto">{today}</span>
+            <div className="flex items-center gap-2.5 border-b border-[hsl(var(--primary)/0.2)] px-5 py-3.5">
+                <Radio className="w-3.5 h-3.5 text-[hsl(var(--primary))]" aria-hidden="true" />
+                <span className="eyebrow">Intelligence briefing</span>
+                <span className="meta ml-auto">{today}</span>
             </div>
 
             {/* Today's Key Signal */}
             {keySignal && (
-                <div className="px-5 py-5 border-b border-[hsl(var(--primary))]/20 bg-[hsl(var(--primary))]/[0.04]">
-                    <div className="text-[10px] font-black text-[hsl(var(--primary))]/70 uppercase tracking-[0.2em] mb-2">Today's Key Signal</div>
-                    <p className="text-[1rem] font-bold text-stone-100 leading-snug">{keySignal}</p>
+                <div className="border-b border-[hsl(var(--primary)/0.15)] px-5 py-5">
+                    <div className="micro-label mb-2">Today's key signal</div>
+                    <p className="font-display text-lg font-semibold leading-snug text-stone-100">{keySignal}</p>
                 </div>
             )}
 
@@ -186,7 +186,7 @@ export default function DailyBriefingSummary({ items = [], feeds = [] }) {
                         const role = ROLE_LABEL[bullet.role] || ROLE_LABEL.support;
                         return (
                             <div key={i} className="flex items-start gap-3">
-                                <span className={`text-[9px] font-black px-1.5 py-0.5 border flex-shrink-0 mt-0.5 uppercase tracking-wider ${role.cls}`}>
+                                <span className={`mt-0.5 flex-shrink-0 rounded-md border px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wider ${role.cls}`}>
                                     {role.text}
                                 </span>
                                 <p className="text-sm text-stone-300 leading-snug">{bullet.text}</p>
