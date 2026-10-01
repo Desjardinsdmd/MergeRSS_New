@@ -160,7 +160,14 @@
     },
     "workspace_id": {
       "type": "string",
-      "description": "Team workspace this source is shared into. Set only by the backend function `workspace` (share_feed/unshare_feed)."
+      "description": "Team workspace this source is shared into. Set only by the backend function `workspace` (share_feed/unshare_feed).",
+      "rls": {
+        "write": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     }
   },
   "required": [
