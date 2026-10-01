@@ -4,6 +4,10 @@ import { useQuery } from '@tanstack/react-query';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2 } from 'lucide-react';
 import XDraftCard from '@/components/drafts/XDraftCard';
+import { PageHeader } from '@/components/brand/Brand';
+
+const TAB_TRIGGER =
+  'relative -mb-px rounded-none border-b-2 border-transparent bg-transparent px-1 pb-2.5 pt-1 text-sm font-medium text-stone-500 shadow-none hover:text-stone-200 data-[state=active]:border-[hsl(var(--brand))] data-[state=active]:bg-transparent data-[state=active]:text-stone-100 data-[state=active]:shadow-none';
 
 export default function Drafts() {
   const [status, setStatus] = useState('Draft');
@@ -13,19 +17,21 @@ export default function Drafts() {
   });
 
   return (
-    <div className="max-w-3xl mx-auto p-4 sm:p-8 space-y-6">
-      <h1 className="text-2xl font-bold text-stone-100">X Drafts</h1>
+    <div className="mx-auto max-w-3xl space-y-6 p-6 lg:p-8">
+      <PageHeader title="X Drafts" subtitle="Posts queued for X. Copy them or open them in X, then mark them posted." className="mb-0" />
       <Tabs value={status} onValueChange={setStatus}>
-        <TabsList>
-          <TabsTrigger value="Draft">Draft</TabsTrigger>
-          <TabsTrigger value="Posted">Posted</TabsTrigger>
-          <TabsTrigger value="Skipped">Skipped</TabsTrigger>
+        <TabsList className="h-auto w-full justify-start gap-6 rounded-none border-b border-white/[0.07] bg-transparent p-0">
+          <TabsTrigger value="Draft" className={TAB_TRIGGER}>Draft</TabsTrigger>
+          <TabsTrigger value="Posted" className={TAB_TRIGGER}>Posted</TabsTrigger>
+          <TabsTrigger value="Skipped" className={TAB_TRIGGER}>Skipped</TabsTrigger>
         </TabsList>
       </Tabs>
       {isLoading ? (
-        <Loader2 className="w-6 h-6 animate-spin text-stone-500 mx-auto" />
+        <Loader2 className="mx-auto h-6 w-6 animate-spin text-stone-500" />
       ) : drafts.length === 0 ? (
-        <p className="text-stone-500 text-sm">No {status.toLowerCase()} items.</p>
+        <div className="panel p-8 text-center">
+          <p className="text-sm text-stone-400">No {status.toLowerCase()} posts.</p>
+        </div>
       ) : (
         <div className="space-y-4">
           {drafts.map(d => <XDraftCard key={d.id} draft={d} onChange={refetch} />)}
