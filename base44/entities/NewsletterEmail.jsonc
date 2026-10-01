@@ -54,6 +54,10 @@
       "type": "string",
       "description": "Plain text body (cleaned)"
     },
+    "html_file_uri": {
+      "type": "string",
+      "description": "Private storage URI for HTML too large to store inline (read via signed URL)"
+    },
     "html_content": {
       "type": "string",
       "description": "Sanitized HTML body, truncated; rendered only inside a script-less sandboxed iframe"
