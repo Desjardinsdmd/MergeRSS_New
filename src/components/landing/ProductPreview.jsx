@@ -49,6 +49,7 @@ function WindowDots() {
  * Decorative: hidden from assistive tech, with a text label provided by the caller.
  */
 export default function ProductPreview({ className }) {
+  const dateLabel = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
   return (
     <div className={cn('panel overflow-hidden bg-[#100E17]/85 text-left', className)} aria-hidden="true">
       {/* Window bar */}
@@ -86,7 +87,7 @@ export default function ProductPreview({ className }) {
         {/* Today view */}
         <div className="min-w-0 flex-1 p-1 sm:p-2">
           <p className="font-display text-lg font-semibold leading-tight tracking-tight text-stone-100 sm:text-xl">Good morning, Alex</p>
-          <p className="mt-0.5 text-[12px] text-stone-400">Thursday, October 1</p>
+          <p className="mt-0.5 text-[12px] text-stone-400">{dateLabel}</p>
 
           <div className="mt-3 grid grid-cols-2 gap-2">
             <div className="panel-accent min-w-0 p-3">
