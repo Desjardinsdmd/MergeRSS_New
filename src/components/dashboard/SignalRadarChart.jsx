@@ -111,12 +111,12 @@ export default function SignalRadarChart({ user, feeds }) {
 
   const CustomTick = ({ x, y, payload }) => {
     const entry = chartData.find(d => d.category === payload.value);
-    const color = entry?.tagBalance === 'baseline' ? '#57534e' : entry?.tagBalance === 'opportunity' ? '#4ade80' : entry?.tagBalance === 'risk' ? '#f87171' : '#78716c';
+    const color = entry?.tagBalance === 'baseline' ? 'hsl(255 8% 38%)' : entry?.tagBalance === 'opportunity' ? 'hsl(var(--chart-2))' : entry?.tagBalance === 'risk' ? 'hsl(var(--chart-5))' : 'hsl(255 7% 51%)';
     return (
       <text
         x={x} y={y}
         textAnchor="middle" dominantBaseline="central"
-        fill={color} fontSize={11} fontWeight={600}
+        fill={color} fontSize={10} fontWeight={600} fontFamily="JetBrains Mono, ui-monospace, monospace"
         className="cursor-pointer"
         onClick={() => handleSpokeClick(entry?.key || '')}
       >
@@ -126,19 +126,19 @@ export default function SignalRadarChart({ user, feeds }) {
   };
 
   return (
-    <div className="bg-stone-900 border border-stone-800 p-5 flex flex-col h-full">
+    <div className="panel p-5 flex flex-col h-full">
       {/* Header */}
       <div className="flex items-start justify-between mb-1">
         <div>
-          <h3 className="text-sm font-bold text-stone-100">Signal Radar</h3>
-          <p className="text-[11px] text-stone-500 leading-snug mt-0.5">Last 7 days vs 4-week baseline — high-importance items only (score 80+)</p>
+          <h3 className="font-display text-base font-semibold text-stone-100">Signal radar</h3>
+          <p className="text-[11px] text-stone-500 leading-snug mt-0.5">Last 7 days vs 4-week baseline, high-importance stories only (score 80+)</p>
         </div>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <Info className="w-3.5 h-3.5 text-stone-600 hover:text-stone-400 transition cursor-help flex-shrink-0 mt-0.5" />
             </TooltipTrigger>
-            <TooltipContent side="bottom" className="bg-stone-950 border border-stone-700 text-stone-200 text-xs max-w-[200px]">
+            <TooltipContent side="bottom" className="rounded-xl bg-stone-900 border border-white/10 text-stone-200 text-xs max-w-[200px]">
               Where this week is noisier than usual. Tap a spoke to drill in.
             </TooltipContent>
           </Tooltip>
@@ -150,28 +150,28 @@ export default function SignalRadarChart({ user, feeds }) {
         {isLoading ? (
           <div className="h-full flex items-center justify-center">
             <div className="space-y-2 w-full max-w-[200px]">
-              <div className="h-3 bg-stone-800 rounded animate-pulse" />
-              <div className="h-32 bg-stone-800 rounded animate-pulse" />
-              <div className="h-3 bg-stone-800 rounded animate-pulse w-2/3 mx-auto" />
+              <div className="h-3 bg-white/[0.06] rounded-md animate-pulse" />
+              <div className="h-32 bg-white/[0.06] rounded-md animate-pulse" />
+              <div className="h-3 bg-white/[0.06] rounded-md animate-pulse w-2/3 mx-auto" />
             </div>
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={240}>
             <RadarChart data={chartData} outerRadius="70%">
-              <PolarGrid stroke="#292524" />
+              <PolarGrid stroke="rgb(255 255 255 / 0.08)" />
               <PolarAngleAxis dataKey="category" tick={<CustomTick />} />
               <Radar
                 name="This Week"
                 dataKey="thisWeek"
-                stroke="#3b82f6"
-                fill="#3b82f6"
-                fillOpacity={0.4}
+                stroke="hsl(var(--chart-1))"
+                fill="hsl(var(--chart-1))"
+                fillOpacity={0.3}
                 strokeWidth={2}
               />
               <Radar
                 name="4-Week Baseline"
                 dataKey="baseline"
-                stroke="#a8a29e"
+                stroke="hsl(var(--muted-foreground))"
                 fill="none"
                 strokeWidth={2}
                 strokeDasharray="6 3"
@@ -187,21 +187,21 @@ export default function SignalRadarChart({ user, feeds }) {
         const baselineCats = chartData.filter(d => d.isAtBaseline).map(d => d.category);
         if (!baselineCats.length) return null;
         return (
-          <p className="text-[10px] text-stone-600 text-center mt-2 px-2">
+          <p className="font-mono text-[10px] text-stone-500 text-center mt-2 px-2">
             Categories at baseline: {baselineCats.join(', ')}
           </p>
         );
       })()}
 
       {/* Legend */}
-      <div className="flex items-center justify-center gap-5 pt-2 border-t border-stone-800 mt-2">
+      <div className="flex items-center justify-center gap-5 pt-2 border-t border-white/[0.06] mt-2">
         <div className="flex items-center gap-1.5">
-          <div className="w-3 h-2 bg-blue-500/40 border border-blue-500 rounded-sm" />
-          <span className="text-[10px] text-stone-500">This week</span>
+          <div className="w-3 h-2 bg-[hsl(var(--chart-1)/0.3)] border border-[hsl(var(--chart-1))] rounded-sm" />
+          <span className="micro-label">This week</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-3 h-0.5 border-t-2 border-dashed border-stone-400" />
-          <span className="text-[10px] text-stone-500">4-week baseline</span>
+          <span className="micro-label">4-week baseline</span>
         </div>
       </div>
     </div>

@@ -36,32 +36,32 @@ export default function FeaturedDigestHero({ digests }) {
   const readTimeMin = Math.ceil(itemCount / 3);
 
   return (
-    <div className="mb-8 bg-gradient-to-br from-stone-800/60 to-stone-900/40 border border-[hsl(var(--primary))]/30 p-6 lg:p-8">
+    <div className="panel-accent mb-8 p-6 lg:p-8">
       <div className="flex items-start justify-between mb-6">
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <div className="p-1.5 bg-[hsl(var(--primary))]/10 rounded">
-              <FileText className="w-4 h-4 text-[hsl(var(--primary))]" />
+            <div className="p-1.5 bg-[hsl(var(--brand)/0.16)] rounded-lg">
+              <FileText className="w-4 h-4 text-brand-light" />
             </div>
-            <h3 className="text-sm font-semibold text-[hsl(var(--primary))]">TODAY'S BRIEFING</h3>
+            <p className="micro-label text-brand-light">Today's briefing</p>
           </div>
-          <h2 className="text-2xl lg:text-3xl font-bold text-stone-100 mb-1">
-            {itemCount} key articles
+          <h2 className="font-display text-2xl lg:text-3xl font-semibold text-stone-100 mb-1">
+            {itemCount} key stories
           </h2>
-          <p className="text-stone-400 text-sm flex items-center gap-1">
+          <p className="meta flex items-center gap-1">
             <Clock className="w-3 h-3" />
             {readTimeMin} minute read
           </p>
         </div>
-        <Link to={createPageUrl('Inbox')} className="flex items-center gap-1 text-sm font-medium text-[hsl(var(--primary))] hover:text-[hsl(var(--primary))]/80 transition-colors">
-          View digest <ArrowRight className="w-3.5 h-3.5" />
+        <Link to={createPageUrl('Inbox')} className="flex items-center gap-1 text-sm font-medium text-brand-light hover:text-stone-100 transition-colors">
+          View briefing <ArrowRight className="w-3.5 h-3.5" />
         </Link>
       </div>
 
       <div className="space-y-3">
         {today.items.slice(0, 4).map((item, idx) => (
-          <div key={idx} className="bg-stone-900/60 border border-stone-800/50 hover:border-stone-700 transition p-3 lg:p-4 group cursor-pointer">
-            <h4 className="font-semibold text-stone-100 text-sm line-clamp-1 group-hover:text-[hsl(var(--primary))] transition-colors mb-1">
+          <div key={idx} className="panel panel-hover rounded-xl p-3 lg:p-4 group cursor-pointer">
+            <h4 className="font-semibold text-stone-100 text-sm line-clamp-1 group-hover:text-brand-light transition-colors mb-1">
               {item.title}
             </h4>
             {item.description && (
@@ -74,9 +74,9 @@ export default function FeaturedDigestHero({ digests }) {
       </div>
 
       {itemCount > 4 && (
-        <div className="mt-4 pt-4 border-t border-stone-800/50">
-          <p className="text-xs text-stone-500">
-            +{itemCount - 4} more articles in today's digest
+        <div className="mt-4 pt-4 border-t border-white/[0.06]">
+          <p className="meta">
+            +{itemCount - 4} more stories in today's briefing
           </p>
         </div>
       )}

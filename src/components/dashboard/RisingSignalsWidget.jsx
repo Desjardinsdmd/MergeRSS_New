@@ -10,12 +10,12 @@ import { safeUrl } from '@/components/utils/htmlUtils';
 const TAB_KEYS = ['CRE', 'AI/Tech', 'Macro'];
 
 function MultiplierBadge({ multiplier }) {
-  const color = multiplier >= 10 ? 'text-red-400 bg-red-950/50 border-red-900/50'
-    : multiplier >= 5 ? 'text-orange-400 bg-orange-950/50 border-orange-900/50'
-    : 'text-amber-400 bg-amber-950/50 border-amber-900/50';
+  const color = multiplier >= 10 ? 'text-emerald-300 bg-emerald-400/15 border-emerald-400/40'
+    : multiplier >= 5 ? 'text-emerald-300 bg-emerald-400/10 border-emerald-400/25'
+    : 'text-emerald-400 bg-emerald-400/5 border-emerald-400/20';
 
   return (
-    <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[11px] font-bold border rounded ${color}`}>
+    <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 font-mono text-[11px] font-semibold border rounded-md ${color}`}>
       <ArrowUp className="w-2.5 h-2.5" />
       {multiplier}x
     </span>
@@ -32,7 +32,7 @@ function MiniSparkline({ data }) {
           <Line
             type="monotone"
             dataKey="v"
-            stroke="#3b82f6"
+            stroke="hsl(var(--chart-1))"
             strokeWidth={1.5}
             dot={false}
           />
@@ -59,7 +59,7 @@ function SignalRow({ signal }) {
   const topArticle = signal.top_articles?.[0];
 
   return (
-    <div className="py-2.5 border-b border-stone-800 last:border-b-0">
+    <div className="py-2.5 border-b border-white/[0.06] last:border-b-0">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <span className="text-sm font-semibold text-stone-100 truncate">{signal.entity}</span>
@@ -67,7 +67,7 @@ function SignalRow({ signal }) {
         </div>
         <MultiplierBadge multiplier={signal.multiplier} />
       </div>
-      <p className="text-[11px] text-stone-500 mt-0.5">
+      <p className="meta mt-0.5 normal-case tracking-normal">
         {signal.current_week_count} mentions this week, baseline {signal.baseline_count}
       </p>
       {topArticle && (
@@ -75,7 +75,7 @@ function SignalRow({ signal }) {
           href={safeUrl(topArticle.url)}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[11px] text-stone-400 hover:text-[hsl(var(--primary))] transition mt-1 flex items-center gap-1 line-clamp-1"
+          className="text-[11px] text-stone-400 hover:text-brand-light transition mt-1 flex items-center gap-1 line-clamp-1"
         >
           <ExternalLink className="w-2.5 h-2.5 flex-shrink-0" />
           <span className="truncate">{topArticle.title}</span>
@@ -88,7 +88,7 @@ function SignalRow({ signal }) {
 function EmptyTab({ category }) {
   return (
     <div className="py-8 text-center">
-      <p className="text-xs text-stone-500">No unusual activity in {category} this week — signal volume is at baseline.</p>
+      <p className="text-xs text-stone-500">No unusual activity in {category} this week. Signal volume is at baseline.</p>
     </div>
   );
 }
@@ -120,11 +120,11 @@ export default function RisingSignalsWidget() {
   const hasAnySignals = TAB_KEYS.some(k => (signals[k] || []).length > 0);
 
   return (
-    <div className="bg-stone-900 border border-stone-800 p-5 flex flex-col h-full">
+    <div className="panel p-5 flex flex-col h-full">
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div>
-          <h3 className="text-sm font-bold text-stone-100 flex items-center gap-1.5">
+          <h3 className="font-display text-base font-semibold text-stone-100 flex items-center gap-1.5">
             <TrendingUp className="w-3.5 h-3.5 text-[hsl(var(--primary))]" />
             Rising Signals
           </h3>
@@ -135,7 +135,7 @@ export default function RisingSignalsWidget() {
             <TooltipTrigger asChild>
               <Info className="w-3.5 h-3.5 text-stone-600 hover:text-stone-400 transition cursor-help flex-shrink-0 mt-0.5" />
             </TooltipTrigger>
-            <TooltipContent side="bottom" className="bg-stone-950 border border-stone-700 text-stone-200 text-xs max-w-[220px]">
+            <TooltipContent side="bottom" className="rounded-xl bg-stone-900 border border-white/10 text-stone-200 text-xs max-w-[220px]">
               Named entities suddenly appearing more often than their normal baseline.
             </TooltipContent>
           </Tooltip>
@@ -147,8 +147,8 @@ export default function RisingSignalsWidget() {
         <div className="flex-1 space-y-3 py-4">
           {[0, 1, 2].map(i => (
             <div key={i} className="space-y-1.5">
-              <div className="h-3 bg-stone-800 rounded animate-pulse w-3/4" />
-              <div className="h-2 bg-stone-800 rounded animate-pulse w-1/2" />
+              <div className="h-3 bg-white/[0.06] rounded-md animate-pulse w-3/4" />
+              <div className="h-2 bg-white/[0.06] rounded-md animate-pulse w-1/2" />
             </div>
           ))}
         </div>
@@ -158,7 +158,7 @@ export default function RisingSignalsWidget() {
       {!isLoading && (isError || (!hasAnySignals && response?.items_analyzed === 0)) && (
         <div className="flex-1 flex items-center justify-center py-8">
           <p className="text-xs text-stone-500 text-center max-w-[200px]">
-            Rising signals computing — first results expected within 24 hours of next enrichment cycle.
+            Rising signals computing. First results expected within 24 hours of next enrichment cycle.
           </p>
         </div>
       )}
@@ -166,12 +166,12 @@ export default function RisingSignalsWidget() {
       {/* Tabs with signals */}
       {!isLoading && !isError && (
         <Tabs defaultValue={defaultTab} className="flex-1 flex flex-col min-h-0">
-          <TabsList className="bg-stone-800 rounded-lg p-0.5 h-7 mb-2">
+          <TabsList className="bg-white/[0.04] border border-white/[0.07] rounded-xl p-0.5 h-8 mb-2">
             {TAB_KEYS.map(key => (
-              <TabsTrigger key={key} value={key} className="rounded text-[11px] px-2.5 py-0.5 h-6 data-[state=active]:bg-stone-700">
+              <TabsTrigger key={key} value={key} className="rounded-lg font-mono text-[11px] px-2.5 py-0.5 h-6 data-[state=active]:bg-[hsl(var(--brand)/0.16)] data-[state=active]:text-stone-100">
                 {key}
                 {(signals[key] || []).length > 0 && (
-                  <span className="ml-1 text-[9px] font-bold text-[hsl(var(--primary))]">
+                  <span className="ml-1 text-[9px] font-semibold text-brand-light">
                     {(signals[key] || []).length}
                   </span>
                 )}

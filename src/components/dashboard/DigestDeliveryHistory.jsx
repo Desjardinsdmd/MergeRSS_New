@@ -22,27 +22,27 @@ export default function DigestDeliveryHistory({ digests }) {
   const digestMap = Object.fromEntries(digests.map(d => [d.id, d.name]));
 
   return (
-    <div className="bg-stone-900 border border-stone-800">
+    <div className="panel overflow-hidden">
       <div className="pb-2 pt-4 px-4 flex flex-row items-center justify-between">
-        <span className="text-sm font-semibold text-stone-200">Recent Deliveries</span>
-        <Link to={createPageUrl('Inbox')} className="text-xs text-stone-500 hover:text-amber-400 transition-colors">Inbox →</Link>
+        <span className="micro-label">Recent briefings</span>
+        <Link to={createPageUrl('Inbox')} className="text-xs text-stone-400 hover:text-brand-light transition-colors">Inbox →</Link>
       </div>
-      <div className="divide-y divide-stone-800">
+      <div className="divide-y divide-white/[0.06]">
         {deliveries.map(delivery => (
           <div key={delivery.id} className="flex items-center gap-3 px-4 py-2.5">
-            <div className="p-1.5 bg-stone-800 flex-shrink-0">
-              <FileText className="w-3 h-3 text-amber-400" />
+            <div className="p-1.5 rounded-lg bg-[hsl(var(--brand)/0.14)] flex-shrink-0">
+              <FileText className="w-3 h-3 text-brand-light" />
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-stone-300 truncate">
-                {digestMap[delivery.digest_id] || 'Digest'}
+                {digestMap[delivery.digest_id] || 'Briefing'}
               </p>
-              <p className="text-xs text-stone-600">
-                {delivery.item_count} articles • {delivery.sent_at ? new Date(delivery.sent_at).toLocaleDateString() : ''}
+              <p className="meta mt-0.5">
+                {delivery.item_count} stories · {delivery.sent_at ? new Date(delivery.sent_at).toLocaleDateString() : ''}
               </p>
             </div>
             {!delivery.is_read && (
-              <span className="bg-amber-400 text-stone-900 text-xs font-bold px-1.5 py-0.5 flex-shrink-0">New</span>
+              <span className="chip border border-emerald-400/25 bg-emerald-400/10 text-emerald-300 flex-shrink-0">New</span>
             )}
           </div>
         ))}

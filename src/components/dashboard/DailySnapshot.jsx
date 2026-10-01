@@ -42,9 +42,9 @@ export default function DailySnapshot() {
 
   if (loading) {
     return (
-      <div className="bg-stone-900 border border-stone-800 p-5 mb-6 text-stone-200 flex items-center gap-3">
+      <div className="panel p-5 mb-6 text-stone-200 flex items-center gap-3">
         <Loader2 className="w-5 h-5 animate-spin flex-shrink-0 text-[hsl(var(--primary))]" />
-        <p className="text-sm text-stone-400">Generating today's brief...</p>
+        <p className="text-sm text-stone-400">Generating today's briefing...</p>
       </div>
     );
   }
@@ -68,16 +68,16 @@ export default function DailySnapshot() {
     : (categoryBriefs[activeCategory]?.related_articles || []);
 
   return (
-    <div className="bg-stone-900 border border-stone-800 p-5 mb-6 text-stone-200">
+    <div className="panel p-5 mb-6 text-stone-200">
       {/* Category tabs */}
       {hasCategories && !collapsed && (
         <div className="flex flex-wrap gap-1.5 mb-3">
           <button
             onClick={() => setActiveCategory('All')}
-            className={`text-xs px-3 py-1 font-medium transition-all ${
+            className={`rounded-md border px-2.5 py-1 font-mono text-[11px] font-medium transition-all ${
               activeCategory === 'All'
-                ? 'bg-[hsl(var(--primary))] text-stone-900'
-                : 'bg-stone-800 text-stone-400 hover:text-stone-200'
+                ? 'border-[hsl(var(--brand)/0.3)] bg-[hsl(var(--brand)/0.16)] text-brand-light'
+                : 'border-white/[0.07] text-stone-400 hover:text-stone-200'
                 }`}
                 >
                 All
@@ -86,10 +86,10 @@ export default function DailySnapshot() {
                 <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
-                className={`text-xs px-3 py-1 font-medium transition-all ${
+                className={`rounded-md border px-2.5 py-1 font-mono text-[11px] font-medium transition-all ${
                 activeCategory === cat
-                ? 'bg-[hsl(var(--primary))] text-stone-900'
-                  : 'bg-stone-800 text-stone-400 hover:text-stone-200'
+                ? 'border-[hsl(var(--brand)/0.3)] bg-[hsl(var(--brand)/0.16)] text-brand-light'
+                  : 'border-white/[0.07] text-stone-400 hover:text-stone-200'
               }`}
             >
               {cat}
@@ -102,18 +102,18 @@ export default function DailySnapshot() {
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2">
           <Sparkles className="w-4 h-4 flex-shrink-0 text-[hsl(var(--primary))]" />
-          <span className="text-sm font-semibold tracking-wide uppercase text-stone-300">
-            {activeCategory === 'All' ? "Today's Brief" : `${activeCategory} Brief`}
+          <span className="micro-label text-stone-300">
+            {activeCategory === 'All' ? "Today's briefing" : `${activeCategory} briefing`}
           </span>
           {currentCount > 0 && (
-            <span className="text-xs text-stone-600">{currentCount} articles</span>
+            <span className="meta">{currentCount} stories</span>
           )}
         </div>
         <div className="flex items-center gap-1">
-          <button onClick={refresh} className="p-1.5 hover:bg-stone-800 transition text-stone-600 hover:text-stone-300">
+          <button onClick={refresh} className="rounded-lg p-1.5 hover:bg-white/[0.05] transition text-stone-500 hover:text-stone-300">
             <RefreshCw className="w-3.5 h-3.5" />
           </button>
-          <button onClick={() => setCollapsed(!collapsed)} className="p-1.5 hover:bg-stone-800 transition text-stone-600 hover:text-stone-300">
+          <button onClick={() => setCollapsed(!collapsed)} className="rounded-lg p-1.5 hover:bg-white/[0.05] transition text-stone-500 hover:text-stone-300">
             {collapsed ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
           </button>
         </div>
@@ -121,12 +121,12 @@ export default function DailySnapshot() {
 
       {!collapsed && (
         <>
-          <p className="text-sm leading-relaxed mt-3 text-stone-400">
+          <p className="text-sm leading-relaxed mt-3 text-stone-300">
             {currentBrief || 'No brief available for this category.'}
           </p>
           {currentRelated.length > 0 && (
-            <div className="mt-4 pt-3 border-t border-stone-800">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-600 mb-2">Related Articles</p>
+            <div className="mt-4 pt-3 border-t border-white/[0.06]">
+              <p className="micro-label mb-2">Related stories</p>
               <div className="flex flex-col gap-2.5">
                 {currentRelated.map((article, i) => {
                   const imageUrl = normalizeImageUrl(getArticleImage(article));
@@ -138,10 +138,10 @@ export default function DailySnapshot() {
                       href={safeUrl(article.url)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-start gap-2.5 text-xs text-stone-500 hover:bg-stone-800/50 hover:text-stone-200 transition-all duration-200 group p-2 -mx-2 rounded"
+                      className="flex items-start gap-2.5 text-xs text-stone-500 hover:bg-white/[0.04] hover:text-stone-200 transition-all duration-200 group p-2 -mx-2 rounded-xl"
                     >
                       {imageUrl && (
-                        <div className="flex-shrink-0 w-12 h-12 bg-stone-800 rounded overflow-hidden border border-stone-700/50">
+                        <div className="flex-shrink-0 w-12 h-12 bg-stone-800 rounded-lg overflow-hidden border border-white/[0.07]">
                           <img
                             src={imageUrl}
                             alt={article.title}
@@ -151,10 +151,10 @@ export default function DailySnapshot() {
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-stone-200 line-clamp-2 group-hover:text-[hsl(var(--primary))] transition-colors mb-1">
+                        <p className="text-xs font-medium text-stone-200 line-clamp-2 group-hover:text-brand-light transition-colors mb-1">
                           {decodeHtml(article.title)}
                         </p>
-                        <div className="flex items-center gap-1.5 text-xs text-stone-600 flex-wrap">
+                        <div className="meta flex items-center gap-1.5 flex-wrap">
                           {faviconUrl && (
                             <img src={faviconUrl} alt="publication" className="w-3 h-3 rounded" onError={(e) => (e.target.style.display = 'none')} />
                           )}

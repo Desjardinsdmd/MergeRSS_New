@@ -20,7 +20,7 @@ export default function GroupedArticles({
     articles.forEach(article => {
       const feedId = article.feed_id;
       const feed = feedMap[feedId];
-      const feedName = feed?.name || 'Unknown Feed';
+      const feedName = feed?.name || 'Unknown source';
 
       if (!groups[feedName]) {
         groups[feedName] = [];
@@ -50,16 +50,16 @@ export default function GroupedArticles({
         const hiddenCount = articles.length - displayCount;
 
         return (
-          <div key={feedName} className="bg-stone-900/40 border border-stone-800/50 overflow-hidden">
+          <div key={feedName} className="panel overflow-hidden">
             <button
               onClick={() => toggleGroup(feedName)}
-              className="w-full flex items-center justify-between p-3 hover:bg-stone-800/30 transition text-left"
+              className="w-full flex items-center justify-between px-4 py-3 hover:bg-white/[0.03] transition text-left"
             >
               <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-stone-400 uppercase tracking-wider">
+                <span className="micro-label text-stone-400">
                   {feedName}
                 </span>
-                <span className="text-xs bg-stone-800 text-stone-500 px-2 py-0.5 rounded">
+                <span className="chip-neutral">
                   {articles.length}
                 </span>
               </div>
@@ -71,7 +71,7 @@ export default function GroupedArticles({
             </button>
 
             {isExpanded && (
-              <div className="border-t border-stone-800/30">
+              <div className="border-t border-white/[0.06]">
                 {articles.slice(0, displayCount).map((item) => (
                   <ArticleCard
                     key={item.id}
@@ -86,7 +86,7 @@ export default function GroupedArticles({
             )}
 
             {hiddenCount > 0 && isExpanded && (
-              <div className="px-4 py-2 bg-stone-950/40 text-xs text-stone-500 border-t border-stone-800/30">
+              <div className="meta px-4 py-2 border-t border-white/[0.06]">
                 +{hiddenCount} more from {feedName}
               </div>
             )}
