@@ -478,7 +478,8 @@ Deno.serve(async (req) => {
           form.append('to', String(body.send_test_to));
           form.append('subject', `Inbox test ${new Date().toISOString()}`);
           form.append('text', 'Inbox test\nIf this shows up as a feed item, inbound newsletters work end to end.');
-          form.append('html', '<h1>Inbox test</h1><p>If this shows up as a feed item, inbound newsletters work end to end.</p>');
+          const filler = body.large ? Array.from({ length: 600 }, (_, i) => `<tr><td style="padding:8px;font-family:Arial,sans-serif;color:#333">Row ${i}: Ottawa rental market update, unit absorption and pricing notes for this week.</td></tr>`).join('') : '';
+          form.append('html', `<h1>Inbox test</h1><p>If this shows up as a feed item, inbound newsletters work end to end.</p>${filler ? `<table>${filler}</table>` : ''}`);
           out.send_test = await mailgunFetch(cfg, `/v3/${cfg.domain}/messages`, { method: 'POST', body: form });
         } catch (e) { out.send_test_error = e?.message; }
       }
