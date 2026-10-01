@@ -361,6 +361,34 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, configured: true, webhook_url: webhookUrl(), ...r });
     }
 
+    // Admin diagnostics: the catch-all route as Mailgun sees it, plus recent inbound events.
+    if (action === 'diagnose') {
+      if (user.role !== 'admin') return Response.json({ error: 'Forbidden' }, { status: 403 });
+      if (!cfg.configured) return Response.json({ configured: false, reason: NOT_CONFIGURED });
+      const out = { domain: cfg.domain, api_base: cfg.apiBase, webhook_url: webhookUrl() };
+      try {
+        const routes = await mailgunFetch(cfg, '/v3/routes?limit=1000');
+        out.routes = (routes.items || [])
+          .filter(r => String(r.expression || '').includes(cfg.domain.replace(/\./g, '\\.')) || String(r.expression || '').includes(cfg.domain))
+          .map(r => ({ id: r.id, priority: r.priority, description: r.description, expression: r.expression, actions: r.actions }));
+      } catch (e) { out.routes_error = e?.message; }
+      try {
+        const begin = Math.floor((Date.now() - (Number(body.hours) || 6) * 3600 * 1000) / 1000);
+        const q = new URLSearchParams({ begin: String(begin), ascending: 'no', limit: '50' });
+        if (body.recipient) q.set('recipient', String(body.recipient));
+        const ev = await mailgunFetch(cfg, `/v3/${cfg.domain}/events?${q.toString()}`);
+        out.events = (ev.items || []).map(e => ({
+          time: new Date((e.timestamp || 0) * 1000).toISOString(), event: e.event, recipient: e.recipient,
+          from: e.message?.headers?.from, subject: e.message?.headers?.subject,
+          reason: e.reason || e['delivery-status']?.message || e['delivery-status']?.description || '',
+          code: e['delivery-status']?.code, routes: (e.routes || []).map(r => r.id || r.description),
+        }));
+      } catch (e) { out.events_error = e?.message; }
+      console.log('[newsletterInbox] diagnose', JSON.stringify(out).slice(0, 8000));
+      await svc.SyncState.create({ key: 'mailgun_diagnose', history_id: JSON.stringify(out).slice(0, 20000), enabled: false }).catch(() => {});
+      return Response.json(out);
+    }
+
     if (action === 'pause') {
       const sub = await ownSubscription(svc, user.email, body.subscription_id);
       if (!sub) return Response.json({ error: 'Sender not found' }, { status: 404 });
