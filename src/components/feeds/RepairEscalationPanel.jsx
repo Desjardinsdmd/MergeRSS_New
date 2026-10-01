@@ -1,6 +1,5 @@
 import React from 'react';
 import { AlertCircle, RotateCcw, Zap, Trash2 } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -72,23 +71,23 @@ export default function RepairEscalationPanel({ feed }) {
   const repairLog = feed.repair_actions_taken || [];
 
   return (
-    <Card className="border-red-500/30 bg-red-500/10 my-2">
-      <CardContent className="p-4">
+    <div className="my-2 rounded-2xl border border-red-400/25 bg-red-400/10">
+      <div className="p-4">
         <div className="flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+          <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
           <div className="flex-1">
-            <h4 className="font-semibold text-red-200 mb-1">Needs Your Input</h4>
+            <h4 className="mb-1 font-display text-[15px] font-semibold text-red-200">Needs your input</h4>
             <p className="text-sm text-red-300/90 mb-3">
               {feed.escalation_reason || 'The system could not automatically recover this source.'}
             </p>
 
             {repairLog.length > 0 && (
-              <div className="bg-red-950/30 rounded p-2 mb-3 text-xs text-red-200/70">
-                <p className="font-medium mb-1">System attempted:</p>
-                <ul className="space-y-0.5">
+              <div className="mb-3 rounded-xl bg-black/20 p-2 text-xs text-red-200/70">
+                <p className="micro-label mb-1 text-red-300/70">System attempted</p>
+                <ul className="space-y-0.5 font-mono text-[11px]">
                   {repairLog.slice(-3).map((log, idx) => (
                     <li key={idx} className="text-red-300/60">
-                      • {log.action.replace(/_/g, ' ')}: {log.result === 'success' ? '✓' : '✗'}
+                      · {log.action.replace(/_/g, ' ')}: {log.result === 'success' ? '✓' : '✗'}
                     </li>
                   ))}
                 </ul>
@@ -99,27 +98,27 @@ export default function RepairEscalationPanel({ feed }) {
               <Button
                 size="sm"
                 variant="outline"
-                className="text-blue-300 border-blue-500/30 hover:bg-blue-500/10"
+                className="btn-soft h-auto"
                 onClick={() => setShowRetryDialog(true)}
                 disabled={isLoading}
               >
                 <RotateCcw className="w-4 h-4 mr-1" />
-                Retry Auto-Repair
+                Retry auto-repair
               </Button>
               <Button
                 size="sm"
                 variant="outline"
-                className="text-stone-400 border-stone-700 hover:bg-stone-800"
+                className="btn-ghost h-auto"
                 onClick={handleMarkInactive}
                 disabled={isLoading}
               >
                 <Zap className="w-4 h-4 mr-1" />
-                Mark Inactive
+                Mark inactive
               </Button>
               <Button
                 size="sm"
                 variant="outline"
-                className="text-red-400 border-red-700 hover:bg-red-950/30"
+                className="rounded-xl border-red-400/30 text-red-300 hover:bg-red-400/10"
                 onClick={() => setShowDeleteDialog(true)}
                 disabled={isLoading}
               >
@@ -129,20 +128,20 @@ export default function RepairEscalationPanel({ feed }) {
             </div>
           </div>
         </div>
-      </CardContent>
+      </div>
 
       {/* Retry Confirmation */}
       <AlertDialog open={showRetryDialog} onOpenChange={setShowRetryDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Retry Auto-Repair?</AlertDialogTitle>
+            <AlertDialogTitle>Retry auto-repair?</AlertDialogTitle>
             <AlertDialogDescription>
               The system will attempt all repair strategies again. If you have a more specific URL (like /blog or /news), update the source URL first for better results.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleRetryRepair} disabled={isLoading} className="bg-blue-600 hover:bg-blue-700">
+            <AlertDialogAction onClick={handleRetryRepair} disabled={isLoading} className="btn-brand">
               {isLoading ? 'Repairing...' : 'Retry'}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -153,19 +152,19 @@ export default function RepairEscalationPanel({ feed }) {
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Source?</AlertDialogTitle>
+            <AlertDialogTitle>Delete source?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will delete "{feed.name}" and all associated items. This action cannot be undone.
+              This will delete "{feed.name}" and all associated stories. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} disabled={isLoading} className="bg-red-600 hover:bg-red-700">
+            <AlertDialogAction onClick={handleDelete} disabled={isLoading} className="rounded-xl bg-red-500 text-white hover:bg-red-600">
               {isLoading ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </Card>
+    </div>
   );
 }
