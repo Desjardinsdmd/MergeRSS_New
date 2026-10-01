@@ -444,7 +444,7 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, configured: true, webhook_url: webhookUrl(), ...r });
     }
 
-    // Admin diagnostics: the catch-all route as Mailgun sees it, plus recent inbound events.
+    // Admin diagnostics (read-only): the catch-all route as Mailgun sees it, plus recent inbound events.
     if (action === 'diagnose') {
       if (user.role !== 'admin') return Response.json({ error: 'Forbidden' }, { status: 403 });
       if (!cfg.configured) return Response.json({ configured: false, reason: NOT_CONFIGURED });
@@ -470,50 +470,6 @@ Deno.serve(async (req) => {
         }));
       } catch (e) { out.events_error = e?.message; }
 
-      // Optional end-to-end test: send a message from the domain to an inbox address.
-      if (body.send_test_to) {
-        try {
-          const form = new FormData();
-          form.append('from', `MergeRSS Newsletter inbox test <inbox-test@${cfg.domain}>`);
-          form.append('to', String(body.send_test_to));
-          form.append('subject', `Newsletter inbox test ${new Date().toISOString()}`);
-          form.append('text', 'Newsletter inbox test\nIf this shows up as a story from this source, inbound newsletters work end to end.');
-          const filler = body.large ? Array.from({ length: 600 }, (_, i) => `<tr><td style="padding:8px;font-family:Arial,sans-serif;color:#333">Row ${i}: Ottawa rental market update, unit absorption and pricing notes for this week.</td></tr>`).join('') : '';
-          // Brand v3 palette (lib/brand.ts): ink page, violet eyebrow, display heading.
-          form.append('html', `<div style="background:#0A0910;padding:24px;"><p style="margin:0 0 8px;font:600 10px/1.4 'JetBrains Mono',Consolas,monospace;letter-spacing:0.14em;text-transform:uppercase;color:#9B5CF6;">Newsletter inbox</p><h1 style="margin:0 0 12px;font:600 22px/1.3 'Space Grotesk','Segoe UI',Helvetica,Arial,sans-serif;color:#F3F1F7;">Newsletter inbox test</h1><p style="margin:0;font:400 15px/1.7 Inter,'Segoe UI',Helvetica,Arial,sans-serif;color:#C9C5D4;">If this shows up as a story from this source, inbound newsletters work end to end.</p>${filler ? `<table>${filler}</table>` : ''}</div>`);
-          out.send_test = await mailgunFetch(cfg, `/v3/${cfg.domain}/messages`, { method: 'POST', body: form });
-        } catch (e) { out.send_test_error = e?.message; }
-      }
-
-      // Optional replay: re-post a stored inbound message to the webhook with a fresh signature.
-      if (body.replay_recipient) {
-        try {
-          const nowS = Math.floor(Date.now() / 1000);
-          const q = new URLSearchParams({ begin: String(nowS), end: String(nowS - 72 * 3600), ascending: 'no', limit: '20', event: 'accepted', recipient: String(body.replay_recipient) });
-          const ev = await mailgunFetch(cfg, `/v3/${cfg.domain}/events?${q.toString()}`);
-          const hit = (ev.items || []).find(e => e.storage?.url);
-          if (!hit) throw new Error('no stored message found');
-          const sres = await fetch(hit.storage.url, { headers: { Authorization: `Basic ${btoa(`api:${cfg.apiKey}`)}`, Accept: 'application/json' }, signal: AbortSignal.timeout(20000) });
-          if (!sres.ok) throw new Error(`storage ${sres.status}`);
-          const msg = await sres.json();
-          const signingKey = Deno.env.get('MAILGUN_WEBHOOK_SIGNING_KEY') || cfg.apiKey;
-          const token = crypto.randomUUID().replace(/-/g, '');
-          const ts = String(Math.floor(Date.now() / 1000));
-          const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(signingKey), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-          const sig = Array.from(new Uint8Array(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(ts + token))), b => b.toString(16).padStart(2, '0')).join('');
-          const form = new FormData();
-          form.append('recipient', String(body.replay_recipient));
-          for (const k of ['sender', 'from', 'From', 'subject', 'Subject', 'body-plain', 'body-html', 'stripped-text', 'stripped-html', 'Message-Id', 'To', 'List-Unsubscribe']) {
-            if (typeof msg[k] === 'string') form.append(k, msg[k]);
-          }
-          if (msg['message-headers']) form.append('message-headers', typeof msg['message-headers'] === 'string' ? msg['message-headers'] : JSON.stringify(msg['message-headers']));
-          form.append('timestamp', ts); form.append('token', token); form.append('signature', sig);
-          const r = await fetch(webhookUrl(), { method: 'POST', body: form, signal: AbortSignal.timeout(60000) });
-          out.replay = { status: r.status, body: (await r.text()).slice(0, 500), message_keys: Object.keys(msg).slice(0, 40) };
-        } catch (e) { out.replay_error = e?.message; }
-      }
-      console.log('[newsletterInbox] diagnose', JSON.stringify(out).slice(0, 8000));
-      await svc.SyncState.create({ key: 'mailgun_diagnose', history_id: JSON.stringify(out).slice(0, 20000), enabled: false }).catch(() => {});
       return Response.json(out);
     }
 

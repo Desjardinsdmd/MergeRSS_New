@@ -339,14 +339,6 @@ async function createEmailRecord(base44, svc, data, rawHtml) {
   }
 }
 
-// Decision trace (temporary, 2026-10-01): one SyncState row per inbound request recording which
-// branch it took, so silent 200 "ignored" outcomes can be diagnosed. No message content stored.
-async function trace(svc, data) {
-  try {
-    await svc.SyncState.create({ key: 'mailgun_trace', history_id: JSON.stringify({ at: new Date().toISOString(), ...data }).slice(0, 3000), enabled: false });
-  } catch { /* best effort */ }
-}
-
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return Response.json({ error: 'Method not allowed' }, { status: 405 });
 
@@ -354,15 +346,13 @@ Deno.serve(async (req) => {
   const svc = base44.asServiceRole.entities;
   const res = await handle(req, base44, svc).catch(async (error) => {
     console.error('[mailgunWebhook] error:', error);
-    await trace(svc, { outcome: 'exception', error: String(error?.message || error).slice(0, 500) });
     return Response.json({ error: error?.message || 'Server error' }, { status: 500 });
   });
   return res;
 });
 
 async function handle(req, base44, svc) {
-  const T = { outcome: '' };
-  const done = async (body, status = 200) => { T.outcome = body?.ignored || body?.reason || (body?.duplicate ? 'duplicate' : body?.ingested ? 'ingested' : body?.confirmation ? 'confirmation' : body?.relayed ? 'relayed' : (body?.error || 'ok')); T.status = status; await trace(svc, T); return Response.json(body, { status }); };
+  const done = async (body, status = 200) => Response.json(body, { status });
   {
 
     let formData;
@@ -370,7 +360,6 @@ async function handle(req, base44, svc) {
 
     const ok = await verifyMailgunSignature(field(formData, 'token'), field(formData, 'timestamp'), field(formData, 'signature'));
     if (!ok) return Response.json({ error: 'Invalid signature' }, { status: 401 });
-    T.recipient_field = field(formData, 'recipient');
 
     const headers = headerMap(formData);
     const domain = (Deno.env.get('MAILGUN_DOMAIN') || '').toLowerCase();
@@ -379,7 +368,6 @@ async function handle(req, base44, svc) {
     const recipientCandidates = [field(formData, 'recipient'), field(formData, 'To', 'to'), headers['to'] || '', headers['delivered-to'] || '', headers['x-forwarded-to'] || '']
       .join(',').split(/[,;]/).map(s => parseAddress(s).email).filter(Boolean)
       .filter(e => !domain || e.endsWith('@' + domain));
-    T.domain = domain; T.candidates = [...new Set(recipientCandidates)];
     // ── Admin role addresses (support@, postmaster@, abuse@) -> relay to the admin inbox ──
     const adminAddress = [...new Set(recipientCandidates)].find(e => ADMIN_LOCAL_PARTS.has(e.split('@')[0]));
     if (adminAddress) {
@@ -413,7 +401,6 @@ async function handle(req, base44, svc) {
       // 200 so Mailgun does not retry mail for unknown / retired addresses.
       return done({ success: true, ignored: emailFeed ? 'inactive inbox' : 'unknown recipient' });
     }
-    T.email_feed = emailFeed.id;
     const ownerEmail = emailFeed.user_email;
 
     // ── Parse message ──
@@ -437,7 +424,6 @@ async function handle(req, base44, svc) {
       const orig = originalSenderFromForward(rawText || text);
       if (orig) from = orig;
     }
-    T.from = from.email;
     if (!from.email) return done({ success: true, ignored: 'no sender' });
 
     const viewUrl = findViewUrl(links, rawText || text);
