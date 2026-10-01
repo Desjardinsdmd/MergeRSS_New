@@ -125,17 +125,15 @@ Deno.serve(async (req) => {
     }
 
     const testEmail = 'test@mergerss.com';
-    const testPassword = crypto.randomUUID().replace(/-/g, '').slice(0, 16) + 'Aa1!';
     
     // Invite test user
     await base44.users.inviteUser(testEmail, 'user');
     
-    // Send password reset email so they can set their password
+    // Invite email: the tester sets their own password from the link. No password is ever sent by email.
     const resetUrl = new URL('/reset-password', new URL(req.url).origin).href;
     const testInner = `<p style="margin:0 0 10px;">${emailMicro('Test account', BRAND.violet)}</p>
 <h1 class="h1" style="margin:0 0 16px;font:600 22px/1.3 ${BRAND.display};color:${BRAND.text};">Your test account is ready</h1>
 <p style="margin:0 0 12px;font:400 15px/1.7 ${BRAND.sans};color:${BRAND.body};">Email: <span style="font-family:${BRAND.mono};color:${BRAND.text};">${brandEsc(testEmail)}</span></p>
-<p style="margin:0 0 12px;font:400 15px/1.7 ${BRAND.sans};color:${BRAND.body};">For testing, you can use password: <span style="font-family:${BRAND.mono};color:${BRAND.text};">${brandEsc(testPassword)}</span></p>
 <div style="margin-top:20px;">${emailButton(resetUrl, 'Set your password')}</div>`;
     await base44.integrations.Core.SendEmail({
       to: testEmail,
