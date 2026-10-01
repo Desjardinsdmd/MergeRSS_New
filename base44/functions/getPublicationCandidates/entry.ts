@@ -164,6 +164,14 @@ Deno.serve(async (req) => {
         total_clusters: candidates.length,
         window_hours: WINDOW_HOURS,
         lens_name: lens?.name || null,
+        debug: {
+            owner: ownerEmail,
+            owner_feeds: userFeedIds.size,
+            clusters_raw: allClustersRaw.length,
+            clusters_in_window: allClusters.length,
+            eligible: eligibleClusters.length,
+            threshold: minimumScoreThreshold,
+        },
         feedback_stats: {
             total: feedbackRaw.length,
             manual_selects: manualSelects,
