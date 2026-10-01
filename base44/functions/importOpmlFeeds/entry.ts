@@ -8,12 +8,27 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 // 302s to 169.254.169.254 used to sail through).
 const __BLOCKED_HOSTS = new Set(['localhost', 'metadata.google.internal', 'metadata', 'instance-data', '0.0.0.0']);
 function __isPrivateIp(ip) {
-    const h = ip.replace(/^\[|\]$/g, '').toLowerCase();
+    const h = String(ip).replace(/^\[|\]$/g, '').toLowerCase().replace(/%.*$/, '');
     if (/^(127\.|10\.|0\.|169\.254\.|192\.168\.)/.test(h)) return true;
     if (/^172\.(1[6-9]|2\d|3[01])\./.test(h)) return true;
     if (/^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./.test(h)) return true; // CGNAT
+    if (/^198\.1[89]\./.test(h)) return true; // benchmarking 198.18.0.0/15
+    const __q = h.match(/^(\d{1,3})\.\d{1,3}\.\d{1,3}\.\d{1,3}$/);
+    if (__q && Number(__q[1]) >= 224) return true; // multicast / reserved 224.0.0.0+
     if (h === '::1' || h === '::' || /^f[cd][0-9a-f]{2}:/.test(h) || /^fe[89ab][0-9a-f]:/.test(h)) return true;
-    if (/^::ffff:/.test(h)) return __isPrivateIp(h.replace(/^::ffff:/, ''));
+    if (/^::[0-9a-f]{1,4}$/.test(h)) return true; // ::x  == 0.0.x.x
+    if (/^64:ff9b:1:/.test(h)) return true; // local-use NAT64 64:ff9b:1::/48
+    // IPv4 embedded in IPv6: ::ffff:a.b.c.d, ::ffff:XXXX:YYYY, ::ffff:0:..., NAT64 64:ff9b::/96,
+    // IPv4-compatible ::a.b.c.d / ::XXXX:YYYY (plus expanded zero forms). Extract and re-check.
+    const __m = h.match(/^(?:::ffff:(?:0{1,4}:)?|64:ff9b::|64:ff9b:(?:0{1,4}:){4}|(?:0{1,4}:){5}ffff:|(?:0{1,4}:){4}ffff:0{1,4}:|(?:0{1,4}:){6}|::)((?:\d{1,3}\.){3}\d{1,3}|[0-9a-f]{1,4}:[0-9a-f]{1,4})$/);
+    if (__m) {
+        let v4 = __m[1];
+        if (v4.includes(':')) {
+            const [a, b] = v4.split(':').map(x => parseInt(x, 16));
+            v4 = [a >> 8, a & 255, b >> 8, b & 255].join('.');
+        }
+        return __isPrivateIp(v4);
+    }
     return false;
 }
 async function __assertPublicUrl(raw) {
