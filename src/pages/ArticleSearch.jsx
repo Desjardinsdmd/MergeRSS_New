@@ -109,7 +109,7 @@ export default function ArticleSearch() {
   };
 
   return (
-    <div className="p-6 lg:p-8">
+    <div className="px-4 py-5 sm:p-6 lg:p-8">
       <div className="max-w-6xl mx-auto">
         <PageHeader title="Search" subtitle="Find stories across your sources" />
 

@@ -348,8 +348,8 @@ function LayoutContent({ children, currentPageName }) {
       {/* Main */}
       <div className="lg:pl-[264px]">
         {/* Mobile header */}
-        <header className="sticky top-0 z-30 px-3 pt-3 lg:hidden">
-          <div className="panel flex h-14 items-center justify-between px-3">
+        <header className="sticky top-0 z-30 bg-gradient-to-b from-[#0A0910] via-[#0A0910]/95 to-transparent px-2 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] sm:px-3 lg:hidden">
+          <div className="panel flex h-14 items-center justify-between bg-[#15121D]/95 px-3">
             <button type="button" onClick={() => setSidebarOpen(true)} aria-label="Open navigation menu" className="rounded-lg p-1.5 text-stone-400">
               <Menu className="h-5 w-5" aria-hidden="true" />
             </button>
@@ -361,7 +361,7 @@ function LayoutContent({ children, currentPageName }) {
           </div>
         </header>
 
-        <main className="min-h-screen p-3 lg:py-3 lg:pl-0 lg:pr-3">
+        <main className="min-h-screen px-2 pb-2 sm:p-3 lg:py-3 lg:pl-0 lg:pr-3">
           <div className="panel min-h-[calc(100vh-1.5rem)] bg-[#100E17]/80">
             <ErrorBoundary>{children}</ErrorBoundary>
           </div>

@@ -221,7 +221,7 @@ export default function Integrations() {
   };
 
   return (
-    <div className="p-6 lg:p-8 max-w-4xl mx-auto">
+    <div className="px-4 py-5 sm:p-6 lg:p-8 max-w-4xl mx-auto">
       <PageHeader
         title="Integrations"
         subtitle="Deliver briefings to Slack, Discord and Microsoft Teams"

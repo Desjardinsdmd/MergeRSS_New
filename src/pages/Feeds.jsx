@@ -248,7 +248,7 @@ export default function Feeds() {
   const canAddMore = feeds.length < maxFeeds;
 
   return (
-    <div className="p-6 lg:p-8 max-w-7xl mx-auto">
+    <div className="px-4 py-5 sm:p-6 lg:p-8 max-w-7xl mx-auto">
       {/* Header */}
       <PageHeader
         title="Sources"

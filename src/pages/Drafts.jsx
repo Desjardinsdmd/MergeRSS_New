@@ -17,7 +17,7 @@ export default function Drafts() {
   });
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 p-6 lg:p-8">
+    <div className="mx-auto max-w-3xl space-y-6 px-4 py-5 sm:p-6 lg:p-8">
       <PageHeader title="X Drafts" subtitle="Posts queued for X. Copy them or open them in X, then mark them posted." className="mb-0" />
       <Tabs value={status} onValueChange={setStatus}>
         <TabsList className="h-auto w-full justify-start gap-6 rounded-none border-b border-white/[0.07] bg-transparent p-0">

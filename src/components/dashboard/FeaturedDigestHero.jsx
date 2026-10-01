@@ -36,7 +36,7 @@ export default function FeaturedDigestHero({ digests }) {
   const readTimeMin = Math.ceil(itemCount / 3);
 
   return (
-    <div className="panel-accent mb-8 p-6 lg:p-8">
+    <div className="panel-accent mb-8 px-4 py-5 sm:p-6 lg:p-8">
       <div className="flex items-start justify-between mb-6">
         <div>
           <div className="flex items-center gap-2 mb-2">

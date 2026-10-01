@@ -431,7 +431,7 @@ export default function Directory() {
   };
 
   return (
-     <div className="mx-auto max-w-4xl p-6 lg:p-8">
+     <div className="mx-auto max-w-4xl px-4 py-5 sm:p-6 lg:p-8">
        {/* Header */}
        <PageHeader
          eyebrow={<span className="inline-flex items-center gap-1.5"><Globe className="h-3 w-3" aria-hidden="true" />Public directory</span>}

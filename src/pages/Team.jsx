@@ -205,7 +205,7 @@ export default function Team() {
   }
 
   return (
-    <div className="p-6 lg:p-8 max-w-4xl mx-auto space-y-6">
+    <div className="px-4 py-5 sm:p-6 lg:p-8 max-w-4xl mx-auto space-y-6">
       <PageHeader
         className="mb-0"
         title="Team"

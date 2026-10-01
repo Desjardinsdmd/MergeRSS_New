@@ -284,7 +284,7 @@ export default function Inbox() {
   );
 
   return (
-    <div className="p-6 lg:p-8 max-w-6xl mx-auto">
+    <div className="px-4 py-5 sm:p-6 lg:p-8 max-w-6xl mx-auto">
       <PageHeader title="Inbox" subtitle="Your delivered briefings and the stories you saved" />
 
       <div role="tablist" aria-label="Inbox sections" className="mb-6 flex gap-6 border-b border-white/[0.07]">

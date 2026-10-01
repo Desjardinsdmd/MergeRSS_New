@@ -159,7 +159,7 @@ export default function Dashboard() {
   const dateLabel = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
   return (
-    <div className="p-6 lg:p-8 max-w-5xl mx-auto">
+    <div className="px-4 py-5 sm:p-6 lg:p-8 max-w-5xl mx-auto">
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
           <h1 className="font-display text-[28px] font-semibold leading-tight tracking-tight text-stone-100">

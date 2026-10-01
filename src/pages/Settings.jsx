@@ -163,7 +163,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="mx-auto max-w-3xl p-6 lg:p-8">
+    <div className="mx-auto max-w-3xl px-4 py-5 sm:p-6 lg:p-8">
       <PageHeader title="Settings" subtitle="Manage your account and preferences" />
 
       <div className="space-y-5">

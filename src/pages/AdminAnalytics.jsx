@@ -42,13 +42,13 @@ export default function AdminAnalytics() {
   });
 
   if (!user) return (
-    <div className="p-6 lg:p-8 flex items-center justify-center min-h-64">
+    <div className="px-4 py-5 sm:p-6 lg:p-8 flex items-center justify-center min-h-64">
       <Loader2 className="w-6 h-6 animate-spin text-stone-500" />
     </div>
   );
   if (user.role !== 'admin') {
     return (
-      <div className="mx-auto max-w-3xl p-6 lg:p-8">
+      <div className="mx-auto max-w-3xl px-4 py-5 sm:p-6 lg:p-8">
         <div className="panel p-8 text-center text-sm text-stone-500">Access denied. Admin only.</div>
       </div>
     );
@@ -97,7 +97,7 @@ export default function AdminAnalytics() {
   );
 
   return (
-    <div className="mx-auto max-w-5xl p-6 lg:p-8">
+    <div className="mx-auto max-w-5xl px-4 py-5 sm:p-6 lg:p-8">
       <PageHeader title="Analytics" subtitle="Platform-wide usage." />
 
       {/* Stats */}

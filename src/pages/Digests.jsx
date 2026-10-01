@@ -161,7 +161,7 @@ export default function Digests() {
   const canAddMore = personalDigestCount < maxDigests;
 
   return (
-    <div className="p-6 lg:p-8 max-w-7xl mx-auto">
+    <div className="px-4 py-5 sm:p-6 lg:p-8 max-w-7xl mx-auto">
       <PageHeader
         title="Briefings"
         subtitle={(

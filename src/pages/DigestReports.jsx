@@ -375,7 +375,7 @@ export default function DigestReports() {
   };
 
   return (
-    <div className="p-6 lg:p-8 max-w-5xl mx-auto">
+    <div className="px-4 py-5 sm:p-6 lg:p-8 max-w-5xl mx-auto">
       <PageHeader
         eyebrow="Briefings"
         title="Reports"

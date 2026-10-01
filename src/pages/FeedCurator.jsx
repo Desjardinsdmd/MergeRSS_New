@@ -180,7 +180,7 @@ export default function FeedCurator() {
   }, []);
 
   return (
-    <div className="p-6 lg:p-8 max-w-4xl mx-auto">
+    <div className="px-4 py-5 sm:p-6 lg:p-8 max-w-4xl mx-auto">
       {/* Header */}
       <PageHeader
         eyebrow={<span className="inline-flex items-center gap-1.5"><Sparkles className="h-3 w-3" aria-hidden="true" />Sources</span>}

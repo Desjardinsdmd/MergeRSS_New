@@ -90,7 +90,7 @@ function PublicationsPage() {
 
   if (editing) {
     return (
-      <div className="p-6 lg:p-8 max-w-3xl mx-auto">
+      <div className="px-4 py-5 sm:p-6 lg:p-8 max-w-3xl mx-auto">
         <PageHeader eyebrow="Publications" title={editing === 'new' ? 'Create publication' : `Edit ${editing.name}`} />
         <PublicationForm
           publication={editing === 'new' ? null : editing}
@@ -102,7 +102,7 @@ function PublicationsPage() {
   }
 
   return (
-    <div className="p-6 lg:p-8 max-w-4xl mx-auto">
+    <div className="px-4 py-5 sm:p-6 lg:p-8 max-w-4xl mx-auto">
       <PageHeader
         title="Publications"
         subtitle="Scheduled post suggestions for review. Approved posts go to X Drafts to post manually."
@@ -217,11 +217,11 @@ function AdminOnlyGuard({ children }) {
     return () => { cancelled = true; };
   }, []);
   if (access === 'loading') {
-    return <div className="p-6 lg:p-8 max-w-3xl mx-auto text-sm text-stone-500">Loading...</div>;
+    return <div className="px-4 py-5 sm:p-6 lg:p-8 max-w-3xl mx-auto text-sm text-stone-500">Loading...</div>;
   }
   if (access !== 'admin') {
     return (
-      <div className="p-6 lg:p-8 max-w-3xl mx-auto">
+      <div className="px-4 py-5 sm:p-6 lg:p-8 max-w-3xl mx-auto">
         <div className="panel p-8 text-center">
           <h2 className="font-display text-lg font-semibold text-stone-200 mb-1">Admins only</h2>
           <p className="text-sm text-stone-500">You don't have permission to view this page.</p>

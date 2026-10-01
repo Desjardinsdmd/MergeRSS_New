@@ -195,7 +195,7 @@ export default function AdminHealth() {
   // Redirect non-admins
   if (user && user.role !== 'admin') {
     return (
-      <div className="p-6 lg:p-8 max-w-7xl mx-auto">
+      <div className="px-4 py-5 sm:p-6 lg:p-8 max-w-7xl mx-auto">
         <Card>
           <CardContent className="p-8 text-center">
             <AlertTriangle className="w-12 h-12 text-red-400 mx-auto mb-4" />
@@ -208,7 +208,7 @@ export default function AdminHealth() {
   }
 
   return (
-    <div className="p-6 lg:p-8 max-w-7xl mx-auto">
+    <div className="px-4 py-5 sm:p-6 lg:p-8 max-w-7xl mx-auto">
       {/* Header */}
       <PageHeader
         title="System health"
