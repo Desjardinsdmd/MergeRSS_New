@@ -1,20 +1,9 @@
 import React from 'react';
 import { Plus, Check, ExternalLink, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 import { safeUrl } from '@/components/utils/htmlUtils';
-const categoryColors = {
-  CRE: 'bg-amber-950 text-amber-400 border-amber-700',
-  Markets: 'bg-blue-950 text-blue-400 border-blue-700',
-  Tech: 'bg-violet-950 text-violet-400 border-violet-700',
-  News: 'bg-stone-800 text-stone-300 border-stone-700',
-  Finance: 'bg-emerald-950 text-emerald-400 border-emerald-700',
-  Crypto: 'bg-orange-950 text-orange-400 border-orange-700',
-  AI: 'bg-amber-950 text-amber-400 border-amber-700',
-  Other: 'bg-stone-800 text-stone-300 border-stone-700',
-};
 
 export default function FeedSuggestionCard({ feed, onAdd, added, adding }) {
   const relevance = Math.round(feed.relevance_score || 7);
@@ -22,24 +11,26 @@ export default function FeedSuggestionCard({ feed, onAdd, added, adding }) {
 
   return (
     <div className={cn(
-      "border rounded-xl p-5 transition-all",
+      "rounded-2xl border p-5 backdrop-blur-xl transition-all",
       added
-        ? "border-emerald-700 bg-emerald-950/50"
-        : "border-stone-700 bg-stone-900 hover:border-amber-400 hover:shadow-sm"
+        ? "border-emerald-400/25 bg-emerald-400/[0.06]"
+        : "border-white/[0.07] bg-white/[0.025] hover:border-[hsl(var(--primary)/0.4)] hover:bg-white/[0.04]"
     )}>
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-1">
-            <h3 className="font-semibold text-stone-100 text-sm">{feed.name}</h3>
-            <Badge className={cn("text-[10px] px-1.5 py-0 border", categoryColors[feed.category] || categoryColors.Other)}>
-              {feed.category}
-            </Badge>
+            <h3 className="text-[15px] font-semibold text-stone-100">{feed.name}</h3>
+            {feed.category && (
+              <span className="chip-brand">
+                {feed.category}
+              </span>
+            )}
           </div>
           <a
             href={safeUrl(feed.url)}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-stone-500 hover:text-[hsl(var(--primary))] flex items-center gap-1 truncate transition"
+            className="flex items-center gap-1 truncate font-mono text-[11px] text-stone-500 transition hover:text-[#C4A5FD]"
           >
             <ExternalLink className="w-3 h-3 flex-shrink-0" />
             <span className="truncate">{feed.url}</span>
@@ -51,18 +42,18 @@ export default function FeedSuggestionCard({ feed, onAdd, added, adding }) {
           onClick={() => onAdd(feed)}
           disabled={added || adding}
           className={cn(
-            "flex-shrink-0 h-8 px-3 rounded-lg text-xs font-medium transition",
+            "flex-shrink-0 h-8 px-3 rounded-xl text-xs font-medium transition",
             added
-              ? "bg-emerald-950 text-emerald-400 hover:bg-emerald-950 border border-emerald-700"
+              ? "border border-emerald-400/30 bg-emerald-400/10 text-emerald-300 hover:bg-emerald-400/10"
               : "btn-brand"
           )}
         >
           {added ? (
             <><Check className="w-3 h-3 mr-1" /> Added</>
           ) : adding ? (
-            <span className="w-3 h-3 border border-stone-600 border-t-stone-300 rounded-full animate-spin" />
+            <span className="w-3 h-3 border border-white/40 border-t-white rounded-full animate-spin" />
           ) : (
-            <><Plus className="w-3 h-3 mr-1" /> Add Feed</>
+            <><Plus className="w-3 h-3 mr-1" /> Add source</>
           )}
         </Button>
       </div>
@@ -72,10 +63,10 @@ export default function FeedSuggestionCard({ feed, onAdd, added, adding }) {
       {feed.relevance_reason && (
         <div className="mb-3">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] font-medium text-stone-500 uppercase tracking-wide">Relevance</span>
-            <span className="text-[10px] font-semibold text-[hsl(var(--primary))]">{relevance}/10</span>
+            <span className="micro-label">Relevance</span>
+            <span className="font-mono text-[10px] font-semibold text-[#C4A5FD]">{relevance}/10</span>
           </div>
-          <div className="h-1 bg-stone-800 rounded-full overflow-hidden">
+          <div className="h-1 overflow-hidden rounded-full bg-white/[0.06]">
             <div
               className="h-full bg-[hsl(var(--primary))] rounded-full transition-all"
               style={{ width: barWidth }}
@@ -87,9 +78,9 @@ export default function FeedSuggestionCard({ feed, onAdd, added, adding }) {
 
       {feed.tags?.length > 0 && (
         <div className="flex items-center gap-1.5 flex-wrap">
-          <Tag className="w-3 h-3 text-stone-600 flex-shrink-0" />
+          <Tag className="w-3 h-3 text-stone-500 flex-shrink-0" />
           {feed.tags.map((tag) => (
-            <span key={tag} className="text-[10px] px-1.5 py-0.5 bg-stone-800 text-stone-400 rounded">
+            <span key={tag} className="chip-neutral">
               {tag}
             </span>
           ))}
