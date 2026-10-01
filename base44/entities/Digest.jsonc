@@ -164,7 +164,14 @@
     },
     "workspace_id": {
       "type": "string",
-      "description": "Team workspace this briefing is shared with. Set only by saveDigest for workspace owners/editors."
+      "description": "Team workspace this briefing is shared with. Set only by saveDigest for workspace owners/editors.",
+      "rls": {
+        "write": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     }
   },
   "required": [
