@@ -152,8 +152,8 @@ function AdminOnlyGuard({ children }) {
   if (access !== 'admin') {
     return (
       <div className="p-6 lg:p-8 max-w-3xl mx-auto">
-        <div className="p-8 text-center border border-stone-800 rounded-xl bg-stone-900">
-          <h2 className="text-lg font-semibold text-stone-200 mb-1">Admins only</h2>
+        <div className="panel p-8 text-center">
+          <h2 className="font-display text-lg font-semibold text-stone-200 mb-1">Admins only</h2>
           <p className="text-sm text-stone-500">You don't have permission to view this page.</p>
         </div>
       </div>
