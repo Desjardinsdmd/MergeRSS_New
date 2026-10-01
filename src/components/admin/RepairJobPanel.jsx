@@ -33,7 +33,7 @@ const CATEGORY_LABELS = {
   'blocked_antibot': 'Bot Protected',
   'paywall_login': 'Paywall / Login',
   'invalid_html': 'Invalid HTML',
-  'no_articles_found': 'No Articles Found',
+  'no_articles_found': 'No Stories Found',
   'extraction_failed': 'Extraction Failed',
   'feed_validation_failed': 'Validation Failed',
   'timeout': 'Timeout',

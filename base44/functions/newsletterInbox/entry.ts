@@ -474,12 +474,13 @@ Deno.serve(async (req) => {
       if (body.send_test_to) {
         try {
           const form = new FormData();
-          form.append('from', `Inbox Test Weekly <inbox-test@${cfg.domain}>`);
+          form.append('from', `MergeRSS Newsletter inbox test <inbox-test@${cfg.domain}>`);
           form.append('to', String(body.send_test_to));
-          form.append('subject', `Inbox test ${new Date().toISOString()}`);
-          form.append('text', 'Inbox test\nIf this shows up as a feed item, inbound newsletters work end to end.');
+          form.append('subject', `Newsletter inbox test ${new Date().toISOString()}`);
+          form.append('text', 'Newsletter inbox test\nIf this shows up as a story from this source, inbound newsletters work end to end.');
           const filler = body.large ? Array.from({ length: 600 }, (_, i) => `<tr><td style="padding:8px;font-family:Arial,sans-serif;color:#333">Row ${i}: Ottawa rental market update, unit absorption and pricing notes for this week.</td></tr>`).join('') : '';
-          form.append('html', `<h1>Inbox test</h1><p>If this shows up as a feed item, inbound newsletters work end to end.</p>${filler ? `<table>${filler}</table>` : ''}`);
+          // Brand v3 palette (lib/brand.ts): ink page, violet eyebrow, display heading.
+          form.append('html', `<div style="background:#0A0910;padding:24px;"><p style="margin:0 0 8px;font:600 10px/1.4 'JetBrains Mono',Consolas,monospace;letter-spacing:0.14em;text-transform:uppercase;color:#9B5CF6;">Newsletter inbox</p><h1 style="margin:0 0 12px;font:600 22px/1.3 'Space Grotesk','Segoe UI',Helvetica,Arial,sans-serif;color:#F3F1F7;">Newsletter inbox test</h1><p style="margin:0;font:400 15px/1.7 Inter,'Segoe UI',Helvetica,Arial,sans-serif;color:#C9C5D4;">If this shows up as a story from this source, inbound newsletters work end to end.</p>${filler ? `<table>${filler}</table>` : ''}</div>`);
           out.send_test = await mailgunFetch(cfg, `/v3/${cfg.domain}/messages`, { method: 'POST', body: form });
         } catch (e) { out.send_test_error = e?.message; }
       }
