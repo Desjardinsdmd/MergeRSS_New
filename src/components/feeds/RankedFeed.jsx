@@ -7,16 +7,16 @@ import { rankClusters, explainTrendScore } from '@/lib/trendScoring';
 import { updateAndGetEvolution, recordInteraction } from './storyMemory';
 
 const TAG_CONFIG = {
-    Trending:    { textClass: 'text-blue-400',    icon: TrendingUp },
+    Trending:    { textClass: 'text-sky-400',     icon: TrendingUp },
     Risk:        { textClass: 'text-red-400',     icon: AlertTriangle },
     Opportunity: { textClass: 'text-emerald-400', icon: Lightbulb },
     Neutral:     { textClass: 'text-stone-500',   icon: Minus },
 };
 
 const LIFECYCLE_STYLE = {
-    Developing: 'text-emerald-400 border-emerald-800/50 bg-emerald-950/30',
-    Evolving:   'text-sky-400 border-sky-800/50 bg-sky-950/30',
-    Fading:     'text-stone-500 border-stone-700 bg-stone-800/30',
+    Developing: 'text-emerald-300 border-emerald-400/25 bg-emerald-400/10',
+    Evolving:   'text-sky-300 border-sky-400/25 bg-sky-400/10',
+    Fading:     'text-stone-500 border-white/10',
 };
 
 function ClusterCard({ cluster, feedMap, bookmarkedIds, onBookmark }) {
@@ -54,8 +54,8 @@ function ClusterCard({ cluster, feedMap, bookmarkedIds, onBookmark }) {
         <div className={[
             'p-4 transition-colors group',
             isHigh
-                ? 'border-l-[3px] border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/[0.03] hover:bg-[hsl(var(--primary))]/[0.06]'
-                : 'hover:bg-stone-800/30',
+                ? 'bg-[hsl(var(--primary)/0.04)] hover:bg-[hsl(var(--primary)/0.07)]'
+                : 'hover:bg-white/[0.03]',
         ].join(' ')}>
             {/* Row 1: primary labels — decision state + confidence progression only */}
             <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
@@ -65,20 +65,20 @@ function ClusterCard({ cluster, feedMap, bookmarkedIds, onBookmark }) {
 
                 {/* Progression signals — high value, always show */}
                 {evolution.stateProgression === 'Upgraded' && (
-                    <span className="inline-flex items-center gap-0.5 text-[10px] text-emerald-400 font-semibold">
+                    <span className="inline-flex items-center gap-0.5 font-mono text-[10px] font-semibold text-emerald-400">
                         <ArrowUp className="w-2.5 h-2.5" />Upgraded
                     </span>
                 )}
                 {evolution.confidenceProgression && (
-                    <span className="text-[10px] text-emerald-400 font-semibold">{evolution.confidenceProgression}</span>
+                    <span className="font-mono text-[10px] font-semibold text-emerald-400">{evolution.confidenceProgression}</span>
                 )}
 
                 {/* Lifecycle + tag — de-emphasized, right-aligned */}
-                <div className="ml-auto flex items-center gap-1.5 opacity-50">
+                <div className="ml-auto flex items-center gap-1.5">
                     {evolution.lifecycle && (
-                        <span className="text-[9px] text-stone-500">{evolution.lifecycle}</span>
+                        <span className="meta text-stone-600">{evolution.lifecycle}</span>
                     )}
-                    <span className="inline-flex items-center gap-0.5 text-[9px] text-stone-600">
+                    <span className="meta inline-flex items-center gap-0.5 text-stone-600">
                         <Icon className="w-2 h-2" />{tag}
                     </span>
                 </div>
@@ -87,45 +87,46 @@ function ClusterCard({ cluster, feedMap, bookmarkedIds, onBookmark }) {
             {/* Headline */}
             <a href={safeUrl(item.url)} target="_blank" rel="noopener noreferrer"
                 className="group/link block mb-1" onClick={handleClick}>
-                <h3 className={`text-sm leading-snug group-hover/link:text-[hsl(var(--primary))] transition-colors line-clamp-1 ${isHigh ? 'font-bold text-white' : 'font-semibold text-stone-100'}`}>
+                <h3 className="line-clamp-1 font-sans text-[15px] font-semibold leading-snug tracking-normal text-stone-100 transition-colors group-hover/link:text-[#C4A5FD]">
                     {decodeHtml(item.title)}
                 </h3>
             </a>
 
-            {happened && <p className="text-xs text-stone-400 leading-snug mb-1 line-clamp-1">{happened}</p>}
+            {happened && <p className="mb-1 line-clamp-1 text-[13px] leading-snug text-stone-400">{happened}</p>}
             {insight && <p className={`text-xs font-medium mb-2 line-clamp-1 ${tagCfg.textClass}`}>↳ {insight}</p>}
 
             {/* Meta row */}
             <div className="flex items-center gap-2 flex-wrap">
                 {signal && <span className={`text-[10px] px-1.5 py-0.5 border ${signal.class}`}>{signal.label}</span>}
-                <span className={`inline-flex items-center gap-1 text-[10px] ${confidence.class}`}>
+                <span className={`inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider ${confidence.class}`}>
                     <span className={`w-1.5 h-1.5 rounded-full inline-block ${confidence.dot}`} />
                     {confidence.label}
                 </span>
                 {/* Momentum arrow */}
                 {evolution.momentum !== 'stable' && clusterSize > 1 && (
-                    <span className={`text-[10px] font-bold ${evolution.momentum === 'growing' ? 'text-emerald-400' : 'text-stone-600'}`}>
+                    <span className={`font-mono text-[10px] font-semibold ${evolution.momentum === 'growing' ? 'text-emerald-400' : 'text-stone-500'}`}>
                         {evolution.momentumIcon} {clusterSize} sources
                     </span>
                 )}
-                {source && <span className="text-xs text-stone-500">{source.name}</span>}
+                {source && <span className="meta">{source.name}</span>}
                 {item.published_date && (
-                    <span className="text-xs text-stone-600 ml-auto">
+                    <span className="meta ml-auto">
                         {formatDistanceToNow(new Date(item.published_date), { addSuffix: true })}
                     </span>
                 )}
                 <a href={safeUrl(item.url)} target="_blank" rel="noopener noreferrer" onClick={handleClick}
-                    className="text-stone-600 hover:text-[hsl(var(--primary))] transition">
+                    className="rounded-md text-stone-500 transition hover:text-[#C4A5FD]" aria-label="Open story in new tab">
                     <ExternalLink className="w-3 h-3" />
                 </a>
                 {onBookmark && (
-                    <button onClick={handleBookmarkClick} className="text-stone-600 hover:text-[hsl(var(--primary))] transition">
+                    <button onClick={handleBookmarkClick} className="rounded-md text-stone-500 transition hover:text-[#C4A5FD]" aria-label={isBookmarked ? 'Saved' : 'Save story'}>
                         {isBookmarked ? <BookmarkCheck className="w-3.5 h-3.5 text-[hsl(var(--primary))]" /> : <Bookmark className="w-3.5 h-3.5" />}
                     </button>
                 )}
                 {duplicates.length > 0 && (
                     <button onClick={() => setShowSources(s => !s)}
-                        className="flex items-center gap-0.5 text-[10px] text-stone-600 hover:text-stone-300 transition">
+                        aria-expanded={showSources}
+                        className="flex items-center gap-0.5 font-mono text-[10px] text-stone-500 transition hover:text-stone-300">
                         <LayoutList className="w-3 h-3" />
                         {clusterSize}
                         {showSources ? <ChevronUp className="w-2.5 h-2.5" /> : <ChevronDown className="w-2.5 h-2.5" />}
@@ -134,12 +135,12 @@ function ClusterCard({ cluster, feedMap, bookmarkedIds, onBookmark }) {
             </div>
 
             {showSources && duplicates.length > 0 && (
-                <div className="mt-2 pl-3 border-l border-stone-700 space-y-1">
+                <div className="mt-2 space-y-1 border-l border-white/10 pl-3">
                     {duplicates.map(dup => (
                         <a key={dup.id} href={safeUrl(dup.url)} target="_blank" rel="noopener noreferrer"
                             className="flex items-center gap-1.5 group/dup" onClick={handleClick}>
                             <span className="text-xs text-stone-500 group-hover/dup:text-stone-300 transition line-clamp-1">
-                                <span className="text-stone-700">{feedMap[dup.feed_id]?.name} · </span>
+                                <span className="font-mono text-[11px] text-stone-600">{feedMap[dup.feed_id]?.name} · </span>
                                 {decodeHtml(dup.title)}
                             </span>
                         </a>
@@ -189,13 +190,13 @@ export default function RankedFeed({ items = [], feeds = [], storyClusters = [],
     }, [items, feeds, clusterDataMap]);
 
     if (!clusters.length) return (
-        <div className="bg-stone-900 border border-stone-800 p-6 text-center text-stone-600 text-sm">
-            No articles yet. Add feeds to start your intelligence feed.
+        <div className="panel p-6 text-center text-sm text-stone-500">
+            No stories yet. Add sources to start ranking stories.
         </div>
     );
 
     return (
-        <div className="bg-stone-900 border border-stone-800 divide-y divide-stone-800/80">
+        <div className="panel divide-y divide-white/[0.05] overflow-hidden">
             {clusters.map(cluster => (
                 <ClusterCard
                     key={cluster.primary.id}
