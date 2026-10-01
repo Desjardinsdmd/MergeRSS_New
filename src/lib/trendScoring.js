@@ -96,7 +96,7 @@ export function getDomainTier(domain) {
  * Human-readable tier label.
  */
 export const TIER_LABELS = {
-    tier1: { label: 'Tier 1', color: 'text-amber-400', bg: 'bg-amber-900/20', desc: 'High authority' },
+    tier1: { label: 'Tier 1', color: 'text-[#C4A5FD]', bg: 'bg-[hsl(var(--brand)/0.16)]', desc: 'High authority' },
     tier2: { label: 'Tier 2', color: 'text-sky-400',   bg: 'bg-sky-900/20',   desc: 'Medium' },
     tier3: { label: 'Tier 3', color: 'text-stone-500', bg: 'bg-stone-800',    desc: 'Low signal' },
 };
