@@ -175,7 +175,7 @@ export default function BulkImportDialog({ open, onOpenChange, onSuccess, curren
 
             {result.summary.duplicates > 0 && (
               <p className="text-xs text-stone-400 text-center">
-                {result.summary.duplicates} source{result.summary.duplicates === 1 ? ' was' : 's were'} already in your library and skipped.
+                {result.summary.duplicates} source{result.summary.duplicates === 1 ? ' was' : 's were'} already in your sources and skipped.
               </p>
             )}
 

@@ -84,7 +84,7 @@ export default function AddFeedDialog({ open, onOpenChange, onSuccess, editFeed 
     'network_error': { icon: WifiOff, label: 'Network error', detail: 'The URL could not be reached. It may be offline or the domain may not exist.' },
     'timeout': { icon: WifiOff, label: 'Connection timed out', detail: 'The server took too long to respond. It may be down or unreachable.' },
     'feed_validation_failed': { icon: AlertCircle, label: 'Invalid RSS feed content', detail: 'This URL returned something that doesn\'t look like a valid RSS feed with stories.' },
-    'no_articles_found': { icon: AlertCircle, label: 'No stories found', detail: 'This URL loaded but no stories or feed entries could be found.' },
+    'no_articles_found': { icon: AlertCircle, label: 'No stories found', detail: 'This URL loaded but no stories or RSS entries could be found.' },
   };
 
   const checkFeedHealth = async (url) => {

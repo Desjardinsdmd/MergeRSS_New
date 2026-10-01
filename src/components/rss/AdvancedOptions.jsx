@@ -50,7 +50,7 @@ export default function AdvancedOptions({ options, onChange }) {
                         <div>
                             <Label htmlFor="item-limit" className="text-xs text-stone-400 mb-1 block font-medium">Maximum stories to include</Label>
                             <Select value={String(options.item_limit)} onValueChange={v => update('item_limit', Number(v))}>
-                                <SelectTrigger id="item-limit" className="rounded-xl text-sm" aria-label="Item limit">
+                                <SelectTrigger id="item-limit" className="rounded-xl text-sm" aria-label="Story limit">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>

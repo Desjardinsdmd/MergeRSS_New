@@ -37,10 +37,10 @@ export async function saveDigestViaApi(payload) {
   try {
     const res = await base44.functions.invoke('saveDigest', payload);
     const data = res?.data || {};
-    if (!data.success) return { ok: false, error: data.error || 'Failed to save digest', limitReached: !!data.limit_reached, warnings: [] };
+    if (!data.success) return { ok: false, error: data.error || 'Failed to save briefing', limitReached: !!data.limit_reached, warnings: [] };
     return { ok: true, digest: data.digest, created: !!data.created, warnings: data.warnings || [] };
   } catch (err) {
     const data = err?.response?.data || {};
-    return { ok: false, error: invokeErrorMessage(err, 'Failed to save digest'), limitReached: !!data.limit_reached, warnings: [] };
+    return { ok: false, error: invokeErrorMessage(err, 'Failed to save briefing'), limitReached: !!data.limit_reached, warnings: [] };
   }
 }
