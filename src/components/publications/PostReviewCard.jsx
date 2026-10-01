@@ -253,7 +253,7 @@ export default function PostReviewCard({ post, onUpdate }) {
 
           {/* Notes */}
           <div>
-            <Label className="micro-label">Notes</Label>
+            <Label className="mb-1.5 block font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-stone-500">Notes</Label>
             <Input value={notes} onChange={e => setNotes(e.target.value)}
               placeholder="Optional notes..." className={FIELD} />
           </div>

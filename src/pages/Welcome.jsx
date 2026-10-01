@@ -2,12 +2,13 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  Rss, ArrowRight, ArrowLeft, Check, Loader2, Plus, Upload, Mail, Clock, Globe2,
+  ArrowRight, ArrowLeft, Check, Loader2, Plus, Upload, Mail, Clock, Globe2,
   Sparkles, AlertCircle, CheckCircle2, Circle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { STARTER_PACKS, CUSTOM_PACK_ID, buildSuggestions, urlKey } from '@/components/onboarding/starterPacks';
 import BriefingMarkdown from '@/components/onboarding/BriefingMarkdown';
+import { Logo } from '@/components/brand/Brand';
 
 const STEPS = [
   { id: 'field', label: 'Your field' },
@@ -16,7 +17,7 @@ const STEPS = [
   { id: 'build', label: 'Briefing' },
 ];
 
-const FOCUS = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0805]';
+const FOCUS = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--background))]';
 const SOURCE_CHUNK = 3;
 const SOURCE_CONCURRENCY = 3;
 
@@ -66,7 +67,7 @@ function StepDots({ current }) {
           <span
             className={cn(
               'h-1.5 rounded-full transition-all',
-              i < idx ? 'w-6 bg-[hsl(var(--primary))]/60' : i === idx ? 'w-10 bg-[hsl(var(--primary))]' : 'w-6 bg-stone-800'
+              i < idx ? 'w-6 bg-[hsl(var(--primary)/0.6)]' : i === idx ? 'w-10 bg-[hsl(var(--primary))]' : 'w-6 bg-white/10'
             )}
             aria-hidden="true"
           />
@@ -84,10 +85,10 @@ function ProgressRow({ state, label, detail }) {
         {state === 'done' ? <CheckCircle2 className="w-5 h-5 text-[hsl(var(--primary))]" />
           : state === 'active' ? <Loader2 className="w-5 h-5 text-[hsl(var(--primary))] animate-spin" />
           : state === 'error' ? <AlertCircle className="w-5 h-5 text-red-400" />
-          : <Circle className="w-5 h-5 text-stone-700" />}
+          : <Circle className="w-5 h-5 text-stone-600" />}
       </span>
       <div className="min-w-0">
-        <p className={cn('text-sm font-medium', state === 'pending' ? 'text-stone-600' : 'text-stone-200')}>{label}</p>
+        <p className={cn('text-sm font-medium', state === 'pending' ? 'text-stone-500' : 'text-stone-200')}>{label}</p>
         {detail && <p className="text-xs text-stone-500 mt-0.5">{detail}</p>}
       </div>
     </li>
@@ -350,8 +351,8 @@ export default function Welcome() {
 
   const Heading = ({ children, sub }) => (
     <div className="mb-6">
-      <h1 ref={headingRef} tabIndex={-1} className="text-2xl sm:text-3xl font-bold text-stone-100 tracking-tight outline-none">{children}</h1>
-      {sub && <p className="text-sm text-stone-500 mt-2 leading-relaxed">{sub}</p>}
+      <h1 ref={headingRef} tabIndex={-1} className="font-display text-2xl sm:text-[28px] font-semibold text-stone-100 tracking-tight outline-none">{children}</h1>
+      {sub && <p className="text-[15px] text-stone-400 mt-2 leading-relaxed">{sub}</p>}
     </div>
   );
 
@@ -367,21 +368,16 @@ export default function Welcome() {
   );
 
   return (
-    <div className="min-h-screen bg-[#0a0805] text-stone-200">
-      <header className="border-b border-stone-800">
-        <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-[hsl(var(--primary))] flex items-center justify-center" aria-hidden="true">
-              <Rss className="w-3 h-3 text-stone-900" />
-            </div>
-            <span className="hidden min-[400px]:inline font-bold text-stone-100 tracking-tight">MergeRSS</span>
-          </div>
+    <div className="min-h-screen px-3 pb-10 pt-3 text-stone-200 sm:px-4">
+      <header className="mx-auto max-w-2xl">
+        <div className="panel flex h-16 items-center justify-between gap-3 px-4 sm:px-5">
+          <Logo size="sm" className="[&>span:last-child]:hidden min-[400px]:[&>span:last-child]:flex" />
           {step !== 'build' && <StepDots current={step} />}
           {progress.phase !== 'done' ? <SkipLink /> : <span className="w-16" aria-hidden="true" />}
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 py-8 sm:py-12">
+      <main className="panel mx-auto mt-4 max-w-2xl p-5 sm:mt-6 sm:p-8">
         {/* ── Step 1: field ─────────────────────────────── */}
         {step === 'field' && (
           <section>
@@ -399,13 +395,13 @@ export default function Welcome() {
                     aria-pressed={on}
                     onClick={() => togglePack(p.id)}
                     className={cn(
-                      'min-h-[48px] px-3 py-2.5 text-left text-sm font-medium border rounded-md transition-colors flex items-center gap-2',
-                      on ? 'border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 text-stone-100' : 'border-stone-800 bg-stone-900/60 text-stone-400 hover:border-stone-600 hover:text-stone-200',
+                      'min-h-[48px] px-3 py-2.5 text-left text-sm font-medium border rounded-xl transition-colors flex items-center gap-2',
+                      on ? 'border-[hsl(var(--primary))] bg-[hsl(var(--primary)/0.1)] text-stone-100' : 'border-white/[0.08] bg-white/[0.02] text-stone-400 hover:border-white/20 hover:text-stone-200',
                       FOCUS
                     )}
                   >
-                    <span className={cn('w-4 h-4 flex-shrink-0 rounded-sm border flex items-center justify-center', on ? 'bg-[hsl(var(--primary))] border-[hsl(var(--primary))]' : 'border-stone-600')} aria-hidden="true">
-                      {on && <Check className="w-3 h-3 text-stone-900" />}
+                    <span className={cn('w-4 h-4 flex-shrink-0 rounded-[5px] border flex items-center justify-center', on ? 'bg-[hsl(var(--primary))] border-[hsl(var(--primary))]' : 'border-white/20')} aria-hidden="true">
+                      {on && <Check className="w-3 h-3 text-white" />}
                     </span>
                     <span className="leading-tight">{p.label}</span>
                   </button>
@@ -416,8 +412,8 @@ export default function Welcome() {
                 aria-pressed={isCustom}
                 onClick={() => togglePack(CUSTOM_PACK_ID)}
                 className={cn(
-                  'min-h-[48px] px-3 py-2.5 text-left text-sm font-medium border border-dashed rounded-md transition-colors flex items-center gap-2',
-                  isCustom ? 'border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 text-stone-100' : 'border-stone-700 text-stone-400 hover:border-stone-500 hover:text-stone-200',
+                  'min-h-[48px] px-3 py-2.5 text-left text-sm font-medium border border-dashed rounded-xl transition-colors flex items-center gap-2',
+                  isCustom ? 'border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 text-stone-100' : 'border-white/15 text-stone-400 hover:border-white/25 hover:text-stone-200',
                   FOCUS
                 )}
               >
@@ -429,7 +425,7 @@ export default function Welcome() {
 
             {isCustom && (
               <div className="mb-5">
-                <label htmlFor="custom-field" className="block text-sm font-medium text-stone-300 mb-1.5">Your field</label>
+                <label htmlFor="custom-field" className="micro-label mb-1.5">Your field</label>
                 <input
                   id="custom-field"
                   type="text"
@@ -437,14 +433,14 @@ export default function Welcome() {
                   onChange={e => setCustomText(e.target.value)}
                   placeholder="e.g. Multifamily development in Canada"
                   maxLength={120}
-                  className={cn('w-full h-11 px-3 bg-stone-900 border border-stone-700 rounded-md text-sm text-stone-100 placeholder:text-stone-600', FOCUS)}
+                  className={cn('w-full h-11 px-3 bg-white/[0.03] border border-white/10 rounded-xl text-sm text-stone-100 placeholder:text-stone-500', FOCUS)}
                 />
               </div>
             )}
 
             <div className="mb-8">
               <label htmlFor="interest-profile" className="block text-sm font-medium text-stone-300 mb-1.5">
-                Describe your work or what matters to you <span className="text-stone-600 font-normal">(optional)</span>
+                Describe your work or what matters to you <span className="text-stone-500 font-normal">(optional)</span>
               </label>
               <textarea
                 id="interest-profile"
@@ -454,9 +450,9 @@ export default function Welcome() {
                 maxLength={2000}
                 placeholder="e.g. I run acquisitions for a rental developer in Ottawa. Rate moves, zoning changes and big land deals matter most."
                 aria-describedby="interest-profile-help"
-                className={cn('w-full px-3 py-2.5 bg-stone-900 border border-stone-700 rounded-md text-sm text-stone-100 placeholder:text-stone-600 resize-y', FOCUS)}
+                className={cn('w-full px-3 py-2.5 bg-white/[0.03] border border-white/10 rounded-xl text-sm text-stone-100 placeholder:text-stone-600 resize-y', FOCUS)}
               />
-              <p id="interest-profile-help" className="text-xs text-stone-600 mt-1.5">The AI ranks every story against this. You can edit it later in Settings.</p>
+              <p id="interest-profile-help" className="text-xs text-stone-500 mt-1.5">The AI ranks every story against this. You can edit it later in Settings.</p>
             </div>
 
             <div className="flex justify-end">
@@ -464,7 +460,7 @@ export default function Welcome() {
                 type="button"
                 onClick={goToSources}
                 disabled={!fieldOk}
-                className={cn('inline-flex items-center gap-2 h-11 px-6 bg-[hsl(var(--primary))] text-stone-900 font-bold text-sm rounded-md hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed', FOCUS)}
+                className={cn('inline-flex items-center gap-2 h-11 px-6 btn-brand disabled:opacity-40 disabled:cursor-not-allowed', FOCUS)}
               >
                 Continue <ArrowRight className="w-4 h-4" aria-hidden="true" />
               </button>
@@ -480,7 +476,7 @@ export default function Welcome() {
             </Heading>
 
             {suggestLoading && (
-              <div className="flex items-center gap-3 p-4 mb-4 border border-stone-800 bg-stone-900/60 rounded-md" role="status">
+              <div className="flex items-center gap-3 p-4 mb-4 border border-white/[0.07] bg-white/[0.025] rounded-xl" role="status">
                 <Loader2 className="w-4 h-4 animate-spin text-[hsl(var(--primary))]" aria-hidden="true" />
                 <span className="text-sm text-stone-400">
                   {isCustom && customText.trim() ? `Finding sources for "${customText.trim()}"…` : 'Loading sources…'}
@@ -493,22 +489,22 @@ export default function Welcome() {
               <fieldset className="mb-4">
                 <legend className="sr-only">Suggested sources</legend>
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs text-stone-500">{checked.size} of {suggestions.length} selected</p>
+                  <p className="meta">{checked.size} of {suggestions.length} selected</p>
                   <button
                     type="button"
                     onClick={() => setChecked(checked.size === suggestions.length ? new Set() : new Set(suggestions.map(f => f.key)))}
-                    className={cn('text-xs text-stone-400 hover:text-stone-200 rounded', FOCUS)}
+                    className={cn('text-xs text-stone-400 hover:text-stone-200 rounded-md', FOCUS)}
                   >
                     {checked.size === suggestions.length ? 'Clear all' : 'Select all'}
                   </button>
                 </div>
-                <ul className="divide-y divide-stone-800 border border-stone-800 rounded-md overflow-hidden">
+                <ul className="divide-y divide-white/[0.06] border border-white/[0.07] rounded-2xl overflow-hidden">
                   {suggestions.map(f => {
                     const on = checked.has(f.key);
                     const id = `src-${f.key.replace(/[^a-z0-9]/gi, '-')}`;
                     return (
                       <li key={f.key}>
-                        <label htmlFor={id} className="flex items-start gap-3 px-3 py-3 cursor-pointer hover:bg-stone-900/70 focus-within:bg-stone-900/70">
+                        <label htmlFor={id} className="flex items-start gap-3 px-3 py-3 cursor-pointer hover:bg-white/[0.03] focus-within:bg-white/[0.03]">
                           <input
                             id={id}
                             type="checkbox"
@@ -518,7 +514,7 @@ export default function Welcome() {
                           />
                           <span className="min-w-0 flex-1">
                             <span className={cn('block text-sm font-medium truncate', on ? 'text-stone-100' : 'text-stone-500')}>{f.name || hostOf(f.url)}</span>
-                            <span className="block text-xs text-stone-600 truncate">
+                            <span className="block truncate font-mono text-[11px] text-stone-500">
                               {hostOf(f.url)}
                               {f.origin === 'ai' && ' · suggested for your topic'}
                               {f.origin === 'own' && ' · added by you'}
@@ -537,14 +533,14 @@ export default function Welcome() {
                 type="button"
                 onClick={() => setShowOwnUrl(v => !v)}
                 aria-expanded={showOwnUrl}
-                className={cn('inline-flex items-center gap-1.5 text-sm text-[hsl(var(--primary))] hover:opacity-80 rounded', FOCUS)}
+                className={cn('inline-flex items-center gap-1.5 text-sm text-[#C4A5FD] hover:text-stone-100 rounded-lg', FOCUS)}
               >
                 <Plus className="w-4 h-4" aria-hidden="true" /> Add your own URL
               </button>
               <button
                 type="button"
                 onClick={() => handleSkip('/Feeds?import=opml')}
-                className={cn('inline-flex items-center gap-1.5 text-sm text-stone-400 hover:text-stone-200 rounded', FOCUS)}
+                className={cn('inline-flex items-center gap-1.5 text-sm text-stone-400 hover:text-stone-200 rounded-lg', FOCUS)}
               >
                 <Upload className="w-4 h-4" aria-hidden="true" /> Import OPML instead
               </button>
@@ -565,22 +561,22 @@ export default function Welcome() {
                     aria-describedby={ownUrlError ? 'own-url-error' : undefined}
                     className={cn('flex-1 min-w-0 h-11 px-3 bg-stone-900 border border-stone-700 rounded-md text-sm text-stone-100 placeholder:text-stone-600', FOCUS)}
                   />
-                  <button type="submit" className={cn('h-11 px-4 bg-stone-800 hover:bg-stone-700 text-stone-100 text-sm font-medium rounded-md', FOCUS)}>Add</button>
+                  <button type="submit" className={cn('btn-ghost h-11 px-4', FOCUS)}>Add</button>
                 </div>
                 {ownUrlError && <p id="own-url-error" className="text-xs text-red-400 mt-1.5">{ownUrlError}</p>}
-                <p className="text-xs text-stone-600 mt-1.5">Any site works. We find its feed, or build one if it has none.</p>
+                <p className="text-xs text-stone-500 mt-1.5">Any site works. We find its feed, or build one if it has none.</p>
               </form>
             )}
 
             <div className="flex items-center justify-between gap-3 mt-8">
-              <button type="button" onClick={() => setStep('field')} className={cn('inline-flex items-center gap-1.5 h-11 px-3 text-sm text-stone-400 hover:text-stone-200 rounded-md', FOCUS)}>
+              <button type="button" onClick={() => setStep('field')} className={cn('inline-flex items-center gap-1.5 h-11 px-3 text-sm text-stone-400 hover:text-stone-200 rounded-xl', FOCUS)}>
                 <ArrowLeft className="w-4 h-4" aria-hidden="true" /> Back
               </button>
               <button
                 type="button"
                 onClick={() => setStep('delivery')}
                 disabled={!checked.size || suggestLoading}
-                className={cn('inline-flex items-center gap-2 h-11 px-6 bg-[hsl(var(--primary))] text-stone-900 font-bold text-sm rounded-md hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed', FOCUS)}
+                className={cn('inline-flex items-center gap-2 h-11 px-6 btn-brand disabled:opacity-40 disabled:cursor-not-allowed', FOCUS)}
               >
                 Continue with {checked.size} <ArrowRight className="w-4 h-4" aria-hidden="true" />
               </button>
@@ -596,12 +592,12 @@ export default function Welcome() {
             </Heading>
 
             <div className="space-y-5">
-              <div className="flex items-start justify-between gap-4 p-4 border border-stone-800 bg-stone-900/60 rounded-md">
+              <div className="flex items-start justify-between gap-4 p-4 border border-white/[0.07] bg-white/[0.025] rounded-xl">
                 <div className="flex items-start gap-3 min-w-0">
                   <Mail className="w-5 h-5 text-[hsl(var(--primary))] flex-shrink-0 mt-0.5" aria-hidden="true" />
                   <div className="min-w-0">
                     <p id="email-label" className="text-sm font-medium text-stone-100">Email</p>
-                    <p className="text-xs text-stone-500 truncate">{email || 'your account email'}</p>
+                    <p className="truncate font-mono text-[11px] text-stone-500">{email || 'your account email'}</p>
                   </div>
                 </div>
                 <button
@@ -610,7 +606,7 @@ export default function Welcome() {
                   aria-checked={delivery.email}
                   aria-labelledby="email-label"
                   onClick={() => setDelivery(d => ({ ...d, email: !d.email }))}
-                  className={cn('relative w-11 h-6 rounded-full flex-shrink-0 transition-colors', delivery.email ? 'bg-[hsl(var(--primary))]' : 'bg-stone-700', FOCUS)}
+                  className={cn('relative w-11 h-6 rounded-full flex-shrink-0 transition-colors', delivery.email ? 'bg-[hsl(var(--primary))]' : 'bg-white/[0.12]', FOCUS)}
                 >
                   <span className={cn('absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-stone-100 transition-transform', delivery.email && 'translate-x-5')} aria-hidden="true" />
                 </button>
@@ -626,8 +622,8 @@ export default function Welcome() {
                     aria-checked={delivery.frequency === val}
                     onClick={() => setDelivery(d => ({ ...d, frequency: val }))}
                     className={cn(
-                      'h-11 text-sm font-medium border rounded-md',
-                      delivery.frequency === val ? 'border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 text-stone-100' : 'border-stone-800 text-stone-400 hover:border-stone-600',
+                      'h-11 text-sm font-medium border rounded-xl',
+                      delivery.frequency === val ? 'border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 text-stone-100' : 'border-white/[0.08] text-stone-400 hover:border-white/20',
                       FOCUS
                     )}
                   >
@@ -638,7 +634,7 @@ export default function Welcome() {
 
               <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-3">
                 <div>
-                  <label htmlFor="delivery-time" className="flex items-center gap-1.5 text-sm font-medium text-stone-300 mb-1.5">
+                  <label htmlFor="delivery-time" className="micro-label mb-1.5 flex items-center gap-1.5">
                     <Clock className="w-3.5 h-3.5" aria-hidden="true" /> Time
                   </label>
                   <input
@@ -650,7 +646,7 @@ export default function Welcome() {
                   />
                 </div>
                 <div className="min-w-0">
-                  <label htmlFor="delivery-tz" className="flex items-center gap-1.5 text-sm font-medium text-stone-300 mb-1.5">
+                  <label htmlFor="delivery-tz" className="micro-label mb-1.5 flex items-center gap-1.5">
                     <Globe2 className="w-3.5 h-3.5" aria-hidden="true" /> Timezone
                   </label>
                   <select
@@ -664,7 +660,7 @@ export default function Welcome() {
                 </div>
               </div>
 
-              <p className="text-xs text-stone-600">Slack, Discord and Teams delivery are available on Premium. Set them up later under Briefings.</p>
+              <p className="text-xs text-stone-500">Slack, Discord and Teams delivery are available on Premium. Set them up later under Briefings.</p>
             </div>
 
             <div className="flex items-center justify-between gap-3 mt-8">
@@ -675,7 +671,7 @@ export default function Welcome() {
                 type="button"
                 onClick={buildBriefing}
                 disabled={busy || !selectedFeeds.length}
-                className={cn('inline-flex items-center gap-2 h-11 px-5 sm:px-6 bg-[hsl(var(--primary))] text-stone-900 font-bold text-sm rounded-md hover:opacity-90 disabled:opacity-40', FOCUS)}
+                className={cn('inline-flex items-center gap-2 h-11 px-5 sm:px-6 btn-brand disabled:opacity-40', FOCUS)}
               >
                 <Sparkles className="w-4 h-4" aria-hidden="true" /> Build my first briefing
               </button>
@@ -690,7 +686,7 @@ export default function Welcome() {
               {progress.phase === 'error' ? 'Something needs a look' : 'Building your first briefing'}
             </Heading>
 
-            <ul className="border border-stone-800 bg-stone-900/60 rounded-md px-4 py-2 mb-6" aria-live="polite">
+            <ul className="border border-white/[0.07] bg-white/[0.025] rounded-2xl px-4 py-2 mb-6" aria-live="polite">
               <ProgressRow
                 state={stepState('sources')}
                 label={`Adding sources and fetching stories (${progress.done}/${progress.total})`}
@@ -708,13 +704,13 @@ export default function Welcome() {
             </ul>
 
             {progress.phase === 'error' && (
-              <div className="p-4 border border-red-900/50 bg-red-950/20 rounded-md mb-6" role="alert">
+              <div className="p-4 border border-red-400/25 bg-red-400/10 rounded-xl mb-6" role="alert">
                 <p className="text-sm text-red-300">{progress.error}</p>
                 <div className="flex flex-wrap gap-3 mt-4">
-                  <button type="button" onClick={() => { setProgress({ phase: 'idle', done: 0, total: 0, added: 0, failed: 0, error: '' }); setStep('sources'); }} className={cn('h-10 px-4 bg-stone-800 hover:bg-stone-700 text-sm text-stone-100 rounded-md', FOCUS)}>
+                  <button type="button" onClick={() => { setProgress({ phase: 'idle', done: 0, total: 0, added: 0, failed: 0, error: '' }); setStep('sources'); }} className={cn('btn-ghost h-10 px-4', FOCUS)}>
                     Back to sources
                   </button>
-                  <button type="button" onClick={buildBriefing} disabled={busy} className={cn('h-10 px-4 bg-[hsl(var(--primary))] text-stone-900 text-sm font-bold rounded-md disabled:opacity-40', FOCUS)}>
+                  <button type="button" onClick={buildBriefing} disabled={busy} className={cn('btn-brand h-10 px-4 disabled:opacity-40', FOCUS)}>
                     Try again
                   </button>
                 </div>
@@ -736,8 +732,8 @@ export default function Welcome() {
             )}
 
             {result.delivery && (
-              <article className="border border-stone-800 bg-stone-900/60 rounded-md p-4 sm:p-6 mb-6" aria-label={result.digestName || 'Your briefing'}>
-                <p className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--primary))] mb-2">{result.digestName || 'Your briefing'}</p>
+              <article className="border border-white/[0.07] bg-white/[0.025] rounded-2xl p-4 sm:p-6 mb-6" aria-label={result.digestName || 'Your briefing'}>
+                <p className="eyebrow mb-2">{result.digestName || 'Your briefing'}</p>
                 <BriefingMarkdown content={result.delivery.content} />
               </article>
             )}
@@ -753,7 +749,7 @@ export default function Welcome() {
               <button
                 type="button"
                 onClick={() => window.location.assign('/Feeds')}
-                className={cn('inline-flex items-center justify-center h-11 px-5 bg-stone-800 hover:bg-stone-700 text-stone-100 text-sm rounded-md', FOCUS)}
+                className={cn('btn-ghost h-11 px-5', FOCUS)}
               >
                 Fine-tune sources
               </button>

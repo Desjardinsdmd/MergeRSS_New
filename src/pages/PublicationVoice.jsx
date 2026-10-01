@@ -172,19 +172,19 @@ function PublicationVoicePage() {
           <DialogHeader><DialogTitle className="font-display">Add voice example</DialogTitle></DialogHeader>
           <div className="space-y-4 py-2">
             <div>
-              <Label className="micro-label">Content *</Label>
+              <Label className="mb-1.5 block font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-stone-500">Content *</Label>
               <Textarea value={form.content} onChange={e => setForm({ ...form, content: e.target.value })}
                 rows={6} placeholder="Paste example post content. For threads, separate posts with ---"
                 className={`${FIELD} text-sm`} />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <Label className="micro-label">Label</Label>
+                <Label className="mb-1.5 block font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-stone-500">Label</Label>
                 <Input value={form.label} onChange={e => setForm({ ...form, label: e.target.value })}
                   placeholder="e.g. wire, thread, take" className={FIELD} />
               </div>
               <div>
-                <Label className="micro-label">Why it's good</Label>
+                <Label className="mb-1.5 block font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-stone-500">Why it's good</Label>
                 <Input value={form.note} onChange={e => setForm({ ...form, note: e.target.value })}
                   placeholder="Performance note" className={FIELD} />
               </div>
