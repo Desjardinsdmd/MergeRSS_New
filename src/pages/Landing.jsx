@@ -10,6 +10,10 @@ import { cn } from '@/lib/utils';
 import ProductPreview from '@/components/landing/ProductPreview';
 import Reveal, { useInView, useCountUp } from '@/components/landing/Reveal';
 import SiteFooter from '@/components/landing/SiteFooter';
+import { PLAN_LIMITS } from '@/lib/planLimits';
+
+const FREE_SOURCES = Number.isFinite(PLAN_LIMITS?.free?.feeds) ? PLAN_LIMITS.free.feeds : 50;
+const FREE_BRIEFINGS = Number.isFinite(PLAN_LIMITS?.free?.digests) ? PLAN_LIMITS.free.digests : 5;
 
 const FOCUS = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0910]';
 
@@ -262,7 +266,7 @@ export default function Landing() {
             Know what changed before your first meeting.
           </h2>
           <p className="relative mx-auto mt-4 max-w-md text-[15px] text-stone-300">
-            Free for up to 50 sources and 5 briefings. Your first briefing lands in about two minutes.
+            Free for up to {FREE_SOURCES} sources and {FREE_BRIEFINGS} briefings. Your first briefing lands in about two minutes.
           </p>
           <div className="relative mt-8 flex flex-wrap items-center justify-center gap-3">
             <button type="button" onClick={() => handleCTA('bottom')} className={cn('btn-brand group h-11 px-5 text-[15px]', FOCUS)}>
