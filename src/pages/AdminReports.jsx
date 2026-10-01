@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { AlertCircle, Loader2, Check, Download } from 'lucide-react';
 import { jsPDF } from 'jspdf';
-import { Button } from '@/components/ui/button';
+import { PageHeader, MicroLabel } from '@/components/brand/Brand';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
@@ -17,16 +17,18 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
+const CHIP = 'rounded-md border px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wider shadow-none hover:bg-inherit';
+
 const statusColors = {
-  open: 'bg-red-100 text-red-800',
-  in_progress: 'bg-blue-100 text-blue-800',
-  resolved: 'bg-green-100 text-green-800',
+  open: `${CHIP} border-red-400/25 bg-red-400/10 text-red-300`,
+  in_progress: `${CHIP} border-sky-400/25 bg-sky-400/10 text-sky-300`,
+  resolved: `${CHIP} border-emerald-400/25 bg-emerald-400/10 text-emerald-300`,
 };
 
 const priorityColors = {
-  low: 'bg-stone-700 text-stone-100',
-  medium: 'bg-amber-700 text-amber-100',
-  high: 'bg-red-700 text-red-100',
+  low: `${CHIP} border-white/10 bg-transparent text-stone-400`,
+  medium: `${CHIP} border-amber-400/25 bg-amber-400/10 text-amber-300`,
+  high: `${CHIP} border-red-400/25 bg-red-400/10 text-red-300`,
 };
 
 function AdminReportsPage() {
@@ -164,36 +166,35 @@ function AdminReportsPage() {
   return (
     <div className="p-6 lg:p-8 max-w-6xl mx-auto">
       {/* Header */}
-      <div className="mb-8 flex items-start justify-between gap-4">
-        <h1 className="text-2xl font-bold text-stone-100 flex items-center gap-2">
-          <AlertCircle className="w-6 h-6 text-red-500" />
-          Problem Reports
-        </h1>
-        <p className="text-stone-500 mt-1">Review and manage user-reported issues</p>
-      </div>
-      <Button
-        onClick={downloadPDF}
-        disabled={reports.length === 0}
-        variant="outline"
-        className="border-stone-700 text-stone-300 hover:bg-stone-800 gap-2"
-      >
-        <Download className="w-4 h-4" />
-        Download PDF
-      </Button>
+      <PageHeader
+        title={<span className="flex items-center gap-2"><AlertCircle className="w-6 h-6 text-red-400" aria-hidden="true" />Problem reports</span>}
+        subtitle="Review and manage user-reported issues."
+        actions={
+          <button
+            type="button"
+            onClick={downloadPDF}
+            disabled={reports.length === 0}
+            className="btn-ghost py-2 disabled:opacity-50"
+          >
+            <Download className="w-4 h-4" />
+            Download PDF
+          </button>
+        }
+      />
 
       {/* Status Filter */}
-      <div className="mb-6 flex gap-2">
+      <div className="mb-6 flex gap-6 border-b border-white/[0.07]">
         {['open', 'in_progress', 'resolved'].map(status => (
           <button
             key={status}
             onClick={() => setStatusFilter(status)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+            className={`-mb-px border-b-2 px-1 pb-2.5 pt-1 text-sm font-medium transition ${
               statusFilter === status
-                ? 'bg-amber-400 text-stone-900'
-                : 'bg-stone-800 text-stone-400 hover:text-stone-100'
+                ? 'border-[hsl(var(--brand))] text-stone-100'
+                : 'border-transparent text-stone-500 hover:text-stone-200'
             }`}
           >
-            {status.charAt(0).toUpperCase() + status.slice(1)}
+            {(status.charAt(0).toUpperCase() + status.slice(1)).replace('_', ' ')}
           </button>
         ))}
       </div>
@@ -201,11 +202,11 @@ function AdminReportsPage() {
       {/* Reports List */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-6 h-6 animate-spin text-amber-400" />
+          <Loader2 className="w-6 h-6 animate-spin text-stone-500" />
         </div>
       ) : reports.length === 0 ? (
-        <div className="text-center py-12 bg-stone-900 border border-stone-800 rounded-lg">
-          <Check className="w-12 h-12 text-green-500 mx-auto mb-4" />
+        <div className="panel text-center py-12">
+          <Check className="w-12 h-12 text-emerald-400 mx-auto mb-4" />
           <p className="text-stone-400">No reports in this category</p>
         </div>
       ) : (
@@ -217,7 +218,7 @@ function AdminReportsPage() {
                 setSelectedReport(report);
                 setAdminNotes(report.admin_notes || '');
               }}
-              className="bg-stone-900 border border-stone-800 rounded-lg p-4 cursor-pointer hover:border-amber-400/50 transition"
+              className="panel panel-hover p-4 cursor-pointer"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
@@ -229,8 +230,8 @@ function AdminReportsPage() {
                       {report.priority || 'medium'}
                     </Badge>
                   </div>
-                  <p className="text-xs text-stone-500 mb-2">
-                    {report.user_email} • {report.page}
+                  <p className="meta normal-case mb-2">
+                    {report.user_email} · {report.page}
                   </p>
                   <p className="text-sm text-stone-400 line-clamp-2">
                     {report.description}
@@ -240,7 +241,7 @@ function AdminReportsPage() {
                   <Badge className={statusColors[report.status]}>
                     {report.status}
                   </Badge>
-                  <span className="text-xs text-stone-600">
+                  <span className="font-mono text-[11px] text-stone-500">
                     {format(new Date(report.created_date), 'MMM d')}
                   </span>
                 </div>
@@ -255,7 +256,7 @@ function AdminReportsPage() {
         <Dialog open={!!selectedReport} onOpenChange={() => setSelectedReport(null)}>
           <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="flex items-center justify-between">
+              <DialogTitle className="flex items-center justify-between gap-3 font-display">
                 <span>{selectedReport.title}</span>
                 <Badge className={statusColors[selectedReport.status]}>
                   {selectedReport.status}
@@ -265,25 +266,25 @@ function AdminReportsPage() {
 
             <div className="space-y-6">
               {/* Report Details */}
-              <div className="space-y-4 pb-4 border-b border-stone-700">
+              <div className="space-y-4 pb-4 border-b border-white/[0.07]">
                 <div>
-                  <p className="text-xs font-semibold text-stone-500 uppercase mb-1">
+                  <MicroLabel className="mb-1">
                     User
-                  </p>
-                  <p className="text-sm text-stone-100">{selectedReport.user_email}</p>
+                  </MicroLabel>
+                  <p className="font-mono text-sm text-stone-100">{selectedReport.user_email}</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-xs font-semibold text-stone-500 uppercase mb-1">
+                    <MicroLabel className="mb-1">
                       Page
-                    </p>
-                    <p className="text-sm text-stone-100">{selectedReport.page}</p>
+                    </MicroLabel>
+                    <p className="font-mono text-sm text-stone-100">{selectedReport.page}</p>
                   </div>
                   <div>
-                    <p className="text-xs font-semibold text-stone-500 uppercase mb-1">
+                    <MicroLabel className="mb-1">
                       Priority
-                    </p>
+                    </MicroLabel>
                     <Badge className={priorityColors[selectedReport.priority || 'medium']}>
                       {selectedReport.priority || 'medium'}
                     </Badge>
@@ -291,9 +292,9 @@ function AdminReportsPage() {
                 </div>
 
                 <div>
-                  <p className="text-xs font-semibold text-stone-500 uppercase mb-1">
+                  <MicroLabel className="mb-1">
                     Description
-                  </p>
+                  </MicroLabel>
                   <p className="text-sm text-stone-400 whitespace-pre-wrap">
                     {selectedReport.description}
                   </p>
@@ -301,9 +302,9 @@ function AdminReportsPage() {
 
                 {selectedReport.browser_info && (
                   <div>
-                    <p className="text-xs font-semibold text-stone-500 uppercase mb-1">
-                      Browser Info
-                    </p>
+                    <MicroLabel className="mb-1">
+                      Browser info
+                    </MicroLabel>
                     <p className="text-xs text-stone-500 font-mono">
                       {selectedReport.browser_info}
                     </p>
@@ -311,10 +312,10 @@ function AdminReportsPage() {
                 )}
 
                 <div>
-                  <p className="text-xs font-semibold text-stone-500 uppercase mb-1">
+                  <MicroLabel className="mb-1">
                     Reported
-                  </p>
-                  <p className="text-sm text-stone-100">
+                  </MicroLabel>
+                  <p className="font-mono text-sm text-stone-100">
                     {format(new Date(selectedReport.created_date), 'PPP p')}
                   </p>
                 </div>
@@ -322,16 +323,16 @@ function AdminReportsPage() {
 
               {/* Status Management */}
               <div>
-                <p className="text-xs font-semibold text-stone-500 uppercase mb-2">
-                  Change Status
-                </p>
+                <MicroLabel className="mb-2">
+                  Change status
+                </MicroLabel>
                 <Select
                   value={selectedReport.status}
                   onValueChange={(newStatus) =>
                     handleStatusChange(selectedReport.id, newStatus)
                   }
                 >
-                  <SelectTrigger className="bg-stone-800 border-stone-700">
+                  <SelectTrigger className="rounded-xl border-white/10 bg-stone-800">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -344,23 +345,24 @@ function AdminReportsPage() {
 
               {/* Admin Notes */}
               <div>
-                <p className="text-xs font-semibold text-stone-500 uppercase mb-2">
-                  Admin Notes
-                </p>
+                <MicroLabel className="mb-2">
+                  Admin notes
+                </MicroLabel>
                 <Textarea
                   placeholder="Add internal notes about this issue..."
                   value={adminNotes}
                   onChange={(e) => setAdminNotes(e.target.value)}
                   rows={4}
-                  className="bg-stone-800 border-stone-700 text-stone-100 resize-none"
+                  className="rounded-xl border-white/10 bg-stone-800 text-stone-100 resize-none"
                 />
-                <Button
+                <button
+                  type="button"
                   onClick={handleSaveNotes}
                   disabled={savingNotes}
-                  className="mt-2 bg-amber-400 hover:bg-amber-500 text-stone-900 font-semibold"
+                  className="btn-brand mt-2 disabled:opacity-50"
                 >
-                  {savingNotes ? 'Saving...' : 'Save Notes'}
-                </Button>
+                  {savingNotes ? 'Saving...' : 'Save notes'}
+                </button>
               </div>
             </div>
           </DialogContent>

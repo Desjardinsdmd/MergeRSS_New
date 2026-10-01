@@ -326,6 +326,9 @@ export function parseMarkdown(src) {
     }
     if (list) endList();
     if (quote) { quote.push(line.trim()); continue; }
+    // AI copy often separates paragraphs with a single newline: a line that
+    // ends a sentence closes the paragraph.
+    if (para && /[.!?]["')\]]?$/.test(para[para.length - 1])) endPara();
     if (!para) para = [];
     para.push(line.trim());
   }
