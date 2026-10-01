@@ -5,6 +5,7 @@
  */
 
 import { C, FONT, PT, RADIUS } from './tokens.js';
+import { helveticaWidthPt } from './metrics.js';
 
 export function setFont(doc, family, style, size) {
   doc.setFont(family, style);
@@ -184,9 +185,16 @@ function runSize(run, base) {
   return run.code ? base.size * 0.92 : base.size;
 }
 
+/**
+ * Text width in mm using unkerned AFM metrics (what the PDF actually draws).
+ * jsPDF's getTextWidth kerns, which made words collide after a style change.
+ */
 function measure(doc, text, run, base) {
   const [f, st] = runFont(run, base);
-  setFont(doc, f, st, runSize(run, base));
+  const size = runSize(run, base);
+  if (f === FONT.mono) return text.length * 0.6 * size * PT;
+  if (f === 'helvetica') return helveticaWidthPt(text, size, st === 'bold' || st === 'bolditalic') * PT;
+  setFont(doc, f, st, size);
   return doc.getTextWidth(text);
 }
 
