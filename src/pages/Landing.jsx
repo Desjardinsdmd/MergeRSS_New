@@ -4,16 +4,86 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import {
   ArrowRight, CheckCircle, MailPlus, SlidersHorizontal, Send, FileText, Users, TrendingUp,
-  Mail, Inbox, Hash, MessagesSquare, LayoutGrid,
+  Mail, Inbox, Hash, MessagesSquare, LayoutGrid, Check, Plus, LineChart, Compass, Library, Building2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import ProductPreview from '@/components/landing/ProductPreview';
 import Reveal, { useInView, useCountUp } from '@/components/landing/Reveal';
 import SiteFooter from '@/components/landing/SiteFooter';
-import { PLAN_LIMITS } from '@/lib/planLimits';
+import Seo, { SITE_ORIGIN, OG_IMAGE } from '@/components/landing/Seo';
+import {
+  PREMIUM_PRICE, FREE_SOURCES, FREE_BRIEFINGS, TEAM_MEMBERS, TEAM_TRIAL_SEATS, TEAM_PRICE,
+} from '@/components/landing/pricingFacts';
 
-const FREE_SOURCES = Number.isFinite(PLAN_LIMITS?.free?.feeds) ? PLAN_LIMITS.free.feeds : 50;
-const FREE_BRIEFINGS = Number.isFinite(PLAN_LIMITS?.free?.digests) ? PLAN_LIMITS.free.digests : 5;
+const SEO_TITLE = 'MergeRSS: ranked briefings from the sources you follow';
+const SEO_DESCRIPTION = 'MergeRSS reads the websites, RSS feeds and newsletters you follow, ranks what changed for your work, and delivers a short briefing by email, Slack, Discord or Teams. Free to start.';
+
+const JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'MergeRSS',
+  description: SEO_DESCRIPTION,
+  applicationCategory: 'BusinessApplication',
+  operatingSystem: 'Web',
+  url: `${SITE_ORIGIN}/`,
+  image: OG_IMAGE,
+  offers: [
+    { '@type': 'Offer', name: 'Free', price: '0', priceCurrency: 'USD' },
+    { '@type': 'Offer', name: 'Premium', price: String(PREMIUM_PRICE), priceCurrency: 'USD' },
+  ],
+};
+
+const BENEFITS = [
+  'Websites, RSS feeds and newsletters in one place',
+  'Stories ranked by what matters to your work',
+  'A short briefing on your schedule, by email or in the app',
+];
+
+const AUDIENCES = [
+  {
+    icon: LineChart,
+    title: 'Analysts and investors',
+    desc: 'You track a market across trade press, filings and research notes. MergeRSS puts the moves that affect your positions first.',
+  },
+  {
+    icon: Compass,
+    title: 'Founders and operators',
+    desc: 'You watch competitors, customers and policy. Their blogs, changelogs and regulator pages land in one ranked briefing.',
+  },
+  {
+    icon: Library,
+    title: 'Researchers and journalists',
+    desc: 'You follow dozens of outlets and newsletters. Search them together and see which stories several sources are covering.',
+  },
+  {
+    icon: Building2,
+    title: 'Teams',
+    desc: 'You need one shared view of your industry. Share sources and briefings so everyone starts from the same reading.',
+  },
+];
+
+const FAQS = [
+  {
+    q: 'Is it free?',
+    a: `Yes. The Free plan covers up to ${FREE_SOURCES} sources and ${FREE_BRIEFINGS} briefings, delivered by email and the in-app inbox. No credit card is needed. Premium is $${PREMIUM_PRICE} a month for unlimited sources and briefings.`,
+  },
+  {
+    q: 'Can I bring my feeds from Feedly or another reader?',
+    a: `Yes. Export an OPML file from your reader and upload it from Sources with Bulk import, or paste a list of RSS feed URLs. Each feed becomes its own source, or you can bundle them into one briefing. Imported feeds count toward the Free plan's ${FREE_SOURCES}-source limit.`,
+  },
+  {
+    q: 'Do I need to know RSS?',
+    a: 'No. Paste any website address. MergeRSS uses the site\'s feed if it has one, finds it if the page links to one, and otherwise builds a feed from the stories on the page. Some social platforms cannot be added this way. Newsletters arrive through your private @mergerss.com address, and each sender becomes a source.',
+  },
+  {
+    q: 'Where do briefings arrive?',
+    a: `Email and the in-app inbox on every plan. Slack, Discord and Microsoft Teams need Premium. On the Team plan, shared briefings also post to your team's Slack, Discord or Teams channel.`,
+  },
+  {
+    q: 'Can my team share?',
+    a: `Yes, with the Team plan: $${TEAM_PRICE} a month per workspace for up to ${TEAM_MEMBERS} members, who share sources and briefings. You can try a workspace first with ${TEAM_TRIAL_SEATS} seats, the owner plus one invited member.`,
+  },
+];
 
 const FOCUS = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0910]';
 
@@ -122,6 +192,11 @@ export default function Landing() {
     else base44.auth.redirectToLogin(createPageUrl('Dashboard'));
   };
 
+  const handleSignIn = () => {
+    try { base44.analytics.track({ eventName: 'sign_in_clicked', properties: { location: 'hero' } }); } catch { /* optional */ }
+    base44.auth.redirectToLogin(createPageUrl('Dashboard'));
+  };
+
   // Only show stats with a real, non-zero value.
   const statItems = stats
     ? [
@@ -133,9 +208,10 @@ export default function Landing() {
 
   return (
     <div className="overflow-x-clip" style={{ colorScheme: 'dark' }}>
+      <Seo title={SEO_TITLE} description={SEO_DESCRIPTION} path="/" jsonLd={JSON_LD} />
 
       {/* Hero */}
-      <section className="relative pb-16 pt-10 sm:pt-16 lg:pb-24">
+      <section className="relative pb-16 pt-6 sm:pt-12 lg:pb-24">
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-10">
           <div className="min-w-0">
             <p className="eyebrow mb-5 inline-flex animate-fade-up items-center gap-2">
@@ -149,13 +225,24 @@ export default function Landing() {
               Every source you follow, ranked into one{' '}
               <span className="bg-gradient-to-br from-[#C4A5FD] via-[#9B5CF6] to-[#7C3AED] bg-clip-text text-transparent">briefing</span>.
             </h1>
-            <p className="mt-6 max-w-lg animate-fade-up text-base leading-relaxed text-stone-400 [animation-delay:120ms] sm:text-[17px]">
+            <p className="mt-5 max-w-lg animate-fade-up text-base leading-relaxed text-stone-400 [animation-delay:120ms] sm:text-[17px]">
               MergeRSS reads your sites, RSS feeds and newsletters, ranks what changed against the work you care about, and delivers a short briefing on your schedule.
             </p>
 
-            <div className="mt-8 flex animate-fade-up flex-wrap items-center gap-3 [animation-delay:180ms]">
+            <ul className="mt-5 animate-fade-up space-y-2 [animation-delay:160ms]">
+              {BENEFITS.map((b) => (
+                <li key={b} className="flex items-start gap-2.5 text-[15px] text-stone-300">
+                  <span className="mt-[3px] flex h-[18px] w-[18px] flex-shrink-0 items-center justify-center rounded-md bg-[hsl(var(--brand)/0.2)]" aria-hidden="true">
+                    <Check className="h-3 w-3 text-brand-light" />
+                  </span>
+                  {b}
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-7 flex animate-fade-up flex-wrap items-center gap-3 [animation-delay:200ms]">
               <button type="button" onClick={() => handleCTA('hero')} className={cn('btn-brand group h-11 px-5 text-[15px]', FOCUS)}>
-                Get started free
+                Create free account
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
               </button>
               <Link to={createPageUrl('Pricing')} className={cn('btn-ghost h-11 px-5 text-[15px]', FOCUS)}>
@@ -163,9 +250,15 @@ export default function Landing() {
               </Link>
             </div>
 
-            <p className="meta mt-5 animate-fade-up [animation-delay:240ms]">
-              First briefing in about two minutes · No credit card
-            </p>
+            {!(userLoaded && user) && (
+              <p className="mt-4 animate-fade-up text-sm text-stone-400 [animation-delay:240ms]">
+                <span className="meta mr-2">No credit card</span>
+                Already have an account?{' '}
+                <button type="button" onClick={handleSignIn} className={cn('rounded-sm font-medium text-brand-light underline underline-offset-4 hover:text-stone-100', FOCUS)}>
+                  Sign in
+                </button>
+              </p>
+            )}
 
             {userLoaded && user && (
               <div className="panel-raised mt-6 inline-flex max-w-full flex-wrap items-center gap-2 px-3 py-2 text-xs text-stone-300">
@@ -219,6 +312,29 @@ export default function Landing() {
         </ol>
       </section>
 
+      {/* Who it's for */}
+      <section aria-labelledby="audience-heading" className="mx-auto max-w-6xl px-4 pt-24 sm:px-6">
+        <Reveal className="mb-10 max-w-2xl">
+          <p className="eyebrow mb-3">Who it&apos;s for</p>
+          <h2 id="audience-heading" className="font-display text-3xl font-semibold leading-tight tracking-[-0.025em] text-stone-100 sm:text-4xl">
+            For people who read widely and decide quickly.
+          </h2>
+        </Reveal>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {AUDIENCES.map(({ icon: Icon, title, desc }, i) => (
+            <Reveal key={title} delay={(i % 2) * 80} className="group panel panel-hover card-hover flex gap-4 p-6">
+              <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] transition group-hover:border-[hsl(var(--brand)/0.35)] group-hover:bg-[hsl(var(--brand)/0.14)]" aria-hidden="true">
+                <Icon className="h-[18px] w-[18px] text-brand-light" />
+              </span>
+              <div className="min-w-0">
+                <h3 className="font-display text-base font-semibold tracking-tight text-stone-100">{title}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-stone-400">{desc}</p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </section>
+
       {/* Features */}
       <section className="mx-auto max-w-6xl px-4 pt-24 sm:px-6">
         <SectionHeader
@@ -257,6 +373,31 @@ export default function Landing() {
         </Reveal>
       </section>
 
+      {/* FAQ */}
+      <section aria-labelledby="faq-heading" className="mx-auto max-w-3xl px-4 pt-24 sm:px-6">
+        <Reveal className="mb-8 text-center">
+          <p className="eyebrow mb-3">Questions</p>
+          <h2 id="faq-heading" className="font-display text-3xl font-semibold tracking-[-0.025em] text-stone-100 sm:text-4xl">Before you sign up</h2>
+        </Reveal>
+        <div className="space-y-2">
+          {FAQS.map((f, i) => (
+            <Reveal key={f.q} delay={i * 50}>
+              <details className="group panel panel-hover [&_summary::-webkit-details-marker]:hidden" open={i === 0}>
+                <summary className={cn('flex cursor-pointer list-none items-center justify-between gap-4 rounded-2xl px-5 py-4', FOCUS)}>
+                  <span className="font-display text-[15px] font-semibold tracking-tight text-stone-100 sm:text-base">{f.q}</span>
+                  <Plus className="h-4 w-4 flex-shrink-0 text-stone-500 transition-transform duration-200 group-open:rotate-45 group-open:text-brand-light" aria-hidden="true" />
+                </summary>
+                <p className="px-5 pb-5 text-sm leading-relaxed text-stone-400">{f.a}</p>
+              </details>
+            </Reveal>
+          ))}
+        </div>
+        <p className="mt-6 text-center text-sm text-stone-400">
+          Plan details are on the{' '}
+          <Link to={createPageUrl('Pricing')} className={cn('rounded-sm font-medium text-brand-light hover:text-stone-100', FOCUS)}>pricing page</Link>.
+        </p>
+      </section>
+
       {/* Closing CTA */}
       <section className="mx-auto max-w-6xl px-4 pt-20 sm:px-6">
         <Reveal className="panel-accent relative overflow-hidden px-6 py-12 text-center sm:px-10 sm:py-16">
@@ -270,7 +411,7 @@ export default function Landing() {
           </p>
           <div className="relative mt-8 flex flex-wrap items-center justify-center gap-3">
             <button type="button" onClick={() => handleCTA('bottom')} className={cn('btn-brand group h-11 px-5 text-[15px]', FOCUS)}>
-              Get started free
+              Create free account
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
             </button>
             <Link to={createPageUrl('Pricing')} className={cn('btn-ghost h-11 px-5 text-[15px]', FOCUS)}>
