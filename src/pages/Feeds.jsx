@@ -249,17 +249,6 @@ export default function Feeds() {
 
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto">
-      {/* Needs Attention Summary */}
-      <NeedsAttentionSummary
-        failingCount={failingCount}
-        degradingCount={degradingCount}
-        onFilter={setHealthFilter}
-        onRepairComplete={() => {
-          queryClient.invalidateQueries({ queryKey: ['feeds'] });
-          queryClient.invalidateQueries({ queryKey: ['source-health'] });
-        }}
-      />
-
       {/* Header */}
       <PageHeader
         title="Sources"
@@ -312,6 +301,17 @@ export default function Feeds() {
           </Link>
         </div>
       )}
+
+      {/* Needs Attention Summary */}
+      <NeedsAttentionSummary
+        failingCount={failingCount}
+        degradingCount={degradingCount}
+        onFilter={setHealthFilter}
+        onRepairComplete={() => {
+          queryClient.invalidateQueries({ queryKey: ['feeds'] });
+          queryClient.invalidateQueries({ queryKey: ['source-health'] });
+        }}
+      />
 
       {/* Summary Control Panel */}
       <div className="mb-6">
