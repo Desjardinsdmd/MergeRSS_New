@@ -387,9 +387,12 @@ async function notifyFeedPaused(feed, fetchError, newConsecutive, base44) {
 
 async function handleFeedError(feed, fetchError, summary, base44) {
     const now = new Date().toISOString();
-    const isRateLimit = fetchError.includes('429') || fetchError.toLowerCase().includes('rate limit');
-    // A 429 means the source is alive and throttling us. It must not count toward the
-    // dead-feed pause threshold; we back off instead.
+    const errLower = fetchError.toLowerCase();
+    const isRateLimit = fetchError.includes('429') || errLower.includes('rate limit')
+        || /\b50[234]\b/.test(fetchError) || errLower.includes('service unavailable')
+        || errLower.includes('bad gateway') || errLower.includes('gateway timeout');
+    // A 429 or a 502/503/504 means the source (or its CDN) is alive and throttling or briefly
+    // down. It must not count toward the dead-feed pause threshold; we back off instead.
     const newConsecutive = isRateLimit ? (feed.consecutive_errors || 0) : (feed.consecutive_errors || 0) + 1;
     const isRecoverable = fetchError.startsWith('FEED_HTML') || fetchError.includes('404') || fetchError.startsWith('FEED_UNKNOWN');
     const shouldPause = !isRateLimit && newConsecutive >= MAX_CONSECUTIVE_ERRORS;
