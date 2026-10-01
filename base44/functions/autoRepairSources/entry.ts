@@ -336,9 +336,9 @@ async function attemptRepairs(base44, feed, health) {
   if (feed.source_type === 'generated') {
     escalationReason += 'Try a more specific URL (e.g., /blog or /news instead of the homepage).';
   } else if (health.articles_last_7d === 0) {
-    escalationReason += 'The feed appears to be inactive or empty. Try a different feed URL.';
+    escalationReason += 'The source appears to be inactive or empty. Try a different RSS feed URL.';
   } else {
-    escalationReason += 'The feed may have moved or changed format.';
+    escalationReason += 'The source may have moved its RSS feed or changed format.';
   }
 
   return {
@@ -404,12 +404,12 @@ async function discoverRssFeeds(url) {
         return {
           success: true,
           feedUrl: candidateUrl,
-          reason: 'Discovered feed link in HTML',
+          reason: 'Found an RSS feed link on the page',
         };
       } catch {}
     }
 
-    return { success: false, reason: 'No valid feed links found' };
+    return { success: false, reason: 'No valid RSS feed links found' };
   } catch (error) {
     return { success: false, reason: error.message };
   }
@@ -441,12 +441,12 @@ async function tryAlternateEndpoints(baseUrl) {
       return {
         success: true,
         feedUrl: altUrl,
-        reason: `Found feed at ${path}`,
+        reason: `Found an RSS feed at ${path}`,
       };
     } catch {}
   }
 
-  return { success: false, reason: 'No alternate endpoints returned valid feeds' };
+  return { success: false, reason: 'No alternate endpoints returned a valid RSS feed' };
 }
 
 async function tryGenerator(url) {
@@ -468,7 +468,7 @@ async function tryGenerator(url) {
     const items = extractArticleItems(html, url, 10);
 
     if (items.length === 0) {
-      return { success: false, reason: 'No articles extractable' };
+      return { success: false, reason: 'No stories could be extracted' };
     }
 
     const metadata = extractMetadata(html, url);
@@ -477,7 +477,7 @@ async function tryGenerator(url) {
     return {
       success: true,
       rssXml,
-      reason: 'Generated feed from HTML extraction',
+      reason: 'Generated an RSS feed from the page HTML',
     };
   } catch (error) {
     return { success: false, reason: error.message };

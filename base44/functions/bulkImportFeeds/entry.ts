@@ -213,7 +213,7 @@ Deno.serve(async (req) => {
     }
 
     if (parsedFeeds.length === 0) {
-      return Response.json({ error: 'No feeds found in the provided content.' }, { status: 400 });
+      return Response.json({ error: 'No RSS feeds found in the provided content.' }, { status: 400 });
     }
 
     // Auto-discover RSS feeds from website URLs (only for URL list format)
@@ -278,7 +278,7 @@ Deno.serve(async (req) => {
           const existingFeeds = await base44.entities.Feed.filter({ created_by: user.email });
           const remaining = FREE_FEED_LIMIT - existingFeeds.length;
           if (remaining <= 0) {
-            return Response.json({ error: `Feed limit reached. Free plan allows ${FREE_FEED_LIMIT} feeds. Upgrade to Premium for unlimited feeds.` }, { status: 403 });
+            return Response.json({ error: `Source limit reached. The Free plan allows ${FREE_FEED_LIMIT} sources. Upgrade to Premium for unlimited sources.` }, { status: 403 });
           }
           // Trim import to what's allowed
           parsedFeeds = parsedFeeds.slice(0, remaining);

@@ -88,7 +88,7 @@ Deno.serve(async (req) => {
             existing = await svc.Digest.get(id).catch(() => null);
             const viaTeam = !!existing?.workspace_id && teamManager && team.ws.id === existing.workspace_id;
             if (!existing || (existing.created_by !== user.email && user.role !== 'admin' && !viaTeam)) {
-                return Response.json({ error: 'Digest not found' }, { status: 404 });
+                return Response.json({ error: 'Briefing not found' }, { status: 404 });
             }
         }
 
@@ -104,7 +104,7 @@ Deno.serve(async (req) => {
                 targetWs = team.ws;
             } else if (existing?.workspace_id && existing.created_by !== user.email && user.role !== 'admin'
                 && !(teamManager && team.ws.id === existing.workspace_id)) {
-                return Response.json({ error: 'Digest not found' }, { status: 404 });
+                return Response.json({ error: 'Briefing not found' }, { status: 404 });
             } else {
                 targetWs = null;
             }
@@ -124,7 +124,7 @@ Deno.serve(async (req) => {
 
         if (!existing) {
             if (!data.name || !String(data.name).trim()) {
-                return Response.json({ error: 'Digest name is required' }, { status: 400 });
+                return Response.json({ error: 'Briefing name is required' }, { status: 400 });
             }
             if (!data.frequency) data.frequency = 'daily';
         }
@@ -149,7 +149,7 @@ Deno.serve(async (req) => {
                 .filter(d => !(exemptWs && d.workspace_id === exemptWs));
             if (own.length >= FREE_DIGEST_LIMIT) {
                 return Response.json({
-                    error: `Free plan limit reached: you can have up to ${FREE_DIGEST_LIMIT} digests. Upgrade to Premium for unlimited digests.`,
+                    error: `Free plan limit reached: you can have up to ${FREE_DIGEST_LIMIT} briefings. Upgrade to Premium for unlimited briefings.`,
                     limit_reached: true,
                     limit: FREE_DIGEST_LIMIT,
                 }, { status: 403 });
@@ -202,7 +202,7 @@ Deno.serve(async (req) => {
             if (dropped > 0) {
                 warnings.push(workspaceId
                     ? `${dropped} source${dropped === 1 ? '' : 's'} not shared with your team ${dropped === 1 ? 'was' : 'were'} removed from this briefing.`
-                    : `${dropped} source${dropped === 1 ? '' : 's'} not in your account ${dropped === 1 ? 'was' : 'were'} removed from this digest.`);
+                    : `${dropped} source${dropped === 1 ? '' : 's'} not in your account ${dropped === 1 ? 'was' : 'were'} removed from this briefing.`);
             }
         }
         if (body.workspace_id !== undefined) data.workspace_id = workspaceId;

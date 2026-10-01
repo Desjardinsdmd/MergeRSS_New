@@ -104,7 +104,7 @@ Deno.serve(async (req) => {
     let editTarget = null;
     if (feed_id) {
       editTarget = ownFeeds.find(f => f.id === feed_id) || null;
-      if (!editTarget) return Response.json({ error: 'Feed not found' }, { status: 404 });
+      if (!editTarget) return Response.json({ error: 'Source not found' }, { status: 404 });
     } else {
       const dup = findDuplicate(ownFeeds, [normalizedUrl, url.trim()]);
       if (dup) return duplicateResponse(dup);
@@ -287,7 +287,7 @@ async function createSource({ base44, user, originalUrl, sourceType, feedName, f
     if (editTarget) {
       const dup = findDuplicate(ownFeeds, [feedUrl], editTarget.id);
       if (dup) {
-        return Response.json({ error: `You already follow this feed as "${dup.name}".`, duplicate: true, source_id: dup.id }, { status: 409 });
+        return Response.json({ error: `You already follow this source as "${dup.name}".`, duplicate: true, source_id: dup.id }, { status: 409 });
       }
       await base44.asServiceRole.entities.Feed.update(editTarget.id, {
         ...resolvedFields,
@@ -432,7 +432,7 @@ async function generateSourceFeed(url, options) {
     if (social && !social.scrape_ok) {
       return {
         success: false,
-        error: `Cannot auto-generate feed for ${social.name}`,
+        error: `Cannot auto-generate an RSS feed for ${social.name}`,
         guidance: social.guidance,
         is_social: true,
         social_platform: social.name,
@@ -445,7 +445,7 @@ async function generateSourceFeed(url, options) {
     if (items.length === 0) {
       return {
         success: false,
-        error: 'No articles could be extracted from this page',
+        error: 'No stories could be extracted from this page',
         guidance: 'Try a different page or check if the site offers an official RSS feed',
       };
     }

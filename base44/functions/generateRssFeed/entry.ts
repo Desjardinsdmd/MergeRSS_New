@@ -110,7 +110,7 @@ const SOCIAL_PLATFORMS = {
     },
     'linkedin.com': {
         name: 'LinkedIn',
-        guidance: 'LinkedIn prohibits scraping per its Terms of Service. Use the official LinkedIn API with OAuth for company page feeds.',
+        guidance: 'LinkedIn prohibits scraping per its Terms of Service. Use the official LinkedIn API with OAuth for company page updates.',
         scrape_ok: false,
     },
     'tiktok.com': {
@@ -491,7 +491,7 @@ Deno.serve(async (req) => {
         const existingForUrl = existing.find(f => f.source_url === pageUrl);
         if (existing.length >= 20 && !existingForUrl) {
             return Response.json({
-                error: 'You have reached the limit of 20 generated feeds. Delete an existing one to create more.',
+                error: 'You have reached the limit of 20 generated RSS feeds. Delete an existing one to create more.',
                 suggestions: ['Scroll to "Your Generated Feeds" below and remove feeds you no longer need.'],
             }, { status: 429 });
         }
@@ -504,7 +504,7 @@ Deno.serve(async (req) => {
 
         if (social && !social.scrape_ok) {
             return Response.json({
-                error: `Cannot auto-generate a feed for ${social.name}.`,
+                error: `Cannot auto-generate an RSS feed for ${social.name}.`,
                 guidance: social.guidance,
                 is_social: true,
                 social_platform: social.name,
@@ -517,7 +517,7 @@ Deno.serve(async (req) => {
             return Response.json({
                 is_native_feed: true,
                 feed_url: suggestedUrl,
-                title: `${social.name} Feed`,
+                title: `${social.name} RSS feed`,
                 description: social.guidance,
                 item_count: 0,
                 method: 'social_native',
@@ -528,7 +528,7 @@ Deno.serve(async (req) => {
         // If user explicitly chose a social feed type but platform isn't known, warn them
         if (isSocialFeedType) {
             return Response.json({
-                error: `Social feed generation requires official API access for this platform.`,
+                error: `Generating an RSS feed for this platform requires official API access.`,
                 guidance: `MergeRSS does not scrape social platforms. For ${new URL(pageUrl).hostname}, check if they offer an official API or RSS export. Try their developer portal or help docs.`,
                 is_social: true,
                 social_platform: new URL(pageUrl).hostname,
@@ -623,19 +623,19 @@ Deno.serve(async (req) => {
             const isLikelyPaywall = html.toLowerCase().includes('subscribe') && html.toLowerCase().includes('paywall');
             const isLikelyRobotsBlocked = html.toLowerCase().includes('robot') && html.toLowerCase().includes('disallow');
 
-            let errorMsg = 'No article links could be extracted from this page.';
+            let errorMsg = 'No story links could be extracted from this page.';
             const suggestions = [];
 
             if (isLikelySpa) {
-                errorMsg = 'This page appears to be a JavaScript-rendered app (React/Next.js/Vue). MergeRSS requires server-rendered HTML to extract articles.';
+                errorMsg = 'This page appears to be a JavaScript-rendered app (React/Next.js/Vue). MergeRSS requires server-rendered HTML to extract stories.';
                 suggestions.push('Try the site\'s /feed, /rss, or /atom endpoint directly');
                 suggestions.push('Check if the site offers an official RSS/Atom link in its footer or header');
             } else if (isLikelyPaywall) {
-                errorMsg = 'This page may be behind a paywall or login wall — no public article links were found.';
+                errorMsg = 'This page may be behind a paywall or login wall — no public story links were found.';
                 suggestions.push('Try the public blog or news index instead');
                 suggestions.push('Look for a free RSS endpoint on the site (e.g., /feed or /rss)');
             } else {
-                suggestions.push('Try the blog or news index URL (e.g., /blog, /articles, /news)');
+                suggestions.push('Try the blog or news index URL (e.g., /blog, /news)');
                 suggestions.push('Try appending /feed, /rss, or /atom to the domain root');
                 suggestions.push('JavaScript-heavy SPAs require a headless browser — not yet supported');
             }

@@ -105,7 +105,7 @@ Deno.serve(async (req) => {
             const vote = body.vote === 'down' ? 'down' : body.vote === 'up' ? 'up' : null;
             if (!itemId) return Response.json({ error: 'item_id is required' }, { status: 400 });
             const target = await resolvePublicItem(svc, itemId, itemType);
-            if (!target) return Response.json({ error: 'Item not found' }, { status: 404 });
+            if (!target) return Response.json({ error: 'Not found' }, { status: 404 });
 
             const mine = extractItems(await svc.DirectoryVote.filter({ item_id: itemId, voter_email: user.email }, '-created_date', 50));
             const [current, ...extras] = mine;
@@ -129,7 +129,7 @@ Deno.serve(async (req) => {
             const itemId = String(body.item_id || '');
             const itemType = body.item_type === 'digest' ? 'digest' : 'feed';
             const target = await resolvePublicItem(svc, itemId, itemType);
-            if (!target) return Response.json({ error: 'Item not found' }, { status: 404 });
+            if (!target) return Response.json({ error: 'Not found' }, { status: 404 });
             if (target.record.created_by === user.email) return Response.json({ success: true, counted: false });
 
             if (target.kind === 'digest') {

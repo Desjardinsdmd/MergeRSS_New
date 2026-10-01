@@ -228,7 +228,7 @@ async function generateSourceFeed(url) {
     if (social && !social.scrape_ok) {
       return {
         success: false,
-        error: `Cannot auto-generate feed for ${social.name}`,
+        error: `Cannot auto-generate an RSS feed for ${social.name}`,
         is_social: true,
       };
     }
@@ -239,7 +239,7 @@ async function generateSourceFeed(url) {
     if (items.length === 0) {
       return {
         success: false,
-        error: 'No articles could be extracted from this page',
+        error: 'No stories could be extracted from this page',
       };
     }
 
@@ -467,7 +467,7 @@ Deno.serve(async (req) => {
       const existingFeeds = existingOwnFeeds;
       const remaining = FREE_FEED_LIMIT - existingFeeds.length;
       if (remaining <= 0) {
-        return Response.json({ error: `Feed limit reached. Free plan allows ${FREE_FEED_LIMIT} feeds. Upgrade to Premium for unlimited feeds.` }, { status: 403 });
+        return Response.json({ error: `Source limit reached. The Free plan allows ${FREE_FEED_LIMIT} sources. Upgrade to Premium for unlimited sources.` }, { status: 403 });
       }
       parsedSources = parsedSources.slice(0, remaining);
     }
@@ -614,10 +614,10 @@ Deno.serve(async (req) => {
             digest = res.data.digest;
             digestWarnings.push(...(res.data.warnings || []));
           } else {
-            digestError = res?.data?.error || 'Could not create digest';
+            digestError = res?.data?.error || 'Could not create briefing';
           }
         } catch (e) {
-          digestError = e?.response?.data?.error || e?.message || 'Could not create digest';
+          digestError = e?.response?.data?.error || e?.message || 'Could not create briefing';
         }
       }
     }

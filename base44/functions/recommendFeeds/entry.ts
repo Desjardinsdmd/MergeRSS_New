@@ -11,7 +11,7 @@ Deno.serve(async (req) => {
     const userFeedUrls = new Set(userFeeds.map(f => f.url));
 
     if (userFeeds.length === 0) {
-      return Response.json({ recommendations: [], summary: 'Add some feeds first to get personalized recommendations.' });
+      return Response.json({ recommendations: [], summary: 'Add a few sources first to get personalized recommendations.' });
     }
 
     // Get all directory feeds NOT already subscribed to

@@ -10,7 +10,7 @@ Deno.serve(async (req) => {
     const userFeeds = await base44.entities.Feed.filter({ created_by: user.email, status: 'active' });
     const feedIds = userFeeds.map(f => f.id);
 
-    if (feedIds.length === 0) return Response.json({ topics: [], summary: 'No active feeds found.' });
+    if (feedIds.length === 0) return Response.json({ topics: [], summary: 'No active sources found.' });
 
     // Fetch recent items scoped to user's feeds only
     const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
     const recentItems = allItems.filter(item => item.published_date >= cutoff);
 
     if (recentItems.length === 0) {
-      return Response.json({ topics: [], summary: 'No recent articles in the last 48 hours.' });
+      return Response.json({ topics: [], summary: 'No new stories in the last 48 hours.' });
     }
 
     const headlines = recentItems.slice(0, 80).map(i => i.title).join('\n');

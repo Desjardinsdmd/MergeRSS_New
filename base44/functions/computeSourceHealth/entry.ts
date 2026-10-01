@@ -96,7 +96,7 @@ Deno.serve(async (req) => {
                     metadata: { instance_id: instanceId, evaluated_count: 0, pipeline_health: 'degraded', run_duration_ms: Date.now() - runStart },
                 }).catch(() => {});
             }
-            return Response.json({ status: 'completed', evaluated_count: 0, pipeline_health: 'degraded', message: 'No feeds found' });
+            return Response.json({ status: 'completed', evaluated_count: 0, pipeline_health: 'degraded', message: 'No sources found' });
         }
 
         // ── CRITICAL: Bulk load ALL recent items in ONE query ─────────────────
@@ -241,7 +241,7 @@ function evaluateFeedHealth(feed, recentItems) {
     if (daysSinceLastArticle > 5) {
         issues.push({
             type: 'no_articles', severity: daysSinceLastArticle > 14 ? 'critical' : 'warning',
-            message: `No new articles in ${daysSinceLastArticle} days`,
+            message: `No new stories in ${daysSinceLastArticle} days`,
             detected_at: now.toISOString(),
         });
     }
@@ -260,7 +260,7 @@ function evaluateFeedHealth(feed, recentItems) {
     if (avg30d > 0.5 && avg7d < avg30d * 0.5) {
         issues.push({
             type: 'activity_drop', severity: 'warning',
-            message: `Activity dropped from ${avg30d.toFixed(1)} to ${avg7d.toFixed(1)} articles/day`,
+            message: `Activity dropped from ${avg30d.toFixed(1)} to ${avg7d.toFixed(1)} stories/day`,
             detected_at: now.toISOString(),
         });
     }
@@ -275,7 +275,7 @@ function evaluateFeedHealth(feed, recentItems) {
     if (parsingQuality < 70 && recentItems.length > 10) {
         issues.push({
             type: 'parsing_error', severity: 'warning',
-            message: `Parsing quality at ${parsingQuality}% - ${missingData} incomplete items`,
+            message: `Parsing quality at ${parsingQuality}% - ${missingData} incomplete stories`,
             detected_at: now.toISOString(),
         });
     }
@@ -289,7 +289,7 @@ function evaluateFeedHealth(feed, recentItems) {
     if (recentItems.length === 0 && daysSinceLastArticle > 14) {
         issues.push({
             type: 'empty_feed', severity: 'critical',
-            message: 'No articles found in 14+ days',
+            message: 'No stories found in 14+ days',
             detected_at: now.toISOString(),
         });
     }

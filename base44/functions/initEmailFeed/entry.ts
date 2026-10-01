@@ -23,7 +23,7 @@ Deno.serve(async (req) => {
     return Response.json({
       ...data,
       email_feed: data.address ? { user_email: user.email, unique_email: data.address, is_active: true } : null,
-      message: data.address ? 'Email feed ready' : 'Email feed unavailable',
+      message: data.address ? 'Newsletter inbox ready' : 'Newsletter inbox unavailable',
     });
   } catch (error) {
     const msg = error?.response?.data?.error || error?.message || 'Server error';

@@ -164,7 +164,7 @@ Deno.serve(async (req) => {
 
         // Fetch the feed record (service role to ensure it exists)
         const feed = await base44.asServiceRole.entities.Feed.get(feed_id);
-        if (!feed) return Response.json({ error: 'Feed not found' }, { status: 404 });
+        if (!feed) return Response.json({ error: 'Source not found' }, { status: 404 });
 
         // Only allow the owner to trigger an immediate fetch
         if (feed.created_by !== user.email) return Response.json({ error: 'Forbidden' }, { status: 403 });
