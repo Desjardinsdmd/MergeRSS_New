@@ -17,7 +17,6 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
@@ -30,7 +29,7 @@ import { toast } from 'sonner';
 import DashboardLayoutSettings from '@/components/settings/DashboardLayoutSettings';
 import NotificationPreferences from '@/components/settings/NotificationPreferences';
 import ThemeSettings, { resolveAccent } from '@/components/settings/ThemeSettings';
-import { PageHeader, MicroLabel } from '@/components/brand/Brand';
+import { PageHeader } from '@/components/brand/Brand';
 import { useWorkspace } from '@/components/feeds/workspaceApi';
 
 // IANA zone names only: briefings (Digest entities) default to User.timezone and the backend passes it
@@ -182,7 +181,7 @@ export default function Settings() {
           {editingProfile ? (
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <Label htmlFor="settings-name" className="micro-label">Name</Label>
+                <label htmlFor="settings-name" className="micro-label">Name</label>
                 <Input
                   id="settings-name"
                   value={formData.full_name}
@@ -191,7 +190,7 @@ export default function Settings() {
                 />
               </div>
               <div>
-                <Label htmlFor="settings-email" className="micro-label">Email</Label>
+                <label htmlFor="settings-email" className="micro-label">Email</label>
                 <Input
                   id="settings-email"
                   value={formData.email}
@@ -203,11 +202,11 @@ export default function Settings() {
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <Label htmlFor="settings-name-ro" className="micro-label">Name</Label>
+                <label htmlFor="settings-name-ro" className="micro-label">Name</label>
                 <Input id="settings-name-ro" value={user?.full_name || ''} disabled className="text-stone-400" />
               </div>
               <div>
-                <Label htmlFor="settings-email-ro" className="micro-label">Email</Label>
+                <label htmlFor="settings-email-ro" className="micro-label">Email</label>
                 <Input id="settings-email-ro" value={user?.email || ''} disabled className="font-mono text-[13px] text-stone-400" />
               </div>
             </div>
@@ -217,7 +216,7 @@ export default function Settings() {
         {/* Preferences */}
         <Section icon={Globe} title="Preferences" id="preferences">
           <div>
-            <Label htmlFor="settings-tz" className="micro-label">Your timezone</Label>
+            <label htmlFor="settings-tz" className="micro-label">Your timezone</label>
             <Select
               value={formData.timezone}
               onValueChange={(v) => setFormData({ ...formData, timezone: v })}
@@ -246,7 +245,7 @@ export default function Settings() {
         >
           <div className="space-y-4">
             <div>
-              <Label htmlFor="settings-interest-field" className="micro-label">Your field</Label>
+              <label htmlFor="settings-interest-field" className="micro-label">Your field</label>
               <Input
                 id="settings-interest-field"
                 value={interestField}
@@ -256,7 +255,7 @@ export default function Settings() {
               />
             </div>
             <div>
-              <Label htmlFor="settings-interest-profile" className="micro-label">What you care about</Label>
+              <label htmlFor="settings-interest-profile" className="micro-label">What you care about</label>
               <Textarea
                 id="settings-interest-profile"
                 value={interestProfile}
