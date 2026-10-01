@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 import { Loader2, X, Plus, Globe, AlertCircle, CheckCircle2, Sparkles } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
@@ -146,7 +145,7 @@ export default function AddSourceDialog({ open, onOpenChange, onSuccess, editFee
         return;
       }
 
-      setSourceStatus({ phase: 'analyzing', message: 'Analyzing source and fetching first articles…', type: 'info' });
+      setSourceStatus({ phase: 'analyzing', message: 'Analyzing source and fetching first stories…', type: 'info' });
       const result = await addSourceViaApi({
         url,
         name: formData.name.trim(),
@@ -165,9 +164,9 @@ export default function AddSourceDialog({ open, onOpenChange, onSuccess, editFee
       if (ff && ff.success === false) {
         toast.warning(`Source added, but the first fetch failed: ${ff.error || 'unknown error'}. It will retry automatically.`);
       } else if (ff && typeof ff.new_items === 'number') {
-        toast.success(`"${result.data.name}" added with ${ff.new_items} article${ff.new_items === 1 ? '' : 's'}`);
+        toast.success(`"${result.data.name}" added with ${ff.new_items} stor${ff.new_items === 1 ? 'y' : 'ies'}`);
       }
-      finishSuccess('Source added!');
+      finishSuccess('Source added');
 
       base44.analytics.track({ eventName: 'source_added', properties: { category, sourceType: result.data.sourceType } });
     } catch (err) {
@@ -195,9 +194,11 @@ export default function AddSourceDialog({ open, onOpenChange, onSuccess, editFee
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-[hsl(var(--primary))]" />
-            {editFeed ? 'Edit Source' : 'Add New Source'}
+          <DialogTitle className="flex items-center gap-2 font-display text-lg font-semibold text-stone-100">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[hsl(var(--primary)/0.14)]">
+              <Sparkles className="h-4 w-4 text-[hsl(var(--primary))]" aria-hidden="true" />
+            </span>
+            {editFeed ? 'Edit source' : 'Add source'}
           </DialogTitle>
         </DialogHeader>
 
@@ -205,12 +206,12 @@ export default function AddSourceDialog({ open, onOpenChange, onSuccess, editFee
           {sourceStatus && (
             <div
               className={cn(
-                'flex items-start gap-3 px-3 py-3 rounded-lg',
+                'flex items-start gap-3 rounded-xl border px-3 py-3',
                 sourceStatus.type === 'success'
-                  ? 'bg-emerald-900/40 border border-emerald-700 text-emerald-300'
+                  ? 'border-emerald-400/25 bg-emerald-400/10 text-emerald-300'
                   : sourceStatus.type === 'error'
-                  ? 'bg-red-900/40 border border-red-700 text-red-300'
-                  : 'bg-stone-800 border border-stone-700 text-stone-300'
+                  ? 'border-red-400/25 bg-red-400/10 text-red-300'
+                  : 'border-white/[0.07] bg-white/[0.04] text-stone-300'
               )}
             >
               {sourceStatus.type === 'success' ? (
@@ -231,7 +232,7 @@ export default function AddSourceDialog({ open, onOpenChange, onSuccess, editFee
 
           <div>
             <Label htmlFor="name">
-              Source Name {editFeed ? <span className="text-[hsl(var(--primary))]">*</span> : <span className="text-stone-500 font-normal">(optional)</span>}
+              Source name {editFeed ? <span className="text-[hsl(var(--primary))]">*</span> : <span className="font-normal text-stone-500">(optional)</span>}
             </Label>
             <Input
               id="name"
@@ -240,7 +241,7 @@ export default function AddSourceDialog({ open, onOpenChange, onSuccess, editFee
                 setFormData({ ...formData, name: e.target.value });
                 setErrors((prev) => ({ ...prev, name: '' }));
               }}
-              placeholder={editFeed ? 'e.g., TechCrunch, Bloomberg, My Blog' : 'Leave blank to use the feed\'s own title'}
+              placeholder={editFeed ? 'e.g., TechCrunch, Bloomberg, My Blog' : 'Leave blank to use the source\'s own title'}
               aria-required={editFeed ? 'true' : 'false'}
               aria-invalid={!!errors.name}
               className={cn(errors.name && 'border-red-500')}
@@ -260,7 +261,7 @@ export default function AddSourceDialog({ open, onOpenChange, onSuccess, editFee
           ) : (
           <div>
             <Label htmlFor="url">
-              Website or Feed URL <span className="text-[hsl(var(--primary))]">*</span>
+              Website or RSS feed URL <span className="text-[hsl(var(--primary))]">*</span>
             </Label>
             <Input
               id="url"
@@ -274,7 +275,7 @@ export default function AddSourceDialog({ open, onOpenChange, onSuccess, editFee
               placeholder="https://example.com/blog"
               aria-required="true"
               aria-invalid={!!errors.url}
-              className={cn(errors.url && 'border-red-500')}
+              className={cn('font-mono text-[13px]', errors.url && 'border-red-500')}
             />
             {errors.url ? (
               <p className="mt-1 text-xs text-red-400 flex items-center gap-1">
@@ -283,7 +284,7 @@ export default function AddSourceDialog({ open, onOpenChange, onSuccess, editFee
               </p>
             ) : (
               <p className="mt-1 text-xs text-stone-500">
-                Paste a blog, website, or RSS feed URL. We'll automatically detect the best source.
+                Paste a website or RSS feed URL. We'll detect the best source automatically.
               </p>
             )}
           </div>
@@ -351,14 +352,14 @@ export default function AddSourceDialog({ open, onOpenChange, onSuccess, editFee
                 placeholder="Add tag..."
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
               />
-              <Button type="button" variant="outline" onClick={addTag} aria-label="Add tag">
+              <Button type="button" variant="outline" onClick={addTag} aria-label="Add tag" className="rounded-xl">
                 <Plus className="w-4 h-4" />
               </Button>
             </div>
             {formData.tags.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {formData.tags.map((tag) => (
-                  <Badge key={tag} variant="secondary" className="gap-1">
+                  <span key={tag} className="chip-brand gap-1">
                     {tag}
                     <button
                       type="button"
@@ -368,19 +369,19 @@ export default function AddSourceDialog({ open, onOpenChange, onSuccess, editFee
                     >
                       <X className="w-3 h-3" />
                     </button>
-                  </Badge>
+                  </span>
                 ))}
               </div>
             )}
           </div>
 
           {editFeed && !isNewsletter && (
-            <div className="border border-stone-800 rounded-lg p-4 space-y-3 bg-stone-800">
+            <div className="panel-raised space-y-3 p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Globe className="w-4 h-4 text-[hsl(var(--primary))]" />
                   <div>
-                    <p className="text-sm font-medium text-stone-200">Share to Public Directory</p>
+                    <p className="text-sm font-medium text-stone-100">Share to public directory</p>
                     <p className="text-xs text-stone-500">Let others discover this source</p>
                   </div>
                 </div>
@@ -406,7 +407,7 @@ export default function AddSourceDialog({ open, onOpenChange, onSuccess, editFee
           )}
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="rounded-xl">
               Cancel
             </Button>
             <Button
@@ -415,7 +416,7 @@ export default function AddSourceDialog({ open, onOpenChange, onSuccess, editFee
               className="btn-brand"
             >
               {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {editFeed ? 'Save Changes' : 'Add Source'}
+              {editFeed ? 'Save changes' : 'Add source'}
             </Button>
           </DialogFooter>
         </form>
