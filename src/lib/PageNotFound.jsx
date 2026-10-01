@@ -1,36 +1,32 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Rss, Home, ArrowLeft } from 'lucide-react';
+import { Home, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { LogoMark, MicroLabel } from '@/components/brand/Brand';
 
 export default function PageNotFound() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex items-center justify-center p-6">
-      <div className="text-center max-w-md">
-        <div className="w-16 h-16 bg-[#171a20] flex items-center justify-center mx-auto mb-6">
-          <Rss className="w-8 h-8 text-white" />
-        </div>
-        
-        <h1 className="text-6xl font-bold text-slate-900 mb-2">404</h1>
-        <h2 className="text-xl font-semibold text-slate-700 mb-4">Page Not Found</h2>
-        <p className="text-slate-500 mb-8">
+    <div className="app-backdrop flex min-h-screen items-center justify-center p-6">
+      <div className="panel w-full max-w-md p-10 text-center">
+        <LogoMark size="lg" className="mx-auto mb-6" />
+
+        <MicroLabel className="mb-2">Error 404</MicroLabel>
+        <h1 className="mb-3 font-display text-[28px] font-semibold tracking-tight text-stone-100">Page not found</h1>
+        <p className="mb-8 text-[15px] text-stone-400">
           The page you're looking for doesn't exist or has been moved.
         </p>
-        
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <Link to={createPageUrl('Dashboard')}>
-            <Button className="bg-[#171a20] hover:bg-black rounded-sm">
-              <Home className="w-4 h-4 mr-2" />
-              Go to Dashboard
-            </Button>
-          </Link>
-          <Button 
-            variant="outline" 
-            onClick={() => window.history.back()}
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Go Back
+
+        <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <Button asChild>
+            <Link to={createPageUrl('Dashboard')}>
+              <Home className="h-4 w-4" aria-hidden="true" />
+              Go to Today
+            </Link>
+          </Button>
+          <Button variant="outline" onClick={() => window.history.back()}>
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            Go back
           </Button>
         </div>
       </div>

@@ -7,7 +7,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, Crown, Globe, ChevronRight, ChevronLeft, Check, FileText, Clock, Send, Rss } from 'lucide-react';
@@ -72,20 +71,20 @@ function StepIndicator({ currentStep }) {
           <React.Fragment key={step.id}>
             <div className="flex flex-col items-center gap-1.5">
               <div className={cn(
-                "w-9 h-9 flex items-center justify-center border-2 transition-all",
-                isCompleted ? "bg-[hsl(var(--primary))] border-[hsl(var(--primary))]" : isActive ? "border-[hsl(var(--primary))] bg-transparent" : "border-stone-700 bg-transparent"
+                "w-9 h-9 rounded-xl flex items-center justify-center border transition-all",
+                isCompleted ? "bg-[hsl(var(--primary))] border-[hsl(var(--primary))]" : isActive ? "border-[hsl(var(--primary)/0.5)] bg-[hsl(var(--primary)/0.14)]" : "border-white/[0.07] bg-white/[0.03]"
               )}>
                 {isCompleted
-                  ? <Check className="w-4 h-4 text-stone-900" />
+                  ? <Check className="w-4 h-4 text-white" />
                   : <Icon className={cn("w-4 h-4", isActive ? "text-[hsl(var(--primary))]" : "text-stone-600")} />
                 }
               </div>
-              <span className={cn("text-xs font-medium hidden sm:block", isActive ? "text-[hsl(var(--primary))]" : isCompleted ? "text-stone-400" : "text-stone-600")}>
+              <span className={cn("font-mono text-[10px] uppercase tracking-[0.14em] hidden sm:block", isActive ? "text-[hsl(var(--primary))]" : isCompleted ? "text-stone-400" : "text-stone-600")}>
                 {step.label}
               </span>
             </div>
             {idx < STEPS.length - 1 && (
-              <div className={cn("flex-1 h-px mx-2 mt-[-12px]", idx < stepIdx ? "bg-[hsl(var(--primary))]" : "bg-stone-800")} />
+              <div className={cn("flex-1 h-px mx-2 mt-[-12px]", idx < stepIdx ? "bg-[hsl(var(--primary))]" : "bg-white/[0.07]")} />
             )}
           </React.Fragment>
         );
@@ -98,11 +97,11 @@ function StepBasics({ formData, setFormData }) {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-lg font-bold text-stone-100 mb-1">Name your digest</h2>
+        <h2 className="font-display text-lg font-semibold text-stone-100 mb-1">Name your briefing</h2>
         <p className="text-sm text-stone-500">Give it a descriptive name so you can identify it easily.</p>
       </div>
       <div>
-        <Label htmlFor="name" className="text-stone-300">Digest Name <span className="text-[hsl(var(--primary))]">*</span></Label>
+        <Label htmlFor="name" className="text-stone-300">Briefing name <span className="text-[hsl(var(--primary))]">*</span></Label>
         <Input
           id="name"
           value={formData.name}
@@ -118,13 +117,13 @@ function StepBasics({ formData, setFormData }) {
           id="description"
           value={formData.description}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          placeholder="What's this digest about?"
+          placeholder="What's this briefing about?"
           rows={3}
           className="mt-1.5"
         />
       </div>
       <div>
-        <Label className="text-stone-300">Output Length</Label>
+        <Label className="micro-label">Output length</Label>
         <div className="grid grid-cols-3 gap-3 mt-2">
           {[
             { value: 'short', label: 'Short', desc: 'Bullet points' },
@@ -136,13 +135,13 @@ function StepBasics({ formData, setFormData }) {
               type="button"
               onClick={() => setFormData({ ...formData, output_length: opt.value })}
               className={cn(
-                "p-3 border text-left transition-all",
+                "p-3 rounded-xl border text-left transition-all",
                 formData.output_length === opt.value
-                  ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10"
-                  : "border-stone-700 hover:border-stone-600"
+                  ? "border-[hsl(var(--primary)/0.5)] bg-[hsl(var(--primary)/0.12)]"
+                  : "border-white/[0.07] bg-white/[0.02] hover:border-white/[0.14]"
               )}
             >
-              <p className={cn("text-sm font-semibold", formData.output_length === opt.value ? "text-[hsl(var(--primary))]" : "text-stone-300")}>{opt.label}</p>
+              <p className={cn("text-sm font-semibold", formData.output_length === opt.value ? "text-stone-100" : "text-stone-300")}>{opt.label}</p>
               <p className="text-xs text-stone-500 mt-0.5">{opt.desc}</p>
             </button>
           ))}
@@ -170,23 +169,24 @@ function StepContent({ formData, setFormData, feeds }) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-bold text-stone-100 mb-1">Choose your content</h2>
-        <p className="text-sm text-stone-500">Select categories or specific feeds to include.</p>
+        <h2 className="font-display text-lg font-semibold text-stone-100 mb-1">Choose your content</h2>
+        <p className="text-sm text-stone-500">Select categories or specific sources to include.</p>
       </div>
 
       <div>
-        <Label className="text-stone-300 mb-2 block">Categories</Label>
+        <Label className="micro-label mb-2 block">Categories</Label>
         <div className="flex flex-wrap gap-2">
           {CATEGORIES.map((cat) => (
             <button
               key={cat}
               type="button"
               onClick={() => toggleCategory(cat)}
+              aria-pressed={formData.categories.includes(cat)}
               className={cn(
-                "px-3 py-1.5 text-sm font-medium border transition-all",
+                "rounded-md border px-2.5 py-1 font-mono text-[11px] font-medium transition-all",
                 formData.categories.includes(cat)
-                ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]"
-                  : "border-stone-700 text-stone-400 hover:border-stone-500 hover:text-stone-300"
+                  ? "border-[hsl(var(--brand)/0.35)] bg-[hsl(var(--brand)/0.16)] text-[#C4A5FD]"
+                  : "border-white/10 text-stone-400 hover:bg-white/[0.04] hover:text-stone-200"
               )}
             >
               {cat}
@@ -194,22 +194,22 @@ function StepContent({ formData, setFormData, feeds }) {
           ))}
         </div>
         {formData.categories.length === 0 && (
-          <p className="text-xs text-stone-600 mt-2">No category selected = all categories included</p>
+          <p className="text-xs text-stone-500 mt-2">With no category selected, every category is included.</p>
         )}
       </div>
 
       {feeds.length > 0 && (
         <div>
-          <Label className="text-stone-300 mb-2 block">Specific Feeds <span className="text-stone-600 font-normal">(optional)</span></Label>
-          <div className="border border-stone-700 rounded-lg divide-y divide-stone-800 max-h-48 overflow-y-auto">
+          <Label className="micro-label mb-2 block">Specific sources <span className="normal-case tracking-normal text-stone-600">(optional)</span></Label>
+          <div className="rounded-xl border border-white/[0.07] bg-white/[0.02] divide-y divide-white/[0.06] max-h-48 overflow-y-auto">
             {feeds.map((feed) => (
-              <label key={feed.id} className="flex items-center gap-3 px-3 py-2.5 hover:bg-stone-800 cursor-pointer">
+              <label key={feed.id} className="flex items-center gap-3 px-3 py-2.5 mb-0 hover:bg-white/[0.04] cursor-pointer">
                 <Checkbox
                   checked={formData.feed_ids.includes(feed.id)}
                   onCheckedChange={() => toggleFeed(feed.id)}
                 />
                 <span className="text-sm text-stone-300 flex-1 min-w-0 truncate">{feed.name}</span>
-                <Badge variant="outline" className="text-xs shrink-0 ml-1">{feed.category}</Badge>
+                {feed.category && <span className="chip-brand shrink-0 ml-1">{feed.category}</span>}
               </label>
             ))}
           </div>
@@ -223,12 +223,12 @@ function StepSchedule({ formData, setFormData }) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-bold text-stone-100 mb-1">Set the schedule</h2>
-        <p className="text-sm text-stone-500">How often should this digest be generated?</p>
+        <h2 className="font-display text-lg font-semibold text-stone-100 mb-1">Set the schedule</h2>
+        <p className="text-sm text-stone-500">How often should this briefing be generated?</p>
       </div>
 
       <div>
-        <Label className="text-stone-300 mb-2 block">Frequency</Label>
+        <Label className="micro-label mb-2 block">Frequency</Label>
         <div className="grid grid-cols-3 gap-3">
           {['daily', 'weekly', 'monthly'].map(freq => (
             <button
@@ -236,10 +236,10 @@ function StepSchedule({ formData, setFormData }) {
               type="button"
               onClick={() => setFormData({ ...formData, frequency: freq })}
               className={cn(
-                "p-3 border text-center capitalize transition-all",
+                "p-3 rounded-xl border text-center text-sm capitalize transition-all",
                 formData.frequency === freq
-                ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))] font-semibold"
-                  : "border-stone-700 text-stone-400 hover:border-stone-600"
+                  ? "border-[hsl(var(--primary)/0.5)] bg-[hsl(var(--primary)/0.12)] text-stone-100 font-semibold"
+                  : "border-white/[0.07] bg-white/[0.02] text-stone-400 hover:border-white/[0.14]"
               )}
             >
               {freq}
@@ -250,21 +250,21 @@ function StepSchedule({ formData, setFormData }) {
 
       <div className="flex flex-col gap-4">
         <div>
-          <Label htmlFor="digest-time" className="text-stone-300">What time to send</Label>
+          <Label htmlFor="digest-time" className="micro-label">What time to send</Label>
           <Input
             id="digest-time"
             type="time"
             value={formData.schedule_time}
             onChange={(e) => setFormData({ ...formData, schedule_time: e.target.value })}
-            className="mt-1.5"
-            aria-label="Select time for digest delivery"
+            className="mt-1.5 font-mono"
+            aria-label="Select time for briefing delivery"
           />
-          <p className="text-xs text-stone-500 mt-1.5">The digest will be generated and sent at this time daily</p>
+          <p className="text-xs text-stone-500 mt-1.5">The briefing is generated and sent at this time</p>
         </div>
         <div>
-          <Label htmlFor="digest-tz" className="text-stone-300">Your timezone</Label>
+          <Label htmlFor="digest-tz" className="micro-label">Your timezone</Label>
           <Select value={formData.timezone} onValueChange={(v) => setFormData({ ...formData, timezone: v })}>
-            <SelectTrigger id="digest-tz" className="mt-1.5" aria-label="Select timezone for digest scheduling">
+            <SelectTrigger id="digest-tz" className="mt-1.5" aria-label="Select timezone for briefing scheduling">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -273,13 +273,13 @@ function StepSchedule({ formData, setFormData }) {
               ))}
             </SelectContent>
           </Select>
-          <p className="text-xs text-stone-500 mt-1.5">Digests will be generated at the scheduled time in this timezone</p>
+          <p className="text-xs text-stone-500 mt-1.5">Briefings run at the scheduled time in this timezone</p>
         </div>
       </div>
 
       {formData.frequency === 'weekly' && (
         <div>
-          <Label className="text-stone-300">Day of Week</Label>
+          <Label className="micro-label">Day of week</Label>
           <div className="flex flex-wrap gap-2 mt-2">
             {DAYS.map((day, i) => (
               <button
@@ -287,10 +287,10 @@ function StepSchedule({ formData, setFormData }) {
                 type="button"
                 onClick={() => setFormData({ ...formData, schedule_day_of_week: i })}
                 className={cn(
-                  "px-3 py-1.5 text-sm border transition-all",
+                  "rounded-xl border px-3 py-1.5 text-sm transition-all",
                   formData.schedule_day_of_week === i
-                    ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))] font-semibold"
-                    : "border-stone-700 text-stone-400 hover:border-stone-600"
+                    ? "border-[hsl(var(--primary)/0.5)] bg-[hsl(var(--primary)/0.12)] text-stone-100 font-semibold"
+                    : "border-white/[0.07] text-stone-400 hover:border-white/[0.14]"
                 )}
               >
                 {day.slice(0, 3)}
@@ -302,7 +302,7 @@ function StepSchedule({ formData, setFormData }) {
 
       {formData.frequency === 'monthly' && (
         <div>
-          <Label className="text-stone-300">Day of Month</Label>
+          <Label className="micro-label">Day of month</Label>
           <Select
             value={String(formData.schedule_day_of_month)}
             onValueChange={(v) => setFormData({ ...formData, schedule_day_of_month: Number(v) })}
@@ -326,13 +326,13 @@ function StepDelivery({ formData, setFormData, isPremium, slackIntegration, disc
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-lg font-bold text-stone-100 mb-1">Choose delivery channels</h2>
-        <p className="text-sm text-stone-500">Where should your digest be sent?</p>
+        <h2 className="font-display text-lg font-semibold text-stone-100 mb-1">Choose delivery channels</h2>
+        <p className="text-sm text-stone-500">Where should your briefing be sent?</p>
       </div>
 
       <div className="space-y-3">
         {[
-          { key: 'delivery_web', label: 'Web Inbox', desc: 'View digests in the app', premium: false },
+          { key: 'delivery_web', label: 'Inbox', desc: 'Read briefings in the app', premium: false },
           { key: 'delivery_email', label: 'Email', desc: 'Send to your account email', premium: false },
           { key: 'delivery_slack', label: 'Slack', desc: slackIntegration ? `Connected to ${slackIntegration.workspace_name || 'workspace'}` : 'Connect Slack in Integrations', premium: true },
           { key: 'delivery_discord', label: 'Discord', desc: 'Post to a Discord channel', premium: true },
@@ -343,9 +343,9 @@ function StepDelivery({ formData, setFormData, isPremium, slackIntegration, disc
             <label
               key={key}
               className={cn(
-                "flex items-center gap-4 p-4 border rounded-none transition-all",
-                locked ? "opacity-50 cursor-not-allowed border-stone-800" :
-                checked ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/5 cursor-pointer" : "border-stone-700 hover:border-stone-600 cursor-pointer"
+                "flex items-center gap-4 p-4 mb-0 rounded-xl border transition-all",
+                locked ? "opacity-50 cursor-not-allowed border-white/[0.07]" :
+                checked ? "border-[hsl(var(--primary)/0.45)] bg-[hsl(var(--primary)/0.08)] cursor-pointer" : "border-white/[0.07] bg-white/[0.02] hover:border-white/[0.14] cursor-pointer"
               )}
             >
               <Switch
@@ -355,8 +355,8 @@ function StepDelivery({ formData, setFormData, isPremium, slackIntegration, disc
               />
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-stone-200">{label}</p>
-                  {locked && <Badge variant="outline" className="text-xs gap-1 border-[hsl(var(--primary))]/50 text-[hsl(var(--primary))]"><Crown className="w-3 h-3" /> Premium</Badge>}
+                  <p className="text-sm font-semibold text-stone-100">{label}</p>
+                  {locked && <span className="chip-brand gap-1"><Crown className="w-3 h-3" aria-hidden="true" /> Premium</span>}
                 </div>
                 <p className="text-xs text-stone-500 mt-0.5">{desc}</p>
               </div>
@@ -367,15 +367,15 @@ function StepDelivery({ formData, setFormData, isPremium, slackIntegration, disc
 
       {formData.delivery_discord && isPremium && !discordIntegration && (
         <div className="mt-2">
-          <Label htmlFor="discord-webhook" className="text-stone-300">Discord Webhook URL <span className="text-stone-600 font-normal">(required)</span></Label>
+          <Label htmlFor="discord-webhook" className="text-stone-300">Discord webhook URL <span className="text-stone-500 font-normal">(required)</span></Label>
           <Input
             id="discord-webhook"
             type="url"
             placeholder="https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_TOKEN"
             value={formData.discord_webhook_url}
             onChange={(e) => setFormData({ ...formData, discord_webhook_url: e.target.value })}
-            className="mt-1.5"
-            aria-label="Discord webhook URL for posting digests"
+            className="mt-1.5 font-mono text-sm"
+            aria-label="Discord webhook URL for posting briefings"
             aria-describedby="discord-hint"
           />
           <p id="discord-hint" className="text-xs text-stone-500 mt-2">
@@ -384,23 +384,24 @@ function StepDelivery({ formData, setFormData, isPremium, slackIntegration, disc
         </div>
       )}
 
-      <div className="border border-stone-800 rounded-none p-4 mt-2">
+      <div className="panel-raised p-4 mt-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Globe className="w-4 h-4 text-[hsl(var(--primary))]" />
+            <Globe className="w-4 h-4 text-[hsl(var(--primary))]" aria-hidden="true" />
             <div>
-              <p className="text-sm font-semibold text-stone-200">Share to Public Directory</p>
-              <p className="text-xs text-stone-500">Let others discover and add this digest</p>
+              <p className="text-sm font-semibold text-stone-100">Share to public directory</p>
+              <p className="text-xs text-stone-500">Let others discover and add this briefing</p>
             </div>
           </div>
           <Switch
             checked={formData.is_public}
             onCheckedChange={(v) => setFormData({ ...formData, is_public: v })}
+            aria-label="Share to public directory"
           />
         </div>
         {formData.is_public && (
             <div className="mt-3">
-              <Label htmlFor="public-desc" className="text-stone-300 text-sm mb-1 block">Directory description <span className="text-stone-600 font-normal">(50 chars)</span></Label>
+              <Label htmlFor="public-desc" className="text-stone-300 text-sm mb-1 block">Directory description <span className="font-mono text-stone-500 font-normal">(50 chars)</span></Label>
               <Input
                 id="public-desc"
                 value={formData.public_description}
@@ -412,7 +413,7 @@ function StepDelivery({ formData, setFormData, isPremium, slackIntegration, disc
                 aria-describedby="desc-hint"
               />
               <p id="desc-hint" className="text-xs text-stone-500 mt-1">
-                {formData.public_description.length}/50 characters. Shown to other users browsing the directory.
+                <span className="font-mono">{formData.public_description.length}/50</span> characters. Shown to other users browsing the directory.
               </p>
             </div>
           )}
@@ -507,7 +508,7 @@ export default function DigestWizard({ open, onOpenChange, onSuccess }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100vw-2rem)] sm:w-full max-w-lg mx-auto p-0 gap-0 bg-[#0d0a06] border-stone-800 overflow-hidden flex flex-col [&_input]:bg-stone-800 [&_input]:text-stone-100 [&_input]:border-stone-700 [&_input]:placeholder:text-stone-500 [&_textarea]:bg-stone-800 [&_textarea]:text-stone-100 [&_textarea]:border-stone-700 [&_textarea]:placeholder:text-stone-500" style={{maxHeight: '90dvh'}}>
+      <DialogContent className="w-[calc(100vw-2rem)] sm:w-full max-w-lg mx-auto p-0 gap-0 bg-stone-950 border-white/[0.08] rounded-2xl overflow-hidden flex flex-col [&_input]:rounded-xl [&_input]:bg-white/[0.04] [&_input]:text-stone-100 [&_input]:border-white/[0.08] [&_input]:placeholder:text-stone-500 [&_textarea]:rounded-xl [&_textarea]:bg-white/[0.04] [&_textarea]:text-stone-100 [&_textarea]:border-white/[0.08] [&_textarea]:placeholder:text-stone-500" style={{maxHeight: '90dvh'}}>
         <div className="flex flex-col overflow-hidden flex-1">
           <div className="px-4 sm:px-6 pt-5 pb-3 flex-shrink-0">
             <StepIndicator currentStep={step} />
@@ -515,11 +516,11 @@ export default function DigestWizard({ open, onOpenChange, onSuccess }) {
           <div className="flex-1 overflow-y-auto px-4 sm:px-6 pb-2 min-h-0">
             {step === 'success' ? (
               <div className="flex flex-col items-center justify-center py-12 gap-4">
-                <div className="w-16 h-16 bg-emerald-900/40 border-2 border-emerald-500 flex items-center justify-center">
+                <div className="w-16 h-16 rounded-2xl bg-emerald-400/10 border border-emerald-400/30 flex items-center justify-center">
                   <Check className="w-8 h-8 text-emerald-400" />
                 </div>
-                <p className="text-lg font-bold text-stone-100">Digest Created!</p>
-                <p className="text-sm text-stone-500 text-center">Your digest has been saved and will run on schedule.</p>
+                <p className="font-display text-lg font-semibold text-stone-100">Briefing created</p>
+                <p className="text-sm text-stone-400 text-center">Your briefing is saved and will run on schedule.</p>
               </div>
             ) : (
               <>
@@ -540,33 +541,35 @@ export default function DigestWizard({ open, onOpenChange, onSuccess }) {
           </div>
 
           {step !== 'success' && (
-            <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-t border-stone-800 flex-shrink-0 bg-[#0d0a06]">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-t border-white/[0.06] flex-shrink-0 bg-stone-950">
               <Button
                 type="button"
                 variant="ghost"
                 onClick={isFirst ? () => onOpenChange(false) : handleBack}
-                className="text-stone-400 hover:text-stone-200"
+                className="rounded-xl text-stone-400 hover:text-stone-200"
               >
                 {isFirst ? 'Cancel' : <><ChevronLeft className="w-4 h-4 mr-1" /> Back</>}
               </Button>
 
               {isLast ? (
-                <Button
+                <button
+                  type="button"
                   onClick={handleSubmit}
                   disabled={loading}
-                  className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-bold px-6"
+                  className="btn-brand px-6 disabled:opacity-60"
                 >
-                  {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  Create Digest
-                </Button>
+                  {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+                  Create briefing
+                </button>
               ) : (
-                <Button
+                <button
+                  type="button"
                   onClick={handleNext}
                   disabled={!canNext()}
-                  className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-bold px-6"
+                  className="btn-brand px-6 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  Next <ChevronRight className="w-4 h-4 ml-1" />
-                </Button>
+                  Next <ChevronRight className="w-4 h-4" />
+                </button>
               )}
             </div>
           )}

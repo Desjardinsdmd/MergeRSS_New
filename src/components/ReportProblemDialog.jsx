@@ -49,8 +49,8 @@ export default function ReportProblemDialog({ open, onOpenChange, user }) {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 text-amber-400" />
-            Report a Problem
+            <AlertCircle className="h-5 w-5 text-[hsl(var(--primary))]" aria-hidden="true" />
+            Report a problem
           </DialogTitle>
           <DialogDescription>
             Help us improve by reporting any issues you encounter
@@ -59,29 +59,30 @@ export default function ReportProblemDialog({ open, onOpenChange, user }) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-stone-200 mb-1.5">
-              Issue Title
+            <label htmlFor="report-title" className="micro-label mb-1.5">
+              Issue title
             </label>
             <Input
-              placeholder="e.g., Feeds not updating"
+              id="report-title"
+              placeholder="e.g., Sources not updating"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               disabled={isSubmitting}
-              className="bg-stone-800 border-stone-700 text-stone-100"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-stone-200 mb-1.5">
+            <label htmlFor="report-description" className="micro-label mb-1.5">
               Description
             </label>
             <Textarea
+              id="report-description"
               placeholder="Describe what happened and what you expected..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               disabled={isSubmitting}
               rows={4}
-              className="bg-stone-800 border-stone-700 text-stone-100 resize-none"
+              className="resize-none"
             />
           </div>
 
@@ -97,17 +98,16 @@ export default function ReportProblemDialog({ open, onOpenChange, user }) {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="bg-[hsl(var(--primary))] hover:opacity-90 text-stone-900 font-semibold"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                   Submitting...
                 </>
               ) : (
                 <>
-                  <Send className="w-4 h-4 mr-2" />
-                  Submit Report
+                  <Send className="h-4 w-4" aria-hidden="true" />
+                  Submit report
                 </>
               )}
             </Button>
