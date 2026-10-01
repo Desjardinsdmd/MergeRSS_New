@@ -39,7 +39,13 @@ const STATUS_COLORS = {
   draft_only: 'border-[hsl(var(--brand)/0.3)] bg-[hsl(var(--brand)/0.14)] text-[#C4A5FD]',
 };
 const CHIP = 'rounded-md border px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wider shadow-none';
-const ICON_BTN = 'rounded-xl text-stone-400 hover:bg-white/[0.05] hover:text-stone-100';
+const ICON_BTN = 'h-9 w-9 rounded-xl text-stone-400 hover:bg-white/[0.05] hover:text-stone-100';
+const TAB_BTN = 'inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.03] px-2 text-sm font-medium text-stone-300 transition-colors hover:border-white/[0.14] hover:bg-white/[0.06] hover:text-stone-100';
+
+function formatLastRun(iso) {
+  if (!iso) return 'Not yet';
+  return new Date(iso).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+}
 
 function PublicationsPage() {
   const [user, setUser] = useState(null);
@@ -128,62 +134,75 @@ function PublicationsPage() {
           </button>
         </div>
       ) : (
-        <div className="space-y-3">
-          {pubs.map(pub => (
-            <div key={pub.id} className="space-y-0">
-              <Card className="panel">
-                <CardContent className="p-5">
-                  <div className="flex items-start gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-display text-base font-semibold text-stone-100">{pub.name}</h3>
+        <div className="space-y-4">
+          {pubs.map(pub => {
+            const open = expandedPipeline === pub.id;
+            const facts = [
+              ['Lens', lensMap[pub.lens_id]?.name || 'Unknown'],
+              ['Candidates', `${pub.candidates_per_run || 3} per run`],
+              ['Schedule', formatSchedule(pub.schedule_cron)],
+              ['Last run', formatLastRun(pub.last_run_at)],
+            ];
+            return (
+              <div key={pub.id}>
+                <div className="panel p-4 sm:p-5">
+                  {/* Title row: name + status on the left, quick actions on the right */}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h3 className="font-display text-lg font-semibold leading-snug text-stone-100 break-words">{pub.name}</h3>
+                      <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                         <Badge className={`${CHIP} ${STATUS_COLORS[pub.status] || 'border-white/10 bg-white/[0.03] text-stone-400'} hover:bg-inherit`}>{pub.status}</Badge>
                         <Badge variant="outline" className={`${CHIP} border-white/10 text-stone-300`}>{pub.channel_type}</Badge>
                       </div>
-                      <div className="meta flex flex-wrap items-center gap-x-4 gap-y-1 normal-case">
-                         <span>Lens: {lensMap[pub.lens_id]?.name || 'Unknown'}</span>
-                         <span>Candidates: {pub.candidates_per_run || 3}/run</span>
-                         <span>Schedule: {formatSchedule(pub.schedule_cron)}</span>
-                         {pub.last_run_at && <span>Last run: {new Date(pub.last_run_at).toLocaleString()}</span>}
-                      </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="sm"
-                        className={ICON_BTN}
-                        onClick={() => setExpandedPipeline(expandedPipeline === pub.id ? null : pub.id)}>
-                        <BarChart3 className="w-4 h-4 mr-1" /> Pipeline
-                        {expandedPipeline === pub.id ? <ChevronUp className="w-3 h-3 ml-1" /> : <ChevronDown className="w-3 h-3 ml-1" />}
-                      </Button>
-                      <Link to={`/PublicationInbox?id=${pub.id}`}>
-                        <Button variant="ghost" size="sm" className={ICON_BTN}>
-                          <Inbox className="w-4 h-4 mr-1" /> Inbox
-                        </Button>
-                      </Link>
-                      <Link to={`/PublicationVoice?id=${pub.id}`}>
-                        <Button variant="ghost" size="sm" className={ICON_BTN}>
-                          <BookOpen className="w-4 h-4 mr-1" /> Voice
-                        </Button>
-                      </Link>
+                    <div className="flex shrink-0 items-center gap-0.5">
                       <Button variant="ghost" size="icon" className={ICON_BTN} title="Run now" aria-label="Run now" onClick={() => handleRunNow(pub.id)} disabled={runningId === pub.id}>
                         {runningId === pub.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4 text-[#C4A5FD]" />}
                       </Button>
-                      <Button variant="ghost" size="icon" className={ICON_BTN} aria-label="Edit" onClick={() => setEditing(pub)}>
+                      <Button variant="ghost" size="icon" className={ICON_BTN} title="Edit" aria-label="Edit" onClick={() => setEditing(pub)}>
                         <Pencil className="w-4 h-4 text-stone-400" />
                       </Button>
-                      <Button variant="ghost" size="icon" className={ICON_BTN} aria-label="Delete" onClick={() => setDeleteTarget(pub)}>
+                      <Button variant="ghost" size="icon" className={ICON_BTN} title="Delete" aria-label="Delete" onClick={() => setDeleteTarget(pub)}>
                         <Trash2 className="w-4 h-4 text-red-400" />
                       </Button>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-              {expandedPipeline === pub.id && (
-                <div className="mt-3 ml-0">
-                  <CandidatePipeline publicationId={pub.id} />
+
+                  {/* Facts */}
+                  <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
+                    {facts.map(([label, value]) => (
+                      <div key={label} className="min-w-0">
+                        <dt className="micro-label">{label}</dt>
+                        <dd className="mt-1 text-sm text-stone-200 break-words">{value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+
+                  {/* Sections */}
+                  <div className="mt-4 grid grid-cols-3 gap-2 border-t border-white/[0.07] pt-4">
+                    <button type="button"
+                      onClick={() => setExpandedPipeline(open ? null : pub.id)}
+                      aria-expanded={open}
+                      className={`${TAB_BTN} ${open ? 'border-[hsl(var(--brand)/0.35)] bg-[hsl(var(--brand)/0.14)] text-[#D9C7FE]' : ''}`}>
+                      <BarChart3 className="w-4 h-4" /> Pipeline
+                      {open ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                    </button>
+                    <Link to={`/PublicationInbox?id=${pub.id}`} className={TAB_BTN}>
+                      <Inbox className="w-4 h-4" /> Inbox
+                    </Link>
+                    <Link to={`/PublicationVoice?id=${pub.id}`} className={TAB_BTN}>
+                      <BookOpen className="w-4 h-4" /> Voice
+                    </Link>
+                  </div>
                 </div>
-              )}
-            </div>
-          ))}
+                {open && (
+                  <div className="mt-4">
+                    <CandidatePipeline publicationId={pub.id} />
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
 
