@@ -18,14 +18,14 @@ const MODES = [
   {
     id: 'feeds',
     icon: Rss,
-    label: 'Individual Feeds',
-    description: 'Add each URL as a separate feed you can manage independently.',
+    label: 'Individual sources',
+    description: 'Add each URL as a separate source you can manage independently.',
   },
   {
     id: 'digest',
     icon: LayoutList,
-    label: 'Consolidated Digest',
-    description: 'Bundle all sources into one digest delivered on a schedule.',
+    label: 'One briefing',
+    description: 'Bundle all sources into one briefing delivered on a schedule.',
   },
 ];
 
@@ -69,14 +69,14 @@ export default function BulkImportDialog({ open, onOpenChange, onSuccess, curren
       return;
     }
     if (mode === 'digest' && !digestName.trim()) {
-      toast.error('Please enter a name for the digest.');
+      toast.error('Please enter a name for the briefing.');
       return;
     }
     if (mode === 'feeds' && !isPremium) {
       const maxFeeds = PLAN_LIMITS.free.feeds;
       const remaining = maxFeeds - currentFeedCount;
       if (remaining <= 0) {
-        toast.error(`You've reached the ${maxFeeds}-feed limit on the Free plan. Upgrade to Premium for unlimited feeds.`);
+        toast.error(`You've reached the ${maxFeeds}-source limit on the Free plan. Upgrade to Premium for unlimited sources.`);
         return;
       }
     }
@@ -102,7 +102,7 @@ export default function BulkImportDialog({ open, onOpenChange, onSuccess, curren
       return;
     }
 
-    if (response.data?.digest_error) toast.error(`Sources imported, but the digest was not created: ${response.data.digest_error}`);
+    if (response.data?.digest_error) toast.error(`Sources imported, but the briefing was not created: ${response.data.digest_error}`);
     (response.data?.digest_warnings || []).forEach(w => toast.warning(w));
     setResult(response.data);
     onSuccess?.();
@@ -112,58 +112,58 @@ export default function BulkImportDialog({ open, onOpenChange, onSuccess, curren
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2 font-display text-lg font-semibold text-stone-100">
             <Upload className="w-5 h-5 text-[hsl(var(--primary))]" />
-            Bulk Import Feeds
+            Bulk import sources
           </DialogTitle>
           <DialogDescription>
-            Upload an OPML file or paste a list of RSS URLs to import multiple feeds at once.
+            Upload an OPML file or paste a list of RSS feed URLs to import multiple sources at once.
           </DialogDescription>
         </DialogHeader>
 
         {result ? (
           /* Success screen */
           <div className="py-4 space-y-4">
-            <div className="w-14 h-14 bg-emerald-50 rounded-full flex items-center justify-center mx-auto">
-              <CheckCircle className="w-7 h-7 text-emerald-600" />
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-400/10">
+              <CheckCircle className="h-7 w-7 text-emerald-400" />
             </div>
             <div className="text-center">
-              <p className="text-lg font-semibold text-stone-100">Import complete!</p>
-              <p className="text-stone-400 text-sm mt-1">
-                <span className="font-bold text-emerald-400">{result.summary.created}</span> of{' '}
-                <span className="font-bold">{result.summary.total}</span> sources ingested
+              <p className="font-display text-lg font-semibold text-stone-100">Import complete</p>
+              <p className="mt-1 text-sm text-stone-400">
+                <span className="font-mono font-semibold text-emerald-400">{result.summary.created}</span> of{' '}
+                <span className="font-mono font-semibold">{result.summary.total}</span> sources ingested
               </p>
             </div>
             
             {result.summary.created > 0 && (
-              <div className="bg-stone-800 rounded-lg p-3 space-y-2 text-sm">
+              <div className="panel-raised space-y-2 p-3 text-sm">
                 {result.summary.rss_native > 0 && (
                   <div className="flex items-center justify-between">
-                    <span className="text-stone-300">Native RSS feeds:</span>
-                    <span className="font-bold text-emerald-400">{result.summary.rss_native}</span>
+                    <span className="text-stone-300">Native RSS feeds</span>
+                    <span className="font-mono font-semibold text-stone-100">{result.summary.rss_native}</span>
                   </div>
                 )}
                 {result.summary.rss_discovered > 0 && (
                   <div className="flex items-center justify-between">
-                    <span className="text-stone-300">Discovered feeds:</span>
-                    <span className="font-bold text-blue-400">{result.summary.rss_discovered}</span>
+                    <span className="text-stone-300">Discovered RSS feeds</span>
+                    <span className="font-mono font-semibold text-stone-100">{result.summary.rss_discovered}</span>
                   </div>
                 )}
                 {result.summary.generated > 0 && (
                   <div className="flex items-center justify-between">
-                    <span className="text-stone-300">Generated sources:</span>
-                    <span className="font-bold text-purple-400">{result.summary.generated}</span>
+                    <span className="text-stone-300">Generated sources</span>
+                    <span className="font-mono font-semibold text-stone-100">{result.summary.generated}</span>
                   </div>
                 )}
               </div>
             )}
 
             {result.summary.failed > 0 && (
-              <div className="bg-red-950 border border-red-800 rounded-lg p-3 space-y-2">
+              <div className="space-y-2 rounded-xl border border-red-400/25 bg-red-400/10 p-3">
                 <p className="text-sm font-medium text-red-300">
-                  <span className="font-bold">{result.summary.failed}</span> sources failed to import
+                  <span className="font-mono font-semibold">{result.summary.failed}</span> sources failed to import
                 </p>
-                <div className="max-h-40 overflow-y-auto text-xs text-red-200 space-y-1">
+                <div className="max-h-40 space-y-1 overflow-y-auto font-mono text-[11px] text-red-200">
                   {result.results.filter(r => r.status === 'failed').map((r, idx) => (
                     <div key={idx} className="text-red-300">
                       {r.url}: {r.reason}
@@ -180,9 +180,9 @@ export default function BulkImportDialog({ open, onOpenChange, onSuccess, curren
             )}
 
             {result.digest && (
-              <div className="bg-stone-800 rounded-lg p-3">
+              <div className="panel-raised p-3">
                 <p className="text-sm text-stone-300">
-                  Digest created: <span className="font-bold text-[hsl(var(--primary))]">{result.digest.name}</span>
+                  Briefing created: <span className="font-semibold text-[#C4A5FD]">{result.digest.name}</span>
                 </p>
               </div>
             )}
@@ -195,28 +195,31 @@ export default function BulkImportDialog({ open, onOpenChange, onSuccess, curren
           <div className="space-y-5 pt-1">
             {/* Format toggle */}
             <div>
-              <p className="text-sm font-medium text-stone-300 mb-2">Import format</p>
+              <p className="micro-label mb-2">Import format</p>
               <div className="grid grid-cols-2 gap-2">
                 <button
+                  type="button"
+                  aria-pressed={format === 'opml'}
                   onClick={() => setFormat('opml')}
                   className={cn(
-                    'flex items-center gap-2.5 p-3 rounded-lg border-2 text-sm font-medium transition-all',
+                    'flex items-center gap-2.5 rounded-xl border p-3 text-sm font-medium transition-all',
                     format === 'opml'
-                      ? 'border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]'
-                      : 'border-stone-700 text-stone-400 hover:border-stone-600'
+                      ? 'border-[hsl(var(--primary)/0.4)] bg-[hsl(var(--primary)/0.14)] text-stone-100'
+                      : 'border-white/[0.07] text-stone-400 hover:border-white/[0.12] hover:bg-white/[0.03]'
                   )}
                 >
                   <FileText className="w-4 h-4" />
                   OPML file
                 </button>
                 <button
-
+                  type="button"
+                  aria-pressed={format === 'urls'}
                   onClick={() => setFormat('urls')}
                   className={cn(
-                    'flex items-center gap-2.5 p-3 rounded-lg border-2 text-sm font-medium transition-all',
+                    'flex items-center gap-2.5 rounded-xl border p-3 text-sm font-medium transition-all',
                     format === 'urls'
-                      ? 'border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]'
-                      : 'border-stone-700 text-stone-400 hover:border-stone-600'
+                      ? 'border-[hsl(var(--primary)/0.4)] bg-[hsl(var(--primary)/0.14)] text-stone-100'
+                      : 'border-white/[0.07] text-stone-400 hover:border-white/[0.12] hover:bg-white/[0.03]'
                   )}
                 >
                   <Link className="w-4 h-4" />
@@ -228,14 +231,14 @@ export default function BulkImportDialog({ open, onOpenChange, onSuccess, curren
             {/* Content input */}
             {format === 'opml' ? (
               <div>
-                <p className="text-sm font-medium text-slate-700 mb-2">OPML file</p>
+                <p className="micro-label mb-2">OPML file</p>
                 <div
                   onClick={() => fileRef.current?.click()}
-                  className="border-2 border-dashed border-stone-700 rounded-xl p-6 text-center cursor-pointer hover:border-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/5 transition-all"
+                  className="cursor-pointer rounded-2xl border border-dashed border-white/[0.12] p-6 text-center transition-all hover:border-[hsl(var(--primary)/0.5)] hover:bg-[hsl(var(--primary)/0.05)]"
                 >
                   <Upload className="w-6 h-6 text-stone-500 mx-auto mb-2" />
                   {opmlContent ? (
-                    <p className="text-sm text-emerald-600 font-medium flex items-center justify-center gap-1">
+                    <p className="flex items-center justify-center gap-1 text-sm font-medium text-emerald-400">
                       <CheckCircle className="w-4 h-4" /> File loaded
                     </p>
                   ) : (
@@ -255,12 +258,13 @@ export default function BulkImportDialog({ open, onOpenChange, onSuccess, curren
               </div>
             ) : (
               <div>
-                <p className="text-sm font-medium text-stone-300 mb-2">RSS URLs</p>
+                <p className="micro-label mb-2">RSS feed URLs</p>
                 <textarea
                   value={urlText}
                   onChange={(e) => setUrlText(e.target.value)}
                   placeholder={"https://feeds.example.com/rss\nhttps://blog.example.com/feed\n..."}
-                  className="w-full h-32 text-sm border border-stone-700 rounded-lg p-3 resize-none bg-stone-800 text-stone-100 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))] focus:border-transparent placeholder:text-stone-500"
+                  aria-label="RSS feed URLs"
+                  className="h-32 w-full resize-none rounded-xl border border-white/[0.07] bg-white/[0.03] p-3 font-mono text-[13px] text-stone-100 placeholder:text-stone-500 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))]"
                 />
                 <p className="text-xs text-stone-500 mt-1">One URL per line, or comma-separated.</p>
               </div>
@@ -268,52 +272,56 @@ export default function BulkImportDialog({ open, onOpenChange, onSuccess, curren
 
             {/* Mode */}
             <div>
-              <p className="text-sm font-medium text-stone-300 mb-2">How to import</p>
+              <p className="micro-label mb-2">How to import</p>
               <div className="grid grid-cols-1 gap-2">
                 {MODES.map((m) => {
                   const Icon = m.icon;
                   return (
                     <button
                       key={m.id}
+                      type="button"
+                      aria-pressed={mode === m.id}
                       onClick={() => setMode(m.id)}
                       className={cn(
-                        'flex items-start gap-3 p-3.5 rounded-xl border-2 text-left transition-all',
+                        'flex items-start gap-3 rounded-xl border p-3.5 text-left transition-all',
                         mode === m.id
-                          ? 'border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/5'
-                          : 'border-stone-700 hover:border-stone-600 hover:bg-stone-800'
+                          ? 'border-[hsl(var(--primary)/0.4)] bg-[hsl(var(--primary)/0.10)]'
+                          : 'border-white/[0.07] hover:border-white/[0.12] hover:bg-white/[0.03]'
                       )}
                     >
                       <div className={cn(
                         'w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5',
-                        mode === m.id ? 'bg-[hsl(var(--primary))]/20' : 'bg-stone-800'
+                        mode === m.id ? 'bg-[hsl(var(--primary)/0.2)]' : 'bg-white/[0.05]'
                       )}>
                         <Icon className={cn('w-4 h-4', mode === m.id ? 'text-[hsl(var(--primary))]' : 'text-stone-500')} />
                       </div>
                       <div>
-                        <p className="font-semibold text-stone-200 text-sm">{m.label}</p>
+                        <p className="text-sm font-semibold text-stone-100">{m.label}</p>
                         <p className="text-xs text-stone-500 mt-0.5">{m.description}</p>
                       </div>
                     </button>
                   );
                 })}
                 <button
+                  type="button"
+                  aria-pressed={mode === 'directory'}
                   onClick={() => setMode('directory')}
                   className={cn(
-                    'flex items-start gap-3 p-3.5 rounded-xl border-2 text-left transition-all',
+                    'flex items-start gap-3 rounded-xl border p-3.5 text-left transition-all',
                     mode === 'directory'
-                      ? 'border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/5'
-                          : 'border-stone-700 hover:border-stone-600 hover:bg-stone-800'
+                      ? 'border-[hsl(var(--primary)/0.4)] bg-[hsl(var(--primary)/0.10)]'
+                      : 'border-white/[0.07] hover:border-white/[0.12] hover:bg-white/[0.03]'
                   )}
                 >
                   <div className={cn(
                     'w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5',
-                    mode === 'directory' ? 'bg-[hsl(var(--primary))]/20' : 'bg-stone-800'
+                    mode === 'directory' ? 'bg-[hsl(var(--primary)/0.2)]' : 'bg-white/[0.05]'
                   )}>
                     <Rss className={cn('w-4 h-4', mode === 'directory' ? 'text-[hsl(var(--primary))]' : 'text-stone-500')} />
                   </div>
                   <div>
-                    <p className="font-semibold text-stone-200 text-sm">Add to Directory</p>
-                    <p className="text-xs text-stone-500 mt-0.5">Make feeds available in the public repository.</p>
+                    <p className="text-sm font-semibold text-stone-100">Add to directory</p>
+                    <p className="text-xs text-stone-500 mt-0.5">Make sources available in the public directory.</p>
                   </div>
                 </button>
               </div>
@@ -322,11 +330,12 @@ export default function BulkImportDialog({ open, onOpenChange, onSuccess, curren
             {/* Digest name */}
             {mode === 'digest' && (
               <div>
-                <p className="text-sm font-medium text-stone-300 mb-2">Digest name</p>
+                <p className="micro-label mb-2">Briefing name</p>
                 <Input
                   value={digestName}
                   onChange={(e) => setDigestName(e.target.value)}
-                  placeholder="e.g. My Tech Digest"
+                  placeholder="e.g. Morning tech briefing"
+                  aria-label="Briefing name"
                 />
               </div>
             )}
