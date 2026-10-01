@@ -68,19 +68,19 @@ Deno.serve(async (req) => {
     const requestedStartFormatted = new Date(start_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     const requestedEndFormatted = new Date(end_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     const rangeNote = (promptActualStart !== requestedStartFormatted || promptActualEnd !== requestedEndFormatted)
-      ? `NOTE: The user requested data from ${requestedStartFormatted} to ${requestedEndFormatted}, but actual digest data is only available from ${promptActualStart} to ${promptActualEnd}. You MUST mention this discrepancy clearly in your executive summary.`
+      ? `NOTE: The user requested data from ${requestedStartFormatted} to ${requestedEndFormatted}, but briefing data is only available from ${promptActualStart} to ${promptActualEnd}. You MUST mention this discrepancy clearly in your executive summary.`
       : `The data covers the full requested range from ${requestedStartFormatted} to ${requestedEndFormatted}.`;
 
     const digestLabel = digestNames.length === 1 ? digestNames[0] : digestNames.join(' + ');
 
-    const prompt = `You are an expert analyst. You have been given a series of digest deliveries from ${digestNames.length === 1 ? `a feed called "${digestNames[0]}"` : `${digestNames.length} combined feeds: ${digestNames.map(n => `"${n}"`).join(', ')}`} spanning from ${start_date} to ${end_date} (${period_label || 'custom period'}).
+    const prompt = `You are an expert analyst. You have been given a series of delivered briefings from ${digestNames.length === 1 ? `a MergeRSS briefing called "${digestNames[0]}"` : `${digestNames.length} combined MergeRSS briefings: ${digestNames.map(n => `"${n}"`).join(', ')}`} spanning from ${start_date} to ${end_date} (${period_label || 'custom period'}).
 
 ${rangeNote}
 
-Each entry is a dated AI-generated news digest. Your task is to analyze how the themes, topics, and signals within these digests have evolved over time and produce a comprehensive trend report.
+Each entry is a dated AI-generated news briefing. Your task is to analyze how the themes, topics, and signals within these briefings have evolved over time and produce a comprehensive trend report.
 
-DIGEST TIMELINE (chronological):
-${timeline.map((t, i) => `--- [${new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}] (${t.item_count} articles) ---\n${t.content}`).join('\n\n')}
+BRIEFING TIMELINE (chronological):
+${timeline.map((t, i) => `--- [${new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}] (${t.item_count} stories) ---\n${t.content}`).join('\n\n')}
 
 ---
 
@@ -99,9 +99,11 @@ Produce a structured trend report with the following sections:
 
 5. **Outlook**: Based on the trajectory of these trends, what should the reader watch for going forward?
 
-6. **Data Summary**: Number of digests analyzed, date range, most active period.
+6. **Data Summary**: Number of briefings analyzed, date range, most active period.
 
-Be specific, analytical, and reference actual content from the digests. Avoid generic statements.`;
+Be specific, analytical, and reference actual content from the briefings. Avoid generic statements.
+
+Vocabulary (MergeRSS product language): call the deliveries "briefings", the publications they draw on "sources", and individual news pieces "stories". Never use the words digest, feed, or article in the report. Write like an analyst briefing a principal: consequence first, short sentences, real numbers, no hype words, no exclamation marks, no em dashes.`;
 
     const result = await base44.integrations.Core.InvokeLLM({
       prompt,
