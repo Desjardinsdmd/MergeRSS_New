@@ -26,31 +26,32 @@ import InboxToolbar from '@/components/inbox/InboxToolbar';
 import { generatePremiumPdf } from '@/lib/generatePremiumPdf';
 import ReactMarkdown from 'react-markdown';
 import SavedArticles from '@/components/dashboard/SavedArticles';
+import { PageHeader } from '@/components/brand/Brand';
 
 // Dark-theme markdown renderer for digest bodies. Raw HTML is not rendered (react-markdown
 // default), and every link goes through safeUrl and opens in a new tab.
 const DIGEST_MD_COMPONENTS = {
-  h1: ({ node, ...p }) => <h2 className="text-lg font-bold text-stone-100 mt-5 mb-2" {...p} />,
-  h2: ({ node, ...p }) => <h3 className="text-base font-bold text-stone-100 mt-5 mb-2" {...p} />,
+  h1: ({ node, ...p }) => <h2 className="font-display text-lg font-semibold text-stone-100 mt-5 mb-2" {...p} />,
+  h2: ({ node, ...p }) => <h3 className="font-display text-base font-semibold text-stone-100 mt-5 mb-2" {...p} />,
   h3: ({ node, ...p }) => <h4 className="text-sm font-semibold text-stone-200 mt-4 mb-1.5" {...p} />,
   h4: ({ node, ...p }) => <h5 className="text-sm font-semibold text-stone-300 mt-3 mb-1" {...p} />,
-  p: ({ node, ...p }) => <p className="text-sm text-stone-400 leading-relaxed my-2" {...p} />,
-  ul: ({ node, ...p }) => <ul className="list-disc pl-5 my-2 space-y-1 text-sm text-stone-400" {...p} />,
-  ol: ({ node, ...p }) => <ol className="list-decimal pl-5 my-2 space-y-1 text-sm text-stone-400" {...p} />,
+  p: ({ node, ...p }) => <p className="text-sm text-stone-300 leading-relaxed my-2" {...p} />,
+  ul: ({ node, ...p }) => <ul className="list-disc pl-5 my-2 space-y-1 text-sm text-stone-300" {...p} />,
+  ol: ({ node, ...p }) => <ol className="list-decimal pl-5 my-2 space-y-1 text-sm text-stone-300" {...p} />,
   li: ({ node, ...p }) => <li className="leading-relaxed" {...p} />,
   strong: ({ node, ...p }) => <strong className="font-semibold text-stone-200" {...p} />,
   em: ({ node, ...p }) => <em className="italic" {...p} />,
-  blockquote: ({ node, ...p }) => <blockquote className="border-l-2 border-amber-400/60 pl-3 my-3 text-stone-500 italic" {...p} />,
-  hr: () => <hr className="my-4 border-stone-800" />,
-  code: ({ node, inline, ...p }) => <code className="bg-stone-800 text-amber-300 rounded px-1 py-0.5 text-xs" {...p} />,
-  pre: ({ node, ...p }) => <pre className="bg-stone-900 border border-stone-800 rounded p-3 overflow-x-auto text-xs my-3" {...p} />,
+  blockquote: ({ node, ...p }) => <blockquote className="border-l-2 border-[hsl(var(--primary)/0.6)] pl-3 my-3 text-stone-400 italic" {...p} />,
+  hr: () => <hr className="my-4 border-white/[0.06]" />,
+  code: ({ node, inline, ...p }) => <code className="bg-white/[0.06] font-mono text-brand-light rounded-md px-1 py-0.5 text-xs" {...p} />,
+  pre: ({ node, ...p }) => <pre className="bg-white/[0.03] border border-white/[0.07] rounded-xl p-3 font-mono overflow-x-auto text-xs my-3" {...p} />,
   a: ({ node, href, children, ...p }) => (
     <a
       {...p}
       href={safeUrl(href)}
       target="_blank"
       rel="noopener noreferrer"
-      className="text-amber-400 underline underline-offset-2 hover:text-amber-300 break-words"
+      className="text-brand-light underline underline-offset-2 hover:text-stone-100 break-words"
     >
       {children}
     </a>
@@ -150,7 +151,7 @@ export default function Inbox() {
     });
   }, [deliveries, selectedFolder, selectedTag, sortBy]);
 
-  const getDigestName = id => digests.find(d => d.id === id)?.name || 'Unknown Digest';
+  const getDigestName = id => digests.find(d => d.id === id)?.name || 'Unknown briefing';
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ['deliveries', 'web', user?.email] });
@@ -262,14 +263,32 @@ export default function Inbox() {
     });
   };
 
+  const sortSelect = (
+    <Select value={sortBy} onValueChange={setSortBy}>
+      <SelectTrigger className="w-full rounded-xl text-sm" aria-label="Sort briefings">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="newest">Newest first</SelectItem>
+        <SelectItem value="oldest">Oldest first</SelectItem>
+        <SelectItem value="unread">Unread first</SelectItem>
+        <SelectItem value="items">Most stories</SelectItem>
+      </SelectContent>
+    </Select>
+  );
+
+  const chipClass = (active) => cn(
+    'flex-shrink-0 rounded-xl border px-3 py-1.5 text-sm font-medium transition-colors',
+    active
+      ? 'border-[hsl(var(--brand)/0.3)] bg-[hsl(var(--brand)/0.16)] text-stone-100'
+      : 'border-white/[0.07] text-stone-400 hover:bg-white/[0.04] hover:text-stone-100'
+  );
+
   return (
     <div className="p-6 lg:p-8 max-w-6xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-stone-100 mb-1">Inbox</h1>
-        <p className="text-stone-500 text-sm">Your delivered briefings and the stories you saved</p>
-      </div>
+      <PageHeader title="Inbox" subtitle="Your delivered briefings and the stories you saved" />
 
-      <div role="tablist" aria-label="Inbox sections" className="flex gap-1 border-b border-stone-800 mb-6">
+      <div role="tablist" aria-label="Inbox sections" className="mb-6 flex gap-6 border-b border-white/[0.07]">
         {[['briefings', 'Briefings'], ['saved', 'Saved']].map(([val, label]) => (
           <button
             key={val}
@@ -280,7 +299,7 @@ export default function Inbox() {
             aria-controls={`inbox-panel-${val}`}
             onClick={() => switchTab(val)}
             className={cn(
-              '-mb-px px-4 py-2 text-sm font-medium border-b-2 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] rounded-t',
+              '-mb-px border-b-2 px-0.5 pb-2.5 text-sm font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] rounded-t',
               tab === val ? 'border-[hsl(var(--primary))] text-stone-100' : 'border-transparent text-stone-500 hover:text-stone-300'
             )}
           >
@@ -295,57 +314,37 @@ export default function Inbox() {
         </div>
       ) : (
       <div role="tabpanel" id="inbox-panel-briefings" aria-labelledby="inbox-tab-briefings">
-      <div className="flex items-center justify-between gap-4 mb-6">
-        <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="w-44 text-sm" aria-label="Sort digests">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="newest">Newest first</SelectItem>
-            <SelectItem value="oldest">Oldest first</SelectItem>
-            <SelectItem value="unread">Unread first</SelectItem>
-            <SelectItem value="items">Most items</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Mobile folder selector */}
-      <div className="lg:hidden mb-4 flex gap-2 overflow-x-auto pb-1">
-        {['Inbox', 'Starred', ...customFolders].map(folder => (
-          <button
-            key={folder}
-            onClick={() => { setSelectedFolder(folder); setSelectedTag(null); }}
-            className={cn(
-              'flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors',
-              selectedFolder === folder && !selectedTag
-                ? 'bg-amber-400 text-stone-900'
-                : 'bg-stone-800 text-stone-400 hover:text-stone-200'
-            )}
-          >
-            {folder}
-            {(unreadCounts?.[folder] || 0) > 0 && (
-              <span className="ml-1.5 text-xs">({unreadCounts[folder]})</span>
-            )}
-          </button>
-        ))}
-        {allTags.map(tag => (
-          <button
-            key={tag}
-            onClick={() => { setSelectedTag(tag); setSelectedFolder(null); }}
-            className={cn(
-              'flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors',
-              selectedTag === tag
-                ? 'bg-amber-400 text-stone-900'
-                : 'bg-stone-800 text-stone-400 hover:text-stone-200'
-            )}
-          >
-            #{tag}
-          </button>
-        ))}
+      {/* Mobile: sort + folder selector */}
+      <div className="lg:hidden mb-4 space-y-3">
+        <div className="w-48">{sortSelect}</div>
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {['Inbox', 'Starred', ...customFolders].map(folder => (
+            <button
+              key={folder}
+              onClick={() => { setSelectedFolder(folder); setSelectedTag(null); }}
+              className={chipClass(selectedFolder === folder && !selectedTag)}
+            >
+              {folder}
+              {(unreadCounts?.[folder] || 0) > 0 && (
+                <span className="ml-1.5 font-mono text-xs text-emerald-400">{unreadCounts[folder]}</span>
+              )}
+            </button>
+          ))}
+          {allTags.map(tag => (
+            <button
+              key={tag}
+              onClick={() => { setSelectedTag(tag); setSelectedFolder(null); }}
+              className={chipClass(selectedTag === tag)}
+            >
+              #{tag}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="flex gap-6">
-        <div className="hidden lg:block">
+        <div className="hidden lg:block w-56 flex-shrink-0 space-y-5">
+          {sortSelect}
           <InboxFolderSidebar
             folders={customFolders}
             tags={allTags}
@@ -362,7 +361,7 @@ export default function Inbox() {
         </div>
 
         <div className="flex-1 min-w-0">
-          <div className="bg-stone-900 border border-stone-800 rounded-xl overflow-hidden">
+          <div className="panel overflow-hidden">
             <InboxToolbar
               selectedIds={selectedIds}
               allIds={filtered.map(d => d.id)}
@@ -380,18 +379,18 @@ export default function Inbox() {
 
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
+                <Loader2 className="w-6 h-6 animate-spin text-[hsl(var(--primary))]" />
               </div>
             ) : filtered.length === 0 ? (
-              <div className="text-center py-16">
-                 <div className="w-12 h-12 bg-stone-800 rounded-full flex items-center justify-center mx-auto mb-4">
-                   <InboxIcon className="w-6 h-6 text-stone-600" />
+              <div className="text-center py-16 px-4">
+                 <div className="w-12 h-12 rounded-xl border border-white/[0.07] bg-white/[0.03] flex items-center justify-center mx-auto mb-4">
+                   <InboxIcon className="w-6 h-6 text-stone-500" />
                  </div>
-                 <h3 className="text-lg font-semibold text-stone-100 mb-1">No digests here</h3>
-                 <p className="text-stone-500 text-sm">Nothing in {selectedTag ? `#${selectedTag}` : selectedFolder} yet.</p>
+                 <h3 className="font-display text-lg font-semibold text-stone-100 mb-1">No briefings here</h3>
+                 <p className="text-stone-400 text-sm">Nothing in {selectedTag ? `#${selectedTag}` : selectedFolder} yet.</p>
               </div>
             ) : (
-              <div>
+              <div className="divide-y divide-white/[0.06]">
                 {filtered.map(delivery => {
                   const isUnread = !delivery.is_read;
                   const isSelected = selectedIds.includes(delivery.id);
@@ -399,31 +398,31 @@ export default function Inbox() {
                     <div
                        key={delivery.id}
                        className={cn(
-                         'flex items-start gap-3 px-4 py-3.5 border-b border-stone-800 cursor-pointer hover:bg-stone-800/50 transition group',
-                         isSelected && 'bg-stone-800 hover:bg-stone-800'
+                         'flex items-start gap-3 px-4 py-3.5 cursor-pointer hover:bg-white/[0.03] transition group',
+                         isSelected && 'bg-[hsl(var(--brand)/0.08)] hover:bg-[hsl(var(--brand)/0.1)]'
                        )}
                      >
                       <button
                          type="button"
-                         className="mt-0.5 flex-shrink-0 text-stone-600 hover:text-amber-400 transition"
+                         className="mt-0.5 flex-shrink-0 text-stone-600 transition"
                          onClick={e => { e.stopPropagation(); toggleSelect(delivery.id); }}
-                         aria-label={isSelected ? 'Deselect digest' : 'Select digest'}
+                         aria-label={isSelected ? 'Deselect briefing' : 'Select briefing'}
                          aria-pressed={isSelected}
                        >
                          {isSelected
-                           ? <div className="w-4 h-4 bg-amber-400 rounded flex items-center justify-center"><svg className="w-2.5 h-2.5 text-stone-900" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg></div>
-                           : <div className="w-4 h-4 border-2 border-stone-700 rounded group-hover:border-amber-400 transition" />
+                           ? <div className="w-4 h-4 bg-[hsl(var(--primary))] rounded-[5px] flex items-center justify-center"><svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg></div>
+                           : <div className="w-4 h-4 border-2 border-stone-700 rounded-[5px] group-hover:border-[hsl(var(--primary)/0.7)] transition" />
                          }
                        </button>
 
-                       <div className="mt-2 flex-shrink-0 w-2 h-2">
-                         {isUnread && <div className="w-2 h-2 rounded-full bg-amber-400" />}
+                       <div className="mt-[7px] flex-shrink-0 w-2 h-2">
+                         {isUnread && <div className="w-2 h-2 rounded-full bg-[hsl(var(--primary))]" />}
                        </div>
 
                       <button
                         type="button"
                         className="mt-0.5 flex-shrink-0"
-                        aria-label={delivery.is_favorited ? 'Remove from starred' : 'Star this digest'}
+                        aria-label={delivery.is_favorited ? 'Remove from starred' : 'Star this briefing'}
                         aria-pressed={!!delivery.is_favorited}
                         onClick={async e => {
                           e.stopPropagation();
@@ -431,7 +430,7 @@ export default function Inbox() {
                           invalidate();
                         }}
                       >
-                        <Star className={cn('w-4 h-4 transition', delivery.is_favorited ? 'text-amber-400 fill-amber-400' : 'text-slate-200 hover:text-amber-300')} />
+                        <Star className={cn('w-4 h-4 transition', delivery.is_favorited ? 'text-[hsl(var(--primary))] fill-[hsl(var(--primary))]' : 'text-stone-500 hover:text-brand-light')} />
                       </button>
 
                       <div className="flex-1 min-w-0" onClick={() => handleOpen(delivery)}>
@@ -439,17 +438,17 @@ export default function Inbox() {
                            <span className={cn('text-sm truncate', isUnread ? 'font-semibold text-stone-100' : 'font-medium text-stone-400')}>
                               {decodeHtml(getDigestName(delivery.digest_id))}
                             </span>
-                           <span className="text-xs text-stone-600 flex-shrink-0">
+                           <span className="meta flex-shrink-0">
                              {delivery.sent_at && format(new Date(delivery.sent_at), 'MMM d')}
                            </span>
                          </div>
-                         <div className="flex items-center gap-2 mt-0.5">
-                           <span className="text-xs text-stone-600 truncate">{delivery.item_count || 0} items</span>
+                         <div className="flex items-center gap-2 mt-1">
+                           <span className="meta truncate">{delivery.item_count || 0} stories</span>
                            {(delivery.tags || []).map(tag => (
-                             <span key={tag} className="text-xs bg-stone-800 text-stone-400 rounded px-1.5 py-0.5">{tag}</span>
+                             <span key={tag} className="chip-neutral">{tag}</span>
                            ))}
                            {delivery.folder && delivery.folder !== 'Inbox' && (
-                             <span className="text-xs bg-stone-800 text-amber-400 rounded px-1.5 py-0.5">{delivery.folder}</span>
+                             <span className="chip-brand">{delivery.folder}</span>
                            )}
                          </div>
                       </div>
@@ -458,9 +457,9 @@ export default function Inbox() {
                       <button
                         type="button"
                         onClick={e => { e.stopPropagation(); handleDownloadPdf(delivery); }}
-                        className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 mt-0.5 flex-shrink-0 p-1 text-stone-600 hover:text-amber-400 transition"
+                        className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 mt-0.5 flex-shrink-0 rounded-lg p-1 text-stone-500 hover:text-brand-light transition"
                         title="Download as PDF"
-                        aria-label={`Download ${getDigestName(delivery.digest_id) || 'digest'} as PDF`}
+                        aria-label={`Download ${getDigestName(delivery.digest_id) || 'briefing'} as PDF`}
                       >
                         <Download className="w-4 h-4" />
                       </button>
@@ -479,26 +478,26 @@ export default function Inbox() {
       <Dialog open={!!selectedDelivery} onOpenChange={() => setSelectedDelivery(null)}>
         <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-amber-400" />
+            <DialogTitle className="flex items-center gap-2 font-display">
+              <FileText className="w-5 h-5 text-[hsl(var(--primary))]" />
               {selectedDelivery && getDigestName(selectedDelivery.digest_id)}
             </DialogTitle>
           </DialogHeader>
 
           {selectedDelivery && (
             <div className="space-y-4">
-              <div className="flex items-center gap-4 text-sm text-stone-500 pb-4 border-b border-stone-700 flex-wrap">
-                <span className="flex items-center gap-1">
+              <div className="flex items-center gap-4 text-sm text-stone-500 pb-4 border-b border-white/[0.07] flex-wrap">
+                <span className="meta flex items-center gap-1">
                   <Calendar className="w-4 h-4" />
                   {format(new Date(selectedDelivery.sent_at), 'MMMM d, yyyy h:mm a')}
                 </span>
-                <Badge variant="secondary">{selectedDelivery.item_count || 0} items</Badge>
-                <Badge className="bg-green-100 text-green-700">
+                <span className="chip-neutral">{selectedDelivery.item_count || 0} stories</span>
+                <span className="chip border border-emerald-400/25 bg-emerald-400/10 text-emerald-300">
                   <CheckCircle className="w-3 h-3 mr-1" />Delivered
-                </Badge>
+                </span>
                 <button
                   type="button"
-                  aria-label={selectedDelivery.is_favorited ? 'Remove from starred' : 'Star this digest'}
+                  aria-label={selectedDelivery.is_favorited ? 'Remove from starred' : 'Star this briefing'}
                   aria-pressed={!!selectedDelivery.is_favorited}
                   onClick={async () => {
                     await base44.entities.DigestDelivery.update(selectedDelivery.id, { is_favorited: !selectedDelivery.is_favorited });
@@ -506,16 +505,16 @@ export default function Inbox() {
                     invalidate();
                   }}
                 >
-                  <Star className={cn('w-4 h-4 transition', selectedDelivery.is_favorited ? 'text-amber-400 fill-amber-400' : 'text-slate-300 hover:text-amber-300')} />
+                  <Star className={cn('w-4 h-4 transition', selectedDelivery.is_favorited ? 'text-[hsl(var(--primary))] fill-[hsl(var(--primary))]' : 'text-stone-500 hover:text-brand-light')} />
                 </button>
-                <Button size="sm" variant="outline" className="ml-auto gap-1.5" onClick={() => handleDownloadPdf(selectedDelivery)}>
+                <Button size="sm" variant="outline" className="ml-auto gap-1.5 rounded-xl" onClick={() => handleDownloadPdf(selectedDelivery)}>
                   <Download className="w-3.5 h-3.5" /> Download PDF
                 </Button>
               </div>
 
               {selectedDelivery.date_range_start && selectedDelivery.date_range_end && (
-                <div className="bg-stone-800 rounded-lg p-3 text-sm">
-                  <p className="text-stone-400">
+                <div className="panel-raised p-3 text-sm">
+                  <p className="meta">
                     <Clock className="w-4 h-4 inline mr-1" />
                     Coverage: {format(new Date(selectedDelivery.date_range_start), 'MMM d')} – {format(new Date(selectedDelivery.date_range_end), 'MMM d, yyyy')}
                   </p>
@@ -528,31 +527,31 @@ export default function Inbox() {
                     {String(selectedDelivery.content)}
                   </ReactMarkdown>
                 ) : (
-                  <p className="text-sm text-stone-500">No content available for this digest.</p>
+                  <p className="text-sm text-stone-500">No content available for this briefing.</p>
                 )}
               </div>
 
               {selectedDelivery.items?.length > 0 && (
-                <div className="border border-stone-800 rounded-lg overflow-hidden">
+                <div className="border border-white/[0.07] rounded-xl overflow-hidden">
                   <button
                     onClick={() => setShowItems(v => !v)}
-                    className="w-full flex items-center justify-between px-4 py-3 bg-stone-800 hover:bg-stone-700 transition text-sm font-medium text-stone-300"
+                    className="w-full flex items-center justify-between px-4 py-3 bg-white/[0.03] hover:bg-white/[0.06] transition text-sm font-medium text-stone-300"
                   >
-                    <span>📄 {selectedDelivery.items.length} articles in this digest</span>
+                    <span>{selectedDelivery.items.length} stories in this briefing</span>
                     {showItems ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                   </button>
                   {showItems && (
-                    <div className="divide-y divide-stone-800 max-h-64 overflow-y-auto">
+                    <div className="divide-y divide-white/[0.06] max-h-64 overflow-y-auto">
                       {selectedDelivery.items.map((item, i) => (
                         <a
                           key={i}
                           href={safeUrl(item.url)}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-start gap-2 px-4 py-2.5 hover:bg-stone-700 transition group"
+                          className="flex items-start gap-2 px-4 py-2.5 hover:bg-white/[0.04] transition group"
                         >
-                          <ExternalLink className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-stone-600 group-hover:text-amber-400" />
-                          <span className="text-sm text-stone-400 group-hover:text-amber-400 line-clamp-2">{decodeHtml(item.title)}</span>
+                          <ExternalLink className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-stone-600 group-hover:text-brand-light" />
+                          <span className="text-sm text-stone-300 group-hover:text-brand-light line-clamp-2">{decodeHtml(item.title)}</span>
                         </a>
                       ))}
                     </div>

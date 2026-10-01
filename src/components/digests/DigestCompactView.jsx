@@ -1,6 +1,5 @@
 import React from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,36 +42,38 @@ export default function DigestCompactView({
         <Checkbox
           checked={selectedIds.length === digests.length && digests.length > 0}
           onCheckedChange={handleSelectAll}
+          aria-label="Select all briefings"
         />
-        <span className="text-sm text-stone-500">{selectedIds.length} selected</span>
+        <span className="meta"><span className="text-stone-300">{selectedIds.length}</span> selected</span>
       </div>
       {digests.map((digest) => (
         <div
            key={digest.id}
-           className="flex items-center gap-3 p-3 border border-stone-800 rounded-lg hover:bg-stone-800 transition bg-stone-900"
+           className="panel panel-hover flex items-center gap-3 px-4 py-3"
          >
           <Checkbox
             checked={selectedIds.includes(digest.id)}
             onCheckedChange={(checked) => handleSelectOne(digest.id, checked)}
+            aria-label={`Select ${digest.name}`}
           />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-               <p className="font-medium text-stone-200 truncate">{digest.name}</p>
+               <p className="font-semibold text-stone-100 truncate">{digest.name}</p>
                {digest.is_public && (
-                 <Globe className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                 <Globe className="w-4 h-4 text-[hsl(var(--primary))] flex-shrink-0" aria-label="Public" />
                )}
              </div>
              <div className="flex items-center gap-2 mt-1">
-               <Badge variant={digest.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+               <span className={digest.status === 'active' ? 'rounded-md border border-emerald-400/25 bg-emerald-400/10 px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wider text-emerald-300' : 'rounded-md border border-amber-400/25 bg-amber-400/10 px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wider text-amber-400'}>
                  {digest.status === 'active' ? 'Active' : 'Paused'}
-               </Badge>
-               <span className="text-xs text-stone-500 capitalize">{digest.frequency}</span>
-               <span className="text-xs text-stone-500">{digest.added_count || 0} added</span>
+               </span>
+               <span className="meta">{digest.frequency}</span>
+               <span className="meta">{digest.added_count || 0} added</span>
              </div>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+              <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 rounded-lg text-stone-400 hover:text-stone-100" aria-label="Briefing options menu">
                 <MoreVertical className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -83,11 +84,11 @@ export default function DigestCompactView({
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onSendTest(digest)} disabled={sendingTest === digest.id}>
                 <Zap className="w-4 h-4 mr-2" />
-                Run Now
+                Run now
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onMakePublic(digest)}>
                 <Globe className="w-4 h-4 mr-2" />
-                {digest.is_public ? 'Make Private' : 'Make Public'}
+                {digest.is_public ? 'Make private' : 'Make public'}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onToggleStatus(digest)}>
                 {digest.status === 'active' ? (
@@ -104,7 +105,7 @@ export default function DigestCompactView({
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => onDelete(digest)}
-                className="text-red-600 focus:bg-red-50 focus:text-red-600"
+                className="text-red-400 focus:bg-red-400/10 focus:text-red-300"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Delete

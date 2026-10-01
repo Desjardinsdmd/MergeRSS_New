@@ -1,6 +1,5 @@
 import React from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,58 +37,60 @@ export default function DigestListView({
   };
 
   return (
-    <div className="border border-stone-800 rounded-lg overflow-hidden bg-stone-900">
+    <div className="panel overflow-hidden">
       <table className="w-full">
-        <thead className="bg-stone-800 border-b border-stone-800">
+        <thead className="border-b border-white/[0.06] bg-white/[0.02]">
           <tr>
             <th className="w-10 px-4 py-3">
               <Checkbox
                 checked={selectedIds.length === digests.length && digests.length > 0}
                 onCheckedChange={handleSelectAll}
+                aria-label="Select all briefings"
               />
             </th>
-            <th className="px-4 py-3 text-left text-sm font-semibold text-stone-200">Name</th>
-            <th className="px-4 py-3 text-left text-sm font-semibold text-stone-200">Frequency</th>
-            <th className="px-4 py-3 text-left text-sm font-semibold text-stone-200">Status</th>
-            <th className="px-4 py-3 text-left text-sm font-semibold text-stone-200">Subscribers</th>
+            <th className="px-4 py-3 text-left micro-label">Name</th>
+            <th className="px-4 py-3 text-left micro-label">Frequency</th>
+            <th className="px-4 py-3 text-left micro-label">Status</th>
+            <th className="px-4 py-3 text-left micro-label">Subscribers</th>
             <th className="w-10 px-4 py-3"></th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-stone-800">
+        <tbody className="divide-y divide-white/[0.06]">
            {digests.map((digest) => (
-             <tr key={digest.id} className="hover:bg-stone-800 transition">
+             <tr key={digest.id} className="hover:bg-white/[0.03] transition">
               <td className="px-4 py-3">
                 <Checkbox
                   checked={selectedIds.includes(digest.id)}
                   onCheckedChange={(checked) => handleSelectOne(digest.id, checked)}
+                  aria-label={`Select ${digest.name}`}
                 />
               </td>
               <td className="px-4 py-3">
                 <div>
                   <div className="flex items-center gap-2">
-                     <p className="font-medium text-stone-200">{digest.name}</p>
+                     <p className="font-semibold text-stone-100">{digest.name}</p>
                      {digest.is_public && (
-                       <Globe className="w-4 h-4 text-amber-400" />
+                       <Globe className="w-4 h-4 text-[hsl(var(--primary))]" aria-label="Public" />
                      )}
                    </div>
-                   <p className="text-xs text-stone-500">{digest.description}</p>
+                   <p className="text-xs text-stone-400">{digest.description}</p>
                 </div>
               </td>
-              <td className="px-4 py-3 text-sm text-stone-500 capitalize">
+              <td className="px-4 py-3 font-mono text-xs uppercase tracking-wider text-stone-400">
                 {digest.frequency}
               </td>
               <td className="px-4 py-3">
-                <Badge variant={digest.status === 'active' ? 'default' : 'secondary'}>
+                <span className={digest.status === 'active' ? 'rounded-md border border-emerald-400/25 bg-emerald-400/10 px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wider text-emerald-300' : 'rounded-md border border-amber-400/25 bg-amber-400/10 px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wider text-amber-400'}>
                   {digest.status === 'active' ? 'Active' : 'Paused'}
-                </Badge>
+                </span>
               </td>
-              <td className="px-4 py-3 text-sm text-stone-500">
+              <td className="px-4 py-3 font-mono text-sm text-stone-400">
                 {digest.added_count || 0}
               </td>
               <td className="px-4 py-3">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-stone-400 hover:text-stone-100" aria-label="Briefing options menu">
                       <MoreVertical className="w-4 h-4" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -100,11 +101,11 @@ export default function DigestListView({
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => onSendTest(digest)} disabled={sendingTest === digest.id}>
                      <Zap className="w-4 h-4 mr-2" />
-                     Run Now
+                     Run now
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => onMakePublic(digest)}>
                       <Globe className="w-4 h-4 mr-2" />
-                      {digest.is_public ? 'Make Private' : 'Make Public'}
+                      {digest.is_public ? 'Make private' : 'Make public'}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => onToggleStatus(digest)}>
                       {digest.status === 'active' ? (
@@ -121,7 +122,7 @@ export default function DigestListView({
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => onDelete(digest)}
-                      className="text-red-600 focus:bg-red-50 focus:text-red-600"
+                      className="text-red-400 focus:bg-red-400/10 focus:text-red-300"
                     >
                       <Trash2 className="w-4 h-4 mr-2" />
                       Delete
