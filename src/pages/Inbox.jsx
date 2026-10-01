@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
@@ -23,7 +23,6 @@ import { cn } from '@/lib/utils';
 import InboxFolderSidebar from '@/components/inbox/InboxFolderSidebar';
 import { decodeHtml, safeUrl } from '@/components/utils/htmlUtils';
 import InboxToolbar from '@/components/inbox/InboxToolbar';
-import { jsPDF } from 'jspdf';
 import { generatePremiumPdf } from '@/lib/generatePremiumPdf';
 import ReactMarkdown from 'react-markdown';
 import SavedArticles from '@/components/dashboard/SavedArticles';

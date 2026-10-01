@@ -1,5 +1,4 @@
 import React from 'react';
-import { GripVertical, Eye, EyeOff } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LayoutDashboard } from 'lucide-react';

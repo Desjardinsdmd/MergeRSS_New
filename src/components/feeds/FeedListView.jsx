@@ -10,9 +10,8 @@ import {
 import { MoreVertical, Edit, Trash2, Pause, Play, ExternalLink, ChevronDown, ChevronUp, Loader2, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { safeUrl, decodeHtml } from '@/components/utils/htmlUtils';
-import { base44 } from '@/api/base44Client';
 import SourceHealthIndicator from './SourceHealthIndicator';
-import { queryArticles, queryArticlesWithClusters, summarizeArticle } from '@/api/articles';
+import { queryArticles } from '@/api/articles';
 
 export default function FeedListView({ feeds, selectedIds, onSelectionChange, onEdit, onDelete, onToggleStatus, onToggleShare }) {
   const [expandedFeedId, setExpandedFeedId] = useState(null);

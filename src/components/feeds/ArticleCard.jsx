@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, BookmarkPlus, BookmarkCheck, MoreVertical, ExternalLink, Star, Image as ImageIcon, Zap } from 'lucide-react';
+import { Clock, BookmarkPlus, BookmarkCheck, ExternalLink, Star, Image as ImageIcon, Zap } from 'lucide-react';
 import { decodeHtml, safeUrl } from '@/components/utils/htmlUtils';
 import { getArticleImage, normalizeImageUrl } from '@/components/utils/imageUtils';
 import { calculateReadTime, getFaviconUrl, getPublicationName } from '@/components/utils/articleUtils';

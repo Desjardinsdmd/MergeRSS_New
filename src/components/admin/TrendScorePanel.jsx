@@ -4,10 +4,9 @@ import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, TrendingUp, ChevronDown, ChevronUp, RefreshCw, AlertTriangle, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { Loader2, TrendingUp, ChevronDown, ChevronUp, RefreshCw, AlertTriangle, ArrowUpRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
-import { TIER_LABELS } from '@/lib/trendScoring';
 
 const TAG_COLORS = {
     Trending:    'bg-blue-900/30 text-blue-400',

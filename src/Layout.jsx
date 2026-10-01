@@ -9,10 +9,7 @@ import BookmarkBell from '@/components/layout/BookmarkBell';
 import ReportProblemDialog from '@/components/ReportProblemDialog';
 import {
   Rss,
-  LayoutDashboard,
   FileText,
-  Link2,
-  Mail,
   Settings,
   LogOut,
   Menu,
@@ -21,12 +18,10 @@ import {
   Crown,
   Activity,
   BarChart3,
-  Zap,
   Inbox,
   Users,
   Globe,
   Search,
-  Bookmark,
   AlertCircle,
   Newspaper,
   SlidersHorizontal,

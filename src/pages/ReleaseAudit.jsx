@@ -1,12 +1,8 @@
 import { base44 } from '@/api/base44Client';
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
-import {
-  CheckCircle, XCircle, AlertTriangle, ChevronDown, ChevronUp,
-  Shield, Zap, BarChart3, Clock, AlertCircle, Info
+import { AlertTriangle, ChevronDown, ChevronUp,
+  Shield, BarChart3, Clock, AlertCircle, Info
 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 const AUDIT_DATA = {

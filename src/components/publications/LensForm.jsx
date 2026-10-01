@@ -9,7 +9,7 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, X, FlaskConical } from 'lucide-react';
 import { toast } from 'sonner';
-import { queryArticles, queryArticlesWithClusters, summarizeArticle } from '@/api/articles';
+import { queryArticles } from '@/api/articles';
 
 const DEFAULT_PROMPT = `LENS: [Your Lens Name]
 You are scoring for [describe your audience].

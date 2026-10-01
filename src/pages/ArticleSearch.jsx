@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import ArticleSummarizeButton from '@/components/feeds/ArticleSummarizeButton';
 import RelatedArticles from '@/components/feeds/RelatedArticles';
-import { queryArticles, queryArticlesWithClusters, summarizeArticle } from '@/api/articles';
+import { queryArticles } from '@/api/articles';
 
 const CATEGORIES = ['CRE', 'Markets', 'Tech', 'News', 'Finance', 'Crypto', 'AI', 'Other'];
 

@@ -34,7 +34,7 @@ import SourceCleanupDialog from './SourceCleanupDialog';
 import RepairEscalationPanel from './RepairEscalationPanel';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { queryArticles, queryArticlesWithClusters, summarizeArticle } from '@/api/articles';
+import { queryArticles } from '@/api/articles';
 
 const categoryColors = {
   CRE: 'bg-blue-950 text-blue-400',

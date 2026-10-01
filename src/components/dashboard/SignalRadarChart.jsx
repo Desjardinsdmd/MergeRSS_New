@@ -1,14 +1,13 @@
 import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer
 } from 'recharts';
-import { queryArticles, queryArticlesWithClusters, summarizeArticle } from '@/api/articles';
+import { queryArticles } from '@/api/articles';
 
 const CATEGORIES = [
   { key: 'CRE', label: 'CRE', cats: ['cre'] },

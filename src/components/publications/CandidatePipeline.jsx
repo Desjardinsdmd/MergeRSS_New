@@ -12,7 +12,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Loader2, RefreshCw, Search, Filter, BarChart3, TrendingUp, ArrowUpDown, CheckSquare, Square, X, Send } from 'lucide-react';
+import { Loader2, RefreshCw, Search, Filter, BarChart3, TrendingUp, ArrowUpDown, X, Send } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import CandidateRow from './CandidateRow';

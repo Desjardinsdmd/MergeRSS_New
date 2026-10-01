@@ -1,18 +1,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
-import { Zap, LayoutGrid, List, RefreshCw } from 'lucide-react';
+import { LayoutGrid, RefreshCw } from 'lucide-react';
 import TopFiveToday from './TopFiveToday';
 import TrendingTopicsInline from './TrendingTopicsInline';
 import RankedFeed from './RankedFeed';
 import IntelligenceSidebar from './IntelligenceSidebar';
 import WhatChanged from './WhatChanged';
 import EmergingSignals from './EmergingSignals';
-import NarrativeGrouping from './NarrativeGrouping';
 import DailyBriefingSummary from './DailyBriefingSummary';
-import { queryArticles, queryArticlesWithClusters, summarizeArticle } from '@/api/articles';
+import { queryArticles, queryArticlesWithClusters } from '@/api/articles';
 
 export default function IntelligenceDashboard({ user, feeds = [], digests = [], unreadDeliveries = [] }) {
     const queryClient = useQueryClient();

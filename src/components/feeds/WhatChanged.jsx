@@ -1,11 +1,10 @@
 import React, { useMemo, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Bell, ExternalLink, ArrowUp } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { decodeHtml, safeUrl } from '@/components/utils/htmlUtils';
 import { inferTag, whatHappened, generateInsight, confidenceFromCluster, decisionState, clusterItems } from './intelligenceUtils';
-import { queryArticles, queryArticlesWithClusters, summarizeArticle } from '@/api/articles';
+import { queryArticles } from '@/api/articles';
 
 const LAST_VISIT_KEY = 'mergerss_last_visit';
 

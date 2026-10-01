@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AlertCircle, Zap, Wrench } from 'lucide-react';
+import { Zap, Wrench } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';

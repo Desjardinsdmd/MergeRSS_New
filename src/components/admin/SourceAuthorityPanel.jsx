@@ -2,14 +2,12 @@ import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, Shield, RefreshCw, Zap, ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TIER_LABELS } from '@/lib/trendScoring';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
 
 const TIER_OPTIONS = [
     { value: 'tier1', label: 'Tier 1 — High authority' },

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Inbox, Star, Tag, Folder, Plus, Trash2, X, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 export default function InboxFolderSidebar({ folders, tags, selectedFolder, selectedTag, onSelectFolder, onSelectTag, unreadCounts, onCreateFolder, onDeleteFolder, onCreateTag, onDeleteTag }) {

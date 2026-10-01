@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { ExternalLink, Bookmark, BookmarkCheck, TrendingUp, AlertTriangle, Lightbulb, Minus, ChevronDown, ChevronUp, LayoutList, ArrowUp, ArrowDown, Minus as MinusIcon } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { ExternalLink, Bookmark, BookmarkCheck, TrendingUp, AlertTriangle, Lightbulb, Minus, ChevronDown, ChevronUp, LayoutList, ArrowUp } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { decodeHtml, safeUrl } from '@/components/utils/htmlUtils';
 import { inferTag, whatHappened, generateInsight, signalLevelStyle, confidenceFromCluster, decisionState, clusterItems } from './intelligenceUtils';

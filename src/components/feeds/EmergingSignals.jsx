@@ -1,11 +1,10 @@
 import React from 'react';
-import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { Zap, ExternalLink, TrendingUp, AlertTriangle, Lightbulb, Minus } from 'lucide-react';
+import { Zap, TrendingUp, AlertTriangle, Lightbulb, Minus } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { decodeHtml, safeUrl } from '@/components/utils/htmlUtils';
 import { inferTag, whatHappened, generateInsight, signalLevelStyle, decisionState, clusterItems } from './intelligenceUtils';
-import { queryArticles, queryArticlesWithClusters, summarizeArticle } from '@/api/articles';
+import { queryArticles } from '@/api/articles';
 
 const TAG_CONFIG = {
     Trending:    { textClass: 'text-blue-400',    icon: TrendingUp },

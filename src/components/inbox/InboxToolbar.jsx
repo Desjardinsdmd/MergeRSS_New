@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { CheckSquare, Square, MailOpen, Mail, Star, StarOff, FolderInput, Tag, Trash2, ChevronDown } from 'lucide-react';
+import React from 'react';
+import { CheckSquare, Square, MailOpen, Mail, Star, StarOff, FolderInput, Tag, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel

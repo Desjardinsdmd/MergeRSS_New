@@ -1,9 +1,8 @@
 import React, { useMemo } from 'react';
-import { TrendingUp, ExternalLink, Clock, ArrowRight, Zap } from 'lucide-react';
+import { TrendingUp, ExternalLink, Clock, Zap } from 'lucide-react';
 import { decodeHtml, safeUrl } from '@/components/utils/htmlUtils';
 import { getArticleImage, normalizeImageUrl } from '@/components/utils/imageUtils';
 import { calculateReadTime, getFaviconUrl } from '@/components/utils/articleUtils';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
 /**

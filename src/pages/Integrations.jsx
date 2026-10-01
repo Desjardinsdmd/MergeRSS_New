@@ -7,17 +7,14 @@ import {
   Slack,
   MessageCircle,
   Check,
-  X,
   Plus,
-  ExternalLink,
   Loader2,
   Crown,
   AlertCircle,
-  Trash2,
-  CheckCircle2
+  Trash2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,13 +26,8 @@ import {
   DialogFooter,
   DialogDescription,
 } from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+
+
 import {
   AlertDialog,
   AlertDialogAction,

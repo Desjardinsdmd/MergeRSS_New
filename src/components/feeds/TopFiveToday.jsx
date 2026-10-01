@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { Zap, ExternalLink, Loader2, TrendingUp, AlertTriangle, Lightbulb, Minus, ChevronDown, ChevronUp, ArrowUp, Flame } from 'lucide-react';
+import { Zap, ExternalLink, Loader2, TrendingUp, AlertTriangle, Lightbulb, Minus, ChevronDown, ChevronUp, Flame } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { decodeHtml, safeUrl } from '@/components/utils/htmlUtils';
 import {
@@ -10,7 +9,7 @@ import {
     deduplicateItems, clusterItems
 } from './intelligenceUtils';
 import { updateAndGetEvolution, recordInteraction, getInteractionScore } from './storyMemory';
-import { queryArticles, queryArticlesWithClusters, summarizeArticle } from '@/api/articles';
+import { queryArticles } from '@/api/articles';
 
 const TAG_CONFIG = {
     Trending:    { textClass: 'text-blue-400',    icon: TrendingUp },

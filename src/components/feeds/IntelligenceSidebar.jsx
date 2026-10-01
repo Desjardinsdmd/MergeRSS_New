@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { FileText, Rss, Bookmark, Inbox, Zap, ChevronRight, ExternalLink } from 'lucide-react';
+import { FileText, Rss, Bookmark, Inbox, Zap, ChevronRight } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { decodeHtml, safeUrl } from '@/components/utils/htmlUtils';
 import { decisionState, confidenceFromCluster, generateInsight, inferTag } from './intelligenceUtils';

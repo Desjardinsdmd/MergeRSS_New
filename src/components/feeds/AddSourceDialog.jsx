@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, X, Plus, Globe, AlertCircle, CheckCircle2, ShieldAlert, WifiOff, Lock, FileX, Sparkles } from 'lucide-react';
+import { Loader2, X, Plus, Globe, AlertCircle, CheckCircle2, Sparkles } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
