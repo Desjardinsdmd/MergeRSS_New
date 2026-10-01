@@ -213,18 +213,31 @@ Deno.serve(async (req) => {
             data.timezone = isValidTimezone(user.timezone) ? user.timezone : 'America/New_York';
         }
 
+        // workspace_id is admin-write at field level (entity rule), so it is applied with the
+        // service role after the user-scoped write; the team checks above already ran.
+        const hasWs = Object.prototype.hasOwnProperty.call(data, 'workspace_id');
+        const wsValue = data.workspace_id;
+        const userData = { ...data };
+        delete userData.workspace_id;
+
         let digest;
         if (existing) {
             digest = existing.created_by === user.email
-                ? await base44.entities.Digest.update(existing.id, data)
-                : await svc.Digest.update(existing.id, data);
+                ? await base44.entities.Digest.update(existing.id, userData)
+                : await svc.Digest.update(existing.id, userData);
+            if (hasWs) await svc.Digest.update(existing.id, { workspace_id: wsValue });
             digest = { ...existing, ...data, ...(digest || {}) };
+            if (hasWs) digest.workspace_id = wsValue;
         } else {
             digest = await base44.entities.Digest.create({
                 delivery_web: true,
                 status: 'active',
-                ...data,
+                ...userData,
             });
+            if (hasWs && wsValue && digest?.id) {
+                await svc.Digest.update(digest.id, { workspace_id: wsValue });
+                digest = { ...digest, workspace_id: wsValue };
+            }
         }
 
         return Response.json({ success: true, created: !existing, digest, warnings });
