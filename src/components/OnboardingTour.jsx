@@ -13,7 +13,7 @@ const STEPS = [
     step: 1,
     title: 'Add your sources',
     description:
-      'Go to the Feeds page and click "Add Feed". Paste in any RSS or Atom feed URL from news sites, blogs, or industry sources. Free accounts can add up to 5 feeds.',
+      'Go to Sources and click "Add source". Paste in any RSS or Atom feed URL from news sites, blogs, or industry publications. Free accounts can add up to 5 sources.',
     action: { label: 'Go to Sources', page: 'Feeds' },
   },
   {
