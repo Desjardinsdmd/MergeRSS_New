@@ -131,10 +131,17 @@ Deno.serve(async (req) => {
     await base44.users.inviteUser(testEmail, 'user');
     
     // Send password reset email so they can set their password
+    const resetUrl = new URL('/reset-password', new URL(req.url).origin).href;
+    const testInner = `<p style="margin:0 0 10px;">${emailMicro('Test account', BRAND.violet)}</p>
+<h1 class="h1" style="margin:0 0 16px;font:600 22px/1.3 ${BRAND.display};color:${BRAND.text};">Your test account is ready</h1>
+<p style="margin:0 0 12px;font:400 15px/1.7 ${BRAND.sans};color:${BRAND.body};">Email: <span style="font-family:${BRAND.mono};color:${BRAND.text};">${brandEsc(testEmail)}</span></p>
+<p style="margin:0 0 12px;font:400 15px/1.7 ${BRAND.sans};color:${BRAND.body};">For testing, you can use password: <span style="font-family:${BRAND.mono};color:${BRAND.text};">${brandEsc(testPassword)}</span></p>
+<div style="margin-top:20px;">${emailButton(resetUrl, 'Set your password')}</div>`;
     await base44.integrations.Core.SendEmail({
       to: testEmail,
-      subject: 'MergeRSS Test Account - Set Your Password',
-      body: `Your test account has been created.\n\nEmail: ${testEmail}\n\nClick here to set your password: ${new URL('/reset-password', new URL(req.url).origin).href}\n\nFor testing, you can use password: ${testPassword}`
+      from_name: 'MergeRSS',
+      subject: 'MergeRSS test account: set your password',
+      body: emailShell({ preheader: 'Your MergeRSS test account has been created.', title: 'MergeRSS test account', bodyHtml: emailPanel(testInner) }),
     });
 
     // Create sample feeds for the test user
@@ -187,9 +194,9 @@ Deno.serve(async (req) => {
       for (let j = 0; j < 8; j++) {
         articles.push({
           feed_id: feeds[i].id,
-          title: `${feeds[i].name} Article ${j + 1}: Lorem ipsum dolor sit amet consectetur`,
+          title: `${feeds[i].name} Story ${j + 1}: Lorem ipsum dolor sit amet consectetur`,
           url: `https://example.com/article-${i}-${j}`,
-          description: `This is a test article from ${feeds[i].name}. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.`,
+          description: `This is a test story from ${feeds[i].name}. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.`,
           author: `Author ${j + 1}`,
           published_date: new Date(Date.now() - (j * 86400000)).toISOString(),
           category: feeds[i].category,
@@ -206,8 +213,8 @@ Deno.serve(async (req) => {
 
     // Create sample digest
     await base44.asServiceRole.entities.Digest.create({
-      name: 'Daily Tech Digest',
-      description: 'Daily roundup of tech news',
+      name: 'Daily Tech Briefing',
+      description: 'Daily briefing on tech news',
       categories: ['Tech'],
       frequency: 'daily',
       schedule_time: '09:00',
