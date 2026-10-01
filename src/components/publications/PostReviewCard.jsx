@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,16 +10,21 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { MicroLabel } from '@/components/brand/Brand';
 
+// Semantic status chips: violet = awaiting review, sky = in flight, emerald = done, red = failed.
 const STATUS_STYLES = {
-  draft: 'bg-amber-900/30 text-amber-400',
-  approved: 'bg-blue-900/30 text-blue-400',
-  scheduled: 'bg-purple-900/30 text-purple-400',
-  posted: 'bg-green-900/30 text-green-400',
-  rejected: 'bg-stone-700 text-stone-400',
-  failed: 'bg-red-900/30 text-red-400',
-  archived: 'bg-stone-800 text-stone-500',
+  draft: 'border-[hsl(var(--brand)/0.3)] bg-[hsl(var(--brand)/0.14)] text-[#C4A5FD]',
+  approved: 'border-sky-400/25 bg-sky-400/10 text-sky-300',
+  scheduled: 'border-sky-400/25 bg-sky-400/10 text-sky-300',
+  posted: 'border-emerald-400/25 bg-emerald-400/10 text-emerald-300',
+  rejected: 'border-white/10 bg-white/[0.03] text-stone-400',
+  failed: 'border-red-400/25 bg-red-400/10 text-red-300',
+  archived: 'border-white/10 text-stone-500',
 };
+
+const CHIP = 'inline-flex items-center rounded-md border px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wider';
+const FIELD = 'rounded-xl border-white/10 bg-stone-800 text-sm text-stone-100';
 
 export default function PostReviewCard({ post, onUpdate }) {
   const [expanded, setExpanded] = useState(post.status === 'draft');
@@ -131,49 +134,51 @@ export default function PostReviewCard({ post, onUpdate }) {
   };
 
   return (
-    <div className="border border-stone-800 rounded-lg bg-stone-900 overflow-hidden">
+    <div className="panel overflow-hidden">
       {/* Header */}
-      <button className="w-full flex items-center gap-3 p-4 text-left hover:bg-stone-800/50 transition"
+      <button className="flex w-full items-center gap-3 p-4 text-left transition hover:bg-white/[0.03]"
         onClick={() => setExpanded(!expanded)}>
-        <Badge className={STATUS_STYLES[post.status] || 'bg-stone-700 text-stone-400'}>
+        <span className={cn(CHIP, STATUS_STYLES[post.status] || STATUS_STYLES.rejected)}>
           {post.status}
-        </Badge>
-        <span className="flex-1 text-sm font-medium text-stone-200 truncate">
+        </span>
+        <span className="flex-1 truncate text-sm font-medium text-stone-200">
           {variants[0]?.content?.[0]?.slice(0, 80) || post.selection_reason || 'Draft post'}
         </span>
-        <span className="text-xs text-stone-600">{new Date(post.created_date).toLocaleDateString()}</span>
-        {expanded ? <ChevronUp className="w-4 h-4 text-stone-500" /> : <ChevronDown className="w-4 h-4 text-stone-500" />}
+        <span className="font-mono text-[11px] text-stone-500">{new Date(post.created_date).toLocaleDateString()}</span>
+        {expanded ? <ChevronUp className="h-4 w-4 text-stone-500" /> : <ChevronDown className="h-4 w-4 text-stone-500" />}
       </button>
 
       {expanded && (
-        <div className="px-4 pb-4 space-y-4 border-t border-stone-800">
+        <div className="space-y-4 border-t border-white/[0.06] px-4 pb-4">
           {/* Selection Reason */}
           {post.selection_reason && (
             <div className="pt-3">
-              <p className="text-xs text-stone-500 uppercase tracking-wider mb-1">Why this story</p>
+              <MicroLabel className="mb-1">Why this story</MicroLabel>
               <p className="text-sm text-stone-400">{post.selection_reason}</p>
             </div>
           )}
 
           {/* Variants */}
           {variants.length > 0 && (
-            <div>
-              <p className="text-xs text-stone-500 uppercase tracking-wider mb-2">Draft Variants</p>
+            <div className={cn(!post.selection_reason && 'pt-3')}>
+              <MicroLabel className="mb-2">Draft variants</MicroLabel>
               <div className="grid gap-3">
                 {variants.map((v, i) => (
                   <button key={i}
                     className={cn(
-                      "text-left p-3 rounded-lg border transition",
-                      selectedVariant === i ? "border-[hsl(var(--primary))] bg-stone-800" : "border-stone-700 bg-stone-800/50 hover:border-stone-600"
+                      'panel-raised p-3 text-left transition',
+                      selectedVariant === i
+                        ? 'border-[hsl(var(--brand)/0.6)] bg-[hsl(var(--brand)/0.08)] ring-1 ring-[hsl(var(--brand)/0.35)]'
+                        : 'hover:border-white/[0.14]'
                     )}
                     onClick={() => { setSelectedVariant(i); setEditContent(null); }}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Badge variant="outline" className="text-xs">{v.label}</Badge>
-                      {selectedVariant === i && <Check className="w-3 h-3 text-[hsl(var(--primary))]" />}
-                      <span className="text-xs text-stone-600">{v.content?.length === 1 ? 'Single post' : `${v.content?.length}-post thread`}</span>
+                    <div className="mb-2 flex items-center gap-2">
+                      <span className="chip-neutral">{v.label}</span>
+                      {selectedVariant === i && <Check className="h-3 w-3 text-[#C4A5FD]" />}
+                      <span className="font-mono text-[11px] text-stone-500">{v.content?.length === 1 ? 'Single post' : `${v.content?.length}-post thread`}</span>
                       <button
                         type="button"
-                        className="ml-auto p-1 rounded hover:bg-stone-700 text-stone-500 hover:text-stone-200 transition"
+                        className="ml-auto rounded-md p-1 text-stone-500 transition hover:bg-white/[0.06] hover:text-stone-200"
                         title="Copy to clipboard"
                         onClick={e => {
                           e.stopPropagation();
@@ -181,11 +186,11 @@ export default function PostReviewCard({ post, onUpdate }) {
                           navigator.clipboard.writeText(text);
                           toast.success(`${v.label} copied to clipboard`);
                         }}>
-                        <Copy className="w-3.5 h-3.5" />
+                        <Copy className="h-3.5 w-3.5" />
                       </button>
                     </div>
                     {(v.content || []).map((text, ti) => (
-                      <p key={ti} className="text-sm text-stone-300 mb-1">{text}</p>
+                      <p key={ti} className="mb-1 text-sm text-stone-300">{text}</p>
                     ))}
                   </button>
                 ))}
@@ -196,21 +201,20 @@ export default function PostReviewCard({ post, onUpdate }) {
           {/* Inline Edit / Revise Controls */}
           <div className="flex items-center gap-2 pt-1">
             {!isEditing && (
-              <Button size="sm" variant="ghost" onClick={() => { setIsEditing(true); setEditContent(variants[selectedVariant]?.content || []); }}
-                className="text-stone-400 hover:text-stone-200 text-xs">
-                <Pencil className="w-3.5 h-3.5 mr-1" /> Edit
-              </Button>
+              <button type="button" className="btn-ghost border-transparent px-2 py-1 text-xs"
+                onClick={() => { setIsEditing(true); setEditContent(variants[selectedVariant]?.content || []); }}>
+                <Pencil className="h-3.5 w-3.5" /> Edit
+              </button>
             )}
-            <Button size="sm" variant="ghost" onClick={() => setShowRevise(!showRevise)}
-              className="text-stone-400 hover:text-stone-200 text-xs">
-              <Sparkles className="w-3.5 h-3.5 mr-1" /> {showRevise ? 'Cancel Revise' : 'Revise with AI'}
-            </Button>
+            <button type="button" className="btn-ghost border-transparent px-2 py-1 text-xs" onClick={() => setShowRevise(!showRevise)}>
+              <Sparkles className="h-3.5 w-3.5" /> {showRevise ? 'Cancel revise' : 'Revise with AI'}
+            </button>
           </div>
 
           {/* Inline Editor */}
           {isEditing && (
             <div>
-              <p className="text-xs text-stone-500 uppercase tracking-wider mb-2">Edit Content</p>
+              <MicroLabel className="mb-2">Edit content</MicroLabel>
               {(editContent || variants[selectedVariant]?.content || []).map((text, i) => (
                 <Textarea key={i} value={editContent ? editContent[i] : text}
                   onChange={e => {
@@ -218,94 +222,87 @@ export default function PostReviewCard({ post, onUpdate }) {
                     updated[i] = e.target.value;
                     setEditContent(updated);
                   }}
-                  rows={3} className="bg-stone-800 border-stone-700 text-stone-100 text-sm mb-2" />
+                  rows={3} className={cn(FIELD, 'mb-2')} />
               ))}
               <div className="flex gap-2">
-                <Button size="sm" onClick={handleSaveEdit} disabled={acting}
-                  className="bg-[hsl(var(--primary))] text-stone-900 font-semibold text-xs">
-                  {acting ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <Save className="w-3.5 h-3.5 mr-1" />}
-                  Save Changes
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => { setIsEditing(false); setEditContent(null); }}
-                  className="text-stone-500 text-xs">
+                <button type="button" className="btn-soft text-xs disabled:opacity-50" onClick={handleSaveEdit} disabled={acting}>
+                  {acting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+                  Save changes
+                </button>
+                <button type="button" className="btn-ghost border-transparent text-xs"
+                  onClick={() => { setIsEditing(false); setEditContent(null); }}>
                   Cancel
-                </Button>
+                </button>
               </div>
             </div>
           )}
 
           {/* AI Revision Feedback */}
           {showRevise && (
-            <div className="bg-stone-800/50 rounded-lg p-3 border border-stone-700">
-              <p className="text-xs text-stone-500 uppercase tracking-wider mb-2">Revision Instructions</p>
+            <div className="panel-raised p-3">
+              <MicroLabel className="mb-2">Revision instructions</MicroLabel>
               <Textarea value={revisionFeedback} onChange={e => setRevisionFeedback(e.target.value)}
-                placeholder="Tell the AI what to change... e.g. 'Make it more concise', 'Add the dollar amount from the article', 'Change the tone to be less formal'"
-                rows={3} className="bg-stone-900 border-stone-700 text-stone-100 text-sm mb-2" />
-              <Button size="sm" onClick={handleRevise} disabled={revising}
-                className="bg-[hsl(var(--primary))] text-stone-900 font-semibold text-xs">
-                {revising ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <Sparkles className="w-3.5 h-3.5 mr-1" />}
-                {revising ? 'Revising...' : 'Generate Revised Drafts'}
-              </Button>
+                placeholder="Tell the AI what to change, e.g. 'Make it more concise', 'Add the dollar amount from the story', 'Make the tone less formal'"
+                rows={3} className="mb-2 rounded-xl border-white/10 bg-stone-900 text-sm text-stone-100" />
+              <button type="button" className="btn-soft text-xs disabled:opacity-50" onClick={handleRevise} disabled={revising}>
+                {revising ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                {revising ? 'Revising...' : 'Generate revised drafts'}
+              </button>
             </div>
           )}
 
           {/* Notes */}
           <div>
-            <Label className="text-stone-500 text-xs">Notes</Label>
+            <Label className="micro-label">Notes</Label>
             <Input value={notes} onChange={e => setNotes(e.target.value)}
-              placeholder="Optional notes..." className="bg-stone-800 border-stone-700 text-stone-100 text-sm" />
+              placeholder="Optional notes..." className={FIELD} />
           </div>
 
           {/* Error */}
           {post.status === 'failed' && post.error_message && (
-            <p className="text-sm text-red-400 bg-red-900/20 p-2 rounded">{post.error_message}</p>
+            <p className="rounded-xl border border-red-400/25 bg-red-400/10 p-2.5 font-mono text-xs text-red-300">{post.error_message}</p>
           )}
 
           {/* Actions */}
           {post.status === 'draft' && (
             <div className="flex flex-wrap items-center gap-3 pt-2">
-              <Button size="sm" onClick={handleApprove} disabled={acting}
-                className="bg-[hsl(var(--primary))] text-stone-900 font-semibold">
-                {acting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Check className="w-4 h-4 mr-1" />}
+              <button type="button" className="btn-soft disabled:opacity-50" onClick={handleApprove} disabled={acting}>
+                {acting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
                 Approve
-              </Button>
-              <Button size="sm" variant="outline" onClick={handleMarkPosted} disabled={acting}
-                className="text-green-400 border-green-800 hover:bg-green-900/20">
-                {acting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Send className="w-4 h-4 mr-1" />}
-                Mark as Posted
-              </Button>
+              </button>
+              <button type="button" className="btn-ghost hover:text-emerald-300 disabled:opacity-50" onClick={handleMarkPosted} disabled={acting}>
+                {acting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                Mark as posted
+              </button>
               <div className="flex items-center gap-2">
                 <Input type="datetime-local" value={scheduledFor} onChange={e => setScheduledFor(e.target.value)}
-                  className="bg-stone-800 border-stone-700 text-stone-100 text-sm w-auto" />
-                <Button size="sm" variant="outline" onClick={handleSchedule} disabled={acting}>
-                  <Clock className="w-4 h-4 mr-1" /> Schedule
-                </Button>
+                  className={cn(FIELD, 'w-auto font-mono text-xs')} />
+                <button type="button" className="btn-ghost disabled:opacity-50" onClick={handleSchedule} disabled={acting}>
+                  <Clock className="h-4 w-4" /> Schedule
+                </button>
               </div>
-              <Button size="sm" variant="ghost" onClick={handleReject} disabled={acting}
-                className="text-red-400 hover:text-red-300 hover:bg-red-900/20">
-                <X className="w-4 h-4 mr-1" /> Reject
-              </Button>
+              <button type="button" className="btn-ghost border-transparent hover:bg-red-400/10 hover:text-red-300 disabled:opacity-50" onClick={handleReject} disabled={acting}>
+                <X className="h-4 w-4" /> Reject
+              </button>
             </div>
           )}
 
           {post.status === 'approved' && (
             <div className="flex gap-3 pt-2">
-              <Button size="sm" onClick={handlePost} disabled={acting}
-                className="bg-[hsl(var(--primary))] text-stone-900 font-semibold">
-                {acting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Send className="w-4 h-4 mr-1" />}
+              <button type="button" className="btn-brand disabled:opacity-50" onClick={handlePost} disabled={acting}>
+                {acting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                 Send to Drafts
-              </Button>
-              <Button size="sm" variant="outline" onClick={handleMarkPosted} disabled={acting}
-                className="text-green-400 border-green-800 hover:bg-green-900/20">
-                {acting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Check className="w-4 h-4 mr-1" />}
-                Mark as Posted
-              </Button>
+              </button>
+              <button type="button" className="btn-ghost hover:text-emerald-300 disabled:opacity-50" onClick={handleMarkPosted} disabled={acting}>
+                {acting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                Mark as posted
+              </button>
             </div>
           )}
 
           {post.status === 'failed' && (
             <div className="flex gap-3 pt-2">
-              <Button size="sm" onClick={async () => {
+              <button type="button" className="btn-brand disabled:opacity-50" onClick={async () => {
                 setActing(true);
                 await base44.entities.PublicationPost.update(post.id, { status: 'approved', error_message: '' });
                 const res = await base44.functions.invoke('postToX', { post_id: post.id });
@@ -316,11 +313,10 @@ export default function PostReviewCard({ post, onUpdate }) {
                 }
                 setActing(false);
                 onUpdate();
-              }} disabled={acting}
-                className="bg-[hsl(var(--primary))] text-stone-900 font-semibold">
-                {acting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <RotateCcw className="w-4 h-4 mr-1" />}
+              }} disabled={acting}>
+                {acting ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
                 Send to Drafts
-              </Button>
+              </button>
             </div>
           )}
         </div>
