@@ -106,7 +106,7 @@ function PublicationsPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-stone-100">Publications</h1>
-          <p className="text-stone-500 text-sm">Manage your automated social publications</p>
+          <p className="text-stone-500 text-sm">Scheduled post suggestions for review. Approved posts go to X Drafts to post manually.</p>
         </div>
         <Button onClick={() => {
           if (pubs.length >= 1) { toast.error('v1 limit: 1 publication per account. This limit will be raised.'); return; }
