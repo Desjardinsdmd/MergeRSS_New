@@ -12,6 +12,19 @@
     "url": {
       "type": "string"
     },
+    "image_url": {
+      "type": "string",
+      "description": "Lead image for the story (absolute https URL). From the feed entry, else the article page's og:image."
+    },
+    "image_status": {
+      "type": "string",
+      "enum": ["pending", "feed", "page", "none"],
+      "description": "pending = not looked up yet; feed = from the RSS entry; page = from og:image; none = looked, nothing usable"
+    },
+    "image_checked_at": {
+      "type": "string",
+      "description": "When backfillStoryImages last tried this item"
+    },
     "description": {
       "type": "string"
     },

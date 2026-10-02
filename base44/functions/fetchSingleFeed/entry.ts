@@ -206,7 +206,7 @@ async function parseFeed(url) {
             content: typeof item['content:encoded'] === 'string' ? item['content:encoded'] : '',
             author: item['dc:creator'] || '',
             published_date: item['dc:date'] ? new Date(item['dc:date']).toISOString() : new Date().toISOString(),
-            guid: item['@_rdf:about'] || typeof item.link === 'string' ? item.link : '',
+            guid: item['@_rdf:about'] || (typeof item.link === 'string' ? item.link : ''),
             image_url: pickItemImage(item, typeof item.link === 'string' ? item.link : ''),
         }));
     }
