@@ -650,7 +650,7 @@ function normalizeBrief(raw, topItems) {
                 category: item.category && item.category !== 'General' ? String(item.category) : '',
                 source: item.__source_name || hostOf(item.url),
                 published: item.published_date || item.created_date || '',
-                image: '',
+                image: item.image_url || '',
             });
         }
         if (stories.length) sections.push({ label: stripTags(sec.label) || 'Top stories', stories });
@@ -679,7 +679,7 @@ function fallbackBrief(topItems, target) {
                 category: item.category && item.category !== 'General' ? String(item.category) : '',
                 source: item.__source_name || hostOf(item.url),
                 published: item.published_date || item.created_date || '',
-                image: '',
+                image: item.image_url || '',
             })),
         }],
     };
@@ -720,8 +720,10 @@ async function fetchOgImage(url, timeoutMs = 2500) {
     }
 }
 
-async function attachImages(brief, max = 4) {
-    const stories = brief.sections.flatMap(s => s.stories).slice(0, max);
+// Stories already carry the image saved at fetch time (FeedItem.image_url). Only the
+// few without one are looked up live, so a send never waits on many page fetches.
+async function attachImages(brief, max = 8) {
+    const stories = brief.sections.flatMap(s => s.stories).slice(0, max).filter(s => !s.image);
     const images = await Promise.all(stories.map(s => fetchOgImage(s.url)));
     stories.forEach((s, i) => { s.image = images[i] || ''; });
 }
@@ -1139,7 +1141,7 @@ Deno.serve(async (req) => {
                 // Markdown copy for web inbox, Slack, Teams and Discord
                 const content = briefToMarkdown(brief);
 
-                const itemsList = topItems.map(i => ({ title: i.title, url: i.url }));
+                const itemsList = topItems.map(i => ({ title: i.title, url: i.url, image_url: i.image_url || '', source: i.__source_name || '' }));
 
                 // Web delivery (shared briefings: one inbox copy per active member)
                 const webRecord = (ownerEmail) => base44.asServiceRole.entities.DigestDelivery.create({
