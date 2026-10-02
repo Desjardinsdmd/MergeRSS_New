@@ -10,6 +10,11 @@ import ArticleSummarizeButton from '@/components/feeds/ArticleSummarizeButton';
 import RelatedArticles from '@/components/feeds/RelatedArticles';
 import { queryArticles } from '@/api/articles';
 import { PageHeader } from '@/components/brand/Brand';
+import StoryImage from '@/components/brand/StoryImage';
+
+function hostOf(url) {
+  try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return ''; }
+}
 import { cn } from '@/lib/utils';
 
 const CATEGORIES = ['CRE', 'Markets', 'Tech', 'News', 'Finance', 'Crypto', 'AI', 'Other'];
@@ -261,30 +266,34 @@ export default function ArticleSearch() {
                         isSelected && 'border-[hsl(var(--brand)/0.45)] bg-[hsl(var(--brand)/0.08)]'
                       )}
                       onClick={() => setSelectedArticle(isSelected ? null : merged)}>
-
-                      <p className={cn('font-display text-[15px] font-semibold leading-snug line-clamp-2 mb-2', isSelected ? 'text-brand-light' : 'text-stone-100')}>
-                        {decodeHtml(item.title)}
-                      </p>
-                      <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <span className="meta flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {item.published_date ? fmtDate(item.published_date) : 'Unknown'}
-                        </span>
-                        {item.author &&
-                          <span className="meta flex items-center gap-1">
-                            <User className="w-3 h-3" />
-                            {item.author}
-                          </span>
-                        }
-                        {item.category &&
-                          <span className="chip-brand">{item.category}</span>
-                        }
+                      <div className="flex items-start gap-4">
+                        <div className="min-w-0 flex-1">
+                          <p className={cn('font-display text-[15px] font-semibold leading-snug line-clamp-2 mb-2', isSelected ? 'text-brand-light' : 'text-stone-100')}>
+                            {decodeHtml(item.title)}
+                          </p>
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            <span className="meta flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {item.published_date ? fmtDate(item.published_date) : 'Unknown'}
+                            </span>
+                            {item.author &&
+                              <span className="meta flex items-center gap-1">
+                                <User className="w-3 h-3" />
+                                {item.author}
+                              </span>
+                            }
+                            {item.category &&
+                              <span className="chip-brand">{item.category}</span>
+                            }
+                          </div>
+                          {item.ai_summary &&
+                            <p className="text-sm leading-relaxed text-stone-400 line-clamp-2">
+                              {item.ai_summary}
+                            </p>
+                          }
+                        </div>
+                        <StoryImage src={item.image_url} source={hostOf(item.url) || item.author} alt="" size="thumb" />
                       </div>
-                      {item.ai_summary &&
-                        <p className="text-sm text-stone-400 line-clamp-2 italic">
-                          "{item.ai_summary}"
-                        </p>
-                      }
                     </div>);
 
                 })}
@@ -320,6 +329,9 @@ export default function ArticleSearch() {
                   </div>
                 </div>
                 <div className="p-5">
+                  {selectedArticle.image_url &&
+                    <StoryImage src={selectedArticle.image_url} source={hostOf(selectedArticle.url)} alt="" size="lead" className="mb-4" />
+                  }
                   {selectedArticle.description &&
                     <p className="text-sm text-stone-300 leading-relaxed mb-4">{decodeHtml(selectedArticle.description)}</p>
                   }
