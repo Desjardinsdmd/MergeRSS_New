@@ -5,6 +5,11 @@ import { Bookmark, Trash2, ExternalLink, Clock, CheckCircle, RotateCcw, Loader2 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { decodeHtml, safeUrl } from '@/components/utils/htmlUtils';
 import { cn } from '@/lib/utils';
+import StoryImage from '@/components/brand/StoryImage';
+
+function hostOf(url) {
+  try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return ''; }
+}
 
 const FOCUS = 'outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))]';
 
@@ -113,8 +118,9 @@ export default function SavedArticles({ user }) {
           <ul className="divide-y divide-white/[0.06]">
             {filtered.map(b => (
               <li key={b.id} className={cn('flex items-start gap-3 px-4 py-3.5', b.is_read && 'opacity-60')}>
-                <div className="mt-[7px] flex-shrink-0 w-2 h-2" aria-hidden="true">
-                  {!b.is_read && <div className="w-2 h-2 rounded-full bg-[hsl(var(--primary))]" />}
+                <div className="relative flex-shrink-0">
+                  <StoryImage src={b.image_url} source={hostOf(b.url)} alt="" size="mini" />
+                  {!b.is_read && <span className="absolute -left-1 -top-1 h-2.5 w-2.5 rounded-full border-2 border-[#100E17] bg-[hsl(var(--primary))]" aria-hidden="true" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <a

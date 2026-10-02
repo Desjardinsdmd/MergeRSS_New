@@ -24,6 +24,10 @@
     },
     "url": {
       "type": "string"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Story lead image at the time it was saved"
     }
   },
   "required": [
