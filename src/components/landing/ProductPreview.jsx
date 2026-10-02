@@ -2,6 +2,7 @@ import React from 'react';
 import { Sun, FileText, Inbox, Rss, Search, MailPlus, Bookmark } from 'lucide-react';
 import { LogoMark, MicroLabel, SignalPill } from '@/components/brand/Brand';
 import { cn } from '@/lib/utils';
+import StoryImage from '@/components/brand/StoryImage';
 
 // Example content only. Outlet names are invented.
 const NAV = [
@@ -129,6 +130,7 @@ export default function ProductPreview({ className }) {
                     <span className="meta min-w-0 truncate text-[9.5px]">{s.meta.join(' · ')}</span>
                   </div>
                 </div>
+                <StoryImage source={s.meta[0]} alt="" size="mini" className="h-14 w-14" />
               </li>
             ))}
           </ol>
