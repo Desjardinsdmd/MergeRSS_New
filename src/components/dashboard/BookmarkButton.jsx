@@ -19,6 +19,7 @@ export default function BookmarkButton({ item, className = '' }) {
         description: item.description || '',
         category: item.category || '',
         published_date: item.published_date || '',
+        image_url: item.image_url || '',
         is_read: false,
       });
       setSaved(true);
