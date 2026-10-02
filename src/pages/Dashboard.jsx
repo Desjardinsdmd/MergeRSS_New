@@ -5,7 +5,7 @@ import { createPageUrl } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 import {
-  Rss, FileText, AlertCircle, AlertTriangle, ArrowRight, Sparkles, ExternalLink, Loader2, PauseCircle,
+  Rss, FileText, AlertCircle, AlertTriangle, ArrowRight, Sparkles, Loader2, PauseCircle,
 } from 'lucide-react';
 import StreakCounter from '@/components/dashboard/StreakCounter';
 import BookmarkButton from '@/components/dashboard/BookmarkButton';
