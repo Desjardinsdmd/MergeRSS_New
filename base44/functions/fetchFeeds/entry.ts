@@ -139,7 +139,12 @@ function normalizeImageUrl(u, base) {
         return s.length > 1000 ? '' : s;
     } catch { return ''; }
 }
-const __JUNK_IMG = /(pixel|tracking|spacer|blank\.|feedburner|gravatar|emoji|badge|logo|icon|avatar|share|button|1x1|\/ads?\/)/i;
+const __JUNK_IMG = /(pixel|tracking|spacer|blank\.|feedburner|gravatar|emoji|badge|logo|icon|avatar|share-?button|button|1x1|\/ads?\/|placeholder|default[-_]?(og|image|share)|ogimage-)/i;
+// Attribute value, quoted or not (minified HTML often drops quotes).
+function __attrVal(tag, name) {
+    const m = new RegExp('\\b' + name + '\\s*=\\s*(?:"([^"]*)"|\'([^\']*)\'|([^\\s>]+))', 'i').exec(tag);
+    return m ? (m[1] ?? m[2] ?? m[3] ?? '') : '';
+}
 function firstImgInHtml(html) {
     if (!html || typeof html !== 'string') return '';
     const s = decodeHtml(html) || '';
@@ -150,8 +155,8 @@ function firstImgInHtml(html) {
         const w = /\bwidth=["']?(\d+)/i.exec(tag);
         const h = /\bheight=["']?(\d+)/i.exec(tag);
         if ((w && Number(w[1]) < 120) || (h && Number(h[1]) < 80)) continue;
-        const src = /\b(?:data-src|data-lazy-src|src)=["']([^"']+)["']/i.exec(tag);
-        if (src && !__JUNK_IMG.test(src[1]) && !/\.(gif|svg)(\?|$)/i.test(src[1])) return src[1];
+        const src = __attrVal(tag, 'data-src') || __attrVal(tag, 'data-lazy-src') || __attrVal(tag, 'src');
+        if (src && !__JUNK_IMG.test(src) && !/\.(gif|svg)(\?|$)/i.test(src)) return src;
     }
     return '';
 }
