@@ -119,6 +119,73 @@ function decodeHtml(str) {
         .replace(/&trade;/g, '™').replace(/&bull;/g, '•').replace(/&amp;/g, '&');
 }
 
+// ─── Story image (CANONICAL COPY: fetchFeeds, fetchSingleFeed, recoverFeeds) ──
+// Picks the story's lead image from the feed entry itself: media:content /
+// media:thumbnail (incl. media:group), image enclosures, itunes:image, Atom
+// enclosure links, then the first real <img> in the body. Returns an absolute
+// https URL or ''. Items without one get filled later from the article page's
+// og:image by backfillStoryImages.
+function __asArr(v) { return Array.isArray(v) ? v : (v ? [v] : []); }
+function __text(v) { return typeof v === 'string' ? v : (v && typeof v === 'object' ? (v['#text'] || '') : ''); }
+function normalizeImageUrl(u, base) {
+    if (!u || typeof u !== 'string') return '';
+    u = u.trim().replace(/&amp;/g, '&');
+    if (!u || u.startsWith('data:')) return '';
+    try {
+        const abs = new URL(u, base || undefined);
+        if (abs.protocol === 'http:') abs.protocol = 'https:';
+        if (abs.protocol !== 'https:') return '';
+        const s = abs.toString();
+        return s.length > 1000 ? '' : s;
+    } catch { return ''; }
+}
+const __JUNK_IMG = /(pixel|tracking|spacer|blank\.|feedburner|gravatar|emoji|badge|logo|icon|avatar|share|button|1x1|\/ads?\/)/i;
+function firstImgInHtml(html) {
+    if (!html || typeof html !== 'string') return '';
+    const s = decodeHtml(html) || '';
+    const re = /<img\b[^>]*>/gi;
+    let m;
+    while ((m = re.exec(s))) {
+        const tag = m[0];
+        const w = /\bwidth=["']?(\d+)/i.exec(tag);
+        const h = /\bheight=["']?(\d+)/i.exec(tag);
+        if ((w && Number(w[1]) < 120) || (h && Number(h[1]) < 80)) continue;
+        const src = /\b(?:data-src|data-lazy-src|src)=["']([^"']+)["']/i.exec(tag);
+        if (src && !__JUNK_IMG.test(src[1]) && !/\.(gif|svg)(\?|$)/i.test(src[1])) return src[1];
+    }
+    return '';
+}
+function pickItemImage(raw, link) {
+    if (!raw || typeof raw !== 'object') return '';
+    const cands = [];
+    for (const g of [...__asArr(raw['media:group']), raw]) {
+        for (const mc of __asArr(g['media:content'])) {
+            const t = String(mc?.['@_type'] || mc?.['@_medium'] || '');
+            if (!t || /image/i.test(t)) cands.push(mc?.['@_url']);
+        }
+        for (const mt of __asArr(g['media:thumbnail'])) cands.push(mt?.['@_url']);
+    }
+    for (const e of __asArr(raw.enclosure)) {
+        const u = e?.['@_url'] || '';
+        if (/image/i.test(e?.['@_type'] || '') || /\.(jpe?g|png|webp)(\?|$)/i.test(u)) cands.push(u);
+    }
+    const it = raw['itunes:image'];
+    if (it) cands.push(typeof it === 'string' ? it : it['@_href']);
+    for (const l of __asArr(raw.link)) {
+        if (l && typeof l === 'object' && l['@_rel'] === 'enclosure' && /image/i.test(l['@_type'] || '')) cands.push(l['@_href']);
+    }
+    for (const body of [raw['content:encoded'], raw.content, raw.description, raw.summary]) {
+        const u = firstImgInHtml(__text(body));
+        if (u) cands.push(u);
+    }
+    for (const c of cands) {
+        if (!c || __JUNK_IMG.test(String(c))) continue;
+        const n = normalizeImageUrl(String(c), link);
+        if (n) return n;
+    }
+    return '';
+}
+
 // ─── Canonical feed parser ────────────────────────────────────────────────────
 // SINGLE SOURCE OF TRUTH for RSS/Atom/RDF parsing across the entire codebase.
 // recoverFeeds calls this function via base44.functions.invoke('fetchFeeds') — do not degrade it.
@@ -167,6 +234,7 @@ async function parseFeed(url) {
             author: decodeHtml(item.author || item['dc:creator']) || '',
             published_date: item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString(),
             guid: typeof item.guid === 'string' ? item.guid : (item.guid?.['#text'] || item.link || ''),
+            image_url: pickItemImage(item, typeof item.link === 'string' ? item.link : ''),
         }));
     }
 
@@ -184,6 +252,7 @@ async function parseFeed(url) {
                 author: decodeHtml(entry.author?.name || ''),
                 published_date: entry.updated || entry.published ? new Date(entry.updated || entry.published).toISOString() : new Date().toISOString(),
                 guid: entry.id || link,
+                image_url: pickItemImage(entry, link),
             };
         });
     }
@@ -200,6 +269,7 @@ async function parseFeed(url) {
             author: item['dc:creator'] || '',
             published_date: item['dc:date'] ? new Date(item['dc:date']).toISOString() : new Date().toISOString(),
             guid: item['@_rdf:about'] || (typeof item.link === 'string' ? item.link : ''),
+            image_url: pickItemImage(item, typeof item.link === 'string' ? item.link : ''),
         }));
     }
 
@@ -246,6 +316,8 @@ function buildFeedItemRecord(item, feed) {
         tags: feed.tags || [],
         is_read: false,
         enrichment_status: 'pending',
+        image_url: String(item.image_url || ''),
+        image_status: item.image_url ? 'feed' : 'pending',
     };
 }
 
