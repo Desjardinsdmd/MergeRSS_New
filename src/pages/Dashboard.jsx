@@ -13,6 +13,7 @@ import { nextSend } from '@/components/dashboard/briefingSchedule';
 import { decodeHtml, safeUrl } from '@/components/utils/htmlUtils';
 import { cn } from '@/lib/utils';
 import { MicroLabel, SignalPill } from '@/components/brand/Brand';
+import StoryImage from '@/components/brand/StoryImage';
 
 const FOCUS = 'outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-background';
 
@@ -306,39 +307,70 @@ export default function Dashboard() {
                 const score = typeof item.importance_score === 'number' ? Math.round(item.importance_score) : null;
                 const showScore = score != null && ranked.mode === 'ranked';
                 const level = score >= 80 ? 'high' : score >= 50 ? 'med' : 'low';
+                const source = feedName[item.feed_id] || 'Source';
+                const lead = idx === 0;
+                const href = safeUrl(item.url);
+                const headline = (
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={cn(
+                      'rounded-sm font-semibold leading-snug text-stone-100 hover:text-brand-light',
+                      lead ? 'font-display text-lg sm:text-xl' : 'text-[15px]',
+                      FOCUS
+                    )}
+                  >
+                    {decodeHtml(item.title)}
+                    <span className="sr-only"> (opens in a new tab)</span>
+                  </a>
+                );
+                const meta = (
+                  <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1.5">
+                    <p className="meta">
+                      {source}
+                      {item.published_date ? ` · ${ago(item.published_date)}` : ''}
+                      {showScore ? ` · importance ${score}` : ''}
+                    </p>
+                    {showScore && <SignalPill level={level} />}
+                    <span className="ml-auto"><BookmarkButton item={item} /></span>
+                  </div>
+                );
+                if (lead) {
+                  return (
+                    <li key={item.id} className="panel panel-hover overflow-hidden">
+                      <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,300px)]">
+                        <a href={href} target="_blank" rel="noopener noreferrer" tabIndex={-1} aria-hidden="true" className="block p-3 pb-0 md:order-2 md:p-3">
+                          <StoryImage src={item.image_url} source={source} alt="" size="lead" />
+                        </a>
+                        <div className="flex min-w-0 gap-4 px-4 py-4 sm:px-5 md:order-1">
+                          <span className="w-8 flex-shrink-0 text-right font-display text-[28px] font-semibold leading-none tabular-nums text-[hsl(var(--primary))]" aria-hidden="true">1</span>
+                          <div className="min-w-0 flex-1">
+                            {headline}
+                            {summary && <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-stone-400">{summary}</p>}
+                            {meta}
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+                  );
+                }
                 return (
-                  <li key={item.id} className="panel panel-hover flex items-start gap-4 px-4 py-4 sm:px-5">
+                  <li key={item.id} className="panel panel-hover flex items-start gap-3 px-4 py-4 sm:gap-4 sm:px-5">
                     <span
-                      className={cn(
-                        'w-8 flex-shrink-0 text-right font-display text-[28px] font-semibold leading-none tabular-nums',
-                        idx === 0 ? 'text-[hsl(var(--primary))]' : 'text-stone-500'
-                      )}
+                      className="w-7 flex-shrink-0 text-right font-display text-[24px] font-semibold leading-none tabular-nums text-stone-500 sm:w-8 sm:text-[28px]"
                       aria-hidden="true"
                     >
                       {idx + 1}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <a
-                        href={safeUrl(item.url)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={cn('rounded-sm text-[15px] font-semibold leading-snug text-stone-100 hover:text-brand-light', FOCUS)}
-                      >
-                        {decodeHtml(item.title)}
-                        <ExternalLink className="ml-1 inline h-3 w-3 align-baseline text-stone-600" aria-hidden="true" />
-                        <span className="sr-only"> (opens in a new tab)</span>
-                      </a>
-                      {summary && <p className="mt-1 line-clamp-1 text-sm leading-relaxed text-stone-400">{summary}</p>}
-                      <p className="meta mt-2">
-                        {feedName[item.feed_id] || 'Source'}
-                        {item.published_date ? ` · ${ago(item.published_date)}` : ''}
-                        {showScore ? ` · importance ${score}` : ''}
-                      </p>
+                      {headline}
+                      {summary && <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-stone-400">{summary}</p>}
+                      {meta}
                     </div>
-                    <div className="flex flex-shrink-0 flex-col items-end gap-2">
-                      <BookmarkButton item={item} />
-                      {showScore && <SignalPill level={level} />}
-                    </div>
+                    <a href={href} target="_blank" rel="noopener noreferrer" tabIndex={-1} aria-hidden="true" className="flex-shrink-0">
+                      <StoryImage src={item.image_url} source={source} alt="" size="thumb" />
+                    </a>
                   </li>
                 );
               })}
