@@ -109,12 +109,14 @@ Deno.serve(async (req) => {
 
     // Batch-fetch representative FeedItems to get URLs
     const itemUrlMap = {};
+    const itemImageMap = {};
     if (repItemIds.length > 0) {
         const repItems = extractItems(await base44.asServiceRole.entities.FeedItem.filter(
             { id: { $in: repItemIds.slice(0, 200) } }, '-created_date', 200
         ));
         for (const item of repItems) {
             itemUrlMap[item.id] = item.url || null;
+            itemImageMap[item.id] = item.image_url || null;
         }
     }
 
@@ -143,6 +145,7 @@ Deno.serve(async (req) => {
             intelligence_tag: lensAgg?.intelligence_tag || c.intelligence_tag || 'Neutral',
             lens_score: lensScore,
             article_url: itemUrlMap[c.representative_item_id] || null,
+            image_url: itemImageMap[c.representative_item_id] || null,
         });
     }
 

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Send, TrendingUp, AlertTriangle, Zap, Minus, Clock, X, ExternalLink } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
+import StoryImage from '@/components/brand/StoryImage';
 
 const TAG_COLORS = {
   Trending: 'border-sky-400/25 bg-sky-400/10 text-sky-300',
@@ -123,6 +124,7 @@ export default function CandidateRow({ candidate, onSelect, onSkip, selecting, s
             </div>
             {domains && <p className="mt-1 truncate font-mono text-[11px] text-stone-500">{domains}</p>}
           </div>
+          <StoryImage src={candidate.image_url} source={candidate.source_domains?.[0]} alt="" size="mini" className="h-16 w-16" />
         </div>
         <div className="mt-3 pl-7">
           <Actions candidate={candidate} onSelect={onSelect} onSkip={onSkip} selecting={selecting} full />
@@ -132,11 +134,14 @@ export default function CandidateRow({ candidate, onSelect, onSkip, selecting, s
       {/* Desktop: table row */}
       <div className={cn('hidden', CANDIDATE_GRID)}>
         <Checkbox checked={!!selected} onCheckedChange={onToggleSelect} className={CHECKBOX} aria-label="Select story" />
-        <div className="min-w-0">
-          <Title candidate={candidate} />
-          <div className="mt-1 flex min-w-0 items-center gap-2">
-            <TagBadge tag={candidate.intelligence_tag} />
-            {domains && <span className="truncate font-mono text-[11px] text-stone-500">{domains}</span>}
+        <div className="flex min-w-0 items-center gap-3">
+          <StoryImage src={candidate.image_url} source={candidate.source_domains?.[0]} alt="" size="mini" />
+          <div className="min-w-0">
+            <Title candidate={candidate} />
+            <div className="mt-1 flex min-w-0 items-center gap-2">
+              <TagBadge tag={candidate.intelligence_tag} />
+              {domains && <span className="truncate font-mono text-[11px] text-stone-500">{domains}</span>}
+            </div>
           </div>
         </div>
         <span className="flex items-center justify-center gap-1 font-mono text-[11px] text-stone-400">
