@@ -330,7 +330,7 @@ export default function Dashboard() {
                     <p className="meta">
                       {source}
                       {item.published_date ? ` · ${ago(item.published_date)}` : ''}
-                      {showScore ? ` · importance ${score}` : ''}
+                      {showScore && <span className="hidden sm:inline"> · importance {score}</span>}
                     </p>
                     {showScore && <SignalPill level={level} />}
                     <span className="ml-auto"><BookmarkButton item={item} /></span>
@@ -356,16 +356,16 @@ export default function Dashboard() {
                   );
                 }
                 return (
-                  <li key={item.id} className="panel panel-hover flex items-start gap-3 px-4 py-4 sm:gap-4 sm:px-5">
+                  <li key={item.id} className="panel panel-hover flex items-start gap-3 px-3.5 py-4 sm:gap-4 sm:px-5">
                     <span
-                      className="w-7 flex-shrink-0 text-right font-display text-[24px] font-semibold leading-none tabular-nums text-stone-500 sm:w-8 sm:text-[28px]"
+                      className="w-5 flex-shrink-0 text-right font-display text-[22px] font-semibold leading-none tabular-nums text-stone-500 sm:w-8 sm:text-[28px]"
                       aria-hidden="true"
                     >
                       {idx + 1}
                     </span>
                     <div className="min-w-0 flex-1">
                       {headline}
-                      {summary && <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-stone-400">{summary}</p>}
+                      {summary && <p className="mt-1 line-clamp-1 text-sm leading-relaxed text-stone-400 sm:line-clamp-2">{summary}</p>}
                       {meta}
                     </div>
                     <a href={href} target="_blank" rel="noopener noreferrer" tabIndex={-1} aria-hidden="true" className="flex-shrink-0">

@@ -37,7 +37,7 @@ function initials(source = '') {
 
 const SIZES = {
   // Row thumbnail, right of the headline (Google News / Apple News pattern).
-  thumb: 'h-[72px] w-[96px] sm:h-[84px] sm:w-[112px] rounded-xl',
+  thumb: 'h-[60px] w-[80px] sm:h-[84px] sm:w-[112px] rounded-xl',
   // Small square for dense lists (briefing contents, saved stories).
   mini: 'h-12 w-12 rounded-lg',
   // Lead story hero. Width comes from the parent.
