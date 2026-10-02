@@ -39,6 +39,12 @@
           },
           "url": {
             "type": "string"
+          },
+          "image_url": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
           }
         }
       },

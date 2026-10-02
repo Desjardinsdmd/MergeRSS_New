@@ -26,6 +26,11 @@ import { generatePremiumPdf } from '@/lib/generatePremiumPdf';
 import ReactMarkdown from 'react-markdown';
 import SavedArticles from '@/components/dashboard/SavedArticles';
 import { PageHeader } from '@/components/brand/Brand';
+import StoryImage from '@/components/brand/StoryImage';
+
+function hostOf(url) {
+  try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return ''; }
+}
 
 // Dark-theme markdown renderer for digest bodies. Raw HTML is not rendered (react-markdown
 // default), and every link goes through safeUrl and opens in a new tab.
@@ -540,17 +545,18 @@ export default function Inbox() {
                     {showItems ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                   </button>
                   {showItems && (
-                    <div className="divide-y divide-white/[0.06] max-h-64 overflow-y-auto">
+                    <div className="divide-y divide-white/[0.06] max-h-80 overflow-y-auto">
                       {selectedDelivery.items.map((item, i) => (
                         <a
                           key={i}
                           href={safeUrl(item.url)}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-start gap-2 px-4 py-2.5 hover:bg-white/[0.04] transition group"
+                          className="flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.04] transition group"
                         >
-                          <ExternalLink className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-stone-600 group-hover:text-brand-light" />
-                          <span className="text-sm text-stone-300 group-hover:text-brand-light line-clamp-2">{decodeHtml(item.title)}</span>
+                          <StoryImage src={item.image_url} source={item.source || hostOf(item.url)} alt="" size="mini" />
+                          <span className="min-w-0 flex-1 text-sm text-stone-300 group-hover:text-brand-light line-clamp-2">{decodeHtml(item.title)}</span>
+                          <ExternalLink className="w-3.5 h-3.5 flex-shrink-0 text-stone-600 group-hover:text-brand-light" />
                         </a>
                       ))}
                     </div>
